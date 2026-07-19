@@ -2,8 +2,8 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Draft — ready for phase approval |
-| Planning stage | Product definition (referred to as Planning Phase 2 in the initiating request) |
+| Status | Approved — includes approved Stage 3 status-workflow amendments |
+| Planning stage | Stage 2 — Product requirements |
 | Product scope | MVP |
 | Document language | English |
 | Last updated | 2026-07-19 |
@@ -131,9 +131,10 @@ Uses the same private account from desktop and mobile-sized browsers and expects
 ### JRN-005 — Manage work on Kanban
 
 1. The user opens the Kanban view.
-2. Tasks are organized into the fixed statuses To Do, In Progress, and Completed.
-3. The user moves a Task to another status.
-4. The status change appears consistently in List, Today, search, and filtered results.
+2. Global Kanban organizes Tasks into the canonical groups To Do, In Progress, and Completed.
+3. An Area Kanban may display Area-specific statuses, each mapped to exactly one canonical group.
+4. The user moves a Task to another valid status and may manually reorder it on the board.
+5. The status change appears consistently in List, Today, search, filtered results, and both Kanban scopes.
 
 ### JRN-006 — Configure recurring work and reminders
 
@@ -163,7 +164,7 @@ Uses the same private account from desktop and mobile-sized browsers and expects
 | FG-001 | Authentication and account lifecycle | Private access through email/password or Google, with account recovery, verification, and deletion. |
 | FG-002 | Onboarding | Optional user-confirmed sample data for the first-use experience. |
 | FG-003 | Areas and Projects | Required Area context with optional Project grouping. |
-| FG-004 | Task management | Capture, enrich, status-track, complete, and organize Tasks. |
+| FG-004 | Task management | Capture, enrich, status-track through canonical groups and optional Area workflows, complete, and organize Tasks. |
 | FG-005 | Dates, recurrence, and reminders | Separate planning and deadline dates, two recurrence modes, and multiple in-app reminders. |
 | FG-006 | Today, List, and Kanban views | Complementary views over the same private Task data. |
 | FG-007 | Search, filters, and bulk actions | Efficient discovery and multi-Task maintenance. |
@@ -188,7 +189,7 @@ Uses the same private account from desktop and mobile-sized browsers and expects
 - **US-013:** As a user, I want multiple in-app reminders on a Task so that I can receive timely prompts before important dates.
 - **US-014:** As a user, I want to view Tasks due, planned, or overdue around today so that I know what needs attention.
 - **US-015:** As a user, I want a List view so that I can scan and sort work efficiently.
-- **US-016:** As a user, I want a Kanban view with fixed statuses so that I can update workflow state visually.
+- **US-016:** As a user, I want Global Kanban to use canonical status groups and Area Kanban to support mapped Area statuses so that global meaning and local workflow remain consistent.
 - **US-017:** As a user, I want to search my Tasks so that I can find work by remembered content.
 - **US-018:** As a user, I want to combine filters so that I can narrow work by relevant properties.
 - **US-019:** As a user, I want to apply basic actions to several Tasks so that routine maintenance is efficient.
@@ -246,11 +247,11 @@ Uses the same private account from desktop and mobile-sized browsers and expects
 - **FR-031:** A Task may have zero or more labels.
 - **FR-032:** A Task may have a checklist containing zero or more items.
 - **FR-033:** The user shall be able to add, edit, reorder, complete, and remove checklist items.
-- **FR-034:** A Task shall use one of the fixed statuses To Do, In Progress, or Completed.
-- **FR-035:** A newly created Task shall start in To Do unless the user explicitly selects another allowed status.
+- **FR-034:** Every Task status shall derive exactly one canonical group: To Do, In Progress, or Completed.
+- **FR-035:** A newly created Task shall start in a valid status mapped to To Do unless the user explicitly selects another allowed status.
 - **FR-036:** The system shall allow status changes from Task detail, List, Kanban, Today, search, and filtered contexts where editing is offered.
 - **FR-037:** Completing a Task shall make its completed state visible across all applicable views.
-- **FR-038:** Reopening a completed Task shall return it to an active fixed status selected by the user.
+- **FR-038:** Reopening a completed Task shall return it to a valid Area status mapped to To Do or In Progress and selected by the user.
 - **FR-039:** The same Task shall not be duplicated merely because it appears in multiple views.
 - **FR-040:** Changes made to a Task in one view shall appear consistently in every other applicable view.
 
@@ -278,7 +279,7 @@ Uses the same private account from desktop and mobile-sized browsers and expects
 ### Views and work discovery
 
 - **FR-059:** The system shall provide a List view of the user's Tasks.
-- **FR-060:** The system shall provide a Kanban view organized by the fixed statuses To Do, In Progress, and Completed.
+- **FR-060:** The system shall provide a Global Kanban organized by the canonical groups To Do, In Progress, and Completed.
 - **FR-061:** The system shall provide Today-focused views that identify Tasks planned today, due today, and overdue.
 - **FR-062:** Today-focused views shall distinguish the reason each Task is included.
 - **FR-063:** Active views shall exclude archived and trashed content by default.
@@ -311,6 +312,15 @@ Uses the same private account from desktop and mobile-sized browsers and expects
 - **FR-084:** User-facing content provided by the product shall be capable of supporting additional interface languages in the future.
 - **FR-085:** Core MVP journeys shall be available through a responsive web interface on desktop and mobile-sized screens.
 - **FR-086:** Responsive presentation shall preserve the meaning and availability of core actions rather than hiding required functionality without an alternative.
+
+### Area workflow statuses
+
+- **FR-087:** The system shall allow a user to define and order statuses for each of their Areas.
+- **FR-088:** Every Area status shall map to exactly one canonical group: To Do, In Progress, or Completed.
+- **FR-089:** Every Area shall retain at least one status for each canonical group and identify one default status per canonical group; an Area without customization shall use the three canonical defaults.
+- **FR-090:** The system shall provide an Area-specific Kanban that displays the statuses configured for that Area while preserving their canonical mappings.
+
+FR-087 through FR-090 are approved Stage 3 amendments that reconcile Area-specific status behavior with the canonical global groups.
 
 ## Non-functional requirements
 
@@ -379,7 +389,7 @@ No adoption or retention KPI is set for the initial personal-use MVP. Usage metr
 - **AC-003:** First-use onboarding offers sample data, creates it only after confirmation, and permits starting empty.
 - **AC-004:** Every active Task has exactly one Area; a Task may have no Project or one Project within that Area.
 - **AC-005:** Task title, description, planned date/time, due date/time, priority, labels, checklist, status, recurrence, and reminders satisfy the applicable functional requirements.
-- **AC-006:** The fixed statuses To Do, In Progress, and Completed behave consistently in Task detail, List, Today, and Kanban.
+- **AC-006:** Canonical groups and Area-specific mapped statuses behave consistently in Task detail, List, Today, Global Kanban, and Area Kanban.
 - **AC-007:** Calendar-based and completion-based recurrence are verifiably distinct and do not generate duplicate occurrences.
 - **AC-008:** Multiple Task reminders appear in-app at the intended times using the user's account time zone.
 - **AC-009:** Today views distinguish planned today, due today, and overdue inclusion reasons.
@@ -399,12 +409,12 @@ No adoption or retention KPI is set for the initial personal-use MVP. Usage metr
 | RA-003 | Risk | Supporting two recurrence modes increases conceptual and testing complexity. | Domain planning must define occurrence identity, completion effects, editing scope, and edge cases. |
 | RA-004 | Risk | Parent Archive, Trash, restore, and deletion can produce confusing child-item outcomes. | Domain planning must define lifecycle propagation and restoration invariants before data design. |
 | RA-005 | Risk | Multiple reminders and time-zone changes can create late, early, or duplicate notifications. | Domain and architecture stages must define deterministic time semantics and delivery guarantees. |
-| RA-006 | Risk | Fixed Kanban statuses may be too restrictive for some future users. | Keep custom workflows outside MVP and revisit only with observed need. |
+| RA-006 | Risk | Area-specific statuses may make global workflow meaning ambiguous. | Require exactly one canonical mapping for every Area status and retain canonical groups in global views. |
 | RA-007 | Risk | Optional sample data may be mistaken for real user content. | UX must clearly identify the choice and make generated examples safely editable or removable. |
 | RA-008 | Risk | Google authentication availability depends on external provider configuration and policy. | Validate provider prerequisites before implementation readiness. |
 | RA-009 | Risk | A 30-day Trash window may conflict with later backup or account-deletion policies. | Reconcile retention, backups, and deletion semantics during data and architecture planning. |
 | RA-010 | Assumption | Each account represents one individual and has one private planning space. | Revisit only if future collaboration or multiple spaces enter scope. |
-| RA-011 | Assumption | The fixed statuses are sufficient for MVP personal workflow. | Validate during UX walkthroughs and initial usability testing. |
+| RA-011 | Assumption | Three canonical groups plus optional Area-specific mapped statuses are sufficient for MVP personal workflow. | Validate during UX walkthroughs and initial usability testing. |
 | RA-012 | Assumption | In-app notifications are sufficient for MVP reminder validation. | Email and push delivery remain outside MVP. |
 
 ## Open questions
@@ -419,14 +429,14 @@ These questions do not change the accepted MVP boundary, but must be resolved in
 - **OQ-006 — Domain/Data:** How are historical recurring occurrences related to their recurrence definition when future behavior changes?
 - **OQ-007 — Privacy/Architecture:** What operational delay, backup treatment, and confirmation evidence apply to permanent account deletion?
 - **OQ-008 — UX/Architecture:** Which browsers, viewport ranges, and quantitative performance targets form the release support policy?
-- **OQ-009 — Product governance:** Will UX become a newly numbered stage before Domain Analysis, or remain an activity within the existing planning sequence?
+- **OQ-009 — Product governance — Resolved:** UX is Stage 3 after Stage 2 Product Requirements; Domain Analysis follows as Stage 4.
 
-The PRD is decision-complete for its MVP product boundary. It remains a draft until the user explicitly approves this phase. The questions above are deliberate handoffs and may not be silently resolved in later stages.
+The PRD is approved and decision-complete for its MVP product boundary. The unresolved handoffs above may not be silently resolved in later stages.
 
 ## Future considerations
 
 - **FC-001:** Shared work, delegation, comments, mentions, teams, and organizations.
-- **FC-002:** User-defined Task statuses and customizable Kanban workflows.
+- **FC-002:** Custom global canonical groups, cross-Area workflow schemes, and workflow automation beyond MVP Area statuses.
 - **FC-003:** Native mobile applications and native push notifications.
 - **FC-004:** Email reminders and calendar or productivity integrations.
 - **FC-005:** User-data export and import.

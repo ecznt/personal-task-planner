@@ -1,0 +1,17 @@
+{
+  "docs/PROJECT_MASTER.md": {
+    "mtime": 1784487040.3358476,
+    "ast_hash": "f2ccc6f16cd7fe2c98cbdaad23c45a53",
+    "semantic_hash": "f2ccc6f16cd7fe2c98cbdaad23c45a53"
+  },
+  "docs/product/PRD.md": {
+    "mtime": 1784487040.2431495,
+    "ast_hash": "89afa3fb5e02f0fed00c73fc83aff41d",
+    "semantic_hash": "89afa3fb5e02f0fed00c73fc83aff41d"
+  },
+  "docs/product/UX_FLOWS.md": {
+    "mtime": 1784487040.1493533,
+    "ast_hash": "8eb6358e03c5e7f019e6d13f042a46e7",
+    "semantic_hash": "8eb6358e03c5e7f019e6d13f042a46e7"
+  }
+}

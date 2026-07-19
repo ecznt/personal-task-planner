@@ -2,7 +2,7 @@
 command = "/Users/enescanzenit/.local/share/uv/tools/graphifyy/bin/python"
 args = ["-m", "graphify.serve", "/Users/enescanzenit/Documents/personal-task-planner/graphify-out/graph.json"]
 cwd = "/Users/enescanzenit/Documents/personal-task-planner"
-enabled = false
+enabled = true
 required = false
 startup_timeout_sec = 10
 tool_timeout_sec = 60
