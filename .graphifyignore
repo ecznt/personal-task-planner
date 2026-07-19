@@ -1,0 +1,46 @@
+# Repository and tool internals
+.git/
+.agents/
+.codex/
+graphify-out/
+
+# JavaScript dependencies and generated output
+node_modules/
+.pnpm-store/
+.next/
+dist/
+build/
+out/
+coverage/
+playwright-report/
+test-results/
+.turbo/
+.nx/
+.cache/
+
+# Python environments and caches
+.venv/
+venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Secrets, credentials, and private keys
+.env
+.env.*
+.npmrc
+.pypirc
+.netrc
+.aws/
+.ssh/
+credentials.json
+service-account*.json
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa
+id_ed25519
