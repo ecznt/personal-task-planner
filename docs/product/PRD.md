@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Approved — includes approved Stage 3 status-workflow amendments |
+| Status | Approved — includes approved Stage 3 and Stage 4 decision reconciliations |
 | Planning stage | Stage 2 — Product requirements |
 | Product scope | MVP |
 | Document language | English |
@@ -140,8 +140,9 @@ Uses the same private account from desktop and mobile-sized browsers and expects
 
 1. The user configures either calendar-based or completion-based recurrence.
 2. The user adds one or more date-based in-app reminders.
-3. The system creates future occurrences according to the selected recurrence behavior without duplicates.
-4. The system presents reminders at their configured times.
+3. Completing the current open occurrence creates at most one next occurrence according to the selected recurrence behavior.
+4. Calendar-based recurrence skips missed calendar slots rather than backfilling historical Tasks.
+5. The system presents reminders at their configured times.
 
 ### JRN-007 — Find and update several Tasks
 
@@ -266,9 +267,9 @@ Uses the same private account from desktop and mobile-sized browsers and expects
 - **FR-047:** A Task may have a calendar-based recurrence rule.
 - **FR-048:** A Task may instead have a completion-based recurrence rule.
 - **FR-049:** A recurring Task shall clearly display its recurrence behavior.
-- **FR-050:** The system shall create future recurring occurrences according to the selected mode without creating duplicate occurrences for the same recurrence event.
+- **FR-050:** A recurrence series shall have at most one open occurrence, and repeated processing shall not create a duplicate occurrence for the same completed predecessor.
 - **FR-051:** Completion-based recurrence shall schedule the next occurrence from the completed occurrence according to the user's rule.
-- **FR-052:** Calendar-based recurrence shall preserve its calendar schedule independently of completion timing.
+- **FR-052:** Calendar-based recurrence shall preserve its fixed calendar pattern; completion gates generation, the first eligible future calendar slot is selected, and missed slots are not backfilled.
 - **FR-053:** The user shall be able to stop or change recurrence for future occurrences without rewriting historical completed occurrences.
 - **FR-054:** A Task may have multiple user-defined in-app reminders tied to its planned or due date and time.
 - **FR-055:** The system shall prevent a reminder that requires a time from being silently scheduled when the relevant Task time is absent.
@@ -390,7 +391,7 @@ No adoption or retention KPI is set for the initial personal-use MVP. Usage metr
 - **AC-004:** Every active Task has exactly one Area; a Task may have no Project or one Project within that Area.
 - **AC-005:** Task title, description, planned date/time, due date/time, priority, labels, checklist, status, recurrence, and reminders satisfy the applicable functional requirements.
 - **AC-006:** Canonical groups and Area-specific mapped statuses behave consistently in Task detail, List, Today, Global Kanban, and Area Kanban.
-- **AC-007:** Calendar-based and completion-based recurrence are verifiably distinct and do not generate duplicate occurrences.
+- **AC-007:** Calendar-based and completion-based recurrence are verifiably distinct, permit at most one open occurrence per series, generate the successor after completion, skip missed calendar slots, and do not create duplicates.
 - **AC-008:** Multiple Task reminders appear in-app at the intended times using the user's account time zone.
 - **AC-009:** Today views distinguish planned today, due today, and overdue inclusion reasons.
 - **AC-010:** Search, core filters, combined filters, multi-selection, and the defined bulk actions work only over the current user's content.
@@ -406,9 +407,9 @@ No adoption or retention KPI is set for the initial personal-use MVP. Usage metr
 | --- | --- | --- | --- |
 | RA-001 | Risk | Required Area ownership may add friction to quick capture. | UX planning must provide a low-friction Area selection or remembered context without weakening the rule. |
 | RA-002 | Risk | Separate planned and due dates can be misunderstood. | UX planning must give each date a distinct label and Today inclusion explanation. |
-| RA-003 | Risk | Supporting two recurrence modes increases conceptual and testing complexity. | Domain planning must define occurrence identity, completion effects, editing scope, and edge cases. |
-| RA-004 | Risk | Parent Archive, Trash, restore, and deletion can produce confusing child-item outcomes. | Domain planning must define lifecycle propagation and restoration invariants before data design. |
-| RA-005 | Risk | Multiple reminders and time-zone changes can create late, early, or duplicate notifications. | Domain and architecture stages must define deterministic time semantics and delivery guarantees. |
+| RA-003 | Risk | Supporting two recurrence modes increases conceptual and testing complexity. | Apply the approved one-open-occurrence, completion-triggered generation, no-backfill, versioning, and idempotency rules from Domain Analysis. |
+| RA-004 | Risk | Parent Archive, Trash, restore, and deletion can produce confusing child-item outcomes. | Apply the approved cascade-provenance and coherent-restore rules from Domain Analysis before data design. |
+| RA-005 | Risk | Multiple reminders and time-zone changes can create late, early, or duplicate notifications. | Apply the approved Domain time, pause, recalculation, and idempotency rules; Architecture must define delivery guarantees. |
 | RA-006 | Risk | Area-specific statuses may make global workflow meaning ambiguous. | Require exactly one canonical mapping for every Area status and retain canonical groups in global views. |
 | RA-007 | Risk | Optional sample data may be mistaken for real user content. | UX must clearly identify the choice and make generated examples safely editable or removable. |
 | RA-008 | Risk | Google authentication availability depends on external provider configuration and policy. | Validate provider prerequisites before implementation readiness. |
@@ -421,12 +422,12 @@ No adoption or retention KPI is set for the initial personal-use MVP. Usage metr
 
 These questions do not change the accepted MVP boundary, but must be resolved in the named planning stages:
 
-- **OQ-001 — UX:** What exact navigation model and responsive breakpoints best support Today, Areas, Projects, List, Kanban, Archive, Trash, and notifications?
-- **OQ-002 — UX/Domain:** Which recurrence presets and custom rule options are required to express the two approved recurrence modes?
-- **OQ-003 — UX/Domain:** Which reminder offsets and absolute-time choices are offered, and how are invalid reminders explained?
-- **OQ-004 — UX:** What default sorting, grouping, and filter controls are offered in each view?
-- **OQ-005 — Domain:** What are the exact lifecycle effects when a parent Area or Project is archived, trashed, restored, or permanently deleted?
-- **OQ-006 — Domain/Data:** How are historical recurring occurrences related to their recurrence definition when future behavior changes?
+- **OQ-001 — UX — Resolved:** UX defines the desktop sidebar, compact bottom navigation, route hierarchy, and responsive ranges.
+- **OQ-002 — UX/Domain — Resolved:** UX defines the recurrence choices; Domain Analysis defines their exact calendar, completion, one-open-occurrence, and no-backfill semantics.
+- **OQ-003 — UX/Domain — Resolved for UX and Domain:** UX defines reminder choices and validation; Domain defines anchor, time, lifecycle, and idempotency rules. Operational delivery remains for Architecture.
+- **OQ-004 — UX — Resolved:** UX defines automatic sorting and filter composition. API Design must preserve those observable semantics.
+- **OQ-005 — Domain — Resolved:** Parent lifecycle actions cascade with provenance; restore reverses matching cascade effects, and required descendants are deleted with a permanently deleted parent.
+- **OQ-006 — Domain/Data — Resolved for Domain:** Historical occurrences retain their rule meaning; future edits create a new recurrence rule/template version. Data representation remains for Stage 5.
 - **OQ-007 — Privacy/Architecture:** What operational delay, backup treatment, and confirmation evidence apply to permanent account deletion?
 - **OQ-008 — UX/Architecture:** Which browsers, viewport ranges, and quantitative performance targets form the release support policy?
 - **OQ-009 — Product governance — Resolved:** UX is Stage 3 after Stage 2 Product Requirements; Domain Analysis follows as Stage 4.

@@ -1,17 +1,22 @@
 {
   "docs/PROJECT_MASTER.md": {
-    "mtime": 1784487040.3358476,
-    "ast_hash": "f2ccc6f16cd7fe2c98cbdaad23c45a53",
-    "semantic_hash": "f2ccc6f16cd7fe2c98cbdaad23c45a53"
+    "mtime": 1784492902.974218,
+    "ast_hash": "2d5426314e21153040f7850da0e29ce5",
+    "semantic_hash": "2d5426314e21153040f7850da0e29ce5"
   },
   "docs/product/PRD.md": {
-    "mtime": 1784487040.2431495,
-    "ast_hash": "89afa3fb5e02f0fed00c73fc83aff41d",
-    "semantic_hash": "89afa3fb5e02f0fed00c73fc83aff41d"
+    "mtime": 1784490683.9224033,
+    "ast_hash": "950fb468e55a6e84b58336113e7e26ce",
+    "semantic_hash": "950fb468e55a6e84b58336113e7e26ce"
   },
   "docs/product/UX_FLOWS.md": {
-    "mtime": 1784487040.1493533,
-    "ast_hash": "8eb6358e03c5e7f019e6d13f042a46e7",
-    "semantic_hash": "8eb6358e03c5e7f019e6d13f042a46e7"
+    "mtime": 1784490684.0153377,
+    "ast_hash": "0028d527828e56addccd1d7a7e246dc5",
+    "semantic_hash": "0028d527828e56addccd1d7a7e246dc5"
+  },
+  "docs/domain/DOMAIN_MODEL.md": {
+    "mtime": 1784492611.3072748,
+    "ast_hash": "fe5288390ea9023fde28d1c188cff5d5",
+    "semantic_hash": "fe5288390ea9023fde28d1c188cff5d5"
   }
 }

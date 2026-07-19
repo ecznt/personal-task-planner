@@ -2,7 +2,7 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Approved — Stage 3 complete |
+| Status | Approved — Stage 3 complete; Stage 4 domain decisions reconciled |
 | Planning stage | Stage 3 — UX flows and information architecture |
 | Product scope | MVP |
 | Document language | English |
@@ -310,7 +310,7 @@ Default ordering within each section is planned/due time ascending, then priorit
 5. Workflow settings allow creating, renaming, reordering, and retiring Area statuses.
 6. Every Area status must be mapped to To Do, In Progress, or Completed before it can be saved.
 7. The Area must retain at least one status in each canonical group and one default status per group; consequences of retiring a status with Tasks are explained and require reassignment.
-8. Archive and Trash flows describe that contained Projects and Tasks are affected; exact lifecycle propagation remains a Domain decision.
+8. Archive and Trash flows describe the approved Domain behavior: descendants affected by a parent cascade retain lifecycle provenance, and restore reverses only effects from that cascade.
 
 **PRD traceability:** FR-017–FR-026, FR-034–FR-040, FR-063–FR-064, FR-073–FR-082, FR-087–FR-090, RA-001, RA-004, AC-004, AC-011.
 
@@ -329,7 +329,7 @@ Default ordering within each section is planned/due time ascending, then priorit
 1. The header displays Project name and owning Area, with the Area linking back to context.
 2. The Task list shows only Tasks in this Project.
 3. New Task inherits both Project and Area.
-4. Editing Area moves the Project only through a consequence-aware flow that reconciles its Tasks; the exact domain rule is deferred.
+4. Editing Area moves the Project and all its Tasks atomically; each Task preserves its canonical group through the target Area's default status.
 5. Archive and Trash actions explain impact on contained Tasks before confirmation.
 
 **PRD traceability:** FR-020–FR-026, FR-063–FR-064, FR-073–FR-082, AC-004, AC-011.
@@ -364,9 +364,10 @@ Default ordering within each section is planned/due time ascending, then priorit
 2. Calendar-based presets include daily, weekdays, weekly, monthly, yearly, and custom interval/rule.
 3. Completion-based presets include a user-selected number of days, weeks, or months after completion.
 4. A plain-language summary previews the rule and account time zone before save.
-5. Editing an existing recurrence distinguishes “this occurrence” from “this and future occurrences” when both are valid.
-6. Stopping recurrence affects future generation and does not silently rewrite completed history.
-7. Edge cases that require domain rules are identified rather than guessed.
+5. A series has at most one open occurrence; completing it creates the next occurrence.
+6. Calendar-based recurrence chooses the first eligible future slot and skips missed slots; completion-based recurrence calculates from completion.
+7. Editing an existing recurrence distinguishes “this occurrence” from “this and future occurrences” when both are valid.
+8. Stopping recurrence affects future generation and does not silently rewrite completed history.
 
 ### UXF-014 — Reminder editing
 
@@ -497,7 +498,7 @@ Default ordering within each section is planned/due time ascending, then priorit
 5. The interface reflects automatic expiry but does not imply that client-side presence controls deletion timing.
 6. After restore or permanent deletion, focus moves to a predictable location and an accessible result announcement is made.
 
-The exact propagation and restoration invariants for parent and child items remain a required Domain-stage decision.
+The Domain Model defines cascade provenance, prior-state restoration, coherent destination choices, the 30-day deadline, and permanent parent-deletion effects.
 
 **PRD traceability:** FR-026, FR-063, FR-073–FR-082, NFR-007, NFR-013, PRV-006–PRV-008, SC-007, AC-011, AC-014, RA-004, RA-009.
 
@@ -659,13 +660,13 @@ The following requirements remain valid but are primarily verified through Domai
 - **PRV-009:** Diagnostic-content minimization.
 - **PRV-010:** Privacy review governance.
 
-The following requirements have visible UX states but still require non-UX rules before they can be considered fully specified:
+The following requirements have visible UX states and depend on Domain, Data, or Architecture rules. Resolved Stage 4 rules and remaining handoffs are distinguished below:
 
-- **FR-006:** External identity uniqueness and account-linking behavior.
-- **FR-050–FR-053:** Recurrence identity, generation, and history guarantees.
+- **FR-006:** External identity uniqueness and explicit account linking are resolved in Domain Analysis; provider configuration remains for Architecture.
+- **FR-050–FR-053:** Recurrence identity, generation, and history guarantees are enforced by the approved Stage 4 domain rules rather than by a separate screen.
 - **FR-079:** Automatic permanent deletion after 30 days.
-- **NFR-007:** Structural recoverability after parent lifecycle actions.
-- **NFR-012:** Exact date/time semantics when the account time zone changes.
+- **NFR-007:** Structural recoverability after parent lifecycle actions is enforced by the approved Stage 4 domain rules.
+- **NFR-012:** Date-only, timed-instant, and future recurrence time-zone semantics are resolved in Domain Analysis; storage representation remains for Data Design.
 - **PRV-007:** Operational account-deletion timing and backup treatment.
 
 ## PRD points that still require decisions beyond UX
@@ -673,11 +674,11 @@ The following requirements have visible UX states but still require non-UX rules
 | PRD question | UX decision in this document | Remaining decision owner |
 | --- | --- | --- |
 | OQ-001 — Navigation and responsive model | Resolved for IA, desktop/mobile navigation, and responsive ranges. | Visual design may refine presentation without changing hierarchy. |
-| OQ-002 — Recurrence choices | UX presets and mode-selection flow defined. | Domain must define exact calendar semantics and edit scope. |
+| OQ-002 — Recurrence choices | UX presets and mode-selection flow defined. | Resolved in Domain Analysis: one open occurrence, completion-triggered generation, fixed calendar pattern, and no backfill. |
 | OQ-003 — Reminder choices | Presets, custom choice, dependency validation, and preview defined. | Domain/Architecture must define scheduling and delivery guarantees. |
 | OQ-004 — Sorting and filters | Global List sorting and filter semantics defined. | Domain/API must preserve these observable semantics. |
-| OQ-005 — Parent lifecycle effects | Confirmation, preview, and coherent restore expectations defined. | Domain must define propagation and restoration invariants. |
-| OQ-006 — Recurrence history | “This occurrence” and “future occurrences” concepts exposed. | Domain/Data must define versioning and historical relationships. |
+| OQ-005 — Parent lifecycle effects | Confirmation, preview, and coherent restore expectations defined. | Resolved in Domain Analysis through cascade provenance and prior-state restoration. |
+| OQ-006 — Recurrence history | “This occurrence” and “future occurrences” concepts exposed. | Domain versioning and historical meaning resolved; Data Design must define representation. |
 | OQ-007 — Account deletion | Confirmation and visible completion flow defined. | Privacy/Architecture must define timing, backups, and evidence. |
 | OQ-008 — Support policy | Responsive ranges defined. | Architecture must define browser, performance, and availability targets. |
 | OQ-009 — Stage placement | Resolved: UX is Stage 3 after approved Product Requirements Stage 2. | None. |
@@ -691,7 +692,7 @@ The following requirements have visible UX states but still require non-UX rules
 | UXRA-003 | Risk | Desktop side panels may obscure deep Task editing. | Preserve a direct full-page route and use full-screen detail on compact layouts. |
 | UXRA-004 | Risk | Horizontal Kanban interaction is difficult on compact screens. | Provide named status navigation and action-menu movement in addition to scrolling and drag. |
 | UXRA-005 | Risk | Today categories can duplicate the same Task. | Apply one-row display with multiple reason badges and deterministic section precedence. |
-| UXRA-006 | Risk | Parent lifecycle confirmations may promise behavior not yet defined. | Keep copy outcome-oriented and block implementation until Domain invariants are approved. |
+| UXRA-006 | Risk | Parent lifecycle confirmations may misstate cascade or restore scope. | Derive the copy from the Stage 4 cascade-provenance and coherent-restore rules. |
 | UXRA-007 | Assumption | The selected desktop sidebar and mobile bottom navigation cover MVP destinations without excessive nesting. | Validate with route walkthroughs before visual design approval. |
 | UXRA-008 | Assumption | Planned-date-first default sorting best supports personal planning. | Validate during usability walkthroughs; retain alternative automatic sorts. |
 
