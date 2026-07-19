@@ -4,6 +4,96 @@
   "graph": {
     "hyperedges": [
       {
+        "id": "docs_project_master_planning_artifact_sequence",
+        "label": "Approved Planning Artifact Sequence Through Stage 5 Draft",
+        "nodes": [
+          "docs_project_master_product_requirements_artifact",
+          "docs_project_master_ux_flows_artifact",
+          "docs_project_master_domain_model_artifact",
+          "docs_project_master_data_model_artifact"
+        ],
+        "relation": "form",
+        "confidence": "EXTRACTED",
+        "confidence_score": 1.0,
+        "source_file": "docs/PROJECT_MASTER.md"
+      },
+      {
+        "id": "docs_project_master_stage_5_data_decision_package_group",
+        "label": "Approved Stage 5 Data Decision Package",
+        "nodes": [
+          "docs_project_master_account_deletion_purge",
+          "docs_project_master_primary_email_uniqueness",
+          "docs_project_master_independent_kanban_rank_keys",
+          "docs_project_master_stage_5_data_decision_package"
+        ],
+        "relation": "form",
+        "confidence": "EXTRACTED",
+        "confidence_score": 1.0,
+        "source_file": "docs/PROJECT_MASTER.md"
+      },
+      {
+        "id": "docs_project_master_stage_5_graph_findings_group",
+        "label": "Verified Stage 5 Graph Findings",
+        "nodes": [
+          "docs_project_master_verified_stage_5_graph_findings",
+          "docs_project_master_verified_direct_domain_data_mappings",
+          "docs_project_master_verified_user_data_ownership_paths",
+          "docs_project_master_system_defined_canonical_status",
+          "docs_project_master_graph_extraction_density",
+          "docs_project_master_stage_5_extracted_relationship_provenance"
+        ],
+        "relation": "form",
+        "confidence": "EXTRACTED",
+        "confidence_score": 1.0,
+        "source_file": "docs/PROJECT_MASTER.md"
+      },
+      {
+        "id": "data_owner_inclusive_hierarchy",
+        "label": "Owner-Inclusive User Area Project Task Hierarchy",
+        "nodes": [
+          "docs_data_data_model_user",
+          "docs_data_data_model_area",
+          "docs_data_data_model_project",
+          "docs_data_data_model_task",
+          "docs_data_data_model_areastatus"
+        ],
+        "relation": "form",
+        "confidence": "EXTRACTED",
+        "confidence_score": 1.0,
+        "source_file": "docs/data/DATA_MODEL.md"
+      },
+      {
+        "id": "data_recurrence_consistency_flow",
+        "label": "Transactional Recurrence Successor Consistency",
+        "nodes": [
+          "docs_data_data_model_recurrenceseries",
+          "docs_data_data_model_recurrenceruleversion",
+          "docs_data_data_model_task_recurrence_fields",
+          "docs_data_data_model_recurrence_successor_prevention",
+          "docs_data_data_model_transaction_boundaries",
+          "docs_data_data_model_concurrency_operations"
+        ],
+        "relation": "participate_in",
+        "confidence": "EXTRACTED",
+        "confidence_score": 1.0,
+        "source_file": "docs/data/DATA_MODEL.md"
+      },
+      {
+        "id": "data_lifecycle_purge_flow",
+        "label": "Lifecycle Provenance Restore and Purge Flow",
+        "nodes": [
+          "docs_data_data_model_archive_trash_representation",
+          "docs_data_data_model_lifecycle_operation_effect",
+          "docs_data_data_model_delete_restore_effects",
+          "docs_data_data_model_account_deletion_process",
+          "docs_data_data_model_retention_assumptions"
+        ],
+        "relation": "participate_in",
+        "confidence": "EXTRACTED",
+        "confidence_score": 1.0,
+        "source_file": "docs/data/DATA_MODEL.md"
+      },
+      {
         "id": "domain_private_area_project_task_hierarchy",
         "label": "Domain Private Area\u2013Project\u2013Task Hierarchy",
         "nodes": [
@@ -30,21 +120,6 @@
         "confidence": "EXTRACTED",
         "confidence_score": 1.0,
         "source_file": "docs/domain/DOMAIN_MODEL.md"
-      },
-      {
-        "id": "stage_4_approved_domain_baseline",
-        "label": "Completed and Approved Stage 4 Domain Baseline",
-        "nodes": [
-          "docs_project_master_stage_4_domain_analysis",
-          "docs_project_master_approved_stage_4_domain_baseline",
-          "docs_project_master_domain_model_artifact",
-          "docs_domain_domain_model_domain_model",
-          "docs_domain_domain_model_approved_stage_4_baseline"
-        ],
-        "relation": "form",
-        "confidence": "EXTRACTED",
-        "confidence_score": 1.0,
-        "source_file": "docs/PROJECT_MASTER.md"
       }
     ]
   },
@@ -58,7 +133,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 11,
+      "community": 12,
       "norm_label": "mvp acceptance criteria",
       "id": "docs_product_prd_acceptance_criteria"
     },
@@ -71,7 +146,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 3,
       "norm_label": "accessibility expectations",
       "id": "docs_product_prd_accessibility_expectations"
     },
@@ -84,7 +159,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 8,
+      "community": 4,
       "norm_label": "archive and trash requirements",
       "id": "docs_product_prd_archive_trash_requirements"
     },
@@ -97,7 +172,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 5,
+      "community": 9,
       "norm_label": "area workflow status requirements",
       "id": "docs_product_prd_area_workflow_statuses"
     },
@@ -110,7 +185,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 2,
+      "community": 1,
       "norm_label": "areas and projects requirements",
       "id": "docs_product_prd_areas_projects_requirements"
     },
@@ -123,7 +198,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 9,
+      "community": 2,
       "norm_label": "authentication and account lifecycle requirements",
       "id": "docs_product_prd_authentication_requirements"
     },
@@ -136,7 +211,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 7,
       "norm_label": "dates, recurrence, and reminders requirements",
       "id": "docs_product_prd_dates_recurrence_reminders"
     },
@@ -149,7 +224,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 12,
+      "community": 13,
       "norm_label": "future considerations",
       "id": "docs_product_prd_future_considerations"
     },
@@ -162,7 +237,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 3,
       "norm_label": "localization and responsive requirements",
       "id": "docs_product_prd_localization_responsive"
     },
@@ -175,7 +250,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 3,
       "norm_label": "non-functional requirements",
       "id": "docs_product_prd_non_functional_requirements"
     },
@@ -188,7 +263,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 3,
       "norm_label": "onboarding requirements",
       "id": "docs_product_prd_onboarding_requirements"
     },
@@ -201,7 +276,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 10,
+      "community": 11,
       "norm_label": "cross-stage open questions",
       "id": "docs_product_prd_open_questions"
     },
@@ -214,7 +289,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 3,
       "norm_label": "personal planner personas",
       "id": "docs_product_prd_personas"
     },
@@ -227,7 +302,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 3,
       "norm_label": "primary user journeys",
       "id": "docs_product_prd_primary_user_journeys"
     },
@@ -240,7 +315,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 4,
       "norm_label": "privacy expectations",
       "id": "docs_product_prd_privacy_expectations"
     },
@@ -253,7 +328,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 3,
       "norm_label": "fragmented personal planning problem",
       "id": "docs_product_prd_problem_statement"
     },
@@ -266,7 +341,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 3,
       "norm_label": "mvp product principles",
       "id": "docs_product_prd_product_principles"
     },
@@ -279,7 +354,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 3,
       "norm_label": "personal task planner product requirements document",
       "id": "docs_product_prd_product_requirements_document"
     },
@@ -292,7 +367,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 10,
+      "community": 11,
       "norm_label": "product risks and assumptions",
       "id": "docs_product_prd_risks_assumptions"
     },
@@ -305,7 +380,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 11,
+      "community": 12,
       "norm_label": "mvp success criteria",
       "id": "docs_product_prd_success_criteria"
     },
@@ -318,7 +393,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 3,
       "norm_label": "task management requirements",
       "id": "docs_product_prd_task_management_requirements"
     },
@@ -331,7 +406,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 3,
       "norm_label": "ux phase entry gate",
       "id": "docs_product_prd_ux_phase_entry_gate"
     },
@@ -344,7 +419,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 5,
+      "community": 9,
       "norm_label": "views and work discovery requirements",
       "id": "docs_product_prd_views_work_discovery"
     },
@@ -357,7 +432,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 8,
+      "community": 4,
       "norm_label": "archive, trash, and retention ux",
       "id": "docs_product_ux_flows_archive_trash"
     },
@@ -370,7 +445,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "area",
       "id": "docs_product_ux_flows_area"
     },
@@ -383,7 +458,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 5,
+      "community": 9,
       "norm_label": "area-specific kanban",
       "id": "docs_product_ux_flows_area_kanban"
     },
@@ -396,7 +471,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 2,
+      "community": 1,
       "norm_label": "area and project list/detail flows",
       "id": "docs_product_ux_flows_area_project_flows"
     },
@@ -409,7 +484,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 9,
+      "community": 2,
       "norm_label": "registration, login, recovery, and google authentication",
       "id": "docs_product_ux_flows_authentication_flows"
     },
@@ -422,7 +497,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 5,
+      "community": 9,
       "norm_label": "multi-task bulk actions",
       "id": "docs_product_ux_flows_bulk_actions"
     },
@@ -435,7 +510,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 10,
+      "community": 11,
       "norm_label": "remaining domain, data, privacy, and architecture decisions",
       "id": "docs_product_ux_flows_cross_stage_handoffs"
     },
@@ -448,7 +523,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "desktop sidebar navigation",
       "id": "docs_product_ux_flows_desktop_navigation"
     },
@@ -461,7 +536,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 5,
+      "community": 9,
       "norm_label": "canonical global kanban",
       "id": "docs_product_ux_flows_global_kanban"
     },
@@ -474,7 +549,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 5,
+      "community": 9,
       "norm_label": "global list review and sorting",
       "id": "docs_product_ux_flows_global_list"
     },
@@ -487,7 +562,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "application information architecture",
       "id": "docs_product_ux_flows_information_architecture"
     },
@@ -500,7 +575,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 3,
       "norm_label": "empty, loading, and error states",
       "id": "docs_product_ux_flows_interaction_states"
     },
@@ -513,7 +588,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 3,
       "norm_label": "keyboard and accessibility behavior",
       "id": "docs_product_ux_flows_keyboard_accessibility"
     },
@@ -526,7 +601,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "mobile bottom navigation",
       "id": "docs_product_ux_flows_mobile_navigation"
     },
@@ -539,7 +614,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 4,
       "norm_label": "non-disclosing content unavailable state",
       "id": "docs_product_ux_flows_non_disclosing_unavailable"
     },
@@ -552,7 +627,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 7,
       "norm_label": "notification center",
       "id": "docs_product_ux_flows_notifications"
     },
@@ -565,7 +640,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 3,
       "norm_label": "first authenticated entry",
       "id": "docs_product_ux_flows_onboarding_flow"
     },
@@ -578,7 +653,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 3,
       "norm_label": "prd-to-ux traceability",
       "id": "docs_product_ux_flows_prd_traceability"
     },
@@ -591,7 +666,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "project",
       "id": "docs_product_ux_flows_project"
     },
@@ -604,7 +679,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 7,
       "norm_label": "recurrence editing",
       "id": "docs_product_ux_flows_recurrence_editing"
     },
@@ -617,7 +692,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 7,
       "norm_label": "reminder editing",
       "id": "docs_product_ux_flows_reminder_editing"
     },
@@ -630,7 +705,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 3,
       "norm_label": "responsive behavior",
       "id": "docs_product_ux_flows_responsive_behavior"
     },
@@ -643,7 +718,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "public, authentication, and application routes",
       "id": "docs_product_ux_flows_route_model"
     },
@@ -656,7 +731,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 5,
+      "community": 9,
       "norm_label": "global search and filters",
       "id": "docs_product_ux_flows_search_filters"
     },
@@ -669,7 +744,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 2,
       "norm_label": "preferences, authentication, and account deletion settings",
       "id": "docs_product_ux_flows_settings"
     },
@@ -682,7 +757,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "stage 3 approval gate",
       "id": "docs_product_ux_flows_stage_3_approval_gate"
     },
@@ -695,7 +770,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "task",
       "id": "docs_product_ux_flows_task"
     },
@@ -708,7 +783,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 1,
+      "community": 3,
       "norm_label": "quick task creation and detail editing",
       "id": "docs_product_ux_flows_task_creation_editing"
     },
@@ -721,7 +796,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "labels, checklists, recurrence, and reminders",
       "id": "docs_product_ux_flows_task_extensions"
     },
@@ -734,7 +809,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 5,
+      "community": 9,
       "norm_label": "daily planning and execution",
       "id": "docs_product_ux_flows_today_flow"
     },
@@ -747,7 +822,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "user private space",
       "id": "docs_product_ux_flows_user_private_space"
     },
@@ -760,7 +835,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "ux flows and information architecture",
       "id": "docs_product_ux_flows_ux_flows_information_architecture"
     },
@@ -773,7 +848,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 6,
+      "community": 8,
       "norm_label": "ux principles",
       "id": "docs_product_ux_flows_ux_principles"
     },
@@ -786,9 +861,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_approved_stage_4_baseline",
-      "community": 0,
-      "norm_label": "approved stage 4 domain baseline"
+      "community": 2,
+      "norm_label": "approved stage 4 domain baseline",
+      "id": "docs_domain_domain_model_approved_stage_4_baseline"
     },
     {
       "label": "Archive State",
@@ -799,9 +874,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_archive_state",
-      "community": 8,
-      "norm_label": "archive state"
+      "community": 4,
+      "norm_label": "archive state",
+      "id": "docs_domain_domain_model_archive_state"
     },
     {
       "label": "Area",
@@ -812,9 +887,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_area",
-      "community": 2,
-      "norm_label": "area"
+      "community": 1,
+      "norm_label": "area",
+      "id": "docs_domain_domain_model_area"
     },
     {
       "label": "AreaStatus",
@@ -825,9 +900,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_areastatus",
-      "community": 2,
-      "norm_label": "areastatus"
+      "community": 1,
+      "norm_label": "areastatus",
+      "id": "docs_domain_domain_model_areastatus"
     },
     {
       "label": "AuthenticationIdentity",
@@ -838,9 +913,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_authenticationidentity",
-      "community": 9,
-      "norm_label": "authenticationidentity"
+      "community": 2,
+      "norm_label": "authenticationidentity",
+      "id": "docs_domain_domain_model_authenticationidentity"
     },
     {
       "label": "CanonicalStatus",
@@ -851,9 +926,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_canonicalstatus",
-      "community": 2,
-      "norm_label": "canonicalstatus"
+      "community": 1,
+      "norm_label": "canonicalstatus",
+      "id": "docs_domain_domain_model_canonicalstatus"
     },
     {
       "label": "ChecklistItem",
@@ -864,9 +939,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_checklistitem",
-      "community": 2,
-      "norm_label": "checklistitem"
+      "community": 1,
+      "norm_label": "checklistitem",
+      "id": "docs_domain_domain_model_checklistitem"
     },
     {
       "label": "Conceptual Consistency Boundaries",
@@ -877,9 +952,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_consistency_boundaries",
-      "community": 2,
-      "norm_label": "conceptual consistency boundaries"
+      "community": 1,
+      "norm_label": "conceptual consistency boundaries",
+      "id": "docs_domain_domain_model_consistency_boundaries"
     },
     {
       "label": "Allowed and Forbidden Cross-Concept Operations",
@@ -890,9 +965,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_cross_concept_operations",
-      "community": 0,
-      "norm_label": "allowed and forbidden cross-concept operations"
+      "community": 2,
+      "norm_label": "allowed and forbidden cross-concept operations",
+      "id": "docs_domain_domain_model_cross_concept_operations"
     },
     {
       "label": "Data Design Entry Gate",
@@ -903,9 +978,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_data_design_entry_gate",
-      "community": 0,
-      "norm_label": "data design entry gate"
+      "community": 2,
+      "norm_label": "data design entry gate",
+      "id": "docs_domain_domain_model_data_design_entry_gate"
     },
     {
       "label": "Date and Time Rules",
@@ -916,9 +991,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_date_time_rules",
-      "community": 3,
-      "norm_label": "date and time rules"
+      "community": 2,
+      "norm_label": "date and time rules",
+      "id": "docs_domain_domain_model_date_time_rules"
     },
     {
       "label": "Personal Task Planner Domain Model and Business Rules",
@@ -929,9 +1004,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_domain_model",
-      "community": 0,
-      "norm_label": "personal task planner domain model and business rules"
+      "community": 2,
+      "norm_label": "personal task planner domain model and business rules",
+      "id": "docs_domain_domain_model_domain_model"
     },
     {
       "label": "Domain Scope and Principles",
@@ -942,9 +1017,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_domain_principles",
-      "community": 0,
-      "norm_label": "domain scope and principles"
+      "community": 2,
+      "norm_label": "domain scope and principles",
+      "id": "docs_domain_domain_model_domain_principles"
     },
     {
       "label": "Domain Risks and Mitigations",
@@ -955,9 +1030,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_domain_risks_mitigations",
-      "community": 0,
-      "norm_label": "domain risks and mitigations"
+      "community": 2,
+      "norm_label": "domain risks and mitigations",
+      "id": "docs_domain_domain_model_domain_risks_mitigations"
     },
     {
       "label": "Label",
@@ -968,9 +1043,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_label",
-      "community": 2,
-      "norm_label": "label"
+      "community": 1,
+      "norm_label": "label",
+      "id": "docs_domain_domain_model_label"
     },
     {
       "label": "Remaining Non-Domain Handoffs",
@@ -981,9 +1056,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_non_domain_handoffs",
-      "community": 0,
-      "norm_label": "remaining non-domain handoffs"
+      "community": 2,
+      "norm_label": "remaining non-domain handoffs",
+      "id": "docs_domain_domain_model_non_domain_handoffs"
     },
     {
       "label": "Notification",
@@ -994,9 +1069,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_notification",
-      "community": 3,
-      "norm_label": "notification"
+      "community": 7,
+      "norm_label": "notification",
+      "id": "docs_domain_domain_model_notification"
     },
     {
       "label": "Ownership and Isolation Rules",
@@ -1007,9 +1082,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_ownership_isolation_rules",
-      "community": 7,
-      "norm_label": "ownership and isolation rules"
+      "community": 4,
+      "norm_label": "ownership and isolation rules",
+      "id": "docs_domain_domain_model_ownership_isolation_rules"
     },
     {
       "label": "Parent Lifecycle Propagation",
@@ -1020,9 +1095,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_parent_lifecycle_propagation",
-      "community": 8,
-      "norm_label": "parent lifecycle propagation"
+      "community": 4,
+      "norm_label": "parent lifecycle propagation",
+      "id": "docs_domain_domain_model_parent_lifecycle_propagation"
     },
     {
       "label": "Project",
@@ -1033,9 +1108,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_project",
-      "community": 2,
-      "norm_label": "project"
+      "community": 1,
+      "norm_label": "project",
+      "id": "docs_domain_domain_model_project"
     },
     {
       "label": "Recurrence Generation Examples",
@@ -1046,9 +1121,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_recurrence_generation_examples",
-      "community": 3,
-      "norm_label": "recurrence generation examples"
+      "community": 7,
+      "norm_label": "recurrence generation examples",
+      "id": "docs_domain_domain_model_recurrence_generation_examples"
     },
     {
       "label": "RecurrenceRule",
@@ -1059,9 +1134,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_recurrencerule",
-      "community": 3,
-      "norm_label": "recurrencerule"
+      "community": 7,
+      "norm_label": "recurrencerule",
+      "id": "docs_domain_domain_model_recurrencerule"
     },
     {
       "label": "RecurrenceSeries",
@@ -1072,9 +1147,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_recurrenceseries",
-      "community": 2,
-      "norm_label": "recurrenceseries"
+      "community": 1,
+      "norm_label": "recurrenceseries",
+      "id": "docs_domain_domain_model_recurrenceseries"
     },
     {
       "label": "Domain Requirements Traceability",
@@ -1085,9 +1160,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_requirements_traceability",
-      "community": 0,
-      "norm_label": "domain requirements traceability"
+      "community": 2,
+      "norm_label": "domain requirements traceability",
+      "id": "docs_domain_domain_model_requirements_traceability"
     },
     {
       "label": "Resolved Domain Decisions",
@@ -1098,9 +1173,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_resolved_domain_decisions",
-      "community": 0,
-      "norm_label": "resolved domain decisions"
+      "community": 2,
+      "norm_label": "resolved domain decisions",
+      "id": "docs_domain_domain_model_resolved_domain_decisions"
     },
     {
       "label": "Stage 4 Approval Gate",
@@ -1111,9 +1186,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_stage_4_approval_gate",
-      "community": 0,
-      "norm_label": "stage 4 approval gate"
+      "community": 2,
+      "norm_label": "stage 4 approval gate",
+      "id": "docs_domain_domain_model_stage_4_approval_gate"
     },
     {
       "label": "Task",
@@ -1124,9 +1199,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_task",
-      "community": 2,
-      "norm_label": "task"
+      "community": 1,
+      "norm_label": "task",
+      "id": "docs_domain_domain_model_task"
     },
     {
       "label": "TaskLabel",
@@ -1137,9 +1212,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_tasklabel",
-      "community": 2,
-      "norm_label": "tasklabel"
+      "community": 1,
+      "norm_label": "tasklabel",
+      "id": "docs_domain_domain_model_tasklabel"
     },
     {
       "label": "TaskReminder",
@@ -1150,9 +1225,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_taskreminder",
-      "community": 3,
-      "norm_label": "taskreminder"
+      "community": 7,
+      "norm_label": "taskreminder",
+      "id": "docs_domain_domain_model_taskreminder"
     },
     {
       "label": "Trash State",
@@ -1163,9 +1238,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_trash_state",
-      "community": 8,
-      "norm_label": "trash state"
+      "community": 4,
+      "norm_label": "trash state",
+      "id": "docs_domain_domain_model_trash_state"
     },
     {
       "label": "Personal Planner Ubiquitous Language",
@@ -1176,9 +1251,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_ubiquitous_language",
-      "community": 0,
-      "norm_label": "personal planner ubiquitous language"
+      "community": 2,
+      "norm_label": "personal planner ubiquitous language",
+      "id": "docs_domain_domain_model_ubiquitous_language"
     },
     {
       "label": "User",
@@ -1189,9 +1264,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_user",
-      "community": 2,
-      "norm_label": "user"
+      "community": 1,
+      "norm_label": "user",
+      "id": "docs_domain_domain_model_user"
     },
     {
       "label": "Workflow State Rules",
@@ -1202,9 +1277,542 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_domain_domain_model_workflow_state_rules",
+      "community": 9,
+      "norm_label": "workflow state rules",
+      "id": "docs_domain_domain_model_workflow_state_rules"
+    },
+    {
+      "label": "AccountDeletionProcess",
+      "file_type": "concept",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 4.15",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 0,
+      "norm_label": "accountdeletionprocess",
+      "id": "docs_data_data_model_account_deletion_process"
+    },
+    {
+      "label": "API Design Entry Gate",
+      "file_type": "rationale",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 24",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 0,
+      "norm_label": "api design entry gate",
+      "id": "docs_data_data_model_api_design_entry_gate"
+    },
+    {
+      "label": "Archive and Trash Data Representation",
+      "file_type": "concept",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 8",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 4,
+      "norm_label": "archive and trash data representation",
+      "id": "docs_data_data_model_archive_trash_representation"
+    },
+    {
+      "label": "Area Data Entity",
+      "file_type": "concept",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 4.3",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 1,
+      "norm_label": "area data entity",
+      "id": "docs_data_data_model_area"
+    },
+    {
+      "label": "AreaStatus Data Entity",
+      "file_type": "concept",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 4.4",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 1,
+      "norm_label": "areastatus data entity",
+      "id": "docs_data_data_model_areastatus"
+    },
+    {
+      "label": "AuthenticationIdentity Data Entity",
+      "file_type": "concept",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 4.2",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 0,
+      "norm_label": "authenticationidentity data entity",
+      "id": "docs_data_data_model_authenticationidentity"
+    },
+    {
+      "label": "Candidate Logical Indexes",
+      "file_type": "concept",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 15",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 0,
+      "norm_label": "candidate logical indexes",
+      "id": "docs_data_data_model_candidate_indexes"
+    },
+    {
+      "label": "CanonicalStatus Reference Values",
+      "file_type": "concept",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 3.2",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 10,
+      "norm_label": "canonicalstatus reference values",
+      "id": "docs_data_data_model_canonical_status_reference"
+    },
+    {
+      "label": "ChecklistItem Data Entity",
+      "file_type": "concept",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 4.8",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 1,
+      "norm_label": "checklistitem data entity",
+      "id": "docs_data_data_model_checklistitem"
+    },
+    {
+      "label": "Concurrency-Sensitive Operations",
+      "file_type": "rationale",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 18",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 0,
+      "norm_label": "concurrency-sensitive operations",
+      "id": "docs_data_data_model_concurrency_operations"
+    },
+    {
+      "label": "Cross-User Access Prevention",
+      "file_type": "rationale",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 16",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 0,
+      "norm_label": "cross-user access prevention",
+      "id": "docs_data_data_model_cross_user_access_prevention"
+    },
+    {
+      "label": "Stage 5 Data Decision Register",
+      "file_type": "concept",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 2",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
       "community": 5,
-      "norm_label": "workflow state rules"
+      "norm_label": "stage 5 data decision register",
+      "id": "docs_data_data_model_data_decision_register"
+    },
+    {
+      "label": "Personal Task Planner Conceptual Data Model",
+      "file_type": "document",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "title",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 0,
+      "norm_label": "personal task planner conceptual data model",
+      "id": "docs_data_data_model_data_model"
+    },
+    {
+      "label": "Data Risks and Responses",
+      "file_type": "rationale",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 22",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 0,
+      "norm_label": "data risks and responses",
+      "id": "docs_data_data_model_data_risks"
+    },
+    {
+      "label": "Delete and Restore Effects",
+      "file_type": "rationale",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 14",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 0,
+      "norm_label": "delete and restore effects",
+      "id": "docs_data_data_model_delete_restore_effects"
+    },
+    {
+      "label": "Requirement and Domain Traceability",
+      "file_type": "concept",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 20",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 10,
+      "norm_label": "requirement and domain traceability",
+      "id": "docs_data_data_model_domain_traceability"
+    },
+    {
+      "label": "Authentication Identity and Email Relationships",
+      "file_type": "concept",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 13",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 0,
+      "norm_label": "authentication identity and email relationships",
+      "id": "docs_data_data_model_identity_email_relationships"
+    },
+    {
+      "label": "Label and TaskLabel Data Entities",
+      "file_type": "concept",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 4.7",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 10,
+      "norm_label": "label and tasklabel data entities",
+      "id": "docs_data_data_model_label_tasklabel"
+    },
+    {
+      "label": "LifecycleOperation and LifecycleEffect",
+      "file_type": "concept",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 4.14",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 0,
+      "norm_label": "lifecycleoperation and lifecycleeffect",
+      "id": "docs_data_data_model_lifecycle_operation_effect"
+    },
+    {
+      "label": "Data Modeling Principles and Conventions",
+      "file_type": "rationale",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 1",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 0,
+      "norm_label": "data modeling principles and conventions",
+      "id": "docs_data_data_model_modeling_principles"
+    },
+    {
+      "label": "Remaining Non-Data Handoffs",
+      "file_type": "concept",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 21",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 0,
+      "norm_label": "remaining non-data handoffs",
+      "id": "docs_data_data_model_non_data_handoffs"
+    },
+    {
+      "label": "Notification Data Entity",
+      "file_type": "concept",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 4.13",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 7,
+      "norm_label": "notification data entity",
+      "id": "docs_data_data_model_notification"
+    },
+    {
+      "label": "Checklist, Status, and Kanban Ordering Fields",
+      "file_type": "concept",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 9",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 1,
+      "norm_label": "checklist, status, and kanban ordering fields",
+      "id": "docs_data_data_model_ordering_fields"
+    },
+    {
+      "label": "Project Data Entity",
+      "file_type": "concept",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 4.5",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 1,
+      "norm_label": "project data entity",
+      "id": "docs_data_data_model_project"
+    },
+    {
+      "label": "Recurrence and Duplicate-Successor Prevention",
+      "file_type": "rationale",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 11",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 0,
+      "norm_label": "recurrence and duplicate-successor prevention",
+      "id": "docs_data_data_model_recurrence_successor_prevention"
+    },
+    {
+      "label": "RecurrenceRuleVersion and Future Template",
+      "file_type": "concept",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 4.10",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 0,
+      "norm_label": "recurrenceruleversion and future template",
+      "id": "docs_data_data_model_recurrenceruleversion"
+    },
+    {
+      "label": "RecurrenceSeries Data Entity",
+      "file_type": "concept",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 4.9",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 0,
+      "norm_label": "recurrenceseries data entity",
+      "id": "docs_data_data_model_recurrenceseries"
+    },
+    {
+      "label": "Referential Integrity and Delete Actions",
+      "file_type": "rationale",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 7",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 0,
+      "norm_label": "referential integrity and delete actions",
+      "id": "docs_data_data_model_referential_integrity"
+    },
+    {
+      "label": "Entity Relationship Overview",
+      "file_type": "concept",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 3.1",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 0,
+      "norm_label": "entity relationship overview",
+      "id": "docs_data_data_model_relationship_overview"
+    },
+    {
+      "label": "Required and Nullable Relationship Rules",
+      "file_type": "rationale",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 5",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 0,
+      "norm_label": "required and nullable relationship rules",
+      "id": "docs_data_data_model_relationship_rules"
+    },
+    {
+      "label": "Reminder and Notification Relationships",
+      "file_type": "concept",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 12",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 0,
+      "norm_label": "reminder and notification relationships",
+      "id": "docs_data_data_model_reminder_notification_relationships"
+    },
+    {
+      "label": "Data Retention Assumptions",
+      "file_type": "rationale",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 19",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 4,
+      "norm_label": "data retention assumptions",
+      "id": "docs_data_data_model_retention_assumptions"
+    },
+    {
+      "label": "Stage 5 Approval Gate",
+      "file_type": "rationale",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 23",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 0,
+      "norm_label": "stage 5 approval gate",
+      "id": "docs_data_data_model_stage_5_approval_gate"
+    },
+    {
+      "label": "Task Data Entity",
+      "file_type": "concept",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 4.6",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 1,
+      "norm_label": "task data entity",
+      "id": "docs_data_data_model_task"
+    },
+    {
+      "label": "Task Recurrence Occurrence Fields",
+      "file_type": "concept",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 4.11",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 0,
+      "norm_label": "task recurrence occurrence fields",
+      "id": "docs_data_data_model_task_recurrence_fields"
+    },
+    {
+      "label": "TaskReminder Data Entity",
+      "file_type": "concept",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 4.12",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 7,
+      "norm_label": "taskreminder data entity",
+      "id": "docs_data_data_model_taskreminder"
+    },
+    {
+      "label": "Timestamp and Temporal-Value Strategy",
+      "file_type": "rationale",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 10",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 2,
+      "norm_label": "timestamp and temporal-value strategy",
+      "id": "docs_data_data_model_temporal_strategy"
+    },
+    {
+      "label": "Data Transaction Boundaries",
+      "file_type": "rationale",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 17",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 0,
+      "norm_label": "data transaction boundaries",
+      "id": "docs_data_data_model_transaction_boundaries"
+    },
+    {
+      "label": "Unique Constraints and Candidate Keys",
+      "file_type": "rationale",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 6",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 0,
+      "norm_label": "unique constraints and candidate keys",
+      "id": "docs_data_data_model_unique_constraints"
+    },
+    {
+      "label": "User Data Entity",
+      "file_type": "concept",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 4.1",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 0,
+      "norm_label": "user data entity",
+      "id": "docs_data_data_model_user"
+    },
+    {
+      "label": "Durable Idempotent Account Deletion Purge",
+      "file_type": "rationale",
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "DEC-034",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "docs_project_master_account_deletion_purge",
+      "community": 5,
+      "norm_label": "durable idempotent account deletion purge"
     },
     {
       "label": "Authentication and Account Lifecycle",
@@ -1216,7 +1824,7 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_account_lifecycle",
-      "community": 3,
+      "community": 5,
       "norm_label": "authentication and account lifecycle"
     },
     {
@@ -1229,7 +1837,7 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_approved_stage_4_domain_baseline",
-      "community": 0,
+      "community": 5,
       "norm_label": "approved stage 4 domain baseline"
     },
     {
@@ -1242,7 +1850,7 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_archive_trash_lifecycle",
-      "community": 5,
+      "community": 4,
       "norm_label": "archive and 30-day trash lifecycle"
     },
     {
@@ -1255,7 +1863,7 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_area_project_task_model",
-      "community": 5,
+      "community": 4,
       "norm_label": "area\u2013project\u2013task model"
     },
     {
@@ -1268,7 +1876,7 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_atomic_project_move",
-      "community": 2,
+      "community": 1,
       "norm_label": "atomic project area move"
     },
     {
@@ -1281,8 +1889,21 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_canonical_and_local_statuses",
-      "community": 5,
+      "community": 4,
       "norm_label": "canonical groups and area-local statuses"
+    },
+    {
+      "label": "Conceptual Data Model Artifact",
+      "file_type": "concept",
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Document index \u2014 docs/data/DATA_MODEL.md",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "docs_project_master_data_model_artifact",
+      "community": 5,
+      "norm_label": "conceptual data model artifact"
     },
     {
       "label": "Domain Analysis Handoffs",
@@ -1294,7 +1915,7 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_domain_analysis_handoffs",
-      "community": 0,
+      "community": 2,
       "norm_label": "domain analysis handoffs"
     },
     {
@@ -1307,7 +1928,7 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_domain_model_artifact",
-      "community": 4,
+      "community": 6,
       "norm_label": "domain model artifact"
     },
     {
@@ -1320,7 +1941,7 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_dual_recurrence_modes",
-      "community": 3,
+      "community": 7,
       "norm_label": "calendar and completion recurrence modes"
     },
     {
@@ -1333,7 +1954,7 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_explicit_identity_linking",
-      "community": 9,
+      "community": 2,
       "norm_label": "explicit authentication identity linking"
     },
     {
@@ -1346,11 +1967,11 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_fixed_technology_stack",
-      "community": 4,
+      "community": 6,
       "norm_label": "fixed technology stack"
     },
     {
-      "label": "Full Stage 4 Graph Generation Metadata",
+      "label": "Stage 5 Graph Generation Metadata",
       "file_type": "concept",
       "source_file": "docs/PROJECT_MASTER.md",
       "source_location": "Last graph generation metadata",
@@ -1359,8 +1980,21 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_full_graph_metadata",
-      "community": 4,
-      "norm_label": "full stage 4 graph generation metadata"
+      "community": 6,
+      "norm_label": "stage 5 graph generation metadata"
+    },
+    {
+      "label": "Graph Extraction Density",
+      "file_type": "rationale",
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Verified Stage 5 graph findings \u2014 longer graph paths",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "docs_project_master_graph_extraction_density",
+      "community": 10,
+      "norm_label": "graph extraction density"
     },
     {
       "label": "Graph Health Validation",
@@ -1372,7 +2006,7 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_graph_health_validation",
-      "community": 4,
+      "community": 6,
       "norm_label": "graph health validation"
     },
     {
@@ -1385,7 +2019,7 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_graphify_governance",
-      "community": 4,
+      "community": 6,
       "norm_label": "graphify governance"
     },
     {
@@ -1398,8 +2032,21 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_graphify_version_0_9_20",
-      "community": 4,
+      "community": 6,
       "norm_label": "pinned graphify version 0.9.20"
+    },
+    {
+      "label": "Independent Opaque Kanban Rank Keys",
+      "file_type": "rationale",
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "DEC-036",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "docs_project_master_independent_kanban_rank_keys",
+      "community": 5,
+      "norm_label": "independent opaque kanban rank keys"
     },
     {
       "label": "Lifecycle Cascade Provenance Policy",
@@ -1411,7 +2058,7 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_lifecycle_cascade_policy",
-      "community": 8,
+      "community": 4,
       "norm_label": "lifecycle cascade provenance policy"
     },
     {
@@ -1424,7 +2071,7 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_modular_monolith",
-      "community": 4,
+      "community": 6,
       "norm_label": "modular monolith architecture"
     },
     {
@@ -1437,7 +2084,7 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_operational_graphify_mcp",
-      "community": 4,
+      "community": 6,
       "norm_label": "operational graphify mcp"
     },
     {
@@ -1450,7 +2097,7 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_pinned_graphify_mcp_extra",
-      "community": 4,
+      "community": 6,
       "norm_label": "pinned graphify mcp extra"
     },
     {
@@ -1463,8 +2110,21 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_planning_stage_gate",
-      "community": 0,
+      "community": 5,
       "norm_label": "planning stage approval gate"
+    },
+    {
+      "label": "Normalized Primary Email Uniqueness",
+      "file_type": "rationale",
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "DEC-035",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "docs_project_master_primary_email_uniqueness",
+      "community": 5,
+      "norm_label": "normalized primary email uniqueness"
     },
     {
       "label": "Private Multi-User Model",
@@ -1476,7 +2136,7 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_private_multi_user_model",
-      "community": 7,
+      "community": 4,
       "norm_label": "private multi-user model"
     },
     {
@@ -1489,7 +2149,7 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_product_requirements_artifact",
-      "community": 4,
+      "community": 6,
       "norm_label": "product requirements artifact"
     },
     {
@@ -1502,7 +2162,7 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_product_vision",
-      "community": 7,
+      "community": 4,
       "norm_label": "focused personal work-tracking vision"
     },
     {
@@ -1515,7 +2175,7 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_project_master",
-      "community": 4,
+      "community": 6,
       "norm_label": "personal task planner project master"
     },
     {
@@ -1528,7 +2188,7 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_recurrence_generation_policy",
-      "community": 3,
+      "community": 7,
       "norm_label": "one-open-occurrence recurrence policy"
     },
     {
@@ -1541,7 +2201,7 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_responsive_navigation_model",
-      "community": 7,
+      "community": 3,
       "norm_label": "responsive navigation model"
     },
     {
@@ -1554,24 +2214,63 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_stable_time_semantics",
-      "community": 3,
+      "community": 2,
       "norm_label": "stable date and time-zone semantics"
     },
     {
       "label": "Stage 3 UX Flows and Information Architecture",
       "file_type": "concept",
       "source_file": "docs/PROJECT_MASTER.md",
-      "source_location": "Current planning stage",
+      "source_location": "Planning stages / Phase approval history",
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
       "id": "docs_project_master_stage_3_ux",
-      "community": 0,
+      "community": 5,
       "norm_label": "stage 3 ux flows and information architecture"
     },
     {
       "label": "Stage 4 Domain Analysis",
+      "file_type": "concept",
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Planning stages / Phase approval history",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "docs_project_master_stage_4_domain_analysis",
+      "community": 5,
+      "norm_label": "stage 4 domain analysis"
+    },
+    {
+      "label": "Stage 5 Data Model Approval Gate",
+      "file_type": "rationale",
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Planning stages / DEC-037 / Current planning stage / Next required action",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "docs_project_master_stage_5_approval_gate",
+      "community": 5,
+      "norm_label": "stage 5 data model approval gate"
+    },
+    {
+      "label": "Approved Stage 5 Data Decision Package",
+      "file_type": "rationale",
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "DEC-034\u2013DEC-036",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "docs_project_master_stage_5_data_decision_package",
+      "community": 5,
+      "norm_label": "approved stage 5 data decision package"
+    },
+    {
+      "label": "Stage 5 Data Design",
       "file_type": "concept",
       "source_file": "docs/PROJECT_MASTER.md",
       "source_location": "Current planning stage",
@@ -1579,9 +2278,35 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_project_master_stage_4_domain_analysis",
-      "community": 0,
-      "norm_label": "stage 4 domain analysis"
+      "id": "docs_project_master_stage_5_data_design",
+      "community": 5,
+      "norm_label": "stage 5 data design"
+    },
+    {
+      "label": "Stage 5 Rounded and Raw Relationship Confidence Counts",
+      "file_type": "concept",
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Verified Stage 5 graph findings / MCP status \u2014 rounded percentages and raw counts",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "docs_project_master_stage_5_extracted_relationship_provenance",
+      "community": 6,
+      "norm_label": "stage 5 rounded and raw relationship confidence counts"
+    },
+    {
+      "label": "System-Defined CanonicalStatus",
+      "file_type": "rationale",
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Verified Stage 5 graph findings \u2014 CanonicalStatus",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "docs_project_master_system_defined_canonical_status",
+      "community": 10,
+      "norm_label": "system-defined canonicalstatus"
     },
     {
       "label": "Today, List, and Kanban Views",
@@ -1593,7 +2318,7 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_today_list_kanban_views",
-      "community": 7,
+      "community": 5,
       "norm_label": "today, list, and kanban views"
     },
     {
@@ -1606,8 +2331,21 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_ux_flows_artifact",
-      "community": 4,
+      "community": 6,
       "norm_label": "ux flows artifact"
+    },
+    {
+      "label": "Verified Direct Domain-to-Data Mappings",
+      "file_type": "concept",
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Verified Stage 5 graph findings \u2014 MCP shortest-path checks",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "docs_project_master_verified_direct_domain_data_mappings",
+      "community": 10,
+      "norm_label": "verified direct domain-to-data mappings"
     },
     {
       "label": "Verified Stage 4 Graph Findings",
@@ -1623,7 +2361,20 @@
       "norm_label": "verified stage 4 graph findings"
     },
     {
-      "label": "Verified Stdio MCP Tool Calls",
+      "label": "Verified Stage 5 Graph Findings",
+      "file_type": "concept",
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Verified Stage 5 graph findings",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "docs_project_master_verified_stage_5_graph_findings",
+      "community": 10,
+      "norm_label": "verified stage 5 graph findings"
+    },
+    {
+      "label": "Verified Stdio MCP Tool Calls Including Shortest Path",
       "file_type": "concept",
       "source_file": "docs/PROJECT_MASTER.md",
       "source_location": "MCP status \u2014 Verification",
@@ -1632,8 +2383,21 @@
       "author": null,
       "contributor": null,
       "id": "docs_project_master_verified_stdio_mcp_tool_calls",
-      "community": 4,
-      "norm_label": "verified stdio mcp tool calls"
+      "community": 6,
+      "norm_label": "verified stdio mcp tool calls including shortest path"
+    },
+    {
+      "label": "Verified User Data Ownership Paths",
+      "file_type": "concept",
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Verified Stage 5 graph findings \u2014 user-owned Data entities",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "id": "docs_project_master_verified_user_data_ownership_paths",
+      "community": 7,
+      "norm_label": "verified user data ownership paths"
     }
   ],
   "links": [
@@ -2598,6 +3362,16 @@
       "target": "docs_domain_domain_model_domain_model"
     },
     {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 8 / Section 20",
+      "weight": 1.0,
+      "source": "docs_data_data_model_archive_trash_representation",
+      "target": "docs_domain_domain_model_archive_state"
+    },
+    {
       "relation": "conceptually_related_to",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -2626,6 +3400,16 @@
       "weight": 1.0,
       "source": "docs_project_master_lifecycle_cascade_policy",
       "target": "docs_domain_domain_model_archive_state"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 4.3 source links",
+      "weight": 1.0,
+      "source": "docs_data_data_model_area",
+      "target": "docs_domain_domain_model_area"
     },
     {
       "relation": "conceptually_related_to",
@@ -2678,6 +3462,16 @@
       "target": "docs_domain_domain_model_area"
     },
     {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 4.4 source links",
+      "weight": 1.0,
+      "source": "docs_data_data_model_areastatus",
+      "target": "docs_domain_domain_model_areastatus"
+    },
+    {
       "relation": "conceptually_related_to",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -2696,6 +3490,16 @@
       "weight": 1.0,
       "source": "docs_domain_domain_model_task",
       "target": "docs_domain_domain_model_areastatus"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 4.2 source links",
+      "weight": 1.0,
+      "source": "docs_data_data_model_authenticationidentity",
+      "target": "docs_domain_domain_model_authenticationidentity"
     },
     {
       "relation": "rationale_for",
@@ -2728,6 +3532,16 @@
       "target": "docs_domain_domain_model_authenticationidentity"
     },
     {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 4.8 source links",
+      "weight": 1.0,
+      "source": "docs_data_data_model_checklistitem",
+      "target": "docs_domain_domain_model_checklistitem"
+    },
+    {
       "relation": "conceptually_related_to",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -2736,6 +3550,16 @@
       "weight": 1.0,
       "source": "docs_domain_domain_model_task",
       "target": "docs_domain_domain_model_checklistitem"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 17 / Section 20",
+      "weight": 1.0,
+      "source": "docs_data_data_model_transaction_boundaries",
+      "target": "docs_domain_domain_model_consistency_boundaries"
     },
     {
       "relation": "references",
@@ -2821,6 +3645,16 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 10 / Section 20",
+      "weight": 1.0,
+      "source": "docs_data_data_model_temporal_strategy",
+      "target": "docs_domain_domain_model_date_time_rules"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
       "source_file": "docs/domain/DOMAIN_MODEL.md",
       "source_location": "Section 7",
       "weight": 1.0,
@@ -2846,6 +3680,16 @@
       "weight": 1.0,
       "source": "docs_project_master_stable_time_semantics",
       "target": "docs_domain_domain_model_date_time_rules"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 20",
+      "weight": 1.0,
+      "source": "docs_data_data_model_domain_traceability",
+      "target": "docs_domain_domain_model_domain_model"
     },
     {
       "relation": "references",
@@ -2982,6 +3826,16 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Verified Stage 5 graph findings \u2014 direct Domain \u2192 Data mappings",
+      "weight": 1.0,
+      "source": "docs_project_master_verified_direct_domain_data_mappings",
+      "target": "docs_domain_domain_model_domain_model"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
       "source_location": "Verified Stage 4 graph findings",
       "weight": 1.0,
       "source": "docs_project_master_verified_stage_4_graph_findings",
@@ -3018,6 +3872,16 @@
       "target": "docs_project_master_domain_analysis_handoffs"
     },
     {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 4.13 source links",
+      "weight": 1.0,
+      "source": "docs_data_data_model_notification",
+      "target": "docs_domain_domain_model_notification"
+    },
+    {
       "relation": "conceptually_related_to",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -3026,6 +3890,16 @@
       "weight": 1.0,
       "source": "docs_domain_domain_model_taskreminder",
       "target": "docs_domain_domain_model_notification"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 16 source links",
+      "weight": 1.0,
+      "source": "docs_data_data_model_cross_user_access_prevention",
+      "target": "docs_domain_domain_model_ownership_isolation_rules"
     },
     {
       "relation": "references",
@@ -3046,6 +3920,16 @@
       "weight": 1.0,
       "source": "docs_project_master_verified_stage_4_graph_findings",
       "target": "docs_domain_domain_model_ownership_isolation_rules"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 4.14 source links",
+      "weight": 1.0,
+      "source": "docs_data_data_model_lifecycle_operation_effect",
+      "target": "docs_domain_domain_model_parent_lifecycle_propagation"
     },
     {
       "relation": "references",
@@ -3078,6 +3962,16 @@
       "target": "docs_domain_domain_model_parent_lifecycle_propagation"
     },
     {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 4.5 source links",
+      "weight": 1.0,
+      "source": "docs_data_data_model_project",
+      "target": "docs_domain_domain_model_project"
+    },
+    {
       "relation": "conceptually_related_to",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -3108,6 +4002,16 @@
       "target": "docs_domain_domain_model_recurrencerule"
     },
     {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 4.10 source links",
+      "weight": 1.0,
+      "source": "docs_data_data_model_recurrenceruleversion",
+      "target": "docs_domain_domain_model_recurrencerule"
+    },
+    {
       "relation": "conceptually_related_to",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -3126,6 +4030,16 @@
       "weight": 1.0,
       "source": "docs_project_master_recurrence_generation_policy",
       "target": "docs_domain_domain_model_recurrencerule"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 4.9 source links",
+      "weight": 1.0,
+      "source": "docs_data_data_model_recurrenceseries",
+      "target": "docs_domain_domain_model_recurrenceseries"
     },
     {
       "relation": "rationale_for",
@@ -3158,6 +4072,16 @@
       "target": "docs_domain_domain_model_recurrenceseries"
     },
     {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 4.6 source links",
+      "weight": 1.0,
+      "source": "docs_data_data_model_task",
+      "target": "docs_domain_domain_model_task"
+    },
+    {
       "relation": "conceptually_related_to",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -3181,6 +4105,26 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 4.12 source links",
+      "weight": 1.0,
+      "source": "docs_data_data_model_taskreminder",
+      "target": "docs_domain_domain_model_taskreminder"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 8 / Section 20",
+      "weight": 1.0,
+      "source": "docs_data_data_model_archive_trash_representation",
+      "target": "docs_domain_domain_model_trash_state"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
       "source_file": "docs/PROJECT_MASTER.md",
       "source_location": "DEC-026 / DEC-031",
       "weight": 1.0,
@@ -3198,14 +4142,914 @@
       "target": "docs_domain_domain_model_user"
     },
     {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 4.1 source links",
+      "weight": 1.0,
+      "source": "docs_data_data_model_user",
+      "target": "docs_domain_domain_model_user"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 14.2",
+      "weight": 1.0,
+      "source": "docs_data_data_model_delete_restore_effects",
+      "target": "docs_data_data_model_account_deletion_process"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 17 \u2014 Account deletion",
+      "weight": 1.0,
+      "source": "docs_data_data_model_transaction_boundaries",
+      "target": "docs_data_data_model_account_deletion_process"
+    },
+    {
       "relation": "conceptually_related_to",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/PROJECT_MASTER.md",
-      "source_location": "Product decisions",
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 3.1 / Section 4.15",
       "weight": 1.0,
-      "source": "docs_project_master_dual_recurrence_modes",
+      "source": "docs_data_data_model_user",
+      "target": "docs_data_data_model_account_deletion_process"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "DEC-034 / DEC-037",
+      "weight": 1.0,
+      "source": "docs_project_master_account_deletion_purge",
+      "target": "docs_data_data_model_account_deletion_process"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 24",
+      "weight": 1.0,
+      "source": "docs_data_data_model_api_design_entry_gate",
+      "target": "docs_data_data_model_data_model"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Sections 21 and 24",
+      "weight": 1.0,
+      "source": "docs_data_data_model_non_data_handoffs",
+      "target": "docs_data_data_model_api_design_entry_gate"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Verified Stage 5 graph findings \u2014 API Design gate",
+      "weight": 1.0,
+      "source": "docs_project_master_verified_stage_5_graph_findings",
+      "target": "docs_data_data_model_api_design_entry_gate"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 8",
+      "weight": 1.0,
+      "source": "docs_data_data_model_data_model",
+      "target": "docs_data_data_model_archive_trash_representation"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Sections 4.14 and 8",
+      "weight": 1.0,
+      "source": "docs_data_data_model_lifecycle_operation_effect",
+      "target": "docs_data_data_model_archive_trash_representation"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Sections 8 and 19",
+      "weight": 1.0,
+      "source": "docs_data_data_model_retention_assumptions",
+      "target": "docs_data_data_model_archive_trash_representation"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 3.1",
+      "weight": 1.0,
+      "source": "docs_data_data_model_area",
+      "target": "docs_data_data_model_areastatus"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 3.1",
+      "weight": 1.0,
+      "source": "docs_data_data_model_area",
+      "target": "docs_data_data_model_project"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 3.1",
+      "weight": 1.0,
+      "source": "docs_data_data_model_area",
+      "target": "docs_data_data_model_task"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 3.1",
+      "weight": 1.0,
+      "source": "docs_data_data_model_user",
+      "target": "docs_data_data_model_area"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 3.2 / Section 4.4",
+      "weight": 1.0,
+      "source": "docs_data_data_model_areastatus",
+      "target": "docs_data_data_model_canonical_status_reference"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 3.1",
+      "weight": 1.0,
+      "source": "docs_data_data_model_areastatus",
+      "target": "docs_data_data_model_task"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 9.1",
+      "weight": 1.0,
+      "source": "docs_data_data_model_ordering_fields",
+      "target": "docs_data_data_model_areastatus"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 13",
+      "weight": 1.0,
+      "source": "docs_data_data_model_identity_email_relationships",
+      "target": "docs_data_data_model_authenticationidentity"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 3.1",
+      "weight": 1.0,
+      "source": "docs_data_data_model_user",
+      "target": "docs_data_data_model_authenticationidentity"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Sections 15\u201316",
+      "weight": 1.0,
+      "source": "docs_data_data_model_candidate_indexes",
+      "target": "docs_data_data_model_cross_user_access_prevention"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 15",
+      "weight": 1.0,
+      "source": "docs_data_data_model_data_model",
+      "target": "docs_data_data_model_candidate_indexes"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Verified Stage 5 graph findings \u2014 longer CanonicalStatus path",
+      "weight": 1.0,
+      "source": "docs_project_master_graph_extraction_density",
+      "target": "docs_data_data_model_canonical_status_reference"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Verified Stage 5 graph findings \u2014 system-defined CanonicalStatus",
+      "weight": 1.0,
+      "source": "docs_project_master_system_defined_canonical_status",
+      "target": "docs_data_data_model_canonical_status_reference"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 9.1",
+      "weight": 1.0,
+      "source": "docs_data_data_model_ordering_fields",
+      "target": "docs_data_data_model_checklistitem"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 3.1",
+      "weight": 1.0,
+      "source": "docs_data_data_model_task",
+      "target": "docs_data_data_model_checklistitem"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 18 \u2014 Identity linking",
+      "weight": 1.0,
+      "source": "docs_data_data_model_concurrency_operations",
+      "target": "docs_data_data_model_identity_email_relationships"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 18 \u2014 Kanban and checklist reorder",
+      "weight": 1.0,
+      "source": "docs_data_data_model_concurrency_operations",
+      "target": "docs_data_data_model_ordering_fields"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 18 \u2014 Recurring completion",
+      "weight": 1.0,
+      "source": "docs_data_data_model_concurrency_operations",
+      "target": "docs_data_data_model_recurrence_successor_prevention"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 18 \u2014 Reminder trigger",
+      "weight": 1.0,
+      "source": "docs_data_data_model_concurrency_operations",
+      "target": "docs_data_data_model_reminder_notification_relationships"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 18",
+      "weight": 1.0,
+      "source": "docs_data_data_model_data_model",
+      "target": "docs_data_data_model_concurrency_operations"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Sections 17\u201318",
+      "weight": 1.0,
+      "source": "docs_data_data_model_transaction_boundaries",
+      "target": "docs_data_data_model_concurrency_operations"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Sections 6 and 18",
+      "weight": 1.0,
+      "source": "docs_data_data_model_unique_constraints",
+      "target": "docs_data_data_model_concurrency_operations"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 16",
+      "weight": 1.0,
+      "source": "docs_data_data_model_cross_user_access_prevention",
+      "target": "docs_data_data_model_relationship_rules"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 16",
+      "weight": 1.0,
+      "source": "docs_data_data_model_data_model",
+      "target": "docs_data_data_model_cross_user_access_prevention"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "DATA-R-001 / DATA-R-009",
+      "weight": 1.0,
+      "source": "docs_data_data_model_data_risks",
+      "target": "docs_data_data_model_cross_user_access_prevention"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "DD-030 / Project Master DEC-034 reconciliation",
+      "weight": 1.0,
+      "source": "docs_data_data_model_data_decision_register",
+      "target": "docs_project_master_account_deletion_purge"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "DD-020\u2013DD-021 / Project Master DEC-036 reconciliation",
+      "weight": 1.0,
+      "source": "docs_data_data_model_data_decision_register",
+      "target": "docs_project_master_independent_kanban_rank_keys"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "DD-004\u2013DD-007 / Project Master DEC-035 reconciliation",
+      "weight": 1.0,
+      "source": "docs_data_data_model_data_decision_register",
+      "target": "docs_project_master_primary_email_uniqueness"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 2",
+      "weight": 1.0,
+      "source": "docs_data_data_model_data_model",
+      "target": "docs_data_data_model_data_decision_register"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 22",
+      "weight": 1.0,
+      "source": "docs_data_data_model_data_model",
+      "target": "docs_data_data_model_data_risks"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 14",
+      "weight": 1.0,
+      "source": "docs_data_data_model_data_model",
+      "target": "docs_data_data_model_delete_restore_effects"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 20",
+      "weight": 1.0,
+      "source": "docs_data_data_model_data_model",
+      "target": "docs_data_data_model_domain_traceability"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 13",
+      "weight": 1.0,
+      "source": "docs_data_data_model_data_model",
+      "target": "docs_data_data_model_identity_email_relationships"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 1",
+      "weight": 1.0,
+      "source": "docs_data_data_model_data_model",
+      "target": "docs_data_data_model_modeling_principles"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 21",
+      "weight": 1.0,
+      "source": "docs_data_data_model_data_model",
+      "target": "docs_data_data_model_non_data_handoffs"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 9",
+      "weight": 1.0,
+      "source": "docs_data_data_model_data_model",
+      "target": "docs_data_data_model_ordering_fields"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 11",
+      "weight": 1.0,
+      "source": "docs_data_data_model_data_model",
+      "target": "docs_data_data_model_recurrence_successor_prevention"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 7",
+      "weight": 1.0,
+      "source": "docs_data_data_model_data_model",
+      "target": "docs_data_data_model_referential_integrity"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 3",
+      "weight": 1.0,
+      "source": "docs_data_data_model_data_model",
+      "target": "docs_data_data_model_relationship_overview"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 5",
+      "weight": 1.0,
+      "source": "docs_data_data_model_data_model",
+      "target": "docs_data_data_model_relationship_rules"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 12",
+      "weight": 1.0,
+      "source": "docs_data_data_model_data_model",
+      "target": "docs_data_data_model_reminder_notification_relationships"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 19",
+      "weight": 1.0,
+      "source": "docs_data_data_model_data_model",
+      "target": "docs_data_data_model_retention_assumptions"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 10",
+      "weight": 1.0,
+      "source": "docs_data_data_model_data_model",
+      "target": "docs_data_data_model_temporal_strategy"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 17",
+      "weight": 1.0,
+      "source": "docs_data_data_model_data_model",
+      "target": "docs_data_data_model_transaction_boundaries"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 6",
+      "weight": 1.0,
+      "source": "docs_data_data_model_data_model",
+      "target": "docs_data_data_model_unique_constraints"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 23",
+      "weight": 1.0,
+      "source": "docs_data_data_model_stage_5_approval_gate",
+      "target": "docs_data_data_model_data_model"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Document index / DEC-037",
+      "weight": 1.0,
+      "source": "docs_project_master_data_model_artifact",
+      "target": "docs_data_data_model_data_model"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Verified Stage 5 graph findings \u2014 direct Domain \u2192 Data mappings",
+      "weight": 1.0,
+      "source": "docs_project_master_verified_direct_domain_data_mappings",
+      "target": "docs_data_data_model_data_model"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Verified Stage 5 graph findings \u2014 Conceptual Data Model",
+      "weight": 1.0,
+      "source": "docs_project_master_verified_stage_5_graph_findings",
+      "target": "docs_data_data_model_data_model"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "DATA-R-002 / DATA-R-005 / DATA-R-007",
+      "weight": 1.0,
+      "source": "docs_data_data_model_data_risks",
+      "target": "docs_data_data_model_unique_constraints"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 14",
+      "weight": 1.0,
+      "source": "docs_data_data_model_delete_restore_effects",
+      "target": "docs_data_data_model_lifecycle_operation_effect"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Verified Stage 5 graph findings \u2014 explicit traceability",
+      "weight": 1.0,
+      "source": "docs_project_master_graph_extraction_density",
+      "target": "docs_data_data_model_domain_traceability"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 13",
+      "weight": 1.0,
+      "source": "docs_data_data_model_identity_email_relationships",
+      "target": "docs_data_data_model_user"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 6 / Section 13",
+      "weight": 1.0,
+      "source": "docs_data_data_model_unique_constraints",
+      "target": "docs_data_data_model_identity_email_relationships"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "DEC-035 / DEC-037",
+      "weight": 1.0,
+      "source": "docs_project_master_primary_email_uniqueness",
+      "target": "docs_data_data_model_identity_email_relationships"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 3.1",
+      "weight": 1.0,
+      "source": "docs_data_data_model_task",
+      "target": "docs_data_data_model_label_tasklabel"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Verified Stage 5 graph findings \u2014 longer Label/TaskLabel path",
+      "weight": 1.0,
+      "source": "docs_project_master_graph_extraction_density",
+      "target": "docs_data_data_model_label_tasklabel"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 17 \u2014 Parent lifecycle cascade",
+      "weight": 1.0,
+      "source": "docs_data_data_model_transaction_boundaries",
+      "target": "docs_data_data_model_lifecycle_operation_effect"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 12",
+      "weight": 1.0,
+      "source": "docs_data_data_model_reminder_notification_relationships",
+      "target": "docs_data_data_model_notification"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 3.1 / Section 12",
+      "weight": 1.0,
+      "source": "docs_data_data_model_taskreminder",
+      "target": "docs_data_data_model_notification"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Verified Stage 5 graph findings \u2014 Notification Data Entity",
+      "weight": 1.0,
+      "source": "docs_project_master_verified_user_data_ownership_paths",
+      "target": "docs_data_data_model_notification"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 9.2",
+      "weight": 1.0,
+      "source": "docs_data_data_model_ordering_fields",
+      "target": "docs_data_data_model_task"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "DEC-036 / DEC-037",
+      "weight": 1.0,
+      "source": "docs_project_master_independent_kanban_rank_keys",
+      "target": "docs_data_data_model_ordering_fields"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 3.1 / Section 4.5",
+      "weight": 1.0,
+      "source": "docs_data_data_model_project",
+      "target": "docs_data_data_model_task"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 17 \u2014 Move Project to another Area",
+      "weight": 1.0,
+      "source": "docs_data_data_model_transaction_boundaries",
+      "target": "docs_data_data_model_project"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 11",
+      "weight": 1.0,
+      "source": "docs_data_data_model_recurrence_successor_prevention",
+      "target": "docs_data_data_model_recurrenceseries"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 11",
+      "weight": 1.0,
+      "source": "docs_data_data_model_recurrence_successor_prevention",
+      "target": "docs_data_data_model_task_recurrence_fields"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 6 / Section 11",
+      "weight": 1.0,
+      "source": "docs_data_data_model_unique_constraints",
+      "target": "docs_data_data_model_recurrence_successor_prevention"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 3.1 / Section 4.10",
+      "weight": 1.0,
+      "source": "docs_data_data_model_recurrenceseries",
+      "target": "docs_data_data_model_recurrenceruleversion"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 4.11",
+      "weight": 1.0,
+      "source": "docs_data_data_model_recurrenceseries",
+      "target": "docs_data_data_model_task_recurrence_fields"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 17 \u2014 Complete recurring Task",
+      "weight": 1.0,
+      "source": "docs_data_data_model_transaction_boundaries",
+      "target": "docs_data_data_model_recurrenceseries"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 3.1",
+      "weight": 1.0,
+      "source": "docs_data_data_model_user",
+      "target": "docs_data_data_model_recurrenceseries"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 3.1",
+      "weight": 1.0,
+      "source": "docs_data_data_model_relationship_overview",
+      "target": "docs_data_data_model_user"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 12",
+      "weight": 1.0,
+      "source": "docs_data_data_model_reminder_notification_relationships",
+      "target": "docs_data_data_model_taskreminder"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 6 / Section 12",
+      "weight": 1.0,
+      "source": "docs_data_data_model_unique_constraints",
+      "target": "docs_data_data_model_reminder_notification_relationships"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 3.1",
+      "weight": 1.0,
+      "source": "docs_data_data_model_task",
+      "target": "docs_data_data_model_taskreminder"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md",
+      "source_location": "Section 4.11",
+      "weight": 1.0,
+      "source": "docs_data_data_model_task_recurrence_fields",
+      "target": "docs_data_data_model_task"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Verified Stage 5 graph findings \u2014 User Data Entity",
+      "weight": 1.0,
+      "source": "docs_project_master_verified_user_data_ownership_paths",
+      "target": "docs_data_data_model_user"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "DEC-034",
+      "weight": 1.0,
+      "source": "docs_project_master_account_deletion_purge",
       "target": "docs_project_master_account_lifecycle"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "DEC-034 \u2014 Source",
+      "weight": 1.0,
+      "source": "docs_project_master_stage_5_data_decision_package",
+      "target": "docs_project_master_account_deletion_purge"
     },
     {
       "relation": "references",
@@ -3268,6 +5112,66 @@
       "target": "docs_project_master_area_project_task_model"
     },
     {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Last graph generation metadata \u2014 Input scope",
+      "weight": 1.0,
+      "source": "docs_project_master_full_graph_metadata",
+      "target": "docs_project_master_data_model_artifact"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Document index",
+      "weight": 1.0,
+      "source": "docs_project_master_project_master",
+      "target": "docs_project_master_data_model_artifact"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "DEC-037 / Document index / Next required action",
+      "weight": 1.0,
+      "source": "docs_project_master_stage_5_approval_gate",
+      "target": "docs_project_master_data_model_artifact"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "DEC-034\u2013DEC-037 / Document index",
+      "weight": 1.0,
+      "source": "docs_project_master_stage_5_data_decision_package",
+      "target": "docs_project_master_data_model_artifact"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Current planning stage / Next required action",
+      "weight": 1.0,
+      "source": "docs_project_master_stage_5_data_design",
+      "target": "docs_project_master_data_model_artifact"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Verified Stage 5 graph findings \u2014 Conceptual Data Model",
+      "weight": 1.0,
+      "source": "docs_project_master_verified_stage_5_graph_findings",
+      "target": "docs_project_master_data_model_artifact"
+    },
+    {
       "relation": "conceptually_related_to",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -3292,16 +5196,6 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/PROJECT_MASTER.md",
-      "source_location": "MCP status \u2014 Graph argument / Stage 4 graph",
-      "weight": 1.0,
-      "source": "docs_project_master_operational_graphify_mcp",
-      "target": "docs_project_master_domain_model_artifact"
-    },
-    {
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/PROJECT_MASTER.md",
       "source_location": "Document index",
       "weight": 1.0,
       "source": "docs_project_master_project_master",
@@ -3312,7 +5206,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/PROJECT_MASTER.md",
-      "source_location": "Current planning stage / Next required action",
+      "source_location": "Planning stages / Phase approval history / Document index",
       "weight": 1.0,
       "source": "docs_project_master_stage_4_domain_analysis",
       "target": "docs_project_master_domain_model_artifact"
@@ -3336,6 +5230,16 @@
       "weight": 1.0,
       "source": "docs_project_master_verified_stage_4_graph_findings",
       "target": "docs_project_master_domain_model_artifact"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "DEC-035",
+      "weight": 1.0,
+      "source": "docs_project_master_primary_email_uniqueness",
+      "target": "docs_project_master_explicit_identity_linking"
     },
     {
       "relation": "conceptually_related_to",
@@ -3395,6 +5299,16 @@
       "source_location": "Last graph generation metadata \u2014 Input scope",
       "weight": 1.0,
       "source": "docs_project_master_full_graph_metadata",
+      "target": "docs_project_master_project_master"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Last graph generation metadata \u2014 Input scope",
+      "weight": 1.0,
+      "source": "docs_project_master_full_graph_metadata",
       "target": "docs_project_master_ux_flows_artifact"
     },
     {
@@ -3412,10 +5326,30 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/PROJECT_MASTER.md",
-      "source_location": "MCP status \u2014 Verified graph response",
+      "source_location": "MCP status \u2014 Verified graph response / Last graph generation metadata",
       "weight": 1.0,
       "source": "docs_project_master_verified_stdio_mcp_tool_calls",
       "target": "docs_project_master_full_graph_metadata"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Verified Stage 5 graph findings \u2014 longer graph paths",
+      "weight": 1.0,
+      "source": "docs_project_master_verified_stage_5_graph_findings",
+      "target": "docs_project_master_graph_extraction_density"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Verified Stage 5 graph findings \u2014 329 EXTRACTED, 1 INFERRED, 0 AMBIGUOUS",
+      "weight": 1.0,
+      "source": "docs_project_master_stage_5_extracted_relationship_provenance",
+      "target": "docs_project_master_graph_health_validation"
     },
     {
       "relation": "references",
@@ -3482,10 +5416,40 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Graphify status / Verified Stage 5 graph findings",
+      "weight": 1.0,
+      "source": "docs_project_master_graphify_governance",
+      "target": "docs_project_master_verified_stage_5_graph_findings"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
       "source_location": "DEC-032 / Graphify version",
       "weight": 1.0,
       "source": "docs_project_master_pinned_graphify_mcp_extra",
       "target": "docs_project_master_graphify_version_0_9_20"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "DEC-036",
+      "weight": 1.0,
+      "source": "docs_project_master_independent_kanban_rank_keys",
+      "target": "docs_project_master_today_list_kanban_views"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "DEC-036 \u2014 Source",
+      "weight": 1.0,
+      "source": "docs_project_master_stage_5_data_decision_package",
+      "target": "docs_project_master_independent_kanban_rank_keys"
     },
     {
       "relation": "references",
@@ -3546,6 +5510,36 @@
       "weight": 1.0,
       "source": "docs_project_master_planning_stage_gate",
       "target": "docs_project_master_stage_4_domain_analysis"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Planning stages / Next required action",
+      "weight": 1.0,
+      "source": "docs_project_master_planning_stage_gate",
+      "target": "docs_project_master_stage_5_approval_gate"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Planning stages",
+      "weight": 1.0,
+      "source": "docs_project_master_planning_stage_gate",
+      "target": "docs_project_master_stage_5_data_design"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "DEC-035 \u2014 Source",
+      "weight": 1.0,
+      "source": "docs_project_master_stage_5_data_decision_package",
+      "target": "docs_project_master_primary_email_uniqueness"
     },
     {
       "relation": "conceptually_related_to",
@@ -3636,9 +5630,169 @@
       "weight": 1.0,
       "source": "docs_project_master_responsive_navigation_model",
       "target": "docs_project_master_today_list_kanban_views"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Planning stages / Current planning stage",
+      "weight": 1.0,
+      "source": "docs_project_master_stage_5_approval_gate",
+      "target": "docs_project_master_stage_5_data_design"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "DEC-034\u2013DEC-036 / Current planning stage",
+      "weight": 1.0,
+      "source": "docs_project_master_stage_5_data_design",
+      "target": "docs_project_master_stage_5_data_decision_package"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "MCP status \u2014 rounded percentages and raw confidence counts",
+      "weight": 1.0,
+      "source": "docs_project_master_stage_5_extracted_relationship_provenance",
+      "target": "docs_project_master_verified_stdio_mcp_tool_calls"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Verified Stage 5 graph findings \u2014 relationship confidence",
+      "weight": 1.0,
+      "source": "docs_project_master_verified_stage_5_graph_findings",
+      "target": "docs_project_master_stage_5_extracted_relationship_provenance"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Verified Stage 5 graph findings \u2014 CanonicalStatus",
+      "weight": 1.0,
+      "source": "docs_project_master_verified_stage_5_graph_findings",
+      "target": "docs_project_master_system_defined_canonical_status"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Verified Stage 5 graph findings \u2014 MCP shortest-path checks",
+      "weight": 1.0,
+      "source": "docs_project_master_verified_stage_5_graph_findings",
+      "target": "docs_project_master_verified_direct_domain_data_mappings"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md",
+      "source_location": "Verified Stage 5 graph findings \u2014 user-owned Data entities",
+      "weight": 1.0,
+      "source": "docs_project_master_verified_stage_5_graph_findings",
+      "target": "docs_project_master_verified_user_data_ownership_paths"
     }
   ],
   "hyperedges": [
+    {
+      "id": "docs_project_master_planning_artifact_sequence",
+      "label": "Approved Planning Artifact Sequence Through Stage 5 Draft",
+      "nodes": [
+        "docs_project_master_product_requirements_artifact",
+        "docs_project_master_ux_flows_artifact",
+        "docs_project_master_domain_model_artifact",
+        "docs_project_master_data_model_artifact"
+      ],
+      "relation": "form",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md"
+    },
+    {
+      "id": "docs_project_master_stage_5_data_decision_package_group",
+      "label": "Approved Stage 5 Data Decision Package",
+      "nodes": [
+        "docs_project_master_account_deletion_purge",
+        "docs_project_master_primary_email_uniqueness",
+        "docs_project_master_independent_kanban_rank_keys",
+        "docs_project_master_stage_5_data_decision_package"
+      ],
+      "relation": "form",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md"
+    },
+    {
+      "id": "docs_project_master_stage_5_graph_findings_group",
+      "label": "Verified Stage 5 Graph Findings",
+      "nodes": [
+        "docs_project_master_verified_stage_5_graph_findings",
+        "docs_project_master_verified_direct_domain_data_mappings",
+        "docs_project_master_verified_user_data_ownership_paths",
+        "docs_project_master_system_defined_canonical_status",
+        "docs_project_master_graph_extraction_density",
+        "docs_project_master_stage_5_extracted_relationship_provenance"
+      ],
+      "relation": "form",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROJECT_MASTER.md"
+    },
+    {
+      "id": "data_owner_inclusive_hierarchy",
+      "label": "Owner-Inclusive User Area Project Task Hierarchy",
+      "nodes": [
+        "docs_data_data_model_user",
+        "docs_data_data_model_area",
+        "docs_data_data_model_project",
+        "docs_data_data_model_task",
+        "docs_data_data_model_areastatus"
+      ],
+      "relation": "form",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md"
+    },
+    {
+      "id": "data_recurrence_consistency_flow",
+      "label": "Transactional Recurrence Successor Consistency",
+      "nodes": [
+        "docs_data_data_model_recurrenceseries",
+        "docs_data_data_model_recurrenceruleversion",
+        "docs_data_data_model_task_recurrence_fields",
+        "docs_data_data_model_recurrence_successor_prevention",
+        "docs_data_data_model_transaction_boundaries",
+        "docs_data_data_model_concurrency_operations"
+      ],
+      "relation": "participate_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md"
+    },
+    {
+      "id": "data_lifecycle_purge_flow",
+      "label": "Lifecycle Provenance Restore and Purge Flow",
+      "nodes": [
+        "docs_data_data_model_archive_trash_representation",
+        "docs_data_data_model_lifecycle_operation_effect",
+        "docs_data_data_model_delete_restore_effects",
+        "docs_data_data_model_account_deletion_process",
+        "docs_data_data_model_retention_assumptions"
+      ],
+      "relation": "participate_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/data/DATA_MODEL.md"
+    },
     {
       "id": "domain_private_area_project_task_hierarchy",
       "label": "Domain Private Area\u2013Project\u2013Task Hierarchy",
@@ -3666,22 +5820,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/domain/DOMAIN_MODEL.md"
-    },
-    {
-      "id": "stage_4_approved_domain_baseline",
-      "label": "Completed and Approved Stage 4 Domain Baseline",
-      "nodes": [
-        "docs_project_master_stage_4_domain_analysis",
-        "docs_project_master_approved_stage_4_domain_baseline",
-        "docs_project_master_domain_model_artifact",
-        "docs_domain_domain_model_domain_model",
-        "docs_domain_domain_model_approved_stage_4_baseline"
-      ],
-      "relation": "form",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/PROJECT_MASTER.md"
     }
   ],
-  "built_at_commit": "8caf54bf268c65ab111c90f92443659e7e59a4b3"
+  "built_at_commit": "0e202538d96cb2e2c3570b7e742f117bb2744f3a"
 }

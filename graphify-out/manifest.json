@@ -1,8 +1,8 @@
 {
   "docs/PROJECT_MASTER.md": {
-    "mtime": 1784492902.974218,
-    "ast_hash": "2d5426314e21153040f7850da0e29ce5",
-    "semantic_hash": "2d5426314e21153040f7850da0e29ce5"
+    "mtime": 1784496365.8641214,
+    "ast_hash": "48bd7071238ac5549142659a8282595a",
+    "semantic_hash": "48bd7071238ac5549142659a8282595a"
   },
   "docs/product/PRD.md": {
     "mtime": 1784490683.9224033,
@@ -18,5 +18,10 @@
     "mtime": 1784492611.3072748,
     "ast_hash": "fe5288390ea9023fde28d1c188cff5d5",
     "semantic_hash": "fe5288390ea9023fde28d1c188cff5d5"
+  },
+  "docs/data/DATA_MODEL.md": {
+    "mtime": 1784493999.2825518,
+    "ast_hash": "daf2c4570d508ae8f5ea32a2c69fd1de",
+    "semantic_hash": "daf2c4570d508ae8f5ea32a2c69fd1de"
   }
 }

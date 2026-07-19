@@ -73,6 +73,9 @@ Create a focused personal work-tracking and planning application that gives each
 - Date-only Task values preserve their calendar date across time-zone changes; timed values preserve their instant, while future calendar recurrence uses the newly confirmed account time zone.
 - Project moves between Areas are atomic and move all contained Tasks while preserving canonical meaning through target Area defaults.
 - Authentication identities are linked only through an authenticated explicit action; matching email addresses do not cause automatic account linking.
+- A normalized verified primary email belongs to at most one retained User; a matching Google email cannot create a second User and still requires authenticated explicit identity linking.
+- Confirmed account deletion revokes access immediately and starts an idempotent physical purge of primary User data; backup expiry and operational evidence remain later Privacy and Architecture decisions.
+- Global and Area Kanban manual orders use independent opaque Task rank keys with optimistic conflict handling and a deterministic Task-identity tie-breaker.
 - Production implementation begins only after the planning stages have been completed and approved.
 
 ## Out-of-scope items
@@ -98,7 +101,7 @@ Create a focused personal work-tracking and planning application that gives each
 | 2. Product requirements | Define target problems, goals, users, scope, requirements, and success criteria through the PRD. | Completed and approved |
 | 3. UX flows and information architecture | Define routes, navigation, primary flows, interaction states, responsiveness, and accessibility behavior. | Completed and approved |
 | 4. Domain analysis | Define domain language, concepts, rules, workflows, and boundaries. | Completed and approved |
-| 5. Data design | Define the conceptual and logical data model, ownership, lifecycle, and constraints. | Not started |
+| 5. Data design | Define the conceptual and logical data model, ownership, lifecycle, and constraints. | In review |
 | 6. API design | Define REST resources, operations, errors, versioning, and the OpenAPI approach. | Not started |
 | 7. Solution architecture | Define modular-monolith boundaries, runtime topology, security, observability, and deployment approach. | Not started |
 | 8. Backlog planning | Produce prioritized epics, stories, acceptance criteria, dependencies, and delivery slices. | Not started |
@@ -143,6 +146,10 @@ Every stage requires explicit user approval before the next stage begins.
 | DEC-031 | 2026-07-19 | Reconcile the approved PRD and UX documents with the approved Stage 4 recurrence, lifecycle, Project-move, time, and identity-linking decisions without changing the MVP boundary. | Approved | Cross-document consistency requirement |
 | DEC-032 | 2026-07-19 | Keep Graphify pinned at `0.9.20` and install its official MCP extra as `graphifyy[mcp]==0.9.20` so the project-scoped local stdio server is operational. | Approved and verified | User explicit instruction; stdio MCP verification |
 | DEC-033 | 2026-07-19 | Adopt `docs/domain/DOMAIN_MODEL.md` and its reconciled PRD, UX, and Graphify artifacts as the completed Stage 4 domain baseline. | Approved | User explicit phase completion instruction |
+| DEC-034 | 2026-07-19 | Revoke access immediately after confirmed account deletion and use a durable, idempotent process to physically purge the User and all primary owned data; defer backup expiry and deletion evidence to Privacy and Architecture. | Approved | User approved the recommended Stage 5 data decision package |
+| DEC-035 | 2026-07-19 | Enforce global uniqueness for a normalized verified primary email across retained Users; a matching Google email cannot create a second User or auto-link an identity. | Approved | User approved the recommended Stage 5 data decision package |
+| DEC-036 | 2026-07-19 | Persist independent opaque rank keys for Global and Area Kanban ordering, with optimistic conflict checks and deterministic Task-ID tie-breaking. | Approved | User approved the recommended Stage 5 data decision package |
+| DEC-037 | 2026-07-19 | Draft `docs/data/DATA_MODEL.md` as the Stage 5 conceptual data baseline without Prisma schema, migration, SQL, API schema, or production application code. | Pending Stage 5 approval | User instruction to begin Stage 5 |
 
 ## Open questions
 
@@ -172,6 +179,9 @@ The product boundary is defined in the approved PRD, and UX decisions are record
 | Global bulk status changes may select different local statuses across Areas. | Apply each Task Area's approved default mapping independently and keep the UX outcome explicit. |
 | Compact Kanban interaction can become difficult to navigate or inaccessible. | Preserve named status-selection and keyboard alternatives to drag-and-drop. |
 | The Stage 4 graph reports 25 weakly connected leaf nodes and two thin communities. | Source review confirmed that most are intentionally leaf-level concepts and that `Future Considerations` is the only fully isolated node; continue verifying graph gaps against source documents. |
+| Conditional uniqueness for one open recurrence occurrence and one active default AreaStatus may not be expressible by a future high-level ORM schema alone. | Preserve the approved invariant through an explicit database constraint or an equally strong serialized mechanism during physical schema design. |
+| Redundant ownership fields could drift from parent ownership if treated as ordinary mutable data. | Keep ownership immutable and use owner-inclusive candidate keys and referential constraints at every relationship boundary. |
+| Account deletion can stall after access revocation while primary rows remain. | Track one durable deletion process, make purge steps idempotent, and do not report primary purge complete until no User-owned primary data remains. |
 
 ## Document index
 
@@ -181,6 +191,7 @@ The product boundary is defined in the approved PRD, and UX decisions are record
 | `docs/product/PRD.md` | MVP product problem, scope, users, journeys, requirements, acceptance criteria, risks, and UX entry criteria. | Approved, including Stage 3 and Stage 4 reconciliations |
 | `docs/product/UX_FLOWS.md` | Information architecture, routes, navigation, primary flows, interaction states, responsiveness, accessibility, and PRD traceability. | Approved; Stage 4 domain decisions reconciled |
 | `docs/domain/DOMAIN_MODEL.md` | Domain language, ownership, concepts, invariants, state transitions, recurrence, lifecycle, and business rules. | Approved Stage 4 baseline |
+| `docs/data/DATA_MODEL.md` | Conceptual entities, relationships, identifiers, ownership, integrity, lifecycle, retention, ordering, transactions, concurrency, and candidate indexes. | Draft — awaiting Stage 5 approval |
 | `.graphifyignore` | Prevent sensitive, generated, dependency, and tool-internal content from being indexed. | Active |
 | `.gitignore` | Prevent secrets, generated output, local caches, Graphify cost data, and temporary Graphify files from being versioned. | Active |
 | `.agents/skills/graphify/SKILL.md` | Official project-scoped Graphify workflow. | Installed |
@@ -198,7 +209,7 @@ New planning documents must be added to this index when created.
 - Project skill: installed using the official `agents` platform target at `.agents/skills/graphify`.
 - Skill instructions: fully read on 2026-07-19.
 - Task-relevant references read: `.agents/skills/graphify/references/exports.md`, `.agents/skills/graphify/references/extraction-spec.md`, and `.agents/skills/graphify/references/update.md`.
-- Graph generation: completed successfully from the four current planning documents, including the Stage 4 Domain Model.
+- Graph generation: completed successfully from the five current planning documents, including the Stage 5 Conceptual Data Model draft.
 - Graph health: passed with no missing endpoints, dangling edges, self-loops, duplicate endpoint collapse, or relation-variant collapse.
 - Sensitive-path review: completed; the shareable report title was sanitized and the machine-local statistics cache was excluded from version control.
 - Intended use: architecture discovery and impact analysis.
@@ -211,6 +222,15 @@ Verified Stage 4 graph findings:
 - Archive and Trash form a cross-document community joining PRD lifecycle requirements, UX restore/retention flows, and the Archive State, Trash State, and parent-propagation rules.
 - Ownership and privacy connect the User and private planning model to PRD privacy expectations and the UX non-disclosing failure state.
 - The only fully isolated final node is `Future Considerations`, which is intentionally outside the MVP Domain baseline. Weakly cross-linked persona, navigation, and acceptance nodes were checked against source documents and are covered by explicit requirement traceability; no missing required Domain concept was confirmed.
+
+Verified Stage 5 graph findings:
+
+- The Conceptual Data Model is the highest-connectivity graph node and bridges the Domain Model, PRD, Project Master, ownership, lifecycle, recurrence, notifications, identity, ordering, transactions, concurrency, retention, and the API Design gate.
+- MCP shortest-path checks found direct one-hop EXTRACTED Domain → Data mappings for User, AuthenticationIdentity, Area, Project, Task, AreaStatus, ChecklistItem, RecurrenceSeries, RecurrenceRule, TaskReminder, Notification, Archive State, and Trash State.
+- CanonicalStatus and the combined Label/TaskLabel Data entity use longer graph paths, but source review confirms their explicit Domain and requirement traceability in the Data Model; this is graph extraction density rather than a missing data decision.
+- Every reviewed user-owned Data entity reaches User Data Entity through a one-to-four-hop EXTRACTED path. Notification Data Entity has only an indirect graph ownership path, while its source section explicitly requires `userId` and same-owner Task/TaskReminder relationships; no ownerless persisted user entity was confirmed.
+- CanonicalStatus is intentionally system-defined rather than User-owned. It is the only reviewed reference concept that must not carry personal ownership.
+- The MCP percentage summary rounds the Stage 5 graph to 100% EXTRACTED, 0% INFERRED, and 0% AMBIGUOUS. Raw graph inspection contains 329 EXTRACTED edges, one retained INFERRED semantic-similarity edge between UX Responsive Behavior and the Project Master Responsive Navigation Model, and zero AMBIGUOUS edges. All findings above were checked against the source documents rather than accepted from rounded graph statistics alone.
 
 ## Graphify version
 
@@ -233,8 +253,8 @@ The recorded version must not be changed without a decision-log entry and revali
 - Codex configuration scope: project `.codex/config.toml`.
 - Registration status: configured and enabled in Codex.
 - Runtime status: operational with the pinned `graphifyy[mcp]==0.9.20` installation.
-- Verification: a real stdio MCP client completed initialization and successfully called `graph_stats`, `get_community`, `god_nodes`, and `query_graph` against the configured graph on 2026-07-19T19:57:34Z.
-- Verified graph response: 118 nodes, 187 edges, 13 communities, 99% extracted relationships, 1% inferred relationships, and 0% ambiguous relationships.
+- Verification: a real stdio MCP client completed initialization and successfully called `graph_stats`, `get_community`, `god_nodes`, `query_graph`, and `shortest_path` against the configured graph; the stabilized final statistics were reverified on 2026-07-19T21:19:32Z.
+- Verified graph response: 175 nodes, 330 edges, and 14 communities. MCP reports rounded percentages of 100% extracted, 0% inferred, and 0% ambiguous; raw counts are 329 EXTRACTED, 1 INFERRED, and 0 AMBIGUOUS edges.
 - Available read-oriented tools: `query_graph`, `get_node`, `get_neighbors`, `get_community`, `god_nodes`, `graph_stats`, and `shortest_path`.
 - Session note: an already-running Codex desktop session may require a reload before the registered MCP tools appear in its dynamic tool list; this does not affect the successful direct stdio runtime verification.
 
@@ -243,18 +263,18 @@ The recorded version must not be changed without a decision-log entry and revali
 | Field | Value |
 | --- | --- |
 | Status | Successful |
-| Generated at | 2026-07-19T20:28:16Z |
+| Generated at | 2026-07-19T21:16:32Z |
 | Graphify version | 0.9.20 |
-| Source commit at generation | `8caf54bf268c65ab111c90f92443659e7e59a4b3` |
-| Input scope | `docs/PROJECT_MASTER.md`, `docs/product/PRD.md`, `docs/product/UX_FLOWS.md`, `docs/domain/DOMAIN_MODEL.md` |
+| Source commit at generation | `0e202538d96cb2e2c3570b7e742f117bb2744f3a` |
+| Input scope | `docs/PROJECT_MASTER.md`, `docs/product/PRD.md`, `docs/product/UX_FLOWS.md`, `docs/domain/DOMAIN_MODEL.md`, `docs/data/DATA_MODEL.md` |
 | Output path | `graphify-out/graph.json` |
-| Nodes | 122 |
-| Edges | 200 |
-| Hyperedges | 3 |
-| Communities | 13 |
+| Nodes | 175 |
+| Edges | 330 |
+| Hyperedges | 8 |
+| Communities | 14 |
 | Graph health | Passed |
 | Recorded semantic tokens | 0 input / 0 output; the collaboration extraction tool did not expose token usage, so this is an unavailable measurement rather than evidence of zero model usage. |
-| Reason | Synchronize explicit Stage 4 approval and the approved Domain Model baseline before publishing the completed phase. |
+| Reason | Add the Stage 5 Conceptual Data Model draft and synchronize its domain, ownership, lifecycle, recurrence, identity, ordering, transaction, and concurrency links before approval review. |
 
 Update this section after every successful graph generation.
 
@@ -282,8 +302,8 @@ Update this section after every successful graph generation.
 
 ## Current planning stage
 
-Stage 4 — Domain Analysis — is completed and approved. Stage 5 — Data Design — has not started, and implementation work has not started.
+Stage 5 — Data Design — is in review. The conceptual Data Model has been drafted from the approved PRD, UX, and Domain baselines; implementation work has not started.
 
 ## Next required action
 
-Wait for explicit user instruction to begin Stage 5 — Data Design. Do not create technical schemas, migrations, or production application code before that stage begins and its decisions are developed.
+Obtain explicit user approval for `docs/data/DATA_MODEL.md`. Stage 5 remains in review until that approval; do not begin Stage 6 — API Design or create Prisma schema, migrations, SQL, API schemas, or production application code before it.
