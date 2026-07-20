@@ -2,11 +2,11 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Approved — Stage 4 completed |
+| Status | Approved — Stage 4 completed; Stage 6 notification-preference amendment reconciled |
 | Planning stage | Stage 4 — Domain analysis |
 | Product scope | MVP |
 | Document language | English |
-| Last updated | 2026-07-19 |
+| Last updated | 2026-07-20 |
 | Implementation status | Not started |
 
 This document defines the domain language, ownership boundaries, invariants, lifecycle rules, recurrence behavior, and allowed business operations for the MVP. It is intentionally independent of database tables, Prisma models, API payloads, framework classes, and migration design.
@@ -41,7 +41,7 @@ This document defines the domain language, ownership boundaries, invariants, lif
 | RecurrenceSeries | The identity and future-generation context shared by recurring Task occurrences. |
 | RecurrenceRule | The active calendar-based or completion-based rule used by a RecurrenceSeries. |
 | TaskReminder | A Task-owned instruction to surface an in-app reminder relative to a planned or due instant. |
-| Notification | The User-owned in-app record produced when a TaskReminder becomes due. |
+| Notification | The User-owned in-app record produced when an eligible TaskReminder becomes due while the User's in-app reminder Notification preference is Enabled. |
 | Archive | Recoverable inactive storage without automatic deletion. |
 | Trash | Recoverable removal with a 30-day permanent-deletion deadline. |
 | Open occurrence | The one Task in a RecurrenceSeries whose CanonicalStatus is To Do or In Progress. |
@@ -85,13 +85,13 @@ Cross-boundary commands such as moving a Project, trashing an Area, or generatin
 | --- | --- |
 | Purpose | Own one private planning space, account preferences, and authentication identities. |
 | Ownership | Self-owned account root; never owned by another domain concept. |
-| Required properties | Stable User identity; account email contact; account time zone; onboarding state; account lifecycle state. |
+| Required properties | Stable User identity; account email contact; account time zone; default-Enabled in-app reminder Notification preference; onboarding state; account lifecycle state. |
 | Optional properties | User-facing display name. No team, organization, public profile, or billing properties exist in MVP. |
 | Invariants | One private planning space per User; a valid account time zone is always present; another User cannot be granted planning-space access; a deleted User cannot authenticate or own retained active planning data. |
 | State transitions | Onboarding Pending → Completed; Account Active → Deletion Confirmed → Permanently Deleted. Operational deletion processing may occur between confirmation and completion, but access ends no later than logical completion. |
-| Allowed operations | Confirm onboarding choice; change time zone; manage eligible identities; request and confirm account deletion; operate owned aggregates. |
+| Allowed operations | Confirm onboarding choice; change time zone; enable or disable future in-app reminder Notifications; manage eligible identities; request and confirm account deletion; operate owned aggregates. |
 | Forbidden operations | Share ownership; join an organization; transfer aggregates to another User; restore a permanently deleted account through ordinary product flows. |
-| Related requirements | FR-008–FR-016, FR-045–FR-046, NFR-001, PRV-001–PRV-010, AC-001–AC-003. |
+| Related requirements | FR-008–FR-016, FR-045–FR-046, FR-091–FR-093, NFR-001, PRV-001–PRV-010, AC-001–AC-003, AC-016. |
 
 Account deletion is logically distinct from moving content to Trash. Confirmed account deletion applies to all personal planning data and identities; backup erasure timing and operational evidence remain Architecture and Privacy decisions.
 
@@ -304,17 +304,20 @@ Calendar rules support these approved UX meanings:
 | --- | --- |
 | Purpose | Define one in-app reminder relative to a Task's planned or due instant. |
 | Ownership | Contained by one Task and owned by the same User. |
-| Required properties | Task; anchor type of Planned or Due; offset or at-time rule; resolved scheduled instant; active state. |
-| Optional properties | Custom offset; triggered time; cancellation reason. |
+| Required properties | Task; anchor type of Planned or Due; offset or at-time rule; resolved scheduled instant; reminder state. |
+| Optional properties | Custom offset; triggered time; suppression time and reason; cancellation reason. |
 | Invariants | The referenced Task date includes a time; scheduled instant is deterministic; duplicate equivalent active reminders on one Task are not allowed; owner matches Task. |
-| State transitions | Scheduled → Triggered; Scheduled → Paused → Scheduled; Scheduled or Paused → Cancelled. Triggered is terminal for that reminder occurrence. |
-| Allowed operations | Create; edit; remove; pause through lifecycle propagation; trigger once; copy definition to a new recurring occurrence. |
+| State transitions | Scheduled → Triggered; Scheduled → Suppressed; Scheduled → Paused → Scheduled; Scheduled or Paused → Cancelled. Triggered and Suppressed are terminal for that reminder occurrence. |
+| Allowed operations | Create; edit; remove; pause through lifecycle propagation; trigger once when the User preference is Enabled; suppress once when due while the preference is Disabled; copy definition to a new recurring occurrence. |
 | Forbidden operations | Schedule from a date without time; trigger more than once; send email, SMS, or native push; survive permanent Task deletion. |
-| Related requirements | FR-054–FR-058, NFR-001, NFR-005–NFR-006, NFR-012, SC-005, AC-008. |
+| Related requirements | FR-054–FR-058, FR-091–FR-093, NFR-001, NFR-005–NFR-006, NFR-012, SC-005, AC-008, AC-016. |
 
 - **BR-REM-001:** Changing a reminder anchor date or time recalculates its scheduled instant.
 - **BR-REM-002:** Archiving or trashing a Task or ancestor pauses pending reminders. Restore recalculates future reminders; elapsed reminder times are not replayed.
 - **BR-REM-003:** Trigger processing is idempotent and creates at most one Notification for one TaskReminder occurrence.
+- **BR-NOTIF-001:** Every User has one persisted in-app reminder Notification preference. It is Enabled when the User is created and changes only through an explicit owned User operation.
+- **BR-NOTIF-002:** When a TaskReminder becomes due, the system evaluates the current User preference in the same consistency boundary as the reminder transition. Enabled produces or finds the one Notification; Disabled moves the reminder to Suppressed without creating a Notification.
+- **BR-NOTIF-003:** Disabling never deletes reminder definitions or existing Notifications. Re-enabling affects only reminders whose scheduled instant has not elapsed; Suppressed reminders are terminal and are never backfilled.
 
 Delivery polling, retry cadence, and operational latency are Architecture decisions; they cannot weaken these domain guarantees.
 
@@ -449,6 +452,7 @@ When a Task is unavailable but not permanently deleted, an existing Notification
 | Restore | Prior coherent state or explicit valid destination. | Active child beneath inactive parent or guessed destination. |
 | Permanent delete | Only from Trash; cascade required dependants; remove personal content. | Restore after deletion or orphaned required relationships. |
 | Link identity | Re-authenticated explicit confirmation. | Email-match auto-linking or cross-user provider subject. |
+| Configure in-app reminder Notifications | Change the current User's preference with explicit consequences; preserve reminders and history. | Cross-user preference mutation, deletion of reminders/history, or backfill of Suppressed reminders. |
 
 ## 11. Requirements traceability
 
@@ -460,7 +464,7 @@ When a Task is unavailable but not permanently deleted, an existing Notification
 | Workflow statuses | FR-034–FR-040, FR-060, FR-087–FR-090, AC-006, UXF-015–UXF-017, UXF-020. |
 | Dates and Today | FR-041–FR-046, FR-061–FR-062, NFR-012, AC-009, UXF-006, UXF-011–UXF-012, UXF-024. |
 | Recurrence | FR-047–FR-053, NFR-006, SC-004, AC-007, UXF-013. |
-| Reminders and Notifications | FR-054–FR-058, NFR-006, SC-005, AC-008, UXF-014, UXF-021. |
+| Reminders and Notifications | FR-054–FR-058, FR-091–FR-093, NFR-006, SC-005, AC-008, AC-016, UXF-014, UXF-021, UXF-024. |
 | Archive, Trash, restore, deletion | FR-026, FR-063, FR-073–FR-082, NFR-007, PRV-006–PRV-008, SC-007, AC-011, UXF-022–UXF-023. |
 | Labels and checklist | FR-031–FR-033, FR-067, FR-071, AC-005, AC-010, UXF-011–UXF-012, UXF-019–UXF-020. |
 
@@ -506,6 +510,7 @@ The following items do not block this domain model and must not be silently deci
 | DRA-006 | Area workflow edits can orphan Task statuses. | Require replacement and default validation as part of one workflow command. |
 | DRA-007 | Project moves can partially reconcile large Task sets. | Treat the move as one logical all-or-nothing operation and define implementation guarantees later. |
 | DRA-008 | Email-based automatic linking could enable account takeover. | Require re-authenticated explicit identity linking. |
+| DRA-009 | A disabled Notification preference could create ambiguous reminder outcomes or accidental replay. | Resolve each due reminder exactly once as Triggered or Suppressed and never backfill Suppressed reminders. |
 
 ## 15. Stage 4 approval criteria
 

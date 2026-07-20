@@ -56,4 +56,10 @@ graphify-out/.graphify_semantic_new.json
 graphify-out/.graphify_cached.json
 graphify-out/.graphify_uncached.txt
 graphify-out/.graphify_chunk_*.json
+graphify-out/.graphify_incremental.json
+graphify-out/.graphify_old.json
+graphify-out/.graphify_learning.json
+graphify-out/.vocab.txt
 graphify-out/.needs_update
+graphify-out/memory/
+graphify-out/reflections/

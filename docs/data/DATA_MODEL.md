@@ -2,11 +2,11 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Draft — awaiting Stage 5 approval |
+| Status | Approved — Stage 5 completed; Stage 6 notification-preference amendment reconciled |
 | Planning stage | Stage 5 — Data design |
 | Product scope | MVP |
 | Document language | English |
-| Last updated | 2026-07-19 |
+| Last updated | 2026-07-20 |
 | Implementation status | Not started |
 
 This document defines the conceptual and logical data model required to preserve the approved product, UX, and domain behavior. It defines data identities, relationships, ownership, lifecycle, integrity, ordering, retention, transaction boundaries, and concurrency expectations without creating a Prisma schema, migration, SQL statement, API contract, or production application code.
@@ -63,6 +63,7 @@ Every Stage 5 data decision has a stable ID and is linked to its approved domain
 | DD-033 | Treat each bulk item as its own atomic mutation unless a business command explicitly spans multiple items; report partial batch outcomes without partial mutation inside an item. | BR-OWN-011 | FR-070–FR-072, NFR-013, AC-010 |
 | DD-034 | Use explicit transactional boundaries for Area workflow creation/change, Project Area moves, parent lifecycle cascades, coherent restore, recurring completion, and reminder triggering. | Conceptual consistency boundaries, BR-PROJ-001–BR-PROJ-003 | FR-026, FR-050, FR-073–FR-082, FR-087–FR-090 |
 | DD-035 | Treat candidate indexes as workload hypotheses to validate with query plans; ownership-leading and lifecycle-leading indexes are mandatory candidates, not substitutes for authorization. | BR-OWN-009 | FR-059–FR-079, NFR-001, NFR-008 |
+| DD-036 | Persist `inAppReminderNotificationsEnabled` as a required default-true User preference. At a reminder's due boundary, atomically read the current preference and resolve Scheduled to Triggered with one Notification or Suppressed without one; never backfill Suppressed reminders. | BR-NOTIF-001–BR-NOTIF-003 | FR-091–FR-093, AC-016 |
 
 ## 3. Entities and relationships
 
@@ -108,12 +109,12 @@ The stored AreaStatus mapping is authoritative. A cached or projected canonical 
 | --- | --- |
 | Primary identifier | `userId` — opaque UUID. |
 | Ownership | Account root; not owned by another entity. |
-| Required data | Primary email display value; normalized primary email; account time zone; onboarding state; account lifecycle state; creation/update timestamps; version. |
+| Required data | Primary email display value; normalized primary email; account time zone; `inAppReminderNotificationsEnabled` defaulting to true; onboarding state; account lifecycle state; creation/update timestamps; version. |
 | Nullable data | Display name; onboarding completion time; deletion confirmation time; access revocation time. |
 | Unique constraints | Normalized primary email is globally unique for retained or deletion-pending Users. |
 | Relationships | Owns identities and all private planning entities; may have one active deletion process. |
 | Lifecycle | Active → Deletion Confirmed / Access Revoked → Physically Deleted. |
-| Source links | DD-001–DD-007, DD-030–DD-032; BR-OWN-001–BR-OWN-002; FR-008–FR-016, FR-045–FR-046, PRV-007. |
+| Source links | DD-001–DD-007, DD-030–DD-032, DD-036; BR-OWN-001–BR-OWN-002, BR-NOTIF-001–BR-NOTIF-003; FR-008–FR-016, FR-045–FR-046, FR-091–FR-093, PRV-007, AC-016. |
 
 An email address remains reserved while deletion is pending. It becomes reusable only after the authoritative User and AuthenticationIdentity records are physically removed. Backup copies do not participate in live uniqueness checks.
 
@@ -274,7 +275,7 @@ The conceptual constraint “one open occurrence per Series” covers every non-
 | Primary identifier | `taskReminderId` — opaque UUID. |
 | Ownership | Required `userId` and `taskId`; same User as Task. |
 | Required data | Anchor kind; offset/at-time meaning; resolved scheduled instant; reminder state; creation/update timestamps; version. |
-| Nullable data | Custom offset; triggered time; paused time; cancelled time and reason. |
+| Nullable data | Custom offset; triggered time; paused time; suppressed time and reason; cancelled time and reason. |
 | Unique constraints | Equivalent active reminder definition unique within Task; implementation normalization must distinguish anchor and offset. |
 | Relationships | Required Task; optional one Notification after trigger. |
 | Delete effect | Removed with Task; no independent Archive or Trash. |
@@ -474,12 +475,13 @@ Reopening a completed occurrence is rejected when a successor exists. Removing o
 
 - A TaskReminder is a definition and schedule for one Task occurrence; recurring Tasks receive new reminder definitions for the new occurrence.
 - A Notification is a delivery record for one triggered TaskReminder, not the recurring template.
-- Triggering a reminder and inserting or finding its Notification is one transaction guarded by unique `taskReminderId`.
+- Resolving a due reminder reads the User's current `inAppReminderNotificationsEnabled` preference in the same transaction: Enabled transitions it to Triggered and inserts or finds its unique Notification; Disabled transitions it to Suppressed and creates none.
+- Suppressed reminders are terminal delivery outcomes. Changing the User preference does not rewrite reminder definitions, existing Notifications, or prior Suppressed outcomes, and re-enabling does not backfill them.
 - Archive or Trash pauses scheduled reminders but keeps their definitions; restore recalculates future schedules and does not replay elapsed reminders.
 - Permanent Task deletion removes reminders and their Notifications. Archived or Trashed Tasks remain retained, so their Notification may remain but resolves to a generic unavailable target.
 - Job polling cadence, retry delay, and latency target remain Architecture decisions; they do not change the unique source and ownership constraints.
 
-**Source links:** DD-028–DD-029, DD-034; BR-REM-001–BR-REM-003; FR-054–FR-058, NFR-006, AC-008.
+**Source links:** DD-028–DD-029, DD-034, DD-036; BR-REM-001–BR-REM-003, BR-NOTIF-001–BR-NOTIF-003; FR-054–FR-058, FR-091–FR-093, NFR-006, AC-008, AC-016.
 
 ## 13. Authentication identity and email relationships
 
@@ -577,7 +579,8 @@ Every user-facing lookup begins with or is constrained by `userId`. A global wor
 | Move Project to another Area | Project, every contained Task Area/status relationship, and affected Area rank. | All-or-nothing; no partial move. |
 | Move Task to another Area | Task Area, optional Project, AreaStatus, Area rank, reminder/recurrence future context under selected scope. | No incompatible relationship is committed. |
 | Complete recurring Task | Completion, unique successor create/find, copied children, and Series pointer/version. | Retry returns one successor; no completed-without-consistent-Series split. |
-| Trigger reminder | Scheduled/triggered state and unique Notification create/find. | Retry returns existing Notification. |
+| Resolve due reminder | Current User preference plus the TaskReminder terminal transition; when Enabled, unique Notification create/find. | Retry returns the committed Triggered/Notification or Suppressed outcome without creating a second result. |
+| Change in-app Notification preference | User preference and User version. | The previous preference remains if the mutation fails. |
 | Parent Archive/Trash/restore | Root lifecycle state, all matching descendant effects, reminder/recurrence pause/resume state. | No partial cascade is reported as successful. |
 | Permanent Area/Project/Task deletion | Explicit dependent-first removal for the target scope. | Retry continues or confirms absence without creating orphans. |
 | Kanban reorder | Moved Task rank/status and version validation; any necessary destination rank assignment. | Conflict preserves prior visible order and invites refresh/retry. |
@@ -592,6 +595,7 @@ Every user-facing lookup begins with or is constrained by `userId`. A global wor
 | --- | --- | --- |
 | Recurring completion | Two requests generate two successors. | Task/Series version or row serialization plus unique predecessor and generation key. |
 | Reminder trigger | Multiple workers create duplicate Notifications. | Conditional state transition plus unique `taskReminderId` on Notification. |
+| Notification preference change versus reminder resolution | A reminder becomes due while the preference changes. | Serialize or conditionally order the User preference read and Scheduled transition; exactly one committed due-time outcome is Triggered-with-Notification or Suppressed-without-Notification. |
 | Project Area move | Task edited while bulk move reconciles it. | Lock/serialize affected Project and Task set or reject stale versions; one atomic move. |
 | AreaStatus retirement | Task changes into the retiring status during reassignment. | Serialize workflow version and affected status set; conditional Task updates. |
 | Parent lifecycle cascade | Child is independently archived/trashed during parent action. | Lifecycle versions and operation/effect uniqueness; apply approved precedence without extending earlier deadlines. |
@@ -628,7 +632,7 @@ Optimistic concurrency is the default for ordinary personal edits. Explicit seri
 | Workflow and ordering | DM-P-005–DM-P-006, BR-TASK-007, BR-STATUS-001–BR-STATUS-005 | FR-034–FR-040, FR-059–FR-060, FR-087–FR-090, AC-006 |
 | Dates and timestamps | DM-P-010, BR-TIME-001–BR-TIME-009 | FR-041–FR-046, FR-061–FR-062, NFR-012, AC-009 |
 | Recurrence | DM-P-008–DM-P-009, BR-REC-001–BR-REC-012, BR-WF-003 | FR-047–FR-053, NFR-006, SC-004, AC-007 |
-| Reminders and Notifications | BR-REM-001–BR-REM-003 | FR-054–FR-058, NFR-006, SC-005, AC-008 |
+| Reminders and Notifications | BR-REM-001–BR-REM-003, BR-NOTIF-001–BR-NOTIF-003 | FR-054–FR-058, FR-091–FR-093, NFR-006, SC-005, AC-008, AC-016 |
 | Archive, Trash, delete, restore | DM-P-007, BR-LC-001–BR-LC-010 | FR-073–FR-082, NFR-007, PRV-006–PRV-008, SC-007, AC-011 |
 | Labels and checklists | BR-OWN-006–BR-OWN-007, Label/TaskLabel/ChecklistItem invariants | FR-031–FR-033, FR-067, FR-071, FR-081, AC-005, AC-010 |
 | Transactions and concurrency | Conceptual consistency boundaries, BR-PROJ-001–BR-PROJ-003, BR-OWN-011 | FR-026, FR-050, FR-070–FR-082, FR-087–FR-090, NFR-005–NFR-007, NFR-013 |
@@ -660,6 +664,7 @@ The conceptual model is decision-complete for Stage 5 without silently deciding 
 | DATA-R-008 | Account deletion can leave data in secondary stores or backups. | Treat primary purge as Stage 5 scope and require Architecture/Privacy to define backup, logs, search projections, and evidence before implementation readiness. |
 | DATA-R-009 | Full-text or worker indexes could bypass owner-first assumptions. | Keep user-facing search owner-leading; internal workers revalidate ownership before mutation. |
 | DATA-R-010 | Restore preview can become stale before confirmation. | Revalidate destination, lifecycle, and version within the restore transaction. |
+| DATA-R-011 | A reminder can race with a User preference change and be both delivered and treated as suppressed. | Couple the preference read to the conditional reminder-state transition and permit exactly one committed terminal outcome. |
 
 ## 23. Stage 5 approval criteria
 

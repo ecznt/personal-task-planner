@@ -2,11 +2,11 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Approved — Stage 3 complete; Stage 4 domain decisions reconciled |
+| Status | Approved — Stage 3 complete; Stage 4 and Stage 6 decisions reconciled |
 | Planning stage | Stage 3 — UX flows and information architecture |
 | Product scope | MVP |
 | Document language | English |
-| Last updated | 2026-07-19 |
+| Last updated | 2026-07-20 |
 | Implementation status | Not started |
 
 This document defines navigation, routes, interaction flows, responsive behavior, state handling, and accessibility expectations. It does not define application code, React components, APIs, persistence schemas, or visual styling specifications.
@@ -132,7 +132,7 @@ An authenticated user who visits login or registration is redirected to their la
 | `/app/trash` | Trashed Tasks, Projects, and Areas. | Expiry visibility, restore, permanent deletion. |
 | `/app/settings/profile` | User-visible profile information. | No collaboration profile concepts. |
 | `/app/settings/preferences` | Language, time zone, and display preferences. | Turkish initial language. |
-| `/app/settings/notifications` | In-app notification preferences. | No email, SMS, or native push settings in MVP. |
+| `/app/settings/notifications` | Persisted in-app reminder Notification preference. | Default Enabled; no email, SMS, or native push settings in MVP. |
 | `/app/settings/authentication` | Sign-in methods and password actions. | Reflects available account methods. |
 | `/app/settings/account` | Account deletion and privacy entry points. | Destructive action is isolated from routine settings. |
 
@@ -475,7 +475,7 @@ Default ordering within each section is planned/due time ascending, then priorit
 4. Selecting a valid reminder opens Task detail and marks the notification read.
 5. The user may mark one notification or all visible notifications as read.
 6. A notification whose Task is no longer available displays a generic unavailable state without leaking ownership information.
-7. Empty state explains that date-based in-app reminders will appear here.
+7. When the preference is Enabled, the empty state explains that date-based in-app reminders will appear here. When Disabled, it explains that future Notifications are suppressed and provides a direct Settings action without implying that Task reminder definitions were removed.
 
 **PRD traceability:** FR-054–FR-058, NFR-005–NFR-006, A11Y-004, A11Y-009, SC-005, AC-008.
 
@@ -509,7 +509,12 @@ The Domain Model defines cascade provenance, prior-state restoration, coherent d
 1. Profile contains only personal account presentation fields required by the MVP.
 2. Preferences allows account time-zone selection and displays Turkish as the initial interface language.
 3. Changing time zone previews its effect on a representative date/time and requires confirmation when existing timed Tasks or reminders may display differently.
-4. Notification settings govern in-app reminder presentation only.
+4. Notification settings expose one account-level control for future in-app reminder Notifications; it is Enabled by default.
+5. Disabling requires clear confirmation that Task reminder definitions and existing Notifications remain, while reminders that become due during the Disabled period will not produce Notifications.
+6. The Disabled state remains visible in Settings and the Notification center empty state provides a direct path back to the setting without implying that reminders were deleted.
+7. Re-enabling applies to future scheduled instants only; the interface explicitly states that Notifications skipped while Disabled are not backfilled.
+
+**PRD traceability:** FR-045–FR-046, FR-091–FR-093, NFR-012, AC-016, RA-013.
 
 ### UXF-025 — Authentication settings
 

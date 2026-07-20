@@ -1,30 +1,52 @@
 # Repository and tool internals
 .git/
+.git/**
 .agents/
+.agents/**
 .codex/
+.codex/**
 graphify-out/
+graphify-out/**
 
 # JavaScript dependencies and generated output
 node_modules/
+node_modules/**
 .pnpm-store/
+.pnpm-store/**
 .next/
+.next/**
 dist/
+dist/**
 build/
+build/**
 out/
+out/**
 coverage/
+coverage/**
 playwright-report/
+playwright-report/**
 test-results/
+test-results/**
 .turbo/
+.turbo/**
 .nx/
+.nx/**
 .cache/
+.cache/**
 
 # Python environments and caches
 .venv/
+.venv/**
 venv/
+venv/**
 __pycache__/
+__pycache__/**
 .pytest_cache/
+.pytest_cache/**
 .mypy_cache/
+.mypy_cache/**
 .ruff_cache/
+.ruff_cache/**
 
 # Secrets, credentials, and private keys
 .env
@@ -33,7 +55,9 @@ __pycache__/
 .pypirc
 .netrc
 .aws/
+.aws/**
 .ssh/
+.ssh/**
 credentials.json
 service-account*.json
 *.pem

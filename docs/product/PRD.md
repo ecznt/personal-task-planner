@@ -2,11 +2,11 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Approved — includes approved Stage 3 and Stage 4 decision reconciliations |
+| Status | Approved — includes approved Stage 3, Stage 4, and Stage 6 decision reconciliations |
 | Planning stage | Stage 2 — Product requirements |
 | Product scope | MVP |
 | Document language | English |
-| Last updated | 2026-07-19 |
+| Last updated | 2026-07-20 |
 | Implementation status | Not started |
 
 This document defines product behavior and outcomes. It intentionally avoids implementation architecture, API design, database design, and technical schemas.
@@ -166,7 +166,7 @@ Uses the same private account from desktop and mobile-sized browsers and expects
 | FG-002 | Onboarding | Optional user-confirmed sample data for the first-use experience. |
 | FG-003 | Areas and Projects | Required Area context with optional Project grouping. |
 | FG-004 | Task management | Capture, enrich, status-track through canonical groups and optional Area workflows, complete, and organize Tasks. |
-| FG-005 | Dates, recurrence, and reminders | Separate planning and deadline dates, two recurrence modes, and multiple in-app reminders. |
+| FG-005 | Dates, recurrence, reminders, and notifications | Separate planning and deadline dates, two recurrence modes, multiple in-app reminders, and a persisted account-level in-app notification preference. |
 | FG-006 | Today, List, and Kanban views | Complementary views over the same private Task data. |
 | FG-007 | Search, filters, and bulk actions | Efficient discovery and multi-Task maintenance. |
 | FG-008 | Archive and Trash | Recoverable removal with automatic Trash expiry. |
@@ -201,6 +201,7 @@ Uses the same private account from desktop and mobile-sized browsers and expects
 - **US-024:** As a user, I want a responsive web experience so that core workflows work on desktop and mobile-sized screens.
 - **US-025:** As a user, I want my data hidden from every other user so that my planning remains private.
 - **US-026:** As a user, I want to delete my account so that I can permanently leave the service and remove my personal data.
+- **US-027:** As a user, I want to enable or disable future in-app reminder notifications so that I control whether scheduled reminders appear in the notification center without losing my reminder definitions or notification history.
 
 ## Functional requirements
 
@@ -276,6 +277,9 @@ Uses the same private account from desktop and mobile-sized browsers and expects
 - **FR-056:** The system shall present due reminders in an in-app notification experience.
 - **FR-057:** The user shall be able to identify unread notifications and mark them as read.
 - **FR-058:** The system shall not send email, SMS, or native push reminders in the MVP.
+- **FR-091:** The system shall persist an account-level preference that controls whether due Task reminders create in-app Notifications; the default shall be Enabled.
+- **FR-092:** Disabling in-app reminder Notifications shall not delete Task reminder definitions or existing Notifications; a reminder that becomes due while the preference is Disabled shall not create a Notification.
+- **FR-093:** Re-enabling in-app reminder Notifications shall affect only reminders whose scheduled instant has not elapsed and shall not backfill Notifications suppressed while the preference was Disabled.
 
 ### Views and work discovery
 
@@ -400,6 +404,7 @@ No adoption or retention KPI is set for the initial personal-use MVP. Usage metr
 - **AC-013:** Accessibility review confirms the core journeys against the approved WCAG 2.2 AA target.
 - **AC-014:** User-visible errors and destructive confirmations are understandable and do not disclose other users' information.
 - **AC-015:** The product, domain, data, API, architecture, UX, and backlog documents contain no unresolved contradiction that blocks implementation.
+- **AC-016:** A User can disable and re-enable future in-app reminder Notifications; the preference defaults to Enabled, existing reminders and Notifications remain intact, reminders elapsed while Disabled are not delivered, and no suppressed Notification is backfilled.
 
 ## Risks and assumptions
 
@@ -417,6 +422,7 @@ No adoption or retention KPI is set for the initial personal-use MVP. Usage metr
 | RA-010 | Assumption | Each account represents one individual and has one private planning space. | Revisit only if future collaboration or multiple spaces enter scope. |
 | RA-011 | Assumption | Three canonical groups plus optional Area-specific mapped statuses are sufficient for MVP personal workflow. | Validate during UX walkthroughs and initial usability testing. |
 | RA-012 | Assumption | In-app notifications are sufficient for MVP reminder validation. | Email and push delivery remain outside MVP. |
+| RA-013 | Risk | A User may disable in-app reminder Notifications and later assume elapsed reminders will be replayed. | Default the preference to Enabled and make the no-backfill consequence explicit before and after disabling it. |
 
 ## Open questions
 
@@ -431,6 +437,7 @@ These questions do not change the accepted MVP boundary, but must be resolved in
 - **OQ-007 — Privacy/Architecture:** What operational delay, backup treatment, and confirmation evidence apply to permanent account deletion?
 - **OQ-008 — UX/Architecture:** Which browsers, viewport ranges, and quantitative performance targets form the release support policy?
 - **OQ-009 — Product governance — Resolved:** UX is Stage 3 after Stage 2 Product Requirements; Domain Analysis follows as Stage 4.
+- **OQ-010 — Product/Domain/Data/API — Resolved:** The User-approved 4B decision adds a persisted, default-Enabled account preference for future in-app reminder Notifications; disabling preserves reminder definitions and existing history, while elapsed suppressed Notifications are never backfilled.
 
 The PRD is approved and decision-complete for its MVP product boundary. The unresolved handoffs above may not be silently resolved in later stages.
 
