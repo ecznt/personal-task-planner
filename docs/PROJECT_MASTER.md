@@ -5,7 +5,7 @@
 | Repository | `ecznt/personal-task-planner` |
 | Document role | Authoritative planning index and decision record |
 | Document language | English |
-| Last updated | 2026-07-20 |
+| Last updated | 2026-07-21 |
 
 ## Product vision
 
@@ -68,7 +68,7 @@ Create a focused personal work-tracking and planning application that gives each
 - Users can request permanent account deletion through an explicitly confirmed flow.
 - The product is a responsive web application.
 - The first user interface language is Turkish, and the system is designed to remain ready for internationalization.
-- First-time users may explicitly choose to create private sample data or start empty.
+- First-time users may explicitly choose to create a private editable sample set or start empty; the sample set contains an Area, a Project, representative direct and Project Tasks, a Label, and Checklist items.
 - Task dates and reminders use the user's account time zone.
 - Date-only Task values preserve their calendar date across time-zone changes; timed values preserve their instant, while future calendar recurrence uses the newly confirmed account time zone.
 - Project moves between Areas are atomic and move all contained Tasks while preserving canonical meaning through target Area defaults.
@@ -105,7 +105,7 @@ Create a focused personal work-tracking and planning application that gives each
 | 5. Data design | Define the conceptual and logical data model, ownership, lifecycle, and constraints. | Completed and approved |
 | 6. API design | Define REST resources, operations, errors, versioning, and the OpenAPI approach. | Completed and approved |
 | 7. Solution architecture | Define modular-monolith boundaries, runtime topology, security, observability, and deployment approach. | Completed and approved |
-| 8. Backlog planning | Produce prioritized epics, stories, acceptance criteria, dependencies, and delivery slices. | Not started |
+| 8. Backlog planning | Produce prioritized epics, stories, acceptance criteria, dependencies, and delivery slices. | Completed and approved |
 | 9. Implementation readiness | Reconcile all decisions and confirm that implementation can begin. | Not started |
 
 Every stage requires explicit user approval before the next stage begins.
@@ -168,6 +168,13 @@ Every stage requires explicit user approval before the next stage begins.
 | DEC-052 | 2026-07-20 | Generate and commit a backend-owned OpenAPI 3.1 contract and generate the Fetch-based frontend client from it; make contract validation, compatibility, and drift checks CI gates. | Approved | `docs/architecture/ARCHITECTURE.md`; ADR-002; explicit Stage 7 approval |
 | DEC-053 | 2026-07-20 | Keep shadcn/ui components inside `apps/web` and defer `packages/ui` until a second real consumer or independently governed design-system boundary exists. | Approved | `docs/architecture/ARCHITECTURE.md`; explicit Stage 7 approval |
 | DEC-054 | 2026-07-20 | Adopt the Stage 7 architecture, security, observability, migration, CI, testing, accessibility, i18n, dependency, and Graphify strategies as implementation-ready planning constraints. | Approved | `docs/architecture/ARCHITECTURE.md`; ADR-001 through ADR-003; explicit Stage 7 approval |
+| DEC-055 | 2026-07-20 | Use the User-directed 18-epic sequence from repository foundation through release readiness as the Stage 8 delivery order, with dependencies recorded in `docs/planning/BACKLOG.md`. | Approved | User instruction; explicit Stage 8 approval |
+| DEC-056 | 2026-07-20 | Decompose epics into small independently verifiable vertical stories that may span web, API, database, worker, generated contract, security, and tests; prohibit horizontal layer-only backlog items. | Approved | User instruction; explicit Stage 8 approval |
+| DEC-057 | 2026-07-20 | Keep accessibility, localization, ownership, non-disclosure, concurrency, idempotency, OpenAPI/client drift, and testing as continuous story acceptance concerns; use bounded spikes only for generator, recurrence-constraint, and PostgreSQL-search evidence. | Approved | `docs/planning/BACKLOG.md`; explicit Stage 8 approval |
+| DEC-058 | 2026-07-21 | Make the optional onboarding sample an ordinary private editable set containing an Area, a Project, representative direct and Project Tasks, a Label, and Checklist items; exclude recurrence and reminders from the sample. | Approved | User selected option 1A; ARC-021 |
+| DEC-059 | 2026-07-21 | Split account deletion delivery: Authentication owns recent re-authentication, confirmation, durable initiation, and immediate access revocation; Lifecycle owns idempotent full primary-data purge, retries, deletion replay, and terminal evidence. | Approved | User selected option 2A; DEC-034 |
+| DEC-060 | 2026-07-21 | Run each bounded technical spike just in time as the first work of its owning epic; spike experiments remain evidence and never count as production behavior. | Approved | User selected option 3A |
+| DEC-061 | 2026-07-21 | Adopt `docs/planning/BACKLOG.md`, its 18-epic order, 122 vertical stories, three just-in-time spikes, dependency decisions, and synchronized Graphify artifacts as the completed Stage 8 backlog baseline. | Approved | User explicit Stage 8 approval |
 
 ## Open questions
 
@@ -211,6 +218,10 @@ The product boundary is defined in the approved PRD, and UX decisions are record
 | A backend-generated OpenAPI document can be syntactically valid while omitting runtime error or authorization behavior. | Combine deterministic generation and lint/diff checks with Supertest contract and cross-user isolation tests. |
 | Restoring a database backup can resurrect data for accounts deleted after the restore point. | Keep backups at or below 30 days and require privacy-minimized deletion replay before restored traffic is enabled. |
 | Graphify can suggest a module boundary that contradicts an authoritative rule or overemphasizes extraction density. | Treat graph communities as review input, verify every boundary against source documents, and retain explicit orchestration for cross-aggregate transactions. |
+| A vertical story can grow into a multi-day horizontal implementation package when cross-layer work is underestimated. | Recheck each story against the few-hours target before implementation and split by independently demonstrable user outcome, never by technical layer. |
+| Foundational or lifecycle dependencies can tempt partial feature acceptance before the full user outcome exists. | Track cross-epic completion explicitly; do not count an API, table, worker, or UI fragment as an accepted story until the observable outcome and required tests pass. |
+| The current Stage 7 graph contains cohesive module boundaries but no shortest paths from individual module nodes to their matching PRD requirement-group nodes. | Treat this as extraction-density evidence, keep source traceability authoritative, add explicit epic requirement/module/API/data links, and rerun the paths after the Stage 8 graph update. |
+| Spike experiments can be mistaken for shippable behavior or silently choose a tool. | Require a written evidence result and backlog/decision impact; production acceptance remains in the implementing story and any changed fixed decision requires approval. |
 
 ## Document index
 
@@ -226,6 +237,7 @@ The product boundary is defined in the approved PRD, and UX decisions are record
 | `docs/architecture/adr/ADR-001-modular-monolith.md` | Decision record for the modular monolith and separate API/worker runtime entry points. | Accepted |
 | `docs/architecture/adr/ADR-002-rest-openapi.md` | Decision record for REST, backend-owned OpenAPI, and generated frontend client. | Accepted |
 | `docs/architecture/adr/ADR-003-graphify.md` | Decision record for Graphify use, source authority, update/MCP workflow, staleness, versioning, and secret controls. | Accepted |
+| `docs/planning/BACKLOG.md` | Ordered vertical-slice epics, small stories, dependencies, requirement ownership, acceptance criteria, tests, exclusions, and Stage 8 gates. | Approved Stage 8 baseline |
 | `.graphifyignore` | Prevent sensitive, generated, dependency, and tool-internal content from being indexed. | Active |
 | `.gitignore` | Prevent secrets, generated output, local caches, Graphify cost data, and temporary Graphify files from being versioned. | Active |
 | `.agents/skills/graphify/SKILL.md` | Official project-scoped Graphify workflow. | Installed |
@@ -241,11 +253,11 @@ New planning documents must be added to this index when created.
 
 - Global CLI: installed with `uv tool`.
 - Project skill: installed using the official `agents` platform target at `.agents/skills/graphify`.
-- Skill instructions: fully read again for Stage 7 on 2026-07-20.
-- Task-relevant references read for Stage 7: `.agents/skills/graphify/references/update.md`, `.agents/skills/graphify/references/query.md`, `.agents/skills/graphify/references/extraction-spec.md`, and `.agents/skills/graphify/references/exports.md`.
-- Graph generation: completed as a verified full rebuild from the ten current planning documents after the incremental shrink guard detected a net reduction during `PROJECT_MASTER` re-extraction.
-- Graph health: passed with no missing endpoints, dangling edges, self-loops, duplicate endpoint collapse, or directed/undirected same-endpoint collapse after retaining 11 still-valid master decision nodes and deduplicating three reciprocal ADR reference pairs for the undirected graph.
-- Source-scope control: Graphify 0.9.20 force-includes `graphify-out/memory/` despite repository ignore patterns, so detection/extraction was explicitly restricted to the ten intended `docs/` sources before the rebuild.
+- Skill instructions: fully read again for Stage 8 on 2026-07-21.
+- Task-relevant references read for Stage 8: `.agents/skills/graphify/references/update.md`, `.agents/skills/graphify/references/query.md`, and `.agents/skills/graphify/references/extraction-spec.md`.
+- Graph generation: incrementally updated from the eleven intended planning documents after explicit Stage 8 approval, including the accepted backlog status, DEC-061, approval history, and Stage 9 handoff state.
+- Graph health: passed with 504 valid candidate edges and no missing endpoints, dangling edges, self-loops, exact duplicates, or directed/undirected same-endpoint collapse.
+- Source-scope control: Graphify 0.9.20 force-includes `graphify-out/memory/` despite repository ignore patterns, so detection/extraction was explicitly restricted to the eleven intended `docs/` sources.
 - Sensitive-path review: completed; the report title was sanitized, the graph contains relative document paths only, and Graphify local learning, memory, reflection, vocabulary, incremental, and cost artifacts are excluded from version control.
 - Intended use: architecture discovery and impact analysis.
 - Version-control policy: track the project skill and shareable `graphify-out` artifacts, excluding local/intermediate files and `cost.json`.
@@ -288,6 +300,19 @@ Verified Stage 7 graph findings:
 - The full rebuild consolidated the prior 59 Project Master extraction nodes into 22 current master nodes and added 38 architecture/ADR nodes. This changed the graph from 235 nodes/475 edges to 236 nodes/396 edges; the approval-only refresh added one extracted approval relationship for a final 236 nodes/397 edges. Twelve inbound references exposed by the health gate were preserved through 11 still-valid decision-node IDs; no stale decision was retained merely to prevent graph shrinkage.
 - MCP reports rounded percentages of 100% EXTRACTED, 0% INFERRED, and 0% AMBIGUOUS. Raw inspection contains 396 EXTRACTED edges, one retained INFERRED responsive-navigation similarity edge, and zero AMBIGUOUS edges. All module conclusions were checked against the source documents.
 
+Verified Stage 8 graph findings:
+
+- The decision refresh changed the graph from 255 nodes/429 edges/14 communities to 266 nodes/488 edges/13 communities, adding 11 nodes and 61 edges while removing two replaced edges from the re-extracted documents.
+- The explicit approval refresh changed the graph from 266 nodes/488 edges/13 communities to 272 nodes/504 edges/14 communities: eight approval-state nodes and 18 edges were added, while two stale draft-state nodes and two stale edges were removed.
+- `Vertical Slice Backlog` is a cohesive 36-node community containing the backlog root, requirement ownership, BD-001 through BD-013, all 18 epics, three bounded just-in-time spikes, the explicit public landing/privacy/terms entry point, seven backend-module impact nodes, and the approved Stage 8 delivery decisions.
+- `Stage 8 Approval Governance` is a separate 22-node community containing the approved backlog baseline, DEC-055 through DEC-058 and DEC-061, the completion state, Graphify metadata, verified findings, the Stage 8 approval gate, and the Stage 9 entry/handoff state.
+- `MVP Requirement Ownership Map` is a top-six graph hub with 19 edges; `EPIC-005 Basic Task Creation and Management` remains a top-ten hub with ten edges, reflecting its central dependency role.
+- The full onboarding sample set has a direct EXTRACTED graph relationship to EPIC-003 and the epic links to accounts, onboarding, planning, and tasks module impacts. Source review confirms that ARC-021 supplies the authoritative Area, Project, Task, Label, and Checklist scope and same-port rule.
+- EPIC-002 and EPIC-016 have a two-hop EXTRACTED path through the backlog root. Source review confirms BD-013 and the two story definitions make the initiation/revocation versus purge/replay boundary explicit rather than relying on that coarse graph path.
+- The public-route backlog node links directly to EPIC-002. Its graph path to the UX route-group node remains longer than the configured six-hop review budget; source review confirms UX routes `/`, `/privacy`, and `/terms` and BL-121 provide the intended direct backlog coverage, so this is extraction density rather than a scope gap.
+- Source verification confirms accounts → EPIC-002, onboarding → EPIC-003, planning → EPIC-004/006/007, tasks → EPIC-005/007/009/010/012/014/015, work-views → EPIC-008–011/013, notifications → EPIC-015, and lifecycle → EPIC-016. Cross-module work remains expressed through approved application ports and transaction coordinators.
+- Raw inspection and MCP report 504 EXTRACTED edges, zero INFERRED edges, and zero AMBIGUOUS edges. Graph findings were checked against the approved PRD, UX, Architecture, and Backlog rather than accepted as authoritative on their own.
+
 ## Graphify version
 
 - Package: `graphifyy`
@@ -309,8 +334,8 @@ The recorded version must not be changed without a decision-log entry and revali
 - Codex configuration scope: project `.codex/config.toml`.
 - Registration status: configured and enabled in Codex.
 - Runtime status: operational with the pinned `graphifyy[mcp]==0.9.20` installation.
-- Verification: the registered MCP successfully called `graph_stats`, `get_community`, `god_nodes`, and targeted `query_graph` operations against the Stage 7 graph. The graph was regenerated on 2026-07-20T14:11:25Z after explicit Stage 7 and ADR approval; the approval-only refresh preserved the previously verified module-boundary conclusions.
-- Verified graph response: 236 nodes, 397 edges, and 13 communities. MCP reports rounded percentages of 100% extracted, 0% inferred, and 0% ambiguous; raw counts are 396 EXTRACTED, 1 INFERRED, and 0 AMBIGUOUS edges.
+- Verification: the registered MCP successfully called `graph_stats`, `get_community`, `god_nodes`, `query_graph`, `get_neighbors`, and targeted `shortest_path` operations against the Stage 8 graph.
+- Verified graph response: 272 nodes, 504 edges, and 14 communities. MCP and raw inspection report 504 EXTRACTED, zero INFERRED, and zero AMBIGUOUS edges.
 - Available read-oriented tools: `query_graph`, `get_node`, `get_neighbors`, `get_community`, `god_nodes`, `graph_stats`, and `shortest_path`.
 - Session note: an already-running Codex desktop session may require a reload before the registered MCP tools appear in its dynamic tool list; this does not affect the successful direct stdio runtime verification.
 
@@ -319,18 +344,18 @@ The recorded version must not be changed without a decision-log entry and revali
 | Field | Value |
 | --- | --- |
 | Status | Successful |
-| Generated at | 2026-07-20T14:11:25Z |
+| Generated at | 2026-07-21T08:20:30Z |
 | Graphify version | 0.9.20 |
-| Source commit at generation | `6c22b063bf47045c99af74e939d59feee32e191d` |
-| Input scope | `docs/PROJECT_MASTER.md`, `docs/product/PRD.md`, `docs/product/UX_FLOWS.md`, `docs/domain/DOMAIN_MODEL.md`, `docs/data/DATA_MODEL.md`, `docs/api/API_CONTRACT.md`, `docs/architecture/ARCHITECTURE.md`, and ADR-001 through ADR-003 |
+| Source commit at generation | `cf52e53a096e7d642b0988633c7dd9d3f98983e4` |
+| Input scope | `docs/PROJECT_MASTER.md`, `docs/product/PRD.md`, `docs/product/UX_FLOWS.md`, `docs/domain/DOMAIN_MODEL.md`, `docs/data/DATA_MODEL.md`, `docs/api/API_CONTRACT.md`, `docs/architecture/ARCHITECTURE.md`, ADR-001 through ADR-003, and `docs/planning/BACKLOG.md` |
 | Output path | `graphify-out/graph.json` |
-| Nodes | 236 |
-| Edges | 397 |
+| Nodes | 272 |
+| Edges | 504 |
 | Hyperedges | 4 |
-| Communities | 13 |
-| Graph health | Passed after full-rebuild shrink audit, current-decision node retention, and reciprocal undirected-reference deduplication |
+| Communities | 14 |
+| Graph health | Passed with zero missing/dangling endpoints, self-loops, duplicates, or endpoint-collapse warnings |
 | Recorded semantic tokens | 0 input / 0 output; the collaboration extraction tool did not expose token usage, so this is an unavailable measurement rather than evidence of zero model usage. |
-| Reason | Record explicit Stage 7 approval, change ADR-001 through ADR-003 to Accepted, preserve the verified module-boundary findings, and close the architecture phase before publication to `develop`. |
+| Reason | Record explicit Stage 8 approval, adopt the Backlog baseline through DEC-061, remove stale draft-state graph nodes, and establish the Stage 9 handoff state before publication to `develop`. |
 
 Update this section after every successful graph generation.
 
@@ -358,11 +383,12 @@ Update this section after every successful graph generation.
 | 2026-07-20 | Stage 5 — Data design | Completed and approved | User explicitly confirmed Stage 5 approval after publication to `develop`. |
 | 2026-07-20 | Stage 6 — API design | Completed and approved | User selected persisted in-app Notification preferences through option 4B and explicitly approved Stage 6. |
 | 2026-07-20 | Stage 7 — Solution architecture | Completed and approved | User explicitly accepted ADR-001, ADR-002, and ADR-003 and instructed Codex to approve and publish the stage. |
+| 2026-07-21 | Stage 8 — Backlog planning | Completed and approved | User explicitly approved the 18-epic vertical-slice backlog and instructed Codex to commit and push it to `develop`. |
 
 ## Current planning stage
 
-Stage 7 — Solution Architecture — is completed and approved. `docs/architecture/ARCHITECTURE.md` is the approved baseline and ADR-001 through ADR-003 are Accepted; no production implementation, Prisma schema, migration, SQL, controller, React component, or OpenAPI artifact has been created.
+Stage 8 — Backlog Planning — is completed and approved. `docs/planning/BACKLOG.md` is the accepted baseline with the User-directed 18-epic sequence, 122 vertical stories, three bounded just-in-time spikes, requirement ownership, dependency decisions, acceptance criteria, required tests, definitions of done, and explicit exclusions. The public landing/privacy/terms route gap and the Architecture-aligned full onboarding sample set are covered. No production implementation, Prisma schema, migration, SQL, controller, React component, or OpenAPI artifact has been created.
 
 ## Next required action
 
-Await explicit user instruction to begin Stage 8 — Backlog Planning. Do not create production application code while the planning sequence remains active.
+Await explicit User instruction to begin Stage 9 — Implementation Readiness. Do not create production application code while the planning sequence remains active.
