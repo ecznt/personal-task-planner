@@ -1,38 +1,38 @@
 {
   "docs/PROJECT_MASTER.md": {
-    "mtime": 1784622053.8849306,
-    "ast_hash": "6a6166015e048ed45fc8bd7f073159c4",
-    "semantic_hash": "6a6166015e048ed45fc8bd7f073159c4"
+    "mtime": 1784790762.1988804,
+    "ast_hash": "49a62ae1a5b0e72a8e058aa5fcb154a8",
+    "semantic_hash": "49a62ae1a5b0e72a8e058aa5fcb154a8"
   },
   "docs/product/PRD.md": {
-    "mtime": 1784528169.020704,
-    "ast_hash": "7cfdd96e81e21e4bf03e2005061132af",
-    "semantic_hash": "7cfdd96e81e21e4bf03e2005061132af"
+    "mtime": 1784789510.6032417,
+    "ast_hash": "1d8f4d62c808e5f5fd79ea3fc7e45400",
+    "semantic_hash": "1d8f4d62c808e5f5fd79ea3fc7e45400"
   },
   "docs/product/UX_FLOWS.md": {
-    "mtime": 1784527907.1304386,
-    "ast_hash": "9781012b3375329bb5b39ab8de568876",
-    "semantic_hash": "9781012b3375329bb5b39ab8de568876"
+    "mtime": 1784790035.1003463,
+    "ast_hash": "adf2b301d179238aab28291a352dc1a9",
+    "semantic_hash": "adf2b301d179238aab28291a352dc1a9"
   },
   "docs/domain/DOMAIN_MODEL.md": {
-    "mtime": 1784528169.1122296,
-    "ast_hash": "1d12ac997ba9c678c017191a74963a7e",
-    "semantic_hash": "1d12ac997ba9c678c017191a74963a7e"
+    "mtime": 1784790034.99963,
+    "ast_hash": "0793be08fdf7d7a5865186254a01b0ff",
+    "semantic_hash": "0793be08fdf7d7a5865186254a01b0ff"
   },
   "docs/data/DATA_MODEL.md": {
-    "mtime": 1784527907.2190351,
-    "ast_hash": "5bea15107312c7a39507518b4c7a3747",
-    "semantic_hash": "5bea15107312c7a39507518b4c7a3747"
+    "mtime": 1784790076.5886593,
+    "ast_hash": "1186bae266176e0b07d59abe602dcf43",
+    "semantic_hash": "1186bae266176e0b07d59abe602dcf43"
   },
   "docs/api/API_CONTRACT.md": {
-    "mtime": 1784527597.858408,
-    "ast_hash": "87ef7e79b2a6f22bf752c80f609acc0f",
-    "semantic_hash": "87ef7e79b2a6f22bf752c80f609acc0f"
+    "mtime": 1784789816.5247426,
+    "ast_hash": "d771ec81f1a0ef0f816da56c1f4d8db4",
+    "semantic_hash": "d771ec81f1a0ef0f816da56c1f4d8db4"
   },
   "docs/architecture/ARCHITECTURE.md": {
-    "mtime": 1784556797.979572,
-    "ast_hash": "8858cb3718b8033e8a0378a9df74047f",
-    "semantic_hash": "8858cb3718b8033e8a0378a9df74047f"
+    "mtime": 1784789841.7246876,
+    "ast_hash": "c335c430d0c92b97de39271c7a9fa26e",
+    "semantic_hash": "c335c430d0c92b97de39271c7a9fa26e"
   },
   "docs/architecture/adr/ADR-001-modular-monolith.md": {
     "mtime": 1784556798.0722327,
@@ -50,8 +50,13 @@
     "semantic_hash": "d5f77a858bc3429d0547aac7a91c2392"
   },
   "docs/planning/BACKLOG.md": {
-    "mtime": 1784621821.812806,
-    "ast_hash": "a8f9c1ac03da094c9993d62ab86be666",
-    "semantic_hash": "a8f9c1ac03da094c9993d62ab86be666"
+    "mtime": 1784789875.0429149,
+    "ast_hash": "1a9ebda5150ae7101864d588b78ee5ea",
+    "semantic_hash": "1a9ebda5150ae7101864d588b78ee5ea"
+  },
+  "docs/planning/READINESS_REPORT.md": {
+    "mtime": 1784790775.4483397,
+    "ast_hash": "8a07ef5df19ebef2a8eb33c117b3812e",
+    "semantic_hash": "8a07ef5df19ebef2a8eb33c117b3812e"
   }
 }

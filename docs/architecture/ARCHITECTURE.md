@@ -1,7 +1,7 @@
 # Architecture and Quality Strategy
 
-Status: Approved Stage 7 baseline
-Last updated: 2026-07-20
+Status: Approved Stage 7 baseline; MVP scope revised to defer social authentication
+Last updated: 2026-07-23
 
 ## 1. Purpose and scope
 
@@ -104,7 +104,7 @@ Backend source is organized by domain ownership, not by global technical layers 
 
 | Module | Owns | Key collaborations |
 | --- | --- | --- |
-| `accounts` | User, AuthenticationIdentity, sessions, credentials, OAuth linking, preferences, account-deletion initiation | Calls onboarding after first account creation; exposes authenticated actor and preference ports |
+| `accounts` | User, the email/password AuthenticationIdentity, sessions, credentials, preferences, account-deletion initiation | Calls onboarding after first account creation; exposes authenticated actor and preference ports |
 | `planning` | Area, Project, AreaStatus, canonical-status mapping | Supplies validated Area/Project/status references to tasks and lifecycle |
 | `tasks` | Task, ChecklistItem, Label, TaskLabel, RecurrenceRule, reminder definitions, task ordering | Uses planning reference ports; emits completion/reminder facts; participates in lifecycle restore |
 | `notifications` | Notification creation, in-app delivery state, read/dismiss operations | Consumes due-reminder work and reads account notification preferences |
@@ -112,7 +112,7 @@ Backend source is organized by domain ownership, not by global technical layers 
 | `work-views` | Read-only Today, list, Kanban, search, filter, and archive/trash projections | Composes owned read models without acquiring aggregate ownership |
 | `onboarding` | Idempotent creation of first-user sample data | Coordinates accounts, planning, and tasks through their public application ports |
 
-Technical support belongs under `apps/api/src/platform`, with narrow adapters for configuration, Prisma/database, logging, observability, HTTP, clock, cryptography, and OAuth providers. Platform code implements ports defined by modules; it does not own business operations.
+Technical support belongs under `apps/api/src/platform`, with narrow adapters for configuration, Prisma/database, logging, observability, HTTP, clock, cryptography, and email delivery. Platform code implements ports defined by modules; it does not own business operations.
 
 ### ARC-006: Internal module shape
 
@@ -181,12 +181,12 @@ The initial target is to materialize due in-app notifications within 60 seconds 
 - Sessions have a 12-hour idle timeout and a 7-day absolute lifetime. Activity refresh is rate-limited to avoid a write on every request.
 - A user may have at most five active sessions; creating a sixth revokes the least recently used session.
 - Password reset tokens expire after 30 minutes; email verification tokens expire after 24 hours. Single-use tokens are stored hashed and consumed transactionally.
-- Password reset, account deletion, and detected credential compromise revoke all active sessions. Login and OAuth callback rotate session identifiers.
+- Password reset, account deletion, and detected credential compromise revoke all active sessions. Login rotates the session identifier.
 - Sensitive identity changes require a session authenticated within the previous 15 minutes or an explicit reauthentication flow.
 
-Passwords use Argon2id with parameters selected and benchmarked during implementation against current OWASP guidance. The UI accepts 12–128 Unicode characters, permits paste and password managers, and does not impose arbitrary composition rules. Credential values, reset tokens, OAuth tokens, cookies, and authorization headers are never logged.
+Passwords use Argon2id with parameters selected and benchmarked during implementation against current OWASP guidance. The UI accepts 12–128 Unicode characters, permits paste and password managers, and does not impose arbitrary composition rules. Credential values, reset tokens, cookies, and authorization headers are never logged.
 
-Google OAuth uses Authorization Code with PKCE and validated `state`, `nonce`, issuer, audience, redirect URI, and email-verification claims. Account linking requires an authenticated, recently verified session and never links solely because two providers return the same unverified email.
+Social authentication providers, including Google, and provider identity linking are outside the MVP. No provider adapter, callback boundary, provider configuration, or provider test fixture is part of the implementation baseline. A future provider requires a fresh cross-document security and architecture decision.
 
 ### ARC-011: Origin, proxy, headers, and abuse controls
 
@@ -195,7 +195,8 @@ Google OAuth uses Authorization Code with PKCE and validated `state`, `nonce`, i
 - HTTPS is mandatory outside local development. Helmet-managed headers include a restrictive Content Security Policy, HSTS, `nosniff`, a conservative referrer policy, frame protection, and a minimal permissions policy.
 - CSRF protection combines SameSite cookies, same-origin deployment, Origin/Referer validation for unsafe methods, and a CSRF token where browser compatibility or route behavior requires it.
 - Request bodies and bulk operations have explicit size limits; bulk mutations accept at most 100 items.
-- General burst limiting may be in-process while the API has one replica. Authentication, reset, registration, and OAuth abuse counters are persisted in PostgreSQL by normalized account key and privacy-conscious network prefix. Responses do not reveal whether an account or cross-user resource exists.
+- General burst limiting may be in-process while the API has one replica. Login, reset, registration, and token-confirmation abuse counters are persisted in PostgreSQL by normalized account key and privacy-conscious network prefix. Responses do not reveal whether an account or cross-user resource exists.
+- The exact initial endpoint-class thresholds, windows, alert condition, and 60-minute maximum emergency relaxation are the approved baseline in API Contract section 9. The most restrictive matching class wins. Any production override is non-secret configuration, reviewable, tested, and unable to bypass authorization, ownership, CSRF, enumeration resistance, or idempotency.
 - Idempotency records for supported mutations are retained for at least 24 hours and cleaned after 48 hours unless the API contract specifies a longer domain requirement.
 
 ### ARC-012: Security verification
@@ -218,7 +219,7 @@ The contract pipeline is:
 6. type-check the web application against the generated package;
 7. fail CI when generation changes committed files.
 
-The initial generator choice is `@hey-api/openapi-ts` with its Fetch client. Versions and generator configuration are pinned. A short proof during implementation must verify OpenAPI 3.1, cookie credentials, RFC 9457 unions, nullable fields, file-free JSON operations, and operation-ID stability; failure of that proof reopens the generator choice without changing the REST/OpenAPI decision.
+The initial generator choice is `@hey-api/openapi-ts` with its Fetch client. `SPIKE-001` runs as the first non-production work of EPIC-001 and before `BL-003` or any generated production transport artifact. It verifies OpenAPI 3.1, cookie credentials, RFC 9457 unions, nullable fields, file-free JSON operations, response headers, Fetch credentials, and operation-ID stability, then pins the compatible versions and configuration. Failure reopens the generator choice without changing the REST/OpenAPI decision or counting the experiment as production code.
 
 The frontend never edits generated files. Hand-written wrappers in `packages/api-client` are limited to client construction, credentials, correlation headers, and typed error normalization; business rules remain outside the package.
 
@@ -230,7 +231,7 @@ The frontend never edits generated files. Hand-written wrappers in `packages/api
 - `packages/config` contains environment-neutral schema helpers and shared value objects, not a universal environment object.
 - Server-only variables are parsed only in API/worker code. Browser-exposed variables have an explicit public prefix and contain no secrets.
 - `.env.example` contains names and safe examples only. Real secrets come from local untracked files or the deployment secret manager.
-- Configuration names cover database connectivity, public origin, proxy trust, cookie/security flags, Google OAuth, log level, worker polling, retention, and observability endpoints.
+- Configuration names cover database connectivity, public origin, proxy trust, cookie/security flags, email delivery, log level, worker polling, retention, and observability endpoints.
 - Test configuration is explicit and isolated; production defaults are never silently reused in tests.
 
 ## 11. Logging, errors, and observability
@@ -239,7 +240,7 @@ The frontend never edits generated files. Hand-written wrappers in `packages/api
 
 NestJS uses Pino through one platform logging adapter. JSON is the production format; local pretty printing is a development transport only. Every API request receives or generates a correlation ID and every worker execution has a job/attempt ID. Child loggers carry safe context such as module, operation, request ID, and opaque actor reference.
 
-Pino redaction is configured for authorization/cookie headers, passwords, tokens, OAuth material, secrets, request bodies containing personal task data, and database connection strings. Logging full DTOs or entities is forbidden. Errors are serialized with safe class, code, and stack in trusted environments only.
+Pino redaction is configured for authorization/cookie headers, passwords, tokens, secrets, request bodies containing personal task data, and database connection strings. Logging full DTOs or entities is forbidden. Errors are serialized with safe class, code, and stack in trusted environments only.
 
 ### ARC-016: Error handling
 
@@ -256,7 +257,9 @@ The worker classifies failures as retryable, permanent, or invariant violations.
 - W3C trace context and correlation IDs are propagated even if a distributed tracing backend is not deployed initially.
 - Alerts target sustained readiness failure, error-rate increase, worker backlog age, failed jobs, and managed-database capacity/backup failure.
 
-The MVP has no contractual availability SLA. Internal objectives are p95 under 500 ms for common API reads/writes and under 1 second for bounded search on the reference dataset, with notification materialization normally within 60 seconds. Performance tests establish and document the reference dataset and machine before these targets become release gates.
+The MVP has no contractual availability SLA. Its internal availability objective is at least 99.5% successful production readiness observations over every rolling 30-day window. A one-minute external or platform probe evaluates `/health/ready`; any failed or missing observation counts as unavailable, including planned maintenance, and local/test environments are excluded. Alerts fire after five consecutive failed observations and when the rolling objective is at risk.
+
+Performance objectives are p95 under 500 ms for common API reads/writes and under 1 second for bounded search on the reference dataset, with notification materialization normally within 60 seconds. Performance tests establish and document the reference dataset and machine before these targets become release gates.
 
 ## 12. Docker Compose and production infrastructure
 
@@ -331,12 +334,12 @@ Jobs may run in parallel after dependency installation, but contract generation 
 | Component | Rendered frontend components and composed feature states without a real backend | Vitest, Testing Library, user-event, axe | forms, dialogs, list/Kanban keyboard behavior, empty/loading/error states, Turkish labels |
 | API integration | NestJS HTTP stack through Express with real guards, validation, filters, and module wiring | Jest, Supertest | auth cookies, RFC 9457 errors, pagination, idempotency, concurrency, cross-user non-enumeration |
 | Database integration | Repositories, constraints, transactions, job leasing, and migrations against real PostgreSQL | Jest, Testcontainers | owner-scoped queries, uniqueness, restore fallback, duplicate recurrence race, lease recovery |
-| End-to-end | Browser journeys against built web/API/worker and isolated PostgreSQL | Playwright | registration/onboarding, Today planning, task lifecycle, recurrence, notification, Trash restore, Google auth via controlled test boundary |
+| End-to-end | Browser journeys against built web/API/worker and isolated PostgreSQL | Playwright | registration/onboarding, email/password recovery, Today planning, task lifecycle, recurrence, notification, Trash restore |
 | Contract/OpenAPI | Machine-readable API compatibility and generated-client correctness | OpenAPI validator/linter, compatibility diff, generator, TypeScript | stable operation IDs, schemas/errors/security, no generated drift, frontend compiles against client |
 
 Every invariant and concurrency-sensitive operation listed in the domain/data contracts has at least one deterministic test. Coverage reports expose gaps, but a global percentage is not a substitute for rule coverage. Once a representative implementation baseline exists, coverage thresholds may only ratchet upward. Flaky tests are treated as defects and are not retried indefinitely to obtain green CI.
 
-Test data builders default to two owners so isolation is exercised by design. E2E suites use deterministic clocks for date-sensitive behavior and never call real Google or email delivery services.
+Test data builders default to two owners so isolation is exercised by design. E2E suites use deterministic clocks for date-sensitive behavior and never call real email delivery services.
 
 ## 16. Quality gates
 

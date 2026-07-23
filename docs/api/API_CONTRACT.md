@@ -2,11 +2,11 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Approved — Stage 6 completed |
+| Status | Approved — Stage 6 completed; MVP scope revised to defer social authentication |
 | Planning stage | Stage 6 — API design |
 | Product scope | MVP |
 | Document language | English |
-| Last updated | 2026-07-20 |
+| Last updated | 2026-07-23 |
 | Implementation status | Not started |
 
 This document defines the conceptual HTTP contract for the approved MVP. It describes observable REST resources, commands, authentication and session behavior, ownership enforcement, concurrency, idempotency, errors, collection semantics, and OpenAPI/client responsibilities. It does not create an OpenAPI file, controller, DTO class, backend module, persistence schema, migration, SQL statement, or production application code.
@@ -21,7 +21,7 @@ Normative terms such as **must**, **must not**, **should**, and **may** express 
 - **API-G-004 — Explicit concurrency:** Stale writes fail visibly; last-write-wins is not the default for mutable aggregates.
 - **API-G-005 — Stable client contract:** Machine-readable codes, resource fields, routes, and pagination tokens are stable within v1; human-readable text may be localized.
 - **API-G-006 — Web-focused authentication:** The responsive first-party web application authenticates with an opaque server-side session. Reusable bearer credentials are not exposed to browser JavaScript.
-- **API-G-007 — No accidental expansion:** Collaboration, organizations, sharing, billing, public resources, GraphQL, native mobile APIs, and non-authentication Google data access remain outside MVP.
+- **API-G-007 — No accidental expansion:** Collaboration, organizations, sharing, billing, public resources, GraphQL, native mobile APIs, and social authentication providers including Google remain outside MVP.
 
 ## 2. Approved Stage 6 decisions
 
@@ -30,8 +30,8 @@ Normative terms such as **must**, **must not**, **should**, and **may** express 
 | API-D-001 | Use `/api/v1` as the base path. A breaking contract requires a new major path; additive compatible changes remain in v1. | User-approved Stage 6 decision package; REST baseline |
 | API-D-002 | Use opaque server-side sessions transported only by a production `Secure`, `HttpOnly`, `SameSite=Lax`, host-only cookie. Do not place session IDs or reusable tokens in browser storage or JSON responses. | User choice 1A; NFR-002–NFR-004 |
 | API-D-003 | Protect every unsafe cookie-authenticated request with a session-bound CSRF token and strict Origin/host validation. | User choice 1A; NFR-002–NFR-003 |
-| API-D-004 | Use Google OpenID Connect Authorization Code flow with PKCE S256, transaction-bound `state` and `nonce`, an exact redirect URI, and authentication-only scopes. | User choice 1A; FR-005–FR-007, PRV-005 |
-| API-D-005 | Preserve explicit re-authenticated identity linking. A verified Google email match neither creates a second User nor automatically links an identity. | DEC-029, DEC-035; BR-AUTH-001 |
+| API-D-004 | Reserved beyond MVP. The former Google OpenID Connect decision is superseded for the current scope and must be replanned before any social provider is introduced. | DEC-066; deferred FR-005–FR-006 and PRV-005 |
+| API-D-005 | Reserved beyond MVP. Provider identity linking and unlinking have no active MVP endpoint or workflow. | DEC-066; deferred BR-AUTH-001 |
 | API-D-006 | Use strong `ETag` validators and require `If-Match` for single-resource mutations that can overwrite concurrent state. Return `428` when required preconditions are absent and `412` when stale. | User choice 2A; DD-032 |
 | API-D-007 | Require `Idempotency-Key` for resource-creating requests and retry-sensitive commands. Replay an identical completed request; reject a key reused with a different request fingerprint. | User choice 2A; DD-026–DD-030, DD-034 |
 | API-D-008 | Treat bulk Tasks as independently atomic items and return one result per submitted Task without disclosing whether an unavailable ID is missing or foreign-owned. | User choice 2A; BR-OWN-011, DD-033 |
@@ -55,7 +55,7 @@ Normative terms such as **must**, **must not**, **should**, and **may** express 
 
 ### 3.2 HTTP and representation conventions
 
-- Requests and successful responses use JSON encoded as UTF-8 unless the route is an OAuth browser redirect or intentionally has no body.
+- Requests and successful responses use JSON encoded as UTF-8 unless a route intentionally has no body.
 - Error responses use `application/problem+json`.
 - JSON property names use `camelCase`; stable machine enum values and error codes use `UPPER_SNAKE_CASE`.
 - Primary identifiers are opaque strings. Clients must not parse, sort, or derive ownership from them.
@@ -84,14 +84,14 @@ Normative terms such as **must**, **must not**, **should**, and **may** express 
 
 ### 4.1 Opaque session model
 
-- A successful login or Google authentication creates a cryptographically random opaque session identifier whose security state is stored server-side.
+- A successful email/password login creates a cryptographically random opaque session identifier whose security state is stored server-side.
 - In production the identifier is transported only in a host-only cookie with a `__Host-` prefix, `Secure`, `HttpOnly`, `SameSite=Lax`, and `Path=/`; no `Domain` attribute is allowed.
-- The cookie value contains no User data, role, email, provider token, or authorization claims.
-- Session identifiers rotate after authentication, re-authentication, password reset/change, identity link/unlink, and other privilege-sensitive transitions. Rotation invalidates the prior identifier.
+- The cookie value contains no User data, role, email, credential material, or authorization claims.
+- Session identifiers rotate after authentication, re-authentication, password reset/change, and other privilege-sensitive transitions. Rotation invalidates the prior identifier.
 - Logout invalidates the server-side session before clearing the cookie. Confirmed account deletion invalidates all sessions immediately.
 - Password reset invalidates all existing sessions. Password change invalidates all other sessions and rotates the current session after successful re-authentication.
 - Sessions have both idle and absolute expiry. Exact durations, renewal windows, and concurrent-session limits are Solution Architecture decisions and must be fixed before implementation readiness.
-- The API never returns a bearer access token, refresh token, session ID, password verifier, Google access token, or Google refresh token to the frontend.
+- The API never returns a bearer access token, refresh token, session ID, or password verifier to the frontend.
 
 ### 4.2 CSRF and browser-origin protection
 
@@ -111,16 +111,9 @@ Normative terms such as **must**, **must not**, **should**, and **may** express 
 - Password-reset request responses are identical for existing and non-existing accounts.
 - Password policy details and token/session expiry durations remain Security/Architecture parameters, but the contract requires server-side validation, a non-secret stable validation code, and no account enumeration.
 
-### 4.4 Google authentication and explicit linking
+### 4.4 Deferred social authentication
 
-- Google authentication uses OpenID Connect Authorization Code flow. The backend creates transaction-specific PKCE S256, `state`, and `nonce` values and validates them on callback.
-- The redirect URI is exact and pre-registered. Only safe allowlisted frontend return destinations are accepted; arbitrary caller-supplied redirect URLs are forbidden.
-- Requested scope is limited to authentication identity (`openid`, `email`, and the minimum profile scope needed for approved account presentation). Offline access is not requested and provider refresh tokens are not retained for MVP authentication.
-- The callback exchanges the code server-side, validates issuer, audience, signature, expiry, nonce, state, and the stable Google subject, then consumes the OAuth transaction exactly once.
-- Provider tokens and authorization codes never appear in frontend redirect query parameters, API success bodies, logs, or durable planning data.
-- A linked provider subject signs in its one User. An unclaimed Google subject may create a new User only if its verified normalized email is not reserved by a retained User.
-- When the verified Google email matches an existing User but the provider subject is not linked, the callback does not create or link durable identity state. It returns a generic explicit-link-required outcome. The person must authenticate to the existing User, complete recent re-authentication, start a new `intent=link` transaction, and explicitly confirm.
-- Identity unlinking is rejected when it would remove the User's last usable authentication method.
+Google and every other social authentication provider are outside the MVP. The API exposes no provider authorization, callback, identity-linking, or identity-unlinking route. Deferred IDs `FR-005`, `FR-006`, and `PRV-005` remain reserved and are not active contract obligations. Introducing a provider later requires a fresh product, UX, domain, data, API, security, architecture, and backlog decision; the former provider-specific design is not implicitly approved for future implementation.
 
 ## 5. Ownership, authorization, and enumeration resistance
 
@@ -134,7 +127,7 @@ Normative terms such as **must**, **must not**, **should**, and **may** express 
 - Ownership denial is evaluated before disclosing version, lifecycle, parent, recurrence, retention, or validation details about the requested private resource.
 - Background recurrence, reminder, Trash expiry, and account-deletion work applies the same owner consistency rules even though it is not driven by a browser session.
 
-**Traceability:** FR-007, FR-011–FR-012, FR-066, NFR-001–NFR-004, PRV-001–PRV-005, PRV-008–PRV-009, AC-002, AC-014; BR-OWN-001–BR-OWN-012; DD-002–DD-003; UXF-027.
+**Traceability:** FR-007, FR-011–FR-012, FR-066, NFR-001–NFR-004, PRV-001–PRV-004, PRV-008–PRV-009, AC-002, AC-014; BR-OWN-001–BR-OWN-012; DD-002–DD-003; UXF-027.
 
 ## 6. Error response contract
 
@@ -154,7 +147,7 @@ Every non-empty error body follows this conceptual shape:
 | `errors` | Validation only | Ordered field/item validation details. |
 | `retryAfterSeconds` | Rate/temporary errors only | Non-negative delay consistent with `Retry-After` when supplied. |
 
-Human-readable `title`, `detail`, and validation `message` may be localized. `type`, `code`, `path`, and HTTP status remain locale-independent. Error text never includes password input, tokens, cookie values, Google codes, foreign content, stack traces, SQL, or raw provider responses.
+Human-readable `title`, `detail`, and validation `message` may be localized. `type`, `code`, `path`, and HTTP status remain locale-independent. Error text never includes password input, tokens, cookie values, foreign content, stack traces, SQL, or raw dependency responses.
 
 ### 6.2 Validation errors
 
@@ -185,8 +178,6 @@ Rejected password/token values are never echoed. A foreign identifier is not rep
 | `429` | `RATE_LIMITED` | Request exceeds an abuse/quota policy; uses generic non-enumerating detail and `Retry-After`. |
 | `500` | `INTERNAL_ERROR` | Unexpected failure with only a trace ID and neutral detail. |
 | `503` | `SERVICE_UNAVAILABLE` | Temporary dependency/service inability where retry is appropriate and safe. |
-
-Provider cancellation is a normal OAuth return outcome and is not logged or presented as an internal failure. Upstream provider details are mapped to stable safe application codes.
 
 ## 7. Collection, pagination, filtering, sorting, and search
 
@@ -266,13 +257,26 @@ Provider cancellation is a normal OAuth return outcome and is not logged or pres
 
 ## 9. Rate limiting and abuse-resistance expectations
 
-- Unauthenticated registration, login, email verification request, password-reset request, OAuth start/callback, and token confirmation routes receive stricter per-network, per-transaction, and privacy-safe identity-derived controls.
+- Unauthenticated registration, login, email verification request, password-reset request, and token-confirmation routes receive stricter per-network, per-transaction, and privacy-safe identity-derived controls.
 - Authenticated APIs receive per-User and endpoint-class controls, with stricter limits for search, bulk commands, lifecycle cascades, identity changes, and account deletion than for ordinary reads.
 - Limits must slow credential stuffing, enumeration, email flooding, replay, and resource-exhaustion attempts without using a response that reveals whether an account or private resource exists.
 - A rate-limited request returns `429 RATE_LIMITED` and `Retry-After`; exact quota counters or partition keys are omitted when their disclosure could aid enumeration or traffic analysis.
 - Rate limiting is not authorization, ownership enforcement, CSRF protection, or idempotency and cannot replace any of them.
 - Successful login does not reset evidence needed for abuse detection. Conversely, a simple permanent lockout based only on attacker-controlled failed attempts is forbidden.
-- Exact thresholds, windows, distributed enforcement mechanism, trusted proxy handling, alerting, and emergency overrides are Solution Architecture decisions. They must be configured, tested, and documented before implementation readiness.
+
+The MVP baseline applies the most restrictive matching class:
+
+| Class | Initial limit |
+| --- | --- |
+| Public login and token-confirmation attempts | 5 per 15 minutes per privacy-safe normalized identity key and 30 per 15 minutes per trusted network prefix |
+| Registration, verification-email request, and password-reset request | 3 per hour per privacy-safe normalized identity key and 20 per hour per trusted network prefix |
+| Authenticated ordinary reads | 120 per minute per User, with a burst ceiling of 30 per 10 seconds |
+| Authenticated ordinary mutations | 60 per minute per User, with a burst ceiling of 15 per 10 seconds |
+| Search | 30 per minute per User |
+| Bulk commands and lifecycle cascades | 10 per minute per User, with the separate 100-item request maximum |
+| Identity changes and account deletion | 5 per 15 minutes per User |
+
+Sensitive public-authentication counters are persisted in PostgreSQL; general per-User endpoint counters may remain process-local while the approved topology has one API replica. The API trusts only the validated environment-specific ingress hop count. Operations alert when a route class exceeds both 20 limited requests and a 10% limited-request ratio for five consecutive minutes. Emergency relaxation is documented, attributable, expires within 60 minutes, and cannot disable authorization, CSRF, ownership, enumeration resistance, or idempotency; tightening may be applied immediately. These parameters are configuration defaults and must be represented in tests and deployment smoke checks.
 
 **Traceability:** FR-007, FR-012, NFR-001–NFR-004, NFR-008, PRV-004, PRV-009, AC-001–AC-002, AC-014.
 
@@ -292,34 +296,30 @@ All private endpoints inherit the ownership and non-disclosure rules in Section 
 
 ## 11. Authentication endpoints
 
-**Purpose:** Establish, recover, rotate, inspect, or end a first-party authenticated session; perform Google authentication/linking without exposing provider or session tokens.
+**Purpose:** Establish, recover, rotate, inspect, or end a first-party email/password authenticated session.
 
 | Method and route | Auth / preconditions | Ownership rule | Conceptual input | Successful output | Expected errors | Requirements |
 | --- | --- | --- | --- | --- | --- | --- |
 | `GET /auth/csrf` | Public or Session | Token binds only to the caller's anonymous transaction/session. | None. | `200` CSRF token and expiry metadata; no session ID. | `429`, `503`. | NFR-002–NFR-003 |
 | `GET /auth/session` | Public; no private lookup without valid cookie | Returns only the current valid session state. | None. | `200` authenticated boolean and, when authenticated, safe User/session-expiry summary. | `429`, `503`. Invalid cookie is represented as unauthenticated. | FR-003, FR-010, FR-012 |
-| `POST /auth/register` | Public + CSRF; abuse-limited | Never confirms whether normalized email is retained. | Email, password, confirmation, terms acceptance. | `202` generic verification-next-step result. | `422` safe policy errors, `429`, `503`; no duplicate-account disclosure. | FR-001–FR-002, FR-006–FR-007, AC-001 |
+| `POST /auth/register` | Public + CSRF; abuse-limited | Never confirms whether normalized email is retained. | Email, password, confirmation, terms acceptance. | `202` generic verification-next-step result. | `422` safe policy errors, `429`, `503`; no duplicate-account disclosure. | FR-001–FR-002, FR-007, AC-001 |
 | `POST /auth/email-verification-requests` | Public + CSRF | Same response for existing, verified, pending, or absent email. | Email. | `202` generic result. | `422` format only, `429`, `503`. | FR-002, FR-007, NFR-002 |
 | `POST /auth/email-verifications` | Public + CSRF; `Idem` | Token is purpose-bound; response does not reveal unrelated identity state. | Single-use verification token. | `200` verified result and safe login/onboarding next step. | `409` already-consumed semantic replay when not idempotently resolved, `422` invalid/expired token, `429`. | FR-002–FR-003, AC-001 |
 | `POST /auth/sessions` | Public + CSRF | Credential lookup and error are non-enumerating. | Email, password, safe allowlisted return intent. | `200` safe User/session summary; opaque cookie set and rotated. | `401 AUTHENTICATION_FAILED`, `409 EMAIL_VERIFICATION_REQUIRED` only after correct credential proof, `429`. | FR-003, FR-007, NFR-002, AC-001 |
 | `DELETE /auth/session` | Session + CSRF | Invalidates only the current session; already-invalid is safe/idempotent. | None. | `204`; cookie cleared. | `403` CSRF, `429`, `503`. | FR-003, FR-010 |
 | `POST /auth/password-reset-requests` | Public + CSRF | Same response regardless of account or identity existence. | Email. | `202` generic result. | `422` format only, `429`, `503`. | FR-004, FR-007, NFR-002 |
 | `POST /auth/password-resets` | Public + CSRF; `Idem` | Token grants only its purpose; success invalidates all sessions for that User. | Single-use token, new password, confirmation. | `204`; existing sessions revoked. | `422` invalid/expired token or password policy, `429`. | FR-004, FR-007, FR-010, AC-001 |
-| `POST /auth/reauthentications` | Session + CSRF | Acts only on current User and does not disclose other identities. | Current eligible credential or provider re-auth intent. | `200` short-lived action-bound re-auth proof metadata; no reusable secret body. | `401`, `409` method unavailable, `429`. | BR-AUTH-001–BR-AUTH-003, UXF-026 |
-| `GET /auth/google/authorize` | Public for sign-in; Session + recent re-auth for `intent=link` | OAuth transaction binds to caller/session; no email-match linking. | `intent=sign-in|link`, allowlisted return destination. | `302` to exact Google authorization endpoint with PKCE/state/nonce. | `400` unsafe return, `401`/`403` for invalid link context, `429`, `503`. | FR-005–FR-007, PRV-005, BR-AUTH-001 |
-| `GET /auth/google/callback` | OAuth transaction, not ordinary session auth | Consumes one bound transaction; provider subject maps to at most one User. | Provider code/state or cancellation response. | `303` to safe frontend result; successful sign-in sets opaque session; no token in URL. | Safe redirect result for cancellation, invalid/expired transaction, provider failure, or explicit-link-required; `429`. | FR-005–FR-007, PRV-005, AC-001 |
+| `POST /auth/reauthentications` | Session + CSRF | Acts only on current User. | Current password. | `200` short-lived action-bound re-auth proof metadata; no reusable secret body. | `401`, `409` credential unavailable, `429`. | FR-004, FR-008–FR-010, NFR-002, BR-AUTH-002–BR-AUTH-003, UXF-026 |
 
 ## 12. Current User and account endpoints
 
-**Purpose:** Read and update the authenticated account, preferences, onboarding, authentication methods, and irreversible account-deletion process.
+**Purpose:** Read and update the authenticated account, preferences, onboarding, password credential, and irreversible account-deletion process.
 
 | Method and route | Auth / preconditions | Ownership rule | Conceptual input | Successful output | Expected errors | Requirements |
 | --- | --- | --- | --- | --- | --- | --- |
 | `GET /users/me` | Session | Always resolves from session; no arbitrary User ID route exists. | None. | `200` current User profile/preferences/onboarding/account state, including the in-app reminder Notification preference, + `ETag`. | `401`, `429`, `503`. | FR-011–FR-012, FR-045–FR-046, FR-091 |
 | `PATCH /users/me` | Session + CSRF + `If-Match` | Current User only. | Display name, confirmed account time zone, and/or `inAppReminderNotificationsEnabled`; no email/owner field. Disabling requires explicit acknowledged consequences. | `200` updated User + new `ETag`; timed display changes do not rewrite stored instants, and preference changes do not delete reminders or Notification history. | `401`, `412`, `422`, `428`, `429`. | FR-045–FR-046, FR-091–FR-093, NFR-012, UXF-024, AC-016 |
 | `POST /users/me/onboarding-completions` | Session + CSRF + `If-Match`; `Idem` | Sample data belongs only to current User. | Confirmed `CREATE_SAMPLE_DATA` or `START_EMPTY`, confirmed time zone when pending. | `200` completed onboarding summary and created owned resource links when applicable; new User `ETag`. | `409` already completed with incompatible choice, `412`, `422`, `428`, `429`, `503`. | FR-013–FR-016, PRV-003, AC-003 |
-| `GET /users/me/authentication-identities` | Session | Current User methods only; no credential/provider token fields. | None. | `200` bounded identity summaries. | `401`, `429`. | FR-001–FR-007, UXF-025 |
-| `DELETE /users/me/authentication-identities/{identityId}` | Session + CSRF + recent re-auth + `If-Match` | Identity must belong to current User; foreign/missing is `404`. | Explicit unlink confirmation. | `204`; current session rotates when required. | `401`, `404`, `409 LAST_USABLE_IDENTITY`, `412`, `428`, `429`. | BR-AUTH-003, NFR-002 |
 | `PUT /users/me/password` | Session + CSRF + recent re-auth + `If-Match` | Current User's eligible email/password identity only. | New password and confirmation; current proof supplied through re-auth, not echoed. | `204`; other sessions revoked and current session rotated. | `401`, `404`, `409` identity unavailable, `412`, `422`, `428`, `429`. | FR-004, NFR-002, UXF-025 |
 | `POST /users/me/account-deletions` | Session + CSRF + recent re-auth + `If-Match`; `Idem` | Current User only; repeated confirmation resolves to one process. | Explicit irreversible confirmation. | `202` privacy-safe deletion-process state; all access revoked immediately. | `401`, `409` process conflict, `412`, `422`, `428`, `429`, `503`. | FR-008–FR-010, PRV-007, DD-030–DD-031, UXF-026 |
 
@@ -495,11 +495,11 @@ Archive and Trash searches use their dedicated collection endpoints and explicit
 ## 24. Request and response security principles
 
 - Production API traffic is HTTPS-only. Authentication cookies are never accepted over plaintext transport in production.
-- Request bodies, query strings, URLs, problem details, and telemetry must not contain session IDs, password/reset/verification tokens except at their dedicated confirmation body, provider codes beyond the callback exchange, credential verifiers, or Google tokens.
+- Request bodies, query strings, URLs, problem details, and telemetry must not contain session IDs, password/reset/verification tokens except at their dedicated confirmation body, or credential verifiers.
 - Passwords and one-time tokens use dedicated write-only fields. They are redacted before structured logging, tracing, validation capture, or idempotency fingerprint persistence.
 - Resource names, Task titles/descriptions, checklist text, search queries, and Notification snapshots are personal content. Logs minimize or omit them by default in accordance with PRV-009.
 - Server validation is authoritative even when the generated client and UI validate first. Validation includes type/shape, bounded size, closed enums, cross-field dates, ownership-compatible relationships, lifecycle eligibility, and domain invariants.
-- Successful responses expose only fields needed for approved product behavior. Internal lifecycle implementation details, password/provider state, worker status, row locks, raw rank keys, and private operational metadata are omitted.
+- Successful responses expose only fields needed for approved product behavior. Internal lifecycle implementation details, password state, worker status, row locks, raw rank keys, and private operational metadata are omitted.
 - Caching of private responses defaults to `Cache-Control: no-store` unless a later reviewed endpoint-specific policy safely permits private validation caching. Authentication and token responses are always `no-store`.
 - Browser security headers, CSP, HSTS, proxy trust, upload limits, and deployment edge controls are finalized in Solution Architecture; they cannot weaken this session, CSRF, CORS, or ownership contract.
 - API error and success behavior is deterministic enough for generated-client handling but does not become an oracle for account/resource existence.
@@ -512,7 +512,7 @@ Archive and Trash searches use their dedicated collection endpoints and explicit
 - This conceptual document is the approved design baseline. It is not itself parsed as an OpenAPI source and does not authorize implementation until all planning stages are approved.
 - When implementation begins, the generated OpenAPI artifact is committed and versioned. Manual edits to generated output are forbidden because they would drift from runtime behavior.
 - Every operation has a stable, intention-revealing `operationId`, documented security requirement, parameters/body, success response, Problem Details responses, ETag/idempotency headers, and requirement references where supported by tooling.
-- Cookie session authentication and the CSRF header are represented explicitly. OAuth browser redirects are documented without pretending that the frontend receives provider tokens.
+- Cookie session authentication and the CSRF header are represented explicitly.
 
 ### 25.2 Verification and change control
 
@@ -520,7 +520,7 @@ Archive and Trash searches use their dedicated collection endpoints and explicit
 - CI detects breaking changes against the approved v1 baseline and requires an explicit versioning/decision review.
 - Contract tests verify representative runtime responses and headers against the generated document, including errors and authentication behavior.
 - Security-sensitive routes must not be omitted from the specification merely because they are browser redirects or return no JSON.
-- The exact OpenAPI 3.1 patch level and generator/validator packages are pinned after compatibility evaluation during Solution Architecture/implementation readiness.
+- Implementation readiness accepts `@hey-api/openapi-ts` as the candidate generator under ADR-002. `SPIKE-001` runs as the first non-production work of EPIC-001, before `BL-003` or any generated production transport artifact, and pins the exact OpenAPI 3.1 patch level plus generator/validator versions after compatibility evaluation. A failed proof reopens only the generator choice and does not count as production implementation.
 
 ## 26. Generated frontend client strategy
 
@@ -540,7 +540,7 @@ Archive and Trash searches use their dedicated collection endpoints and explicit
 | Approved domain operation | API surface | Coverage decision |
 | --- | --- | --- |
 | Register, verify, login, logout, recover password | `/auth/*` | Covered with enumeration-resistant public outcomes and opaque session rotation. |
-| Google sign-in and explicit identity link | `/auth/google/authorize`, `/auth/google/callback`, `/users/me/authentication-identities/*` | Covered; no email-match auto-link or provider token delivery. |
+| Social authentication and provider identity linking | None in MVP | Deferred. No provider route or persisted provider identity is authorized by this contract. |
 | Complete onboarding/sample-data choice | `POST /users/me/onboarding-completions` | Covered idempotently; sample content is private ordinary content. |
 | Create/rename Area and valid default workflow | `/areas`, `/areas/{id}`, `/areas/{id}/workflow` | Covered; Area creation and workflow mutation preserve all canonical defaults atomically. |
 | Create/rename/move Project | `/projects*`, `/projects/{id}/area-moves` | Covered; Area move includes all contained Tasks atomically. |
@@ -564,7 +564,7 @@ No approved domain operation requires a public collaboration, organization, memb
 
 | Contract area | Primary product/UX coverage | Domain/data coverage |
 | --- | --- | --- |
-| Authentication, session, recovery, Google | FR-001–FR-012, NFR-002–NFR-004, PRV-004–PRV-005, AC-001, UXF-002–UXF-005, UXF-025–UXF-026 | BR-AUTH-001–BR-AUTH-003, DD-004–DD-007, DD-030–DD-032 |
+| Authentication, session, recovery | FR-001–FR-004, FR-007–FR-012, NFR-002–NFR-004, PRV-004, AC-001, UXF-002–UXF-004, UXF-025–UXF-026 | BR-AUTH-002–BR-AUTH-003, DD-004–DD-007, DD-030–DD-032 |
 | Ownership and non-disclosure | FR-011–FR-012, FR-066, NFR-001–NFR-004, PRV-001–PRV-003, PRV-008–PRV-009, AC-002, AC-014, UXF-027 | BR-OWN-001–BR-OWN-012, DD-002–DD-003 |
 | Areas, Projects, statuses | FR-017–FR-026, FR-034–FR-040, FR-087–FR-090, AC-004, AC-006, UXF-007–UXF-010 | BR-PROJ-001–BR-PROJ-003, BR-STATUS-001–BR-STATUS-005, DD-008–DD-011, DD-034 |
 | Tasks, dates, recurrence, reminders | FR-027–FR-058, NFR-006, NFR-012, AC-005, AC-007–AC-008, UXF-011–UXF-014 | BR-TASK-001–BR-TASK-007, BR-REC-001–BR-REC-012, BR-REM-001–BR-REM-003, DD-022–DD-029 |
@@ -581,8 +581,6 @@ The contract aligns conceptually with these current primary/authoritative specif
 
 - RFC 9110 HTTP Semantics for methods, ETags, `If-Match`, `412`, and conditional requests.
 - RFC 9457 Problem Details for HTTP APIs for the error media type and base members.
-- RFC 9700 OAuth 2.0 Security Best Current Practice for Authorization Code, PKCE, state/nonce binding, and avoidance of implicit token delivery.
-- Google Web Server OAuth/OpenID Connect guidance for exact redirect URIs, authorization-code exchange, state validation, and limited scopes.
 - OWASP Session Management, CSRF Prevention, and REST Security guidance for opaque cookie protection, session rotation/invalidation, CSRF defense, transport security, validation, and safe error/log behavior.
 - OpenAPI Specification 3.1 for the future generated machine-readable contract and cookie/security-scheme description.
 
@@ -595,16 +593,16 @@ The following operational parameters do not block the conceptual API contract an
 - exact session idle/absolute expiry, renewal behavior, and concurrent-session policy;
 - password policy parameters and email verification/password-reset token lifetimes;
 - email delivery provider, retry behavior, and security-event notification policy;
-- exact rate-limit thresholds, distributed enforcement, trusted proxy configuration, and alerting;
+- environment overrides for the approved rate-limit baseline and the exact trusted proxy hop count;
 - production frontend/API origin topology, CORS allowlist if required, CSP/HSTS, and edge security controls;
 - idempotency-record storage, cleanup after the minimum replay window, and privacy-safe fingerprint implementation;
 - reminder polling/retry/latency, Trash-expiry scheduling, and account-purge operational guarantees;
 - account-deletion backup expiry, deletion evidence, and privacy-minimized receipt retention;
 - maximum bulk size and endpoint-specific collection limits based on measured capacity;
-- exact OpenAPI 3.1 patch, generator, validator, breaking-change checker, and frontend generator versions;
-- deployment, availability, browser support, performance targets, observability, and disaster recovery.
+- exact versions selected by the approved just-in-time `SPIKE-001`;
+- deployment-provider selection and provider-specific disaster recovery; internal availability, browser support, performance targets, and the observability baseline are resolved by Architecture.
 
-These handoffs may refine operational values but cannot weaken opaque sessions, CSRF protection, explicit identity linking, enumeration resistance, ownership enforcement, ETag preconditions, idempotency, or approved domain invariants.
+These handoffs may refine operational values but cannot weaken opaque sessions, CSRF protection, enumeration resistance, ownership enforcement, ETag preconditions, idempotency, or approved domain invariants.
 
 ## 31. API risks and responses
 
@@ -613,7 +611,7 @@ These handoffs may refine operational values but cannot weaken opaque sessions, 
 | API-R-001 | Cookie authentication introduces CSRF risk. | Require session-bound CSRF tokens, Origin validation, SameSite cookies, and explicit CORS policy. |
 | API-R-002 | Different missing/foreign errors can enumerate private resources. | Use one `404 RESOURCE_NOT_FOUND` before returning ownership, version, or relationship detail. |
 | API-R-003 | Retry of Task completion can create duplicate recurrence successors. | Combine ETag, Idempotency-Key, atomic completion, predecessor/generation uniqueness, and return existing successor on replay. |
-| API-R-004 | Google email matching can become an account-takeover path. | Never auto-link; require authenticated recent re-auth and a new explicit link transaction. |
+| API-R-004 | A future social-authentication design could create account-takeover paths if it reuses obsolete assumptions. | Keep social authentication outside MVP and require a fresh cross-document security decision before introducing any provider. |
 | API-R-005 | ETags alone may not protect multi-resource commands. | Carry per-item ETags where one header is insufficient and preserve server-side transaction/uniqueness guards. |
 | API-R-006 | Bulk partial success can confuse clients or leak ownership. | Return ordered per-item results, keep each item atomic, and collapse missing/foreign into the same safe failure. |
 | API-R-007 | Cursor behavior can become unstable under arbitrary sorting. | Bind cursor to owner/filter/sort tuple and use a stable resource-ID tie-breaker. |
@@ -629,7 +627,7 @@ These handoffs may refine operational values but cannot weaken opaque sessions, 
 Stage 6 may be approved only when:
 
 - **API-AC-001:** Base path, versioning, request/response conventions, errors, validation, pagination, filtering, sorting, and search are accepted.
-- **API-AC-002:** Opaque session, cookie attributes, CSRF, email/password lifecycle, Google Authorization Code + PKCE, and explicit identity linking are accepted.
+- **API-AC-002:** Opaque session, cookie attributes, CSRF, and the email/password lifecycle are accepted; social authentication is explicitly outside MVP.
 - **API-AC-003:** Missing and foreign user-owned resources have one non-disclosing behavior across item, nested, search, collection, lifecycle, and bulk operations.
 - **API-AC-004:** Every requested resource group has purpose, method/route, authentication, ownership, input, success, expected errors, and requirement traceability.
 - **API-AC-005:** Task completion and recurrence generation, Trash restore parent choices, lifecycle cascades, and Project moves preserve approved atomic/domain behavior.

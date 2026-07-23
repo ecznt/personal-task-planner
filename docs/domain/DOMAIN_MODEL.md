@@ -29,7 +29,7 @@ This document defines the domain language, ownership boundaries, invariants, lif
 | Term | Domain meaning |
 | --- | --- |
 | User | One individual account and the root owner of one private planning space. |
-| AuthenticationIdentity | One verified or verifiable sign-in method linked to a User, such as email/password or Google. |
+| AuthenticationIdentity | The one email/password sign-in identity owned by an active MVP User. |
 | Area | A durable responsibility context required by every Task. |
 | Project | An optional grouping of Tasks contained by one Area. |
 | Task | One actionable work occurrence. A recurring series produces Tasks; the series itself is not a Task. |
@@ -53,7 +53,7 @@ These boundaries identify where invariants must be enforced together. They do no
 
 | Boundary | Root concept | Contained or coordinated concepts | Required consistency |
 | --- | --- | --- | --- |
-| Account | User | AuthenticationIdentity and account preferences | Identity uniqueness, explicit linking, usable sign-in method, time-zone ownership. |
+| Account | User | Email/password AuthenticationIdentity and account preferences | Normalized-email uniqueness, verification, usable sign-in method, time-zone ownership. |
 | Area workflow | Area | AreaStatus | At least one status and exactly one default per CanonicalStatus. |
 | Project | Project | Area reference | Same owner and one Area; atomic Area move with contained Task reconciliation. |
 | Task | Task | ChecklistItem, TaskLabel, TaskReminder, lifecycle and workflow state | Required Area, compatible Project, valid AreaStatus, date and completion invariants. |
@@ -89,9 +89,9 @@ Cross-boundary commands such as moving a Project, trashing an Area, or generatin
 | Optional properties | User-facing display name. No team, organization, public profile, or billing properties exist in MVP. |
 | Invariants | One private planning space per User; a valid account time zone is always present; another User cannot be granted planning-space access; a deleted User cannot authenticate or own retained active planning data. |
 | State transitions | Onboarding Pending → Completed; Account Active → Deletion Confirmed → Permanently Deleted. Operational deletion processing may occur between confirmation and completion, but access ends no later than logical completion. |
-| Allowed operations | Confirm onboarding choice; change time zone; enable or disable future in-app reminder Notifications; manage eligible identities; request and confirm account deletion; operate owned aggregates. |
+| Allowed operations | Confirm onboarding choice; change time zone; enable or disable future in-app reminder Notifications; change or recover the email/password credential; request and confirm account deletion; operate owned aggregates. |
 | Forbidden operations | Share ownership; join an organization; transfer aggregates to another User; restore a permanently deleted account through ordinary product flows. |
-| Related requirements | FR-008–FR-016, FR-045–FR-046, FR-091–FR-093, NFR-001, PRV-001–PRV-010, AC-001–AC-003, AC-016. |
+| Related requirements | FR-008–FR-016, FR-045–FR-046, FR-091–FR-093, NFR-001, PRV-001–PRV-004, PRV-006–PRV-010, AC-001–AC-003, AC-016. |
 
 Account deletion is logically distinct from moving content to Trash. Confirmed account deletion applies to all personal planning data and identities; backup erasure timing and operational evidence remain Architecture and Privacy decisions.
 
@@ -99,19 +99,19 @@ Account deletion is logically distinct from moving content to Trash. Confirmed a
 
 | Aspect | Definition |
 | --- | --- |
-| Purpose | Represent one sign-in method linked to exactly one User. |
+| Purpose | Represent the one email/password sign-in identity owned by exactly one active MVP User. |
 | Ownership | Directly owned by one User. |
-| Required properties | Identity type; provider-scoped unique subject or normalized email identity; verification state; enabled state. Email/password identity additionally requires a non-reusable credential verifier. |
-| Optional properties | Provider email snapshot; last successful authentication time; disable reason. Reusable credentials and provider tokens are not domain-visible properties. |
-| Invariants | A provider subject belongs to at most one User; one AuthenticationIdentity belongs to exactly one User; an unverified email/password identity cannot complete ordinary sign-in; a User cannot remove or disable their last usable sign-in identity. |
-| State transitions | Email/password: Pending Verification → Active → Disabled. Google: Active → Disabled. Disabled → Active requires a valid recovery or relinking flow. Identity linking is Pending Confirmation → Linked or Rejected. |
-| Allowed operations | Verify email; authenticate; reset password through a valid recovery action; explicitly link or unlink an eligible identity after re-authentication; disable a compromised method. |
-| Forbidden operations | Automatic account linking solely because Google and an existing account report the same email; linking while unauthenticated; exposing credential-verifier or provider-token material; linking one provider subject to multiple Users. |
-| Related requirements | FR-001–FR-007, FR-010, NFR-002–NFR-004, PRV-004–PRV-005, AC-001. |
+| Required properties | Normalized email identity; verification state; enabled state; non-reusable credential verifier. |
+| Optional properties | Last successful authentication time; disable reason. Reusable credentials are not domain-visible properties. |
+| Invariants | One AuthenticationIdentity belongs to exactly one User; an active User has exactly one email/password AuthenticationIdentity; its normalized email equals the User's normalized primary email; an unverified identity cannot complete ordinary sign-in; the identity cannot be unlinked through an MVP operation. |
+| State transitions | Pending Verification → Active → Disabled. Disabled → Active requires a valid recovery flow. |
+| Allowed operations | Verify email; authenticate; reset or change password through a valid recovery or re-authenticated action; disable a compromised identity as part of an account-security or deletion process. |
+| Forbidden operations | Linking or unlinking a social identity; adding a second sign-in method; exposing a credential verifier; linking one AuthenticationIdentity to multiple Users. |
+| Related requirements | FR-001–FR-004, FR-007, FR-010, NFR-002–NFR-004, PRV-004, AC-001. |
 
-- **BR-AUTH-001:** When a Google identity's verified email matches an existing account, the system does not auto-link. The person must authenticate to that existing account and explicitly confirm linking.
+- **BR-AUTH-001 — Deferred beyond MVP:** If social identity linking is reconsidered, email equality alone must never authorize automatic linking.
 - **BR-AUTH-002:** Authentication and recovery responses do not confirm whether an unrelated identity exists.
-- **BR-AUTH-003:** Identity unlinking is forbidden if it would leave the User without a usable authentication method.
+- **BR-AUTH-003:** An active User retains exactly one email/password AuthenticationIdentity; MVP exposes no identity-link or unlink operation.
 
 ### 5.3 Area
 
@@ -451,15 +451,14 @@ When a Task is unavailable but not permanently deleted, an existing Notification
 | Trash | Recoverable 30-day state with coherent cascade. | Ordinary editing or silent deadline extension. |
 | Restore | Prior coherent state or explicit valid destination. | Active child beneath inactive parent or guessed destination. |
 | Permanent delete | Only from Trash; cascade required dependants; remove personal content. | Restore after deletion or orphaned required relationships. |
-| Link identity | Re-authenticated explicit confirmation. | Email-match auto-linking or cross-user provider subject. |
 | Configure in-app reminder Notifications | Change the current User's preference with explicit consequences; preserve reminders and history. | Cross-user preference mutation, deletion of reminders/history, or backfill of Suppressed reminders. |
 
 ## 11. Requirements traceability
 
 | Domain rule area | Primary requirements and UX references |
 | --- | --- |
-| Ownership and privacy | FR-011–FR-012, FR-066, NFR-001–NFR-004, PRV-001–PRV-005, PRV-008–PRV-009, AC-002, UXF-027. |
-| Authentication identities | FR-001–FR-007, FR-010, AC-001, UXF-002–UXF-005, UXF-025. |
+| Ownership and privacy | FR-011–FR-012, FR-066, NFR-001–NFR-004, PRV-001–PRV-004, PRV-008–PRV-009, AC-002, UXF-027. |
+| Authentication identities | FR-001–FR-004, FR-007, FR-010, AC-001, UXF-002–UXF-004, UXF-025. |
 | Area–Project–Task hierarchy | FR-017–FR-026, AC-004, UXF-007–UXF-012. |
 | Workflow statuses | FR-034–FR-040, FR-060, FR-087–FR-090, AC-006, UXF-015–UXF-017, UXF-020. |
 | Dates and Today | FR-041–FR-046, FR-061–FR-062, NFR-012, AC-009, UXF-006, UXF-011–UXF-012, UXF-024. |
@@ -494,8 +493,8 @@ The following items do not block this domain model and must not be silently deci
 - Reminder polling frequency, job retry cadence, delivery latency target, and operational monitoring belong to Solution Architecture.
 - Database constraints, identifiers, indexes, temporal storage representation, and deletion implementation belong to Data Design.
 - REST resources, command shapes, idempotency keys, error payloads, and concurrency controls belong to API Design.
-- Backup expiry, account-deletion operational timing, and deletion evidence belong to Privacy and Solution Architecture.
-- Browser support, quantitative performance, availability, logging retention, and deployment topology belong to Solution Architecture.
+- Backup expiry, account-deletion operational timing, and deletion evidence are resolved by `ARC-009`, `ARC-019`, `DEC-034`, and `DEC-050`.
+- Browser support, quantitative performance, and internal availability are resolved by `ARC-017` and `ARC-027`; logging retention and deployment-provider selection remain Architecture/operations concerns.
 - Exact Turkish wording and optional visual metadata belong to later UX refinement without changing these rules.
 
 ## 14. Domain risks and mitigations
@@ -509,7 +508,7 @@ The following items do not block this domain model and must not be silently deci
 | DRA-005 | Time-zone changes can alter displayed timed dates. | Preserve instants, keep date-only values stable, preview changes, and apply the new zone only to future recurrence evaluation. |
 | DRA-006 | Area workflow edits can orphan Task statuses. | Require replacement and default validation as part of one workflow command. |
 | DRA-007 | Project moves can partially reconcile large Task sets. | Treat the move as one logical all-or-nothing operation and define implementation guarantees later. |
-| DRA-008 | Email-based automatic linking could enable account takeover. | Require re-authenticated explicit identity linking. |
+| DRA-008 | A future social-login proposal could reintroduce unsafe email-based linking. | Keep BR-AUTH-001 reserved and require a fresh threat model before the deferred feature re-enters scope. |
 | DRA-009 | A disabled Notification preference could create ambiguous reminder outcomes or accidental replay. | Resolve each due reminder exactly once as Triggered or Suppressed and never backfill Suppressed reminders. |
 
 ## 15. Stage 4 approval criteria
@@ -521,7 +520,7 @@ Stage 4 may be approved only when:
 - **DOM-AC-003:** Canonical and Area-specific status behavior is decision-complete for Global and Area Kanban.
 - **DOM-AC-004:** Recurrence modes, one-open-occurrence behavior, generation timing, no-backfill behavior, edit scope, and time-zone semantics are accepted.
 - **DOM-AC-005:** Archive, Trash, cascading, restoration, retention, and permanent-deletion effects are accepted.
-- **DOM-AC-006:** AuthenticationIdentity linking and User ownership rules are accepted.
+- **DOM-AC-006:** The single email/password AuthenticationIdentity and User ownership rules are accepted; social identity linking is outside MVP.
 - **DOM-AC-007:** Graphify findings are verified against source documents and any genuine disconnect is recorded.
 - **DOM-AC-008:** No application code, Prisma schema, migration, API schema, or implementation-specific persistence design has been created.
 

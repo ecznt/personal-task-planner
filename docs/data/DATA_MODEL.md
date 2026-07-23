@@ -15,7 +15,7 @@ This document defines the conceptual and logical data model required to preserve
 
 - **Data belongs to one private User space.** Every user-owned record carries an explicit `userId`, including records whose ownership could otherwise be derived through a parent. The deliberate duplication supports isolation filters and same-owner referential constraints; it may never be used to permit ownership drift.
 - **Identifiers are opaque and stable.** Primary identifiers are globally unique UUID values with no business meaning. Their exact generation mechanism is an implementation choice, but identifiers are never recycled or derived from names, email addresses, ordering, or timestamps.
-- **Business keys are separate from primary keys.** Normalized email, provider subject, normalized Label name, AreaStatus name, recurrence occurrence number, and relationship pairs are candidate keys enforced independently of record identity.
+- **Business keys are separate from primary keys.** Normalized email, normalized Label name, AreaStatus name, recurrence occurrence number, and relationship pairs are candidate keys enforced independently of record identity.
 - **Required hierarchy is protected by relationships, not only validation.** Task → Area is required; Project → Area is required; Task → Project is nullable but must match the Task's User and Area when present.
 - **Soft lifecycle is explicit.** Active, Archived, and Trashed are stored states for Area, Project, and Task. Permanently Deleted means the authoritative row no longer exists.
 - **History is immutable where meaning matters.** Completed recurrence occurrences keep the rule version that produced them. New future behavior creates a new version rather than rewriting history.
@@ -31,10 +31,10 @@ Every Stage 5 data decision has a stable ID and is linked to its approved domain
 | DD-001 | Use immutable, opaque, globally unique UUID primary identifiers for persisted entities; never use a mutable business value as a primary key. | DM-P-002, BR-OWN-002 | FR-011–FR-012, NFR-001 |
 | DD-002 | Store `userId` on every user-owned entity, child record, and association record. | BR-OWN-001–BR-OWN-009 | FR-011, FR-066, NFR-001, PRV-001 |
 | DD-003 | Use owner-inclusive candidate keys and relationships so a cross-user reference is invalid even when both opaque IDs exist. | BR-OWN-003–BR-OWN-008 | FR-011, NFR-001, AC-002 |
-| DD-004 | Store one normalized primary email on User and enforce global uniqueness while the account exists or deletion is pending. Preserve the submitted form separately for display. | BR-AUTH-001–BR-AUTH-003 | FR-001–FR-007, NFR-002, AC-001 |
-| DD-005 | Normalize email by trimming surrounding whitespace, applying Unicode normalization and case folding, and avoiding provider-specific dot or plus-address alias rules. | AuthenticationIdentity invariants | FR-001–FR-007, NFR-002 |
-| DD-006 | Identify AuthenticationIdentity by a unique `(provider, providerSubject)` pair. A Google email snapshot is informational and is not an identity key. | BR-AUTH-001–BR-AUTH-003 | FR-005–FR-007, PRV-005 |
-| DD-007 | A verified Google email matching an existing User cannot create another User and cannot auto-link; the identity is created only after re-authenticated explicit linking. | BR-AUTH-001 | FR-005–FR-007, NFR-002, AC-001 |
+| DD-004 | Store one normalized primary email on User and enforce global uniqueness while the account exists or deletion is pending. Preserve the submitted form separately for display. | BR-AUTH-002–BR-AUTH-003 | FR-001–FR-004, FR-007, NFR-002, AC-001 |
+| DD-005 | Normalize email by trimming surrounding whitespace, applying Unicode normalization and case folding, and avoiding provider-specific dot or plus-address alias rules. | AuthenticationIdentity invariants | FR-001–FR-004, FR-007, NFR-002 |
+| DD-006 | Store exactly one email/password AuthenticationIdentity per active User; its normalized email must equal the User's normalized primary email and its credential verifier remains identity-owned. | BR-AUTH-002–BR-AUTH-003 | FR-001–FR-004, FR-007, NFR-002, AC-001 |
+| DD-007 | Do not persist social-provider subjects, email snapshots, linking challenges, or provider tokens in the MVP. Reserved PRD IDs `FR-005`, `FR-006`, and `PRV-005` have no MVP data representation. | BR-AUTH-001 | Deferred requirement register; DEC-066 |
 | DD-008 | Require exactly one Area for every retained Task, including Archived and Trashed Tasks. | DM-P-003, BR-TASK-001 | FR-018–FR-019, AC-004 |
 | DD-009 | Keep Project nullable on Task, but when present require the same `userId` and `areaId` as the Task. | DM-P-004, BR-OWN-004 | FR-021–FR-025, AC-004 |
 | DD-010 | Require every Task's AreaStatus to belong to the same User and Area; derive CanonicalStatus from the AreaStatus mapping rather than accepting an unrelated client value. | DM-P-006, BR-OWN-005, BR-STATUS-002–BR-STATUS-005 | FR-034–FR-040, FR-087–FR-090, AC-006 |
@@ -71,7 +71,7 @@ Every Stage 5 data decision has a stable ID and is linked to its approved domain
 
 | Parent or source | Relationship | Child or target | Cardinality | Required? | Integrity meaning |
 | --- | --- | --- | --- | --- | --- |
-| User | owns | AuthenticationIdentity | 1 → 1..n | User must retain at least one usable identity while active. | Identity provider key is globally unique; ownership is immutable. |
+| User | owns | AuthenticationIdentity | 1 → 1 | An active User has exactly one email/password identity. | Normalized email matches the User; ownership is immutable. |
 | User | owns | Area | 1 → 0..n | No | All Areas are private to one User. |
 | Area | contains | AreaStatus | 1 → 3..n active statuses | Yes | At least one active status and exactly one default for each CanonicalStatus. |
 | Area | contains | Project | 1 → 0..n | Yes for Project | Project cannot exist without one Area. |
@@ -124,14 +124,14 @@ An email address remains reserved while deletion is pending. It becomes reusable
 | --- | --- |
 | Primary identifier | `authenticationIdentityId` — opaque UUID. |
 | Ownership | Required `userId`; exactly one User. |
-| Required data | Provider; provider subject; verification state; enabled state; creation/update timestamps; version. |
-| Nullable data | Provider email snapshot; normalized email for email/password identity; credential verifier for email/password only; last authenticated time; disabled time and reason. |
-| Unique constraints | `(provider, providerSubject)` globally unique; at most one enabled email/password identity per normalized email; identity cannot be linked to two Users. |
-| Relationships | Required User. Identity record is created for an existing account link only after explicit re-authenticated confirmation. |
-| Delete effect | Removed with User. Credentials and provider tokens are never copied to deletion receipts or planning data. |
-| Source links | DD-004–DD-007; BR-AUTH-001–BR-AUTH-003; FR-001–FR-007, NFR-002–NFR-004, PRV-005. |
+| Required data | Normalized email; verification state; enabled state; credential verifier; creation/update timestamps; version. |
+| Nullable data | Last authenticated time; disabled time and reason. |
+| Unique constraints | `userId` unique; normalized email unique and equal to the owning User's normalized primary email. |
+| Relationships | Required User; no social-provider or linking relationship exists in MVP. |
+| Delete effect | Removed with User. Credential verifiers are never copied to deletion receipts or planning data. |
+| Source links | DD-004–DD-007; BR-AUTH-001–BR-AUTH-003; FR-001–FR-004, FR-007, NFR-002–NFR-004. |
 
-Provider email snapshots are not unique because providers may change them and because they are not the provider's stable subject. Pending OAuth state, verification tokens, password-reset tokens, and sessions are security-supporting data whose expiry and storage belong to Architecture; they cannot weaken the relationships above.
+Verification tokens, password-reset tokens, and sessions are security-supporting data whose expiry and storage belong to Architecture; they cannot weaken the relationships above.
 
 ### 4.3 Area
 
@@ -342,7 +342,7 @@ Lifecycle records are operational provenance, not a general audit log. They cont
 | Scope | Candidate unique constraint | Purpose |
 | --- | --- | --- |
 | User | `normalizedPrimaryEmail` | One live private account per verified normalized email. |
-| AuthenticationIdentity | `(provider, providerSubject)` | One provider identity linked to at most one User. |
+| AuthenticationIdentity | `userId` and normalized email | Exactly one email/password identity per active User. |
 | AreaStatus | `(userId, areaId, normalizedName)` | No duplicate local status name. |
 | AreaStatus | `(areaId, CanonicalStatus)` where active default | Exactly one active default per canonical group. |
 | AreaStatus | `(areaId, position)` for active statuses | Deterministic Area board column order. |
@@ -486,13 +486,12 @@ Reopening a completed occurrence is rejected when a successor exists. Removing o
 ## 13. Authentication identity and email relationships
 
 - User is the authority for the globally unique normalized primary email.
-- Email/password AuthenticationIdentity uses the same normalized email as its provider subject and requires verification before ordinary sign-in.
-- Google AuthenticationIdentity uses Google's stable provider subject; its email snapshot does not establish ownership and is not unique.
-- When a Google verified email matches an existing User, no second User is inserted and no AuthenticationIdentity is linked automatically. A short-lived, security-controlled linking challenge may be created, but the durable identity row is linked only after the person re-authenticates to the existing User and explicitly confirms.
-- Unlinking or disabling an identity is transactional and forbidden if no usable identity would remain.
+- The email/password AuthenticationIdentity uses the same normalized email as User and requires verification before ordinary sign-in.
+- Social-provider identities, linking challenges, provider email snapshots, and provider tokens have no MVP rows.
+- The identity cannot be unlinked while the User is active. Disabling is transactional and occurs only through an account-security or deletion process.
 - Account purge deletes all AuthenticationIdentities and credential verifiers before releasing the normalized primary email for future registration.
 
-**Source links:** DD-004–DD-007, DD-030; BR-AUTH-001–BR-AUTH-003; FR-001–FR-010, NFR-002–NFR-004, PRV-005.
+**Source links:** DD-004–DD-007, DD-030; BR-AUTH-001–BR-AUTH-003; active FR-001–FR-004 and FR-007–FR-010, NFR-002–NFR-004. Deferred FR-005–FR-006 and PRV-005 have no MVP rows.
 
 ## 14. Delete and restore effects
 
@@ -530,8 +529,8 @@ These are candidate logical access paths. Exact PostgreSQL index types, included
 
 | Entity | Candidate key order | Supports |
 | --- | --- | --- |
-| AuthenticationIdentity | `(provider, providerSubject)` unique | Sign-in identity lookup. |
-| User | `normalizedPrimaryEmail` unique | Registration and explicit-link collision detection. |
+| AuthenticationIdentity | `userId` unique and normalized email unique | Email/password sign-in identity lookup and one-identity invariant. |
+| User | `normalizedPrimaryEmail` unique | Registration and retained-account collision detection. |
 | Area | `(userId, lifecycleState, updatedAt)` | Owned active/archive/trash lists. |
 | Project | `(userId, areaId, lifecycleState, updatedAt)` | Area and global Project lists. |
 | AreaStatus | `(userId, areaId, activeState, position)` | Workflow and Area Kanban columns. |
@@ -603,7 +602,7 @@ Every user-facing lookup begins with or is constrained by `userId`. A global wor
 | Trash expiry versus restore | Expiry worker deletes while User restores. | Conditional transition based on current state, deadline, and version; exactly one outcome commits. |
 | Global/Area Kanban reorder | Two clients insert at the same rank. | Task version, opaque ranks, deterministic Task-ID tie-breaker, optional later rebalance. |
 | Checklist reorder | Two clients submit stale sequences. | Task version/revision and unique position constraint. |
-| Identity linking | Two Users try to claim one provider subject. | Global provider-subject uniqueness plus re-authenticated link transaction. |
+| Authentication registration | Two requests try to create the same normalized email. | Global normalized-email uniqueness plus transactional identity creation. |
 | Account deletion versus ordinary mutation | New content is added after deletion confirmation. | Access revocation first; deletion-pending User cannot start planning mutations. |
 
 Optimistic concurrency is the default for ordinary personal edits. Explicit serialization or locking is reserved for the small set of invariants that cannot be preserved through version checks and unique constraints alone.
@@ -628,7 +627,7 @@ Optimistic concurrency is the default for ordinary personal edits. Explicit seri
 | Data area | Domain rules | Product requirements |
 | --- | --- | --- |
 | Identifiers, ownership, isolation | DM-P-001–DM-P-004, BR-OWN-001–BR-OWN-012 | FR-011–FR-025, FR-066, NFR-001, PRV-001–PRV-003, AC-002, AC-004 |
-| Authentication and account deletion | BR-AUTH-001–BR-AUTH-003, User lifecycle, BR-LC-010 | FR-001–FR-010, NFR-002–NFR-004, PRV-004–PRV-007, AC-001 |
+| Authentication and account deletion | BR-AUTH-001–BR-AUTH-003, User lifecycle, BR-LC-010 | Active FR-001–FR-004, FR-007–FR-010, NFR-002–NFR-004, PRV-004, PRV-006–PRV-007, AC-001; deferred FR-005–FR-006 and PRV-005 have no MVP data representation |
 | Workflow and ordering | DM-P-005–DM-P-006, BR-TASK-007, BR-STATUS-001–BR-STATUS-005 | FR-034–FR-040, FR-059–FR-060, FR-087–FR-090, AC-006 |
 | Dates and timestamps | DM-P-010, BR-TIME-001–BR-TIME-009 | FR-041–FR-046, FR-061–FR-062, NFR-012, AC-009 |
 | Recurrence | DM-P-008–DM-P-009, BR-REC-001–BR-REC-012, BR-WF-003 | FR-047–FR-053, NFR-006, SC-004, AC-007 |
@@ -644,11 +643,11 @@ The conceptual model is decision-complete for Stage 5 without silently deciding 
 - exact Prisma model syntax, migration ordering, constraint names, and any custom migration needed for conditional uniqueness;
 - UUID generation location and library choice;
 - physical PostgreSQL index types and final index set after query-plan measurement;
-- authentication session, verification-token, recovery-token, and OAuth challenge storage/expiry;
+- authentication session, verification-token, and recovery-token storage/expiry;
 - reminder polling cadence, retry delays, delivery latency, and operational monitoring;
-- account deletion backup expiry, deletion evidence, and completed receipt retention duration;
+- completed account-deletion receipt retention duration; backup expiry and deletion replay are resolved by `DEC-050` and `ARC-019`;
 - API idempotency-key transport, conflict payloads, and version precondition representation;
-- deployment, availability, browser support, logging retention, and disaster recovery.
+- deployment-provider selection, logging retention, and provider-specific disaster-recovery details; internal availability and browser support are resolved by `ARC-017` and `ARC-027`.
 
 ## 22. Data risks and responses
 
@@ -673,7 +672,7 @@ Stage 5 may be approved only when:
 - **DATA-AC-001:** Every conceptual entity has an identifier, ownership, required/nullable data, relationships, and lifecycle/delete behavior.
 - **DATA-AC-002:** Task → Area, optional same-Area Project, same-Area AreaStatus, and all same-owner constraints are explicit.
 - **DATA-AC-003:** User, Area, Project, and Task deletion/restore scenarios are coherent and contain no orphan fallback.
-- **DATA-AC-004:** Label and email uniqueness scopes, Google identity linking, checklist order, and both Kanban ranks are accepted.
+- **DATA-AC-004:** Label and email uniqueness scopes, the one email/password identity rule, checklist order, and both Kanban ranks are accepted; social identities are outside MVP.
 - **DATA-AC-005:** Recurrence rule history, one-open-occurrence enforcement, and duplicate-successor prevention are represented.
 - **DATA-AC-006:** Reminder-to-Notification idempotency and ownership are represented.
 - **DATA-AC-007:** Archive/Trash fields, lifecycle provenance, 30-day retention, transaction boundaries, and concurrency guards are accepted.

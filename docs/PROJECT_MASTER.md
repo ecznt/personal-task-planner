@@ -5,7 +5,7 @@
 | Repository | `ecznt/personal-task-planner` |
 | Document role | Authoritative planning index and decision record |
 | Document language | English |
-| Last updated | 2026-07-21 |
+| Last updated | 2026-07-23 |
 
 ## Product vision
 
@@ -64,7 +64,7 @@ Create a focused personal work-tracking and planning application that gives each
 - Archive and Trash apply to Tasks, Projects, and Areas.
 - Parent Archive and Trash operations cascade with recorded cause and prior state; restore reverses only the matching cascade effects.
 - Trash content is permanently deleted after 30 days.
-- Authentication supports email/password and Google; the email/password lifecycle includes email verification and password reset.
+- Authentication supports email/password; the lifecycle includes email verification and password reset.
 - Users can request permanent account deletion through an explicitly confirmed flow.
 - The product is a responsive web application.
 - The first user interface language is Turkish, and the system is designed to remain ready for internationalization.
@@ -72,8 +72,8 @@ Create a focused personal work-tracking and planning application that gives each
 - Task dates and reminders use the user's account time zone.
 - Date-only Task values preserve their calendar date across time-zone changes; timed values preserve their instant, while future calendar recurrence uses the newly confirmed account time zone.
 - Project moves between Areas are atomic and move all contained Tasks while preserving canonical meaning through target Area defaults.
-- Authentication identities are linked only through an authenticated explicit action; matching email addresses do not cause automatic account linking.
-- A normalized verified primary email belongs to at most one retained User; a matching Google email cannot create a second User and still requires authenticated explicit identity linking.
+- Every active User has exactly one email/password AuthenticationIdentity in the MVP.
+- A normalized verified primary email belongs to at most one retained User.
 - Confirmed account deletion revokes access immediately and starts an idempotent physical purge of primary User data; backup expiry and operational evidence remain later Privacy and Architecture decisions.
 - Global and Area Kanban manual orders use independent opaque Task rank keys with optimistic conflict handling and a deterministic Task-identity tie-breaker.
 - Each User has a persisted, default-Enabled preference for future in-app reminder Notifications. Disabling preserves reminder definitions and existing Notifications; due reminders are suppressed without backfill until the preference is re-enabled for future scheduled instants.
@@ -87,6 +87,7 @@ Create a focused personal work-tracking and planning application that gives each
 - Public sharing in the MVP.
 - Email, SMS, and native push notifications in the MVP.
 - User-data export and third-party productivity integrations in the MVP.
+- Social authentication providers, including Google, and provider identity linking in the MVP.
 - Supabase or any other Backend as a Service platform.
 - Spring.
 - Flask.
@@ -106,7 +107,7 @@ Create a focused personal work-tracking and planning application that gives each
 | 6. API design | Define REST resources, operations, errors, versioning, and the OpenAPI approach. | Completed and approved |
 | 7. Solution architecture | Define modular-monolith boundaries, runtime topology, security, observability, and deployment approach. | Completed and approved |
 | 8. Backlog planning | Produce prioritized epics, stories, acceptance criteria, dependencies, and delivery slices. | Completed and approved |
-| 9. Implementation readiness | Reconcile all decisions and confirm that implementation can begin. | Not started |
+| 9. Implementation readiness | Reconcile all decisions and confirm that implementation can begin. | Phase 2 Complete — Go; final User approval pending before implementation |
 
 Every stage requires explicit user approval before the next stage begins.
 
@@ -130,7 +131,7 @@ Every stage requires explicit user approval before the next stage begins.
 | DEC-014 | 2026-07-19 | Use the account time zone for Task dates and reminders. | Approved | User clarification |
 | DEC-015 | 2026-07-19 | Use To Do, In Progress, and Completed as the canonical Task status groups for the MVP. | Amended by DEC-020 | User clarification |
 | DEC-016 | 2026-07-19 | Apply Archive and Trash to Tasks, Projects, and Areas, with automatic permanent deletion after 30 days in Trash. | Approved | User clarification |
-| DEC-017 | 2026-07-19 | Include email verification, password reset, Google authentication, and confirmed account deletion in the MVP account lifecycle. | Approved | User instruction and clarification |
+| DEC-017 | 2026-07-19 | Include email verification, password reset, Google authentication, and confirmed account deletion in the MVP account lifecycle. | Google clause superseded by DEC-066; remaining lifecycle approved | User instruction and clarification |
 | DEC-018 | 2026-07-19 | Offer first-time users an explicit choice to create private sample data or start empty. | Approved | User clarification |
 | DEC-019 | 2026-07-19 | Adopt `docs/product/PRD.md` as the approved Stage 2 product-requirements artifact without implementation detail or technical schemas. | Approved | User instruction to proceed to Stage 3 |
 | DEC-020 | 2026-07-19 | Keep canonical status groups globally while allowing each Area to define ordered statuses that each map to exactly one canonical group. | Approved | User instruction and clarification |
@@ -142,18 +143,18 @@ Every stage requires explicit user approval before the next stage begins.
 | DEC-026 | 2026-07-19 | Cascade parent Archive and Trash actions with lifecycle provenance; restore only effects caused by the matching cascade, and permanently delete required descendants with their parent. | Approved | User approved the recommended Stage 4 decision package |
 | DEC-027 | 2026-07-19 | Move a Project between Areas atomically with all its Tasks and map each Task to the target Area default that preserves its canonical status group. | Approved | User approved the recommended Stage 4 decision package |
 | DEC-028 | 2026-07-19 | Keep date-only values stable as calendar dates, preserve timed instants across account time-zone changes, and evaluate future calendar recurrence in the newly confirmed account time zone. | Approved | User approved the recommended Stage 4 decision package |
-| DEC-029 | 2026-07-19 | Require authenticated explicit AuthenticationIdentity linking and prohibit automatic linking based only on matching email addresses. | Approved | User approved the recommended Stage 4 decision package |
+| DEC-029 | 2026-07-19 | Require authenticated explicit AuthenticationIdentity linking and prohibit automatic linking based only on matching email addresses. | Superseded for MVP by DEC-066 | User approved the recommended Stage 4 decision package |
 | DEC-030 | 2026-07-19 | Draft `docs/domain/DOMAIN_MODEL.md` as the decision-complete Stage 4 domain baseline without persistence, API, or application implementation artifacts. | Approved by DEC-033 | User instruction to begin Stage 4 |
 | DEC-031 | 2026-07-19 | Reconcile the approved PRD and UX documents with the approved Stage 4 recurrence, lifecycle, Project-move, time, and identity-linking decisions without changing the MVP boundary. | Approved | Cross-document consistency requirement |
 | DEC-032 | 2026-07-19 | Keep Graphify pinned at `0.9.20` and install its official MCP extra as `graphifyy[mcp]==0.9.20` so the project-scoped local stdio server is operational. | Approved and verified | User explicit instruction; stdio MCP verification |
 | DEC-033 | 2026-07-19 | Adopt `docs/domain/DOMAIN_MODEL.md` and its reconciled PRD, UX, and Graphify artifacts as the completed Stage 4 domain baseline. | Approved | User explicit phase completion instruction |
 | DEC-034 | 2026-07-19 | Revoke access immediately after confirmed account deletion and use a durable, idempotent process to physically purge the User and all primary owned data; defer backup expiry and deletion evidence to Privacy and Architecture. | Approved | User approved the recommended Stage 5 data decision package |
-| DEC-035 | 2026-07-19 | Enforce global uniqueness for a normalized verified primary email across retained Users; a matching Google email cannot create a second User or auto-link an identity. | Approved | User approved the recommended Stage 5 data decision package |
+| DEC-035 | 2026-07-19 | Enforce global uniqueness for a normalized verified primary email across retained Users; a matching Google email cannot create a second User or auto-link an identity. | Email uniqueness remains approved; Google clause superseded by DEC-066 | User approved the recommended Stage 5 data decision package |
 | DEC-036 | 2026-07-19 | Persist independent opaque rank keys for Global and Area Kanban ordering, with optimistic conflict checks and deterministic Task-ID tie-breaking. | Approved | User approved the recommended Stage 5 data decision package |
 | DEC-037 | 2026-07-19 | Draft `docs/data/DATA_MODEL.md` as the Stage 5 conceptual data baseline without Prisma schema, migration, SQL, API schema, or production application code. | Approved by DEC-038 | User instruction to begin Stage 5 |
 | DEC-038 | 2026-07-20 | Adopt `docs/data/DATA_MODEL.md` and its synchronized Graphify artifacts as the completed Stage 5 data-design baseline. | Approved | User explicitly confirmed Stage 5 approval |
-| DEC-039 | 2026-07-20 | Use opaque server-side sessions in protected host-only cookies, session-bound CSRF protection, and Google Authorization Code flow with PKCE S256, state, and nonce; never expose reusable browser tokens. | Approved | User selected option 1A; Stage 6 approval |
-| DEC-040 | 2026-07-20 | Preserve explicit re-authenticated Google identity linking and the existing prohibition on automatic email-match linking in every authentication endpoint. | Approved | User selected option 1A; DEC-029, DEC-035, and Stage 6 approval |
+| DEC-039 | 2026-07-20 | Use opaque server-side sessions in protected host-only cookies, session-bound CSRF protection, and Google Authorization Code flow with PKCE S256, state, and nonce; never expose reusable browser tokens. | Session and CSRF clauses remain approved; Google clause superseded by DEC-066 | User selected option 1A; Stage 6 approval |
+| DEC-040 | 2026-07-20 | Preserve explicit re-authenticated Google identity linking and the existing prohibition on automatic email-match linking in every authentication endpoint. | Superseded for MVP by DEC-066 | User selected option 1A; DEC-029, DEC-035, and Stage 6 approval |
 | DEC-041 | 2026-07-20 | Use strong ETag/`If-Match` preconditions for single-resource concurrency and `Idempotency-Key` for resource creation and retry-sensitive commands; report bulk Task outcomes per independently atomic item. | Approved | User selected option 2A; Stage 6 approval |
 | DEC-042 | 2026-07-20 | Use opaque cursor pagination for growing top-level collections while keeping small aggregate-contained status, checklist, and reminder collections bounded and unpaginated. | Approved | User selected option 3A; Stage 6 approval |
 | DEC-043 | 2026-07-20 | Return the same non-disclosing `404 RESOURCE_NOT_FOUND` behavior for missing, foreign-owned, deleted, wrong-parent, or otherwise unavailable private resources. | Approved | Mandatory user security rule; BR-OWN-010, UXF-027, and Stage 6 approval |
@@ -174,7 +175,12 @@ Every stage requires explicit user approval before the next stage begins.
 | DEC-058 | 2026-07-21 | Make the optional onboarding sample an ordinary private editable set containing an Area, a Project, representative direct and Project Tasks, a Label, and Checklist items; exclude recurrence and reminders from the sample. | Approved | User selected option 1A; ARC-021 |
 | DEC-059 | 2026-07-21 | Split account deletion delivery: Authentication owns recent re-authentication, confirmation, durable initiation, and immediate access revocation; Lifecycle owns idempotent full primary-data purge, retries, deletion replay, and terminal evidence. | Approved | User selected option 2A; DEC-034 |
 | DEC-060 | 2026-07-21 | Run each bounded technical spike just in time as the first work of its owning epic; spike experiments remain evidence and never count as production behavior. | Approved | User selected option 3A |
-| DEC-061 | 2026-07-21 | Adopt `docs/planning/BACKLOG.md`, its 18-epic order, 122 vertical stories, three just-in-time spikes, dependency decisions, and synchronized Graphify artifacts as the completed Stage 8 backlog baseline. | Approved | User explicit Stage 8 approval |
+| DEC-061 | 2026-07-21 | Adopt `docs/planning/BACKLOG.md`, its 18-epic order, 122 vertical stories, three just-in-time spikes, dependency decisions, and synchronized Graphify artifacts as the completed Stage 8 backlog baseline. | Story count amended to 120 active MVP stories by DEC-066 | User explicit Stage 8 approval |
+| DEC-062 | 2026-07-23 | Reconcile OpenAPI readiness to the approved just-in-time order: `SPIKE-001` is the first non-production work of EPIC-001 and must finish before `BL-003` or any generated production transport artifact. | Approved | User selected readiness option 1A; DEC-060; BD-012 |
+| DEC-063 | 2026-07-23 | Set the MVP internal production availability objective to at least 99.5% successful readiness observations over every rolling 30-day window, measured once per minute and including planned maintenance; this is not a contractual SLA. | Approved | User selected readiness option 2A; NFR-009; ARC-017 |
+| DEC-064 | 2026-07-23 | Use `docs/planning/GOOGLE_OAUTH_READINESS.md` as the non-secret provider-prerequisite record; close `RA-008` only after explicit User attestation of project administration, test-audience, redirect-registration, and secret-custody capability. | Superseded by DEC-066; readiness artifact removed | User selected readiness option 3A |
+| DEC-065 | 2026-07-23 | Adopt the numeric endpoint-class rate-limit windows, persisted sensitive-auth counters, trusted-proxy rule, alert threshold, and time-bounded emergency override in API Contract section 9 and ARC-011 as the MVP implementation baseline. | Approved | User selected readiness option 4A |
+| DEC-066 | 2026-07-23 | Remove Google and all other social authentication from the MVP plan. Preserve `US-002`, `FR-005`, `FR-006`, `PRV-005`, `RA-008`, `UXF-005`, `BL-012`, and `BL-013` as deferred/reserved IDs; do not reuse them. Any future provider requires fresh cross-document planning and approval. | Approved scope change | User instruction |
 
 ## Open questions
 
@@ -222,22 +228,24 @@ The product boundary is defined in the approved PRD, and UX decisions are record
 | Foundational or lifecycle dependencies can tempt partial feature acceptance before the full user outcome exists. | Track cross-epic completion explicitly; do not count an API, table, worker, or UI fragment as an accepted story until the observable outcome and required tests pass. |
 | The current Stage 7 graph contains cohesive module boundaries but no shortest paths from individual module nodes to their matching PRD requirement-group nodes. | Treat this as extraction-density evidence, keep source traceability authoritative, add explicit epic requirement/module/API/data links, and rerun the paths after the Stage 8 graph update. |
 | Spike experiments can be mistaken for shippable behavior or silently choose a tool. | Require a written evidence result and backlog/decision impact; production acceptance remains in the implementing story and any changed fixed decision requires approval. |
+| The Phase 2 readiness audit originally found four HIGH timing/decision-completeness findings. Three were resolved directly; the remaining external Google-provider dependency was removed from MVP by DEC-066. | Keep social authentication outside the frozen MVP and require a fresh cross-document decision before introducing any provider. |
 
 ## Document index
 
 | Document | Purpose | Status |
 | --- | --- | --- |
 | `docs/PROJECT_MASTER.md` | Master planning state, decisions, risks, approvals, and document index. | Active |
-| `docs/product/PRD.md` | MVP product problem, scope, users, journeys, requirements, acceptance criteria, risks, and UX entry criteria. | Approved, including Stage 3, Stage 4, and Stage 6 reconciliations |
-| `docs/product/UX_FLOWS.md` | Information architecture, routes, navigation, primary flows, interaction states, responsiveness, accessibility, and PRD traceability. | Approved; Stage 4 and Stage 6 decisions reconciled |
-| `docs/domain/DOMAIN_MODEL.md` | Domain language, ownership, concepts, invariants, state transitions, recurrence, lifecycle, and business rules. | Approved Stage 4 baseline with Stage 6 notification-preference amendment |
-| `docs/data/DATA_MODEL.md` | Conceptual entities, relationships, identifiers, ownership, integrity, lifecycle, retention, ordering, transactions, concurrency, and candidate indexes. | Approved Stage 5 baseline with Stage 6 notification-preference amendment |
-| `docs/api/API_CONTRACT.md` | Conceptual REST routes, authentication/session security, ownership, errors, pagination, idempotency, concurrency, OpenAPI responsibility, and generated-client policy. | Approved Stage 6 baseline |
-| `docs/architecture/ARCHITECTURE.md` | Implementation-ready workspace, runtime, module, security, data, operations, CI, testing, accessibility, i18n, and Graphify strategy. | Approved Stage 7 baseline |
+| `docs/product/PRD.md` | MVP product problem, scope, users, journeys, requirements, acceptance criteria, risks, and UX entry criteria. | Approved; DEC-066 social-authentication deferral applied |
+| `docs/product/UX_FLOWS.md` | Information architecture, routes, navigation, primary flows, interaction states, responsiveness, accessibility, and PRD traceability. | Approved; DEC-066 social-authentication deferral applied |
+| `docs/domain/DOMAIN_MODEL.md` | Domain language, ownership, concepts, invariants, state transitions, recurrence, lifecycle, and business rules. | Approved; DEC-066 social-authentication deferral applied |
+| `docs/data/DATA_MODEL.md` | Conceptual entities, relationships, identifiers, ownership, integrity, lifecycle, retention, ordering, transactions, concurrency, and candidate indexes. | Approved; DEC-066 social-authentication deferral applied |
+| `docs/api/API_CONTRACT.md` | Conceptual REST routes, authentication/session security, ownership, errors, pagination, idempotency, concurrency, OpenAPI responsibility, and generated-client policy. | Approved; DEC-066 social-authentication deferral applied |
+| `docs/architecture/ARCHITECTURE.md` | Implementation-ready workspace, runtime, module, security, data, operations, CI, testing, accessibility, i18n, and Graphify strategy. | Approved; DEC-066 social-authentication deferral applied |
 | `docs/architecture/adr/ADR-001-modular-monolith.md` | Decision record for the modular monolith and separate API/worker runtime entry points. | Accepted |
 | `docs/architecture/adr/ADR-002-rest-openapi.md` | Decision record for REST, backend-owned OpenAPI, and generated frontend client. | Accepted |
 | `docs/architecture/adr/ADR-003-graphify.md` | Decision record for Graphify use, source authority, update/MCP workflow, staleness, versioning, and secret controls. | Accepted |
-| `docs/planning/BACKLOG.md` | Ordered vertical-slice epics, small stories, dependencies, requirement ownership, acceptance criteria, tests, exclusions, and Stage 8 gates. | Approved Stage 8 baseline |
+| `docs/planning/BACKLOG.md` | Ordered vertical-slice epics, small stories, dependencies, requirement ownership, acceptance criteria, tests, exclusions, and Stage 8 gates. | Approved; 120 active MVP stories after DEC-066 |
+| `docs/planning/READINESS_REPORT.md` | Final cross-document readiness audit, severity-classified findings, traceability checks, Graphify review, and go/no-go recommendation. | Go — zero BLOCKER/HIGH; final User approval pending |
 | `.graphifyignore` | Prevent sensitive, generated, dependency, and tool-internal content from being indexed. | Active |
 | `.gitignore` | Prevent secrets, generated output, local caches, Graphify cost data, and temporary Graphify files from being versioned. | Active |
 | `.agents/skills/graphify/SKILL.md` | Official project-scoped Graphify workflow. | Installed |
@@ -253,11 +261,11 @@ New planning documents must be added to this index when created.
 
 - Global CLI: installed with `uv tool`.
 - Project skill: installed using the official `agents` platform target at `.agents/skills/graphify`.
-- Skill instructions: fully read again for Stage 8 on 2026-07-21.
-- Task-relevant references read for Stage 8: `.agents/skills/graphify/references/update.md`, `.agents/skills/graphify/references/query.md`, and `.agents/skills/graphify/references/extraction-spec.md`.
-- Graph generation: incrementally updated from the eleven intended planning documents after explicit Stage 8 approval, including the accepted backlog status, DEC-061, approval history, and Stage 9 handoff state.
-- Graph health: passed with 504 valid candidate edges and no missing endpoints, dangling edges, self-loops, exact duplicates, or directed/undirected same-endpoint collapse.
-- Source-scope control: Graphify 0.9.20 force-includes `graphify-out/memory/` despite repository ignore patterns, so detection/extraction was explicitly restricted to the eleven intended `docs/` sources.
+- Skill instructions: fully read again for the Phase 2 scope revision on 2026-07-23.
+- Task-relevant references read for the readiness audit: `.agents/skills/graphify/references/update.md`, `.agents/skills/graphify/references/query.md`, and `.agents/skills/graphify/references/extraction-spec.md`.
+- Graph generation: intentionally rebuilt the changed semantic slice and merged it with the three unchanged ADR sources across the twelve intended planning documents, replacing obsolete Google-active and No-Go nodes.
+- Graph health: passed with 91 valid candidate edges and no missing endpoints, dangling edges, self-loops, exact duplicates, or directed/undirected same-endpoint collapse.
+- Source-scope control: Graphify 0.9.20 force-includes `graphify-out/memory/` despite repository ignore patterns. The direct `graphify . --update` attempt reproduced that defect and stopped before extraction; the successful skill-driven update explicitly restricted detection/extraction to the twelve intended `docs/` sources.
 - Sensitive-path review: completed; the report title was sanitized, the graph contains relative document paths only, and Graphify local learning, memory, reflection, vocabulary, incremental, and cost artifacts are excluded from version control.
 - Intended use: architecture discovery and impact analysis.
 - Version-control policy: track the project skill and shareable `graphify-out` artifacts, excluding local/intermediate files and `cost.json`.
@@ -285,7 +293,7 @@ Verified Stage 6 graph findings:
 - Task status mutations and completion are connected to recurrence through the one-open-occurrence invariant, completion-triggered successor creation, idempotency, and transaction boundaries; no public mutation bypass was confirmed.
 - Trash restore is connected to Area and Project lifecycle provenance. Restore requires the original valid parent chain or an explicit compatible owned destination and never guesses a parent; no restore-link gap was confirmed.
 - Every user-facing Domain operation has a conceptual API route or projection. Recurrence successor creation, reminder triggering, automatic Trash expiry, and physical purge remain deliberately internal scheduled or transactional operations rather than public endpoints.
-- No product endpoint lacks an approved Domain basis. Session, CSRF, OAuth transaction, and token routes are security-supporting operations grounded in User and AuthenticationIdentity; read projections do not introduce new aggregates.
+- No product endpoint lacks an approved Domain basis. Session, CSRF, and token routes are security-supporting operations grounded in User and AuthenticationIdentity; read projections do not introduce new aggregates.
 - The prior UX notification-preferences gap is resolved by DEC-045. PRD, UX, Domain, Data, and API now agree on one default-Enabled User preference, due-time Triggered-or-Suppressed resolution, preserved reminder/history data, and no backfill.
 - The approved Stage 6 refresh adds 11 nodes and 45 edges. The resulting graph contains 235 nodes, 475 edges, three hyperedges, and 13 communities; `Notification Preferences and Delivery` contains 22 PRD, UX, Domain, Data, API, and Project Master nodes.
 - Raw inspection contains 474 EXTRACTED edges, one retained INFERRED responsive-navigation similarity edge, and zero AMBIGUOUS edges. MCP output and Graphify findings were verified against the planning sources rather than accepted as authoritative on their own.
@@ -313,6 +321,16 @@ Verified Stage 8 graph findings:
 - Source verification confirms accounts → EPIC-002, onboarding → EPIC-003, planning → EPIC-004/006/007, tasks → EPIC-005/007/009/010/012/014/015, work-views → EPIC-008–011/013, notifications → EPIC-015, and lifecycle → EPIC-016. Cross-module work remains expressed through approved application ports and transaction coordinators.
 - Raw inspection and MCP report 504 EXTRACTED edges, zero INFERRED edges, and zero AMBIGUOUS edges. Graph findings were checked against the approved PRD, UX, Architecture, and Backlog rather than accepted as authoritative on their own.
 
+Verified Phase 2 final-scope graph findings:
+
+- The intentional scope refresh reduced the graph from 324 nodes/607 edges/six hyperedges/15 communities to 86 nodes/91 edges/three hyperedges/10 communities by replacing dense obsolete readiness and Google-active extraction with the current concise planning baseline. The force write was intentional because removed scope must not survive the graph.
+- `DEC-066 Remove all social authentication from MVP and reserve historical IDs` is the highest-connectivity node with eight edges. Source review confirms this is the expected cross-document scope-change hub rather than a new domain aggregate.
+- The `Phase 2 Scope Governance` community contains the frozen email/password-only baseline, zero BLOCKER/HIGH readiness result, and explicit prohibition on starting implementation before final User approval.
+- The `Backlog Coverage Baseline` community contains the mechanically verified 178 active accepted requirement IDs, 73 conceptual endpoint rows, 120 active stories, and three bounded spikes.
+- Deferred Google/social-authentication nodes connect only to exclusion, reserved-ID history, and future-planning concepts. No provider authorization, callback, linking, unlinking, provider credential, or provider test dependency remains active.
+- Graph and source checks confirm no orphan active requirement, unsupported endpoint, ownerless persisted entity, or backlog-less MVP feature. The graph is intentionally concise, so source-level range expansion and direct document checks remain authoritative.
+- MCP reports 82% EXTRACTED, 18% INFERRED, and 0% AMBIGUOUS relationships. Inferred cross-document similarities were reviewed against source text and were not used as sole evidence for readiness.
+
 ## Graphify version
 
 - Package: `graphifyy`
@@ -334,8 +352,8 @@ The recorded version must not be changed without a decision-log entry and revali
 - Codex configuration scope: project `.codex/config.toml`.
 - Registration status: configured and enabled in Codex.
 - Runtime status: operational with the pinned `graphifyy[mcp]==0.9.20` installation.
-- Verification: the registered MCP successfully called `graph_stats`, `get_community`, `god_nodes`, `query_graph`, `get_neighbors`, and targeted `shortest_path` operations against the Stage 8 graph.
-- Verified graph response: 272 nodes, 504 edges, and 14 communities. MCP and raw inspection report 504 EXTRACTED, zero INFERRED, and zero AMBIGUOUS edges.
+- Verification: the registered MCP successfully called `graph_stats`, `get_community`, `god_nodes`, and targeted `query_graph` operations against the final scope graph; prior `get_neighbors` and `shortest_path` verification remains valid.
+- Verified graph response: 86 nodes, 91 edges, and 10 communities. MCP reports 82% EXTRACTED, 18% INFERRED, and 0% AMBIGUOUS relationships.
 - Available read-oriented tools: `query_graph`, `get_node`, `get_neighbors`, `get_community`, `god_nodes`, `graph_stats`, and `shortest_path`.
 - Session note: an already-running Codex desktop session may require a reload before the registered MCP tools appear in its dynamic tool list; this does not affect the successful direct stdio runtime verification.
 
@@ -344,18 +362,19 @@ The recorded version must not be changed without a decision-log entry and revali
 | Field | Value |
 | --- | --- |
 | Status | Successful |
-| Generated at | 2026-07-21T08:20:30Z |
+| Generated at | 2026-07-23T07:12:14Z |
 | Graphify version | 0.9.20 |
-| Source commit at generation | `cf52e53a096e7d642b0988633c7dd9d3f98983e4` |
-| Input scope | `docs/PROJECT_MASTER.md`, `docs/product/PRD.md`, `docs/product/UX_FLOWS.md`, `docs/domain/DOMAIN_MODEL.md`, `docs/data/DATA_MODEL.md`, `docs/api/API_CONTRACT.md`, `docs/architecture/ARCHITECTURE.md`, ADR-001 through ADR-003, and `docs/planning/BACKLOG.md` |
+| Source commit at generation | `cd0c6054a92ba1f5282168f41aa4cb4ff119367d` |
+| Working tree at generation | Includes the uncommitted final readiness report, DEC-066 scope revision, and refreshed Graphify artifacts; contains no production application code. |
+| Input scope | `docs/PROJECT_MASTER.md`, `docs/product/PRD.md`, `docs/product/UX_FLOWS.md`, `docs/domain/DOMAIN_MODEL.md`, `docs/data/DATA_MODEL.md`, `docs/api/API_CONTRACT.md`, `docs/architecture/ARCHITECTURE.md`, ADR-001 through ADR-003, `docs/planning/BACKLOG.md`, and `docs/planning/READINESS_REPORT.md` |
 | Output path | `graphify-out/graph.json` |
-| Nodes | 272 |
-| Edges | 504 |
-| Hyperedges | 4 |
-| Communities | 14 |
+| Nodes | 86 |
+| Edges | 91 |
+| Hyperedges | 3 |
+| Communities | 10 |
 | Graph health | Passed with zero missing/dangling endpoints, self-loops, duplicates, or endpoint-collapse warnings |
 | Recorded semantic tokens | 0 input / 0 output; the collaboration extraction tool did not expose token usage, so this is an unavailable measurement rather than evidence of zero model usage. |
-| Reason | Record explicit Stage 8 approval, adopt the Backlog baseline through DEC-061, remove stale draft-state graph nodes, and establish the Stage 9 handoff state before publication to `develop`. |
+| Reason | Remove Google/social authentication from active MVP scope, preserve deferred IDs, record zero BLOCKER/HIGH readiness, freeze the email/password-only baseline, and retain the final-approval gate before implementation. |
 
 Update this section after every successful graph generation.
 
@@ -384,11 +403,12 @@ Update this section after every successful graph generation.
 | 2026-07-20 | Stage 6 — API design | Completed and approved | User selected persisted in-app Notification preferences through option 4B and explicitly approved Stage 6. |
 | 2026-07-20 | Stage 7 — Solution architecture | Completed and approved | User explicitly accepted ADR-001, ADR-002, and ADR-003 and instructed Codex to approve and publish the stage. |
 | 2026-07-21 | Stage 8 — Backlog planning | Completed and approved | User explicitly approved the 18-epic vertical-slice backlog and instructed Codex to commit and push it to `develop`. |
+| 2026-07-23 | Stage 9 — Phase 2 readiness | Planning audit complete; final User approval pending | DEC-066 removed social authentication from MVP, the final audit reports zero BLOCKER/HIGH findings, and implementation remains prohibited until explicit approval. |
 
 ## Current planning stage
 
-Stage 8 — Backlog Planning — is completed and approved. `docs/planning/BACKLOG.md` is the accepted baseline with the User-directed 18-epic sequence, 122 vertical stories, three bounded just-in-time spikes, requirement ownership, dependency decisions, acceptance criteria, required tests, definitions of done, and explicit exclusions. The public landing/privacy/terms route gap and the Architecture-aligned full onboarding sample set are covered. No production implementation, Prisma schema, migration, SQL, controller, React component, or OpenAPI artifact has been created.
+Phase 2 is complete at the planning level with a Go readiness recommendation and zero BLOCKER/HIGH findings. The approved MVP scope is frozen with email/password authentication only; social authentication, including Google, is deferred and requires fresh planning before re-entry. Final User approval is still required before implementation. No production implementation, Prisma schema, migration, SQL, controller, React component, or OpenAPI artifact has been created.
 
 ## Next required action
 
-Await explicit User instruction to begin Stage 9 — Implementation Readiness. Do not create production application code while the planning sequence remains active.
+Await explicit final User approval. After approval, run `SPIKE-001` as the first non-production work and then begin production implementation with `BL-001`. Do not begin either item before that approval.

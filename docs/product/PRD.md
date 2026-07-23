@@ -2,14 +2,16 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Approved — includes approved Stage 3, Stage 4, and Stage 6 decision reconciliations |
+| Status | Approved — MVP scope revised to defer Google authentication |
 | Planning stage | Stage 2 — Product requirements |
 | Product scope | MVP |
 | Document language | English |
-| Last updated | 2026-07-20 |
+| Last updated | 2026-07-23 |
 | Implementation status | Not started |
 
 This document defines product behavior and outcomes. It intentionally avoids implementation architecture, API design, database design, and technical schemas.
+
+Stable IDs `US-002`, `FR-005`, `FR-006`, `PRV-005`, and `RA-008` are reserved as deferred Google-authentication records. They are not accepted MVP requirements, are not reused, and are excluded from MVP coverage counts and implementation acceptance.
 
 ## Problem statement
 
@@ -64,7 +66,7 @@ The MVP is multi-user at the system level but personal at the product level. Eac
 - **G-004:** Provide search, filtering, and basic bulk actions for efficient personal work management.
 - **G-005:** Provide reversible removal through Archive and time-limited Trash.
 - **G-006:** Reduce first-use friction through an optional, user-confirmed sample-data onboarding step.
-- **G-007:** Provide email/password and Google authentication while maintaining strict cross-account data isolation.
+- **G-007:** Provide email/password authentication while maintaining strict cross-account data isolation.
 - **G-008:** Deliver a responsive Turkish web interface that is ready for additional languages.
 
 ## Non-goals
@@ -77,7 +79,7 @@ The MVP is multi-user at the system level but personal at the product level. Eac
 - **NG-006:** GraphQL in the first version.
 - **NG-007:** Email, SMS, or native push notifications in the MVP.
 - **NG-008:** Advanced portfolio, resource-capacity, or team-performance management.
-- **NG-009:** Calendar, email, or third-party productivity integrations beyond Google authentication.
+- **NG-009:** Social authentication providers—including Google—and calendar, email, or third-party productivity integrations.
 - **NG-010:** User-data export in the MVP; it remains a future consideration.
 
 ## Personas
@@ -104,7 +106,7 @@ Uses the same private account from desktop and mobile-sized browsers and expects
 
 ### JRN-001 — Register and start with sample data
 
-1. The user creates an account with email/password or Google.
+1. The user creates an account with email/password.
 2. The system establishes a private account data space.
 3. The user is offered sample data and explicitly chooses whether to create it.
 4. The user enters the product with either the sample structure or an empty private structure.
@@ -162,7 +164,7 @@ Uses the same private account from desktop and mobile-sized browsers and expects
 
 | ID | Feature group | MVP outcome |
 | --- | --- | --- |
-| FG-001 | Authentication and account lifecycle | Private access through email/password or Google, with account recovery, verification, and deletion. |
+| FG-001 | Authentication and account lifecycle | Private access through email/password, with account recovery, verification, and deletion. |
 | FG-002 | Onboarding | Optional user-confirmed sample data for the first-use experience. |
 | FG-003 | Areas and Projects | Required Area context with optional Project grouping. |
 | FG-004 | Task management | Capture, enrich, status-track through canonical groups and optional Area workflows, complete, and organize Tasks. |
@@ -176,7 +178,7 @@ Uses the same private account from desktop and mobile-sized browsers and expects
 ## User stories
 
 - **US-001:** As a new user, I want to register with email and password so that I can create a private planning account.
-- **US-002:** As a user, I want to authenticate with Google so that I can access my account without managing another password.
+- **US-002 — Deferred beyond MVP:** Authenticate with Google without managing another password.
 - **US-003:** As an email/password user, I want to reset a forgotten password so that I can recover access.
 - **US-004:** As a new user, I want to choose whether sample data is created so that I can learn the product without being forced to keep examples.
 - **US-005:** As a user, I want to create Areas so that every Task has a stable responsibility context.
@@ -211,8 +213,8 @@ Uses the same private account from desktop and mobile-sized browsers and expects
 - **FR-002:** The system shall require email-address verification for email/password accounts.
 - **FR-003:** The system shall allow a verified email/password user to sign in and sign out.
 - **FR-004:** The system shall provide a password-reset flow for email/password accounts.
-- **FR-005:** The system shall allow a person to authenticate using Google.
-- **FR-006:** The system shall prevent one external identity from unintentionally creating multiple accounts for the same sign-in method.
+- **FR-005 — Deferred beyond MVP:** Allow a person to authenticate using Google.
+- **FR-006 — Deferred beyond MVP:** Prevent one external identity from unintentionally creating multiple accounts for the same sign-in method.
 - **FR-007:** The system shall clearly communicate authentication and account-recovery errors without exposing another account's existence or data.
 - **FR-008:** The system shall allow an authenticated user to request deletion of their account.
 - **FR-009:** The account-deletion flow shall require explicit confirmation and explain that the result is permanent.
@@ -337,7 +339,7 @@ FR-087 through FR-090 are approved Stage 3 amendments that reconcile Area-specif
 - **NFR-006 — Recurrence integrity:** Repeated processing or recovery from an interrupted operation shall not create duplicate recurring occurrences or duplicate reminders.
 - **NFR-007 — Recoverability:** A recoverable Archive or Trash operation shall retain enough product context to restore a coherent user-owned structure.
 - **NFR-008 — Responsiveness:** Common interactive workflows shall provide prompt progress, success, empty, and error feedback under the agreed MVP operating profile.
-- **NFR-009 — Measurability:** Quantitative performance and availability targets shall be agreed during solution architecture before implementation readiness is approved.
+- **NFR-009 — Measurability:** The production service shall target at least 99.5% internal availability over each rolling 30-day window; this is an operational objective rather than a contractual SLA. Quantitative performance targets and the availability measurement method shall be defined in Solution Architecture before implementation readiness is approved.
 - **NFR-010 — Responsive usability:** Core journeys shall remain usable without horizontal page scrolling at the supported viewport ranges defined during UX planning.
 - **NFR-011 — Localization readiness:** User-facing interface text, dates, times, pluralization, and validation feedback shall support locale-specific presentation.
 - **NFR-012 — Time-zone consistency:** Stored and displayed Task timing shall preserve the intended instant or local date semantics when the user's account time zone changes.
@@ -351,7 +353,7 @@ FR-087 through FR-090 are approved Stage 3 amendments that reconcile Area-specif
 - **PRV-002:** The product shall not provide public sharing, cross-user search, or shared Areas, Projects, or Tasks in the MVP.
 - **PRV-003:** Sample onboarding data shall be private to the account that requested it.
 - **PRV-004:** The product shall collect only account and authentication information needed for the declared MVP experience.
-- **PRV-005:** Google authentication shall not imply access to unrelated Google account content.
+- **PRV-005 — Deferred beyond MVP:** Google authentication shall not imply access to unrelated Google account content if the feature is reconsidered.
 - **PRV-006:** The product shall clearly communicate Trash retention and permanent-deletion behavior.
 - **PRV-007:** Account deletion shall permanently remove the user's personal planning data according to a disclosed deletion process.
 - **PRV-008:** Archived data remains private user data and shall receive the same access protection as active data.
@@ -389,7 +391,7 @@ No adoption or retention KPI is set for the initial personal-use MVP. Usage metr
 
 ## MVP acceptance criteria
 
-- **AC-001:** Email/password registration, email verification, sign-in, sign-out, password reset, Google authentication, and confirmed account deletion satisfy their defined user journeys.
+- **AC-001:** Email/password registration, email verification, sign-in, sign-out, password reset, and confirmed account deletion satisfy their defined user journeys.
 - **AC-002:** Automated and exploratory authorization checks demonstrate that one user cannot read or mutate another user's data.
 - **AC-003:** First-use onboarding offers sample data, creates it only after confirmation, and permits starting empty.
 - **AC-004:** Every active Task has exactly one Area; a Task may have no Project or one Project within that Area.
@@ -417,7 +419,7 @@ No adoption or retention KPI is set for the initial personal-use MVP. Usage metr
 | RA-005 | Risk | Multiple reminders and time-zone changes can create late, early, or duplicate notifications. | Apply the approved Domain time, pause, recalculation, and idempotency rules; Architecture must define delivery guarantees. |
 | RA-006 | Risk | Area-specific statuses may make global workflow meaning ambiguous. | Require exactly one canonical mapping for every Area status and retain canonical groups in global views. |
 | RA-007 | Risk | Optional sample data may be mistaken for real user content. | UX must clearly identify the choice and make generated examples safely editable or removable. |
-| RA-008 | Risk | Google authentication availability depends on external provider configuration and policy. | Validate provider prerequisites before implementation readiness. |
+| RA-008 | Deferred risk | Google authentication availability depends on external provider configuration and policy. | No MVP action. Reassess provider policy, administration, redirect registration, privacy, and credential custody only if Google authentication re-enters scope. |
 | RA-009 | Risk | A 30-day Trash window may conflict with later backup or account-deletion policies. | Reconcile retention, backups, and deletion semantics during data and architecture planning. |
 | RA-010 | Assumption | Each account represents one individual and has one private planning space. | Revisit only if future collaboration or multiple spaces enter scope. |
 | RA-011 | Assumption | Three canonical groups plus optional Area-specific mapped statuses are sufficient for MVP personal workflow. | Validate during UX walkthroughs and initial usability testing. |
@@ -434,8 +436,8 @@ These questions do not change the accepted MVP boundary, but must be resolved in
 - **OQ-004 — UX — Resolved:** UX defines automatic sorting and filter composition. API Design must preserve those observable semantics.
 - **OQ-005 — Domain — Resolved:** Parent lifecycle actions cascade with provenance; restore reverses matching cascade effects, and required descendants are deleted with a permanently deleted parent.
 - **OQ-006 — Domain/Data — Resolved for Domain:** Historical occurrences retain their rule meaning; future edits create a new recurrence rule/template version. Data representation remains for Stage 5.
-- **OQ-007 — Privacy/Architecture:** What operational delay, backup treatment, and confirmation evidence apply to permanent account deletion?
-- **OQ-008 — UX/Architecture:** Which browsers, viewport ranges, and quantitative performance targets form the release support policy?
+- **OQ-007 — Privacy/Architecture — Resolved:** `ARC-009`, `ARC-019`, `DEC-034`, and `DEC-050` define account-purge timing, backup expiry, deletion replay, and operational evidence.
+- **OQ-008 — UX/Architecture — Resolved:** UX defines responsive ranges; `ARC-017` and `ARC-027` define performance, internal availability, and browser-support targets.
 - **OQ-009 — Product governance — Resolved:** UX is Stage 3 after Stage 2 Product Requirements; Domain Analysis follows as Stage 4.
 - **OQ-010 — Product/Domain/Data/API — Resolved:** The User-approved 4B decision adds a persisted, default-Enabled account preference for future in-app reminder Notifications; disabling preserves reminder definitions and existing history, while elapsed suppressed Notifications are never backfilled.
 
@@ -453,6 +455,7 @@ The PRD is approved and decision-complete for its MVP product boundary. The unre
 - **FC-008:** Attachments, rich content, and external links beyond the MVP description capability.
 - **FC-009:** Billing or paid plans if the product ever expands beyond personal learning use.
 - **FC-010:** Additional interface languages after the Turkish MVP.
+- **FC-011:** Google or another social authentication provider, subject to a fresh product, privacy, security, provider-readiness, domain, data, API, architecture, UX, and backlog decision.
 
 ## UX phase entry criteria
 

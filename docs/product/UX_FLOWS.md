@@ -37,8 +37,7 @@ Public
     ├── Login
     ├── Registration
     ├── Email verification
-    ├── Password recovery
-    └── Google authentication return
+    └── Password recovery
 
 Authenticated application
 ├── Today
@@ -93,7 +92,7 @@ Labels are discoverable and reusable within the user's private space. A Task nev
 | Route | Purpose | Authenticated behavior | PRD references |
 | --- | --- | --- | --- |
 | `/` | Concise product introduction and entry to login or registration. | Offer “Open application” and route to Today. | G-001, G-007, FR-083–FR-086 |
-| `/privacy` | Explain private-by-default behavior and relevant data handling. | Remains accessible without leaving the account. | PRV-001–PRV-010 |
+| `/privacy` | Explain private-by-default behavior and relevant data handling. | Remains accessible without leaving the account. | PRV-001–PRV-004, PRV-006–PRV-010 |
 | `/terms` | Present applicable product terms. | Remains accessible without leaving the account. | PRV-010 |
 
 Public routes must not reveal whether a particular user, Area, Project, or Task exists.
@@ -102,12 +101,11 @@ Public routes must not reveal whether a particular user, Area, Project, or Task 
 
 | Route | Purpose | PRD references |
 | --- | --- | --- |
-| `/login` | Email/password and Google login entry. | FR-003, FR-005, AC-001 |
-| `/register` | Email/password registration and Google registration entry. | FR-001, FR-005, AC-001 |
+| `/login` | Email/password login entry. | FR-003, AC-001 |
+| `/register` | Email/password registration entry. | FR-001, AC-001 |
 | `/verify-email` | Verification-pending explanation and resend action. | FR-002, AC-001 |
 | `/forgot-password` | Password-reset request. | FR-004, AC-001 |
 | `/reset-password` | Set a new password from a valid recovery action. | FR-004, AC-001 |
-| `/auth/google/return` | User-facing return state for Google success, cancellation, or failure. | FR-005–FR-007, PRV-005 |
 
 An authenticated user who visits login or registration is redirected to their last valid authenticated destination, defaulting to Today.
 
@@ -226,7 +224,7 @@ Failure behavior:
 ### UXF-003 — Email/password login
 
 1. The user opens Login.
-2. The user enters email and password or chooses Google.
+2. The user enters email and password.
 3. Invalid credentials produce one generic error that does not reveal which field identifies an account.
 4. An unverified account receives a safe verification-pending path without exposing information to unauthenticated probes.
 5. Success returns the user to the requested valid application route or Today.
@@ -242,19 +240,11 @@ Failure behavior:
 
 **PRD traceability:** FR-001–FR-004, FR-007, FR-012, NFR-002, NFR-013, A11Y-006, AC-001, AC-014.
 
-## 9. Google authentication
+## 9. Deferred social authentication
 
-### UXF-005 — Google sign-in or registration
+### UXF-005 — Reserved beyond MVP
 
-1. The user chooses “Continue with Google” from Login or Registration.
-2. Before leaving, the interface communicates that Google is used only for authentication.
-3. The user completes, cancels, or fails the provider interaction.
-4. Success signs in an existing linked identity or creates the appropriate account without duplicating that identity.
-5. A new account continues to onboarding; an existing account returns to the requested valid route or Today.
-6. Cancellation returns to the initiating route without showing an alarming error.
-7. Provider or linking failures show a retry action and a safe alternative email/password path when available.
-
-**PRD traceability:** FR-005–FR-007, PRV-005, RA-008, AC-001.
+Google or other social-provider sign-in has no MVP route, control, return state, settings flow, or acceptance obligation. `UXF-005` remains reserved for traceability and may be redesigned only if the deferred PRD IDs re-enter scope through a new approved planning decision.
 
 ## 10. Today view
 
@@ -518,9 +508,9 @@ The Domain Model defines cascade provenance, prior-state restoration, coherent d
 
 ### UXF-025 — Authentication settings
 
-1. The user can see available sign-in methods without exposing reusable credentials.
-2. Email/password users can start a password-change or recovery flow.
-3. Provider errors use safe, actionable messaging.
+1. The user can see that email/password is the active MVP sign-in method without exposing reusable credentials.
+2. The user can start a password-change or recovery flow.
+3. No social-provider linking or unlinking control is shown.
 
 ### UXF-026 — Account deletion
 
@@ -569,7 +559,7 @@ Empty states must not fabricate sample data after onboarding and must not expose
 | ER-002 | Connectivity | Preserve unsaved input and explain that the result is not confirmed. | Retry explicitly. |
 | ER-003 | Conflict/stale state | Explain that content changed and show refreshed state without silently overwriting. | Review and reapply intended change. |
 | ER-004 | Partial bulk failure | Report succeeded and failed counts. | Keep failures selected for retry. |
-| ER-005 | Provider failure | Use provider-neutral, safe language. | Retry or choose another available sign-in method. |
+| ER-005 | Reserved deferred-provider failure | No MVP state; the ID is not reused. | Reassess only if social authentication re-enters scope. |
 | ER-006 | Expired action | Explain that the verification/recovery action expired. | Request a new action. |
 | ER-007 | Unexpected failure | Show a stable, non-sensitive reference and preserve navigation. | Retry, return, or seek help when available. |
 
@@ -604,7 +594,7 @@ This is not an invitation to request access: collaboration and access-request wo
 - No core journey requires horizontal page scrolling; horizontal movement inside an explicitly labeled Kanban region is permitted with non-drag alternatives.
 - Touch targets, text enlargement, virtual keyboard behavior, safe areas, and reduced motion are considered in interaction specifications.
 - Responsive transitions preserve logical reading order, focus, current selection, filters, and unsaved input.
-- Final browser support and quantitative performance targets remain Architecture-stage decisions.
+- Browser support, quantitative performance, and internal availability targets are resolved by `ARC-017` and `ARC-027`; these UX ranges remain the presentation baseline.
 
 **PRD traceability:** FR-085–FR-086, NFR-008–NFR-010, NFR-014, A11Y-007, A11Y-010, SC-009, AC-012.
 
@@ -639,7 +629,7 @@ This is not an invitation to request access: collaboration and access-request wo
 
 | UX area | Primary PRD coverage |
 | --- | --- |
-| Public/authentication routes and flows | FR-001–FR-012, PRV-005, AC-001–AC-002 |
+| Public/authentication routes and flows | FR-001–FR-004, FR-007–FR-012, AC-001–AC-002 |
 | Onboarding | FR-013–FR-016, FR-045–FR-046, AC-003 |
 | Areas and Projects | FR-017–FR-026, AC-004 |
 | Task creation/detail | FR-027–FR-058, AC-005, AC-007–AC-008 |
@@ -667,7 +657,7 @@ The following requirements remain valid but are primarily verified through Domai
 
 The following requirements have visible UX states and depend on Domain, Data, or Architecture rules. Resolved Stage 4 rules and remaining handoffs are distinguished below:
 
-- **FR-006:** External identity uniqueness and explicit account linking are resolved in Domain Analysis; provider configuration remains for Architecture.
+- **FR-005–FR-006 and PRV-005:** Reserved beyond MVP with `US-002`, `RA-008`, and `UXF-005`; they have no direct MVP UX counterpart.
 - **FR-050–FR-053:** Recurrence identity, generation, and history guarantees are enforced by the approved Stage 4 domain rules rather than by a separate screen.
 - **FR-079:** Automatic permanent deletion after 30 days.
 - **NFR-007:** Structural recoverability after parent lifecycle actions is enforced by the approved Stage 4 domain rules.
@@ -684,8 +674,8 @@ The following requirements have visible UX states and depend on Domain, Data, or
 | OQ-004 — Sorting and filters | Global List sorting and filter semantics defined. | Domain/API must preserve these observable semantics. |
 | OQ-005 — Parent lifecycle effects | Confirmation, preview, and coherent restore expectations defined. | Resolved in Domain Analysis through cascade provenance and prior-state restoration. |
 | OQ-006 — Recurrence history | “This occurrence” and “future occurrences” concepts exposed. | Domain versioning and historical meaning resolved; Data Design must define representation. |
-| OQ-007 — Account deletion | Confirmation and visible completion flow defined. | Privacy/Architecture must define timing, backups, and evidence. |
-| OQ-008 — Support policy | Responsive ranges defined. | Architecture must define browser, performance, and availability targets. |
+| OQ-007 — Account deletion | Confirmation and visible completion flow defined. | Resolved by `ARC-009`, `ARC-019`, `DEC-034`, and `DEC-050`. |
+| OQ-008 — Support policy | Responsive ranges defined. | Resolved by `ARC-017` and `ARC-027`. |
 | OQ-009 — Stage placement | Resolved: UX is Stage 3 after approved Product Requirements Stage 2. | None. |
 
 ## UX risks and assumptions

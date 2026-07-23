@@ -2,11 +2,11 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Approved Stage 8 baseline |
+| Status | Approved Stage 8 baseline; MVP scope revised to defer social authentication |
 | Planning stage | Stage 8 — Backlog planning |
 | Product scope | MVP |
 | Document language | English |
-| Last updated | 2026-07-21 |
+| Last updated | 2026-07-23 |
 | Implementation status | Not started |
 
 This backlog converts the approved product, UX, domain, data, API, and architecture baselines into small, independently verifiable delivery slices. It defines future implementation work only; it contains no production code, schema, migration, OpenAPI artifact, or framework scaffold.
@@ -64,7 +64,7 @@ This backlog converts the approved product, UX, domain, data, API, and architect
 
 | Requirement set | Primary owning epic(s) |
 | --- | --- |
-| US-001–US-003, FR-001–FR-012 | EPIC-002 |
+| US-001, US-003, FR-001–FR-004, FR-007–FR-012 | EPIC-002 |
 | US-004, FR-013–FR-016 | EPIC-003 |
 | US-005, FR-017–FR-019 | EPIC-004 |
 | US-006, US-008, FR-020–FR-026 | EPIC-006, with lifecycle completion in EPIC-016 |
@@ -80,7 +80,7 @@ This backlog converts the approved product, UX, domain, data, API, and architect
 | US-023–US-024, FR-083–FR-086 | EPIC-017 and continuously every UI epic |
 | US-025 | EPIC-002 and every owner-scoped feature epic; release matrix in EPIC-018 |
 | NFR-001–NFR-015 | EPIC-001 plus the relevant feature epic; consolidated proof in EPIC-018 |
-| PRV-001–PRV-010 | EPIC-002, EPIC-003, EPIC-013, EPIC-015, EPIC-016, EPIC-018 |
+| PRV-001–PRV-004, PRV-006–PRV-010 | EPIC-002, EPIC-003, EPIC-013, EPIC-015, EPIC-016, EPIC-018 |
 | A11Y-001–A11Y-010 | Continuous story acceptance; integrated proof in EPIC-017/EPIC-018 |
 | SC-001–SC-011, AC-001–AC-016 | Feature epics named above; complete evidence matrix in EPIC-018 |
 
@@ -120,7 +120,7 @@ This backlog converts the approved product, UX, domain, data, API, and architect
 | BL-004 | Operators receive privacy-safe request and worker diagnostics. | Correlation/job IDs appear; configured sensitive fields and authored Task content are redacted; unknown HTTP errors use the approved Problem Details base shape. | U, API, SEC |
 | BL-005 | Pull requests cannot merge when a foundational contract or boundary is broken. | CI runs format, lint, strict type-check, unit/component tests, OpenAPI drift, builds, migration validation, integration/E2E placeholders where applicable, secret/dependency checks, and forbidden-import/cycle checks. | CT, SEC |
 | BL-006 | A worker can lease and complete one synthetic durable job without double execution. | PostgreSQL leasing is recoverable after lease expiry, two claim attempts produce one committed outcome, and bounded retry metadata is visible without personal content. | U, DB |
-| SPIKE-001 | The team has evidence that the selected OpenAPI generator supports the approved contract shapes. | A written proof records results for OpenAPI 3.1, cookie auth, RFC 9457 unions, nullable fields, response headers, operation IDs, and Fetch credentials; failure opens a generator decision without shipping generated feature code. | CT |
+| SPIKE-001 | The team has evidence that the selected OpenAPI generator supports the approved contract shapes before generated transport work begins. | As the first non-production work of EPIC-001 and before BL-003, a written proof records results for OpenAPI 3.1, cookie auth, RFC 9457 unions, nullable fields, response headers, operation IDs, and Fetch credentials, then pins compatible versions/configuration; failure opens a generator decision without shipping generated feature code. | CT |
 
 **Epic acceptance criteria:** A clean checkout reaches a green protected-branch pipeline; web/API/worker boundaries start with validated configuration; contract generation is deterministic; architecture checks reject at least one known forbidden import fixture; secrets and authored planning content are absent from logs and generated artifacts.
 
@@ -132,25 +132,25 @@ This backlog converts the approved product, UX, domain, data, API, and architect
 
 ## EPIC-002 — Authentication
 
-**Goal:** Let one person securely create, verify, access, recover, manage, and end a private account through email/password or Google.
+**Goal:** Let one person securely create, verify, access, recover, manage, and end a private account through email/password.
 
 **User value:** The user can reach only their own planning space through safe, recoverable authentication flows.
 
-**Dependencies:** EPIC-001; Google test configuration and a local email-capture boundary for development/testing.
+**Dependencies:** EPIC-001 and a local email-capture boundary for development/testing.
 
-**Related requirement IDs:** US-001–US-003, US-025–US-026, FR-001–FR-012, FR-083–FR-086, NFR-001–NFR-004, PRV-001, PRV-004–PRV-005, PRV-007, PRV-010, AC-001–AC-002, AC-014.
+**Related requirement IDs:** US-001, US-003, US-025–US-026, FR-001–FR-004, FR-007–FR-012, FR-083–FR-086, NFR-001–NFR-004, PRV-001, PRV-004, PRV-007, PRV-010, AC-001–AC-002, AC-014.
 
 **Related domain concepts:** User, AuthenticationIdentity, session, AccountDeletionProcess, ownership and isolation rules.
 
-**API impact:** Authentication, session, CSRF, Google OAuth, `/users/me`, authentication-identity, password, reauthentication, and account-deletion initiation endpoints.
+**API impact:** Email/password authentication, session, CSRF, `/users/me`, password, reauthentication, and account-deletion initiation endpoints.
 
-**Data impact:** User, AuthenticationIdentity, hashed session/token records, OAuth transactions, abuse counters, and AccountDeletionProcess initiation.
+**Data impact:** User, one email/password AuthenticationIdentity per User, hashed session/token records, abuse counters, and AccountDeletionProcess initiation.
 
-**Frontend impact:** Public landing, privacy, and terms routes; registration, verification, login, password recovery/reset, Google return, authentication settings, safe session restoration, and account-deletion confirmation.
+**Frontend impact:** Public landing, privacy, and terms routes; registration, verification, login, password recovery/reset, password settings, safe session restoration, and account-deletion confirmation.
 
-**Backend impact:** `accounts` module, session/CSRF guards, Google adapter, credential hashing, token expiry, generic public outcomes, immediate access revocation.
+**Backend impact:** `accounts` module, session/CSRF guards, credential hashing, token expiry, generic public outcomes, and immediate access revocation.
 
-**Security considerations:** Enumeration resistance, Argon2id, hashed single-use tokens, secure host-only cookies, CSRF/origin validation, session rotation, exact OAuth redirect/state/nonce/PKCE, explicit linking, rate limits, no reusable browser tokens.
+**Security considerations:** Enumeration resistance, Argon2id, hashed single-use tokens, secure host-only cookies, CSRF/origin validation, session rotation, rate limits, and no reusable browser tokens.
 
 **Graphify queries to run before implementation:** `How does Accounts Module connect to User, AuthenticationIdentity, session security, and ownership?`; `Which auth outcomes must be non-enumerating?`; `What operations revoke every session?`
 
@@ -163,19 +163,19 @@ This backlog converts the approved product, UX, domain, data, API, and architect
 | BL-009 | A verified user can sign in and resume a safe requested route. | Correct credentials create a rotated opaque cookie session; invalid credentials are generic; unverified recovery appears only after credential proof; unsafe return destinations are rejected. | API, E2E, SEC |
 | BL-010 | A signed-in user can sign out from the current device. | Server state is invalidated before cookie clearing; repeating logout is safe; private routes require authentication afterward. | API, E2E |
 | BL-011 | A person can request and complete password recovery without account enumeration. | Request responses are identical; a valid token changes the password once, revokes all sessions, and expires; token/password data is absent from telemetry. | API, DB, E2E, SEC |
-| BL-012 | A person can sign in or register with Google without exposing provider tokens. | Authorization uses PKCE/state/nonce; callback validates transaction and subject; tokens never reach frontend URLs/bodies/logs; a new User proceeds to onboarding. | API, E2E, SEC |
-| BL-013 | An authenticated user can explicitly link or unlink Google safely. | Matching email never auto-links; recent re-auth and explicit link intent are required; a provider subject has one owner; unlinking the last usable method is rejected. | API, DB, E2E, SEC |
 | BL-014 | An authenticated user can inspect current account/session-safe profile state. | `/users/me` exposes only approved fields and ETag; no arbitrary User route exists; foreign identifiers cannot be used to select a User. | API, CT |
 | BL-015 | A user can begin permanent account deletion and immediately lose access. | Recent re-auth and explicit confirmation are required; one durable deletion process is created/found idempotently; every session is revoked in the accepted boundary; full planning-data purge is completed in EPIC-016. | API, DB, E2E, SEC |
 | BL-121 | A person can reach the public product, privacy, and terms entry points without authentication. | `/` explains the private personal-planning purpose and offers Login/Register; `/privacy` and `/terms` are reachable before and after authentication and from registration; authenticated `/` offers entry to Today; every route is Turkish, responsive, keyboard accessible, and reveals no account or resource existence. | C, E2E, A11Y, SEC |
 
-**Epic acceptance criteria:** All AC-001 lifecycle paths work; public landing/privacy/terms entry points are accessible in supported layouts; two-owner tests show no cross-account planning/session leakage; public responses do not reveal email/account existence; Google email matching cannot auto-link; deletion initiation revokes access immediately.
+`BL-012` and `BL-013` are reserved historical IDs for the deferred Google sign-in and provider-linking stories. They are not active MVP work and must not be reassigned.
 
-**Required tests:** U for credential/session decisions; API/DB for cookies, CSRF, token/session rotation, uniqueness, idempotency, and enumeration; E2E for email and controlled-Google paths; CT for security/error shapes; SEC for redaction and abuse controls.
+**Epic acceptance criteria:** All active AC-001 lifecycle paths work; public landing/privacy/terms entry points are accessible in supported layouts; two-owner tests show no cross-account planning/session leakage; public responses do not reveal email/account existence; deletion initiation revokes access immediately.
+
+**Required tests:** U for credential/session decisions; API/DB for cookies, CSRF, token/session rotation, uniqueness, idempotency, and enumeration; E2E for email/password paths; CT for security/error shapes; SEC for redaction and abuse controls.
 
 **Definition of done:** All authentication stories pass automated and exploratory security checks; the generated client covers the routes; Turkish states are complete; session/token durations and limits match Architecture; threat-review findings are resolved or recorded.
 
-**Explicitly excluded work:** Social providers other than Google, organization roles, shared accounts, bearer/mobile tokens, Google data access beyond authentication, email marketing, MFA, and restoring a deleted account.
+**Explicitly excluded work:** Every social authentication provider including Google, provider identity linking, organization roles, shared accounts, bearer/mobile tokens, third-party provider data access, email marketing, MFA, and restoring a deleted account.
 
 ## EPIC-003 — Onboarding and sample Area
 
