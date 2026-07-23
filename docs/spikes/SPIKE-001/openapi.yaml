@@ -1,0 +1,165 @@
+openapi: 3.1.0
+info:
+  title: Personal Task Planner OpenAPI Generator Spike
+  version: 0.0.0
+servers:
+  - url: https://planner.example.test/api/v1
+paths:
+  /tasks/{taskId}:
+    patch:
+      operationId: updateTask
+      summary: Update one owned task
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: X-CSRF-Token
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: If-Match
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskInput'
+      responses:
+        '200':
+          description: Task updated
+          headers:
+            ETag:
+              required: true
+              schema:
+                type: string
+            X-Request-Id:
+              required: true
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Validation failed
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ValidationProblem'
+        '401':
+          description: Authentication required
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Task not found, including ownership-safe cross-user access
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '412':
+          description: Optimistic concurrency precondition failed
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: __Host-session
+  schemas:
+    UpdateTaskInput:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type:
+            - string
+            - 'null'
+    Task:
+      type: object
+      required:
+        - id
+        - areaId
+        - title
+        - description
+      properties:
+        id:
+          type: string
+          format: uuid
+        areaId:
+          type: string
+          format: uuid
+        projectId:
+          type:
+            - string
+            - 'null'
+          format: uuid
+        title:
+          type: string
+        description:
+          type:
+            - string
+            - 'null'
+    ProblemDetails:
+      type: object
+      required:
+        - type
+        - title
+        - status
+      properties:
+        type:
+          type: string
+          format: uri-reference
+        title:
+          type: string
+        status:
+          type: integer
+          minimum: 400
+          maximum: 599
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri-reference
+        code:
+          type: string
+        requestId:
+          type: string
+    ValidationProblem:
+      allOf:
+        - $ref: '#/components/schemas/ProblemDetails'
+        - type: object
+          required:
+            - errors
+          properties:
+            errors:
+              type: array
+              items:
+                type: object
+                required:
+                  - path
+                  - code
+                  - message
+                properties:
+                  path:
+                    type: string
+                  code:
+                    type: string
+                  message:
+                    type: string

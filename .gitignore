@@ -22,6 +22,10 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 
+# OS metadata
+.DS_Store
+**/.DS_Store
+
 # Secrets and credentials
 .env
 .env.*

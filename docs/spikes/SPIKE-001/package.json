@@ -1,0 +1,16 @@
+{
+  "name": "personal-task-planner-spike-001",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "openapi-ts",
+    "lint:contract": "redocly lint openapi.yaml --extends=spec",
+    "typecheck": "tsc --project tsconfig.json",
+    "verify": "node verify.mjs"
+  },
+  "devDependencies": {
+    "@hey-api/openapi-ts": "0.99.0",
+    "@redocly/cli": "2.39.0",
+    "typescript": "5.9.3"
+  }
+}

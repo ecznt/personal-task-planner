@@ -219,7 +219,7 @@ The contract pipeline is:
 6. type-check the web application against the generated package;
 7. fail CI when generation changes committed files.
 
-The initial generator choice is `@hey-api/openapi-ts` with its Fetch client. `SPIKE-001` runs as the first non-production work of EPIC-001 and before `BL-003` or any generated production transport artifact. It verifies OpenAPI 3.1, cookie credentials, RFC 9457 unions, nullable fields, file-free JSON operations, response headers, Fetch credentials, and operation-ID stability, then pins the compatible versions and configuration. Failure reopens the generator choice without changing the REST/OpenAPI decision or counting the experiment as production code.
+`SPIKE-001` confirms the initial profile as `@hey-api/openapi-ts@0.99.0`, `typescript@5.9.3`, and the Fetch client, with `js-yaml@4.3.0` overriding the vulnerable transitive version. The browser bootstrap sets `credentials: 'same-origin'`, never reads or injects the HttpOnly session cookie, and supplies CSRF headers through generated operation inputs. Response metadata remains available through native `Response.headers`; named response-header maps are not generated. These exact versions remain pinned until a dedicated upgrade reruns the compatibility proof. The spike is non-production evidence and does not satisfy `BL-003`.
 
 The frontend never edits generated files. Hand-written wrappers in `packages/api-client` are limited to client construction, credentials, correlation headers, and typed error normalization; business rules remain outside the package.
 

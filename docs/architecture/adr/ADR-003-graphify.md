@@ -2,6 +2,7 @@
 
 Status: Accepted
 Date: 2026-07-20
+Last amended: 2026-07-23
 
 ## Context
 
@@ -28,7 +29,19 @@ Direct source documents and code remain authoritative. Read them when exact word
 
 ### Updating the graph
 
-After meaningful approved changes, use the project skill workflow and run an incremental update when an existing graph is present. Inspect `graph_stats`, `god_nodes`, relevant communities, and targeted queries after generation. Record Graphify version, timestamp, Git commit SHA, scope, and validation result in `docs/PROJECT_MASTER.md`.
+Graph generation is proportional to decision impact, not automatic for every task or commit:
+
+- Query the existing graph first when it can answer an architecture, relationship, or impact question.
+- For a routine question, begin with one targeted MCP query using depth 2 and an output budget near 1,200 tokens. Increase depth, budget, or query count only when the first result is insufficient.
+- Do not regenerate the graph for Git operations, status reporting, formatting, wording-only corrections, mechanical verification, or an isolated documentation change that does not alter graph-relevant concepts or relationships.
+- Run incremental extraction only when approved changed files materially alter graph-relevant requirements, domain concepts, data entities, endpoints, module boundaries, dependencies, or traceability needed for the current task.
+- Restrict incremental extraction to the smallest approved changed-file set. Do not re-read or semantically extract the full corpus merely because a graph exists.
+- Run a full rebuild only after an explicit request, an incompatible extraction/ID-format change, graph corruption, an unusable stale baseline, or a material repository-wide restructuring that incremental replacement cannot represent safely.
+- Phase completion does not by itself require regeneration. A phase gate may require it only when graph evidence is an explicit acceptance criterion or the graph would otherwise misrepresent the approved architecture.
+
+After a graph generation, inspect only the statistics, communities, hubs, and targeted queries needed to validate that change. Record Graphify version, timestamp, Git commit SHA, scope, and validation result in `docs/PROJECT_MASTER.md`.
+
+Governance-only changes to this operating policy are recorded in source documents and absorbed by the next material graph refresh. Until then, direct source remains authoritative for the policy and the existing graph may still be used for unaffected architecture questions.
 
 Graphify `0.9.20` can force its own memory directory into broad scans despite ignore patterns. Until that behavior changes, graph generation must explicitly restrict detection/extraction to the intended repository source corpus and must verify that `graphify-out/memory` was not indexed.
 
@@ -82,6 +95,7 @@ Graphify captures extracted and inferred relationships. It does not execute Type
 
 - Generated artifacts add repository churn and require freshness discipline.
 - Semantic extraction can be incomplete or misleading.
+- Broad semantic extraction and bundled MCP queries can consume disproportionate model tokens.
 - The pinned tool and MCP environment require maintenance.
 - Secret review is necessary because graph output can reproduce indexed content.
 
@@ -96,6 +110,8 @@ Graphify captures extracted and inferred relationships. It does not execute Type
 - Project-scoped skill instructions are read before use.
 - Graph generation metadata and scope are recorded in the master document.
 - MCP queries are paired with direct-source verification.
+- Routine use starts with one targeted depth-2 query and expands only when evidence is insufficient.
+- Incremental extraction is restricted to materially changed graph-relevant files; full rebuilds require one of the explicit triggers above.
 - Secret and absolute-path scans pass before graph artifacts are staged.
 - CI/test/source checks remain independent of Graphify availability.
 

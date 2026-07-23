@@ -17,6 +17,9 @@ The product needs a stable browser-to-backend contract, consistent privacy-safe 
 - The web application imports the generated client and does not maintain parallel transport types.
 - RFC 9457 errors, cookie authentication, ownership-safe `404` behavior, pagination, idempotency, and concurrency preconditions are represented in the contract.
 - Generated output is never hand-edited. A small hand-written client bootstrap may set the base URL, credentials, correlation metadata, and typed error normalization.
+- `SPIKE-001` confirms the initial generation profile as `@hey-api/openapi-ts@0.99.0` with `typescript@5.9.3`, the Fetch client, and a `js-yaml@4.3.0` security override. These versions stay exact until the compatibility proof is rerun during a dedicated upgrade.
+- The browser bootstrap sets `credentials: 'same-origin'` and does not configure a generated auth callback for the HttpOnly session cookie. Required CSRF headers remain operation inputs.
+- Response headers are read from the native generated `Response` result. Named header-map types are not generated and must not be assumed.
 
 ## Rationale
 
@@ -51,6 +54,7 @@ This makes the backend implementation and the reviewable contract converge, prov
 - Supertest verifies documented success and error variants for every endpoint group.
 - The generated client is type-checked in the Next.js build.
 - Ownership tests remain mandatory because a schema cannot prove per-user isolation.
+- `docs/spikes/SPIKE-001-openapi-generator.md` and its non-production fixture must pass before the first generated production transport artifact and whenever the pinned generator or TypeScript major version changes.
 
 ## Related decisions
 

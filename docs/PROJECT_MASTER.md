@@ -107,7 +107,7 @@ Create a focused personal work-tracking and planning application that gives each
 | 6. API design | Define REST resources, operations, errors, versioning, and the OpenAPI approach. | Completed and approved |
 | 7. Solution architecture | Define modular-monolith boundaries, runtime topology, security, observability, and deployment approach. | Completed and approved |
 | 8. Backlog planning | Produce prioritized epics, stories, acceptance criteria, dependencies, and delivery slices. | Completed and approved |
-| 9. Implementation readiness | Reconcile all decisions and confirm that implementation can begin. | Phase 2 Complete — Go; final User approval pending before implementation |
+| 9. Implementation readiness | Reconcile all decisions and confirm that implementation can begin. | Phase 2 Complete — Go; approved |
 
 Every stage requires explicit user approval before the next stage begins.
 
@@ -181,6 +181,8 @@ Every stage requires explicit user approval before the next stage begins.
 | DEC-064 | 2026-07-23 | Use `docs/planning/GOOGLE_OAUTH_READINESS.md` as the non-secret provider-prerequisite record; close `RA-008` only after explicit User attestation of project administration, test-audience, redirect-registration, and secret-custody capability. | Superseded by DEC-066; readiness artifact removed | User selected readiness option 3A |
 | DEC-065 | 2026-07-23 | Adopt the numeric endpoint-class rate-limit windows, persisted sensitive-auth counters, trusted-proxy rule, alert threshold, and time-bounded emergency override in API Contract section 9 and ARC-011 as the MVP implementation baseline. | Approved | User selected readiness option 4A |
 | DEC-066 | 2026-07-23 | Remove Google and all other social authentication from the MVP plan. Preserve `US-002`, `FR-005`, `FR-006`, `PRV-005`, `RA-008`, `UXF-005`, `BL-012`, and `BL-013` as deferred/reserved IDs; do not reuse them. Any future provider requires fresh cross-document planning and approval. | Approved scope change | User instruction |
+| DEC-067 | 2026-07-23 | Use Graphify proportionally: query the existing graph first with one targeted depth-2 query and an approximately 1,200-token output budget; expand only when insufficient, incrementally extract only materially changed graph-relevant files, and reserve full rebuilds for explicit requests, corruption/incompatibility, unusable staleness, or material repository-wide restructuring. Git-only, status, formatting, wording-only, mechanical, and isolated non-graph changes do not trigger regeneration. | Approved operating policy | User explicit instruction |
+| DEC-068 | 2026-07-23 | Confirm `@hey-api/openapi-ts@0.99.0` with `typescript@5.9.3` and its Fetch client as the initial generated-client profile. Use explicit same-origin Fetch credentials without a session-cookie auth callback, read response headers through native `Response.headers`, and retain the `js-yaml@4.3.0` security override until a dedicated upgrade reruns `SPIKE-001`. | Approved by completed technical spike | `SPIKE-001`; ADR-002 |
 
 ## Open questions
 
@@ -189,15 +191,14 @@ The product boundary is defined in the approved PRD, and UX decisions are record
 - What exact visual language, density, and final Turkish interface copy should be adopted without changing the approved UX hierarchy?
 - Which exact production provider, region, reverse proxy/ingress, secret manager, monitoring sink, and backup/PITR features will be selected at deployment time?
 - What measured reference dataset and execution environment should turn the proposed performance targets into release gates?
-- Does the implementation proof confirm `@hey-api/openapi-ts` as the generator for every required OpenAPI 3.1, cookie, nullable, and RFC 9457 shape, or must the generator choice be reopened?
 
 ## Risks
 
 | Risk | Current response |
 | --- | --- |
 | The active Node.js version is 25.8.1 rather than the fixed Node.js 24 LTS version. | Resolve and pin the runtime before application scaffolding. |
-| The approved PRD and UX document form a meaningful Graphify corpus that will evolve in later planning stages. | Update the graph after approved planning changes; record metadata and review outputs before version control. |
-| Removing or failing to refresh `graphify-out/graph.json` would make the Graphify MCP unavailable or stale. | Keep the graph versioned and refresh it after approved planning changes that materially affect its contents. |
+| The approved planning corpus can make broad Graphify extraction and bundled MCP queries disproportionately expensive. | Apply DEC-067: begin with one targeted existing-graph query, expand only when evidence is insufficient, and extract only the smallest materially changed graph-relevant source set. |
+| Removing or failing to refresh `graphify-out/graph.json` would make the Graphify MCP unavailable or stale for affected questions. | Keep the graph versioned; refresh only when material graph relationships change or an explicit rebuild trigger applies, and use direct source as authority for intentionally deferred governance-only refreshes. |
 | The Graphify MCP runtime can become unavailable if its optional dependency is omitted during a global tool reinstall. | Reproduce the pinned installation as `uv tool install 'graphifyy[mcp]==0.9.20'` and re-run the stdio tool-call verification after any reinstall. |
 | Project-scoped Codex configuration is loaded only for trusted repositories. | Confirm repository trust and restart Codex after enabling MCP. |
 | The MCP registration contains machine-local absolute paths required by the current stdio setup. | Revalidate or update those paths when the repository is used on another machine. |
@@ -229,6 +230,7 @@ The product boundary is defined in the approved PRD, and UX decisions are record
 | The current Stage 7 graph contains cohesive module boundaries but no shortest paths from individual module nodes to their matching PRD requirement-group nodes. | Treat this as extraction-density evidence, keep source traceability authoritative, add explicit epic requirement/module/API/data links, and rerun the paths after the Stage 8 graph update. |
 | Spike experiments can be mistaken for shippable behavior or silently choose a tool. | Require a written evidence result and backlog/decision impact; production acceptance remains in the implementing story and any changed fixed decision requires approval. |
 | The Phase 2 readiness audit originally found four HIGH timing/decision-completeness findings. Three were resolved directly; the remaining external Google-provider dependency was removed from MVP by DEC-066. | Keep social authentication outside the frozen MVP and require a fresh cross-document decision before introducing any provider. |
+| The confirmed OpenAPI generator fails strict checking of its generated helper under TypeScript 6.0.3, and its default dependency tree can resolve a vulnerable `js-yaml`. | Keep the exact TypeScript 5.9.3 pin and `js-yaml` 4.3.0 override from DEC-068; rerun the bounded proof before upgrading either the generator or TypeScript. |
 
 ## Document index
 
@@ -243,9 +245,11 @@ The product boundary is defined in the approved PRD, and UX decisions are record
 | `docs/architecture/ARCHITECTURE.md` | Implementation-ready workspace, runtime, module, security, data, operations, CI, testing, accessibility, i18n, and Graphify strategy. | Approved; DEC-066 social-authentication deferral applied |
 | `docs/architecture/adr/ADR-001-modular-monolith.md` | Decision record for the modular monolith and separate API/worker runtime entry points. | Accepted |
 | `docs/architecture/adr/ADR-002-rest-openapi.md` | Decision record for REST, backend-owned OpenAPI, and generated frontend client. | Accepted |
-| `docs/architecture/adr/ADR-003-graphify.md` | Decision record for Graphify use, source authority, update/MCP workflow, staleness, versioning, and secret controls. | Accepted |
+| `docs/architecture/adr/ADR-003-graphify.md` | Decision record for Graphify use, source authority, token-efficient query/update workflow, staleness, versioning, and secret controls. | Accepted; DEC-067 operating-policy amendment applied |
 | `docs/planning/BACKLOG.md` | Ordered vertical-slice epics, small stories, dependencies, requirement ownership, acceptance criteria, tests, exclusions, and Stage 8 gates. | Approved; 120 active MVP stories after DEC-066 |
-| `docs/planning/READINESS_REPORT.md` | Final cross-document readiness audit, severity-classified findings, traceability checks, Graphify review, and go/no-go recommendation. | Go — zero BLOCKER/HIGH; final User approval pending |
+| `docs/planning/READINESS_REPORT.md` | Final cross-document readiness audit, severity-classified findings, traceability checks, Graphify review, and go/no-go recommendation. | Go — zero BLOCKER/HIGH; Phase 2 approved |
+| `docs/spikes/SPIKE-001-openapi-generator.md` | Executed OpenAPI generator compatibility evidence, constraints, exact pins, and decision. | Completed |
+| `docs/spikes/SPIKE-001/` | Reproducible non-production OpenAPI 3.1 contract, generation, strict type, determinism, and security fixture. | Completed; generated output ignored |
 | `.graphifyignore` | Prevent sensitive, generated, dependency, and tool-internal content from being indexed. | Active |
 | `.gitignore` | Prevent secrets, generated output, local caches, Graphify cost data, and temporary Graphify files from being versioned. | Active |
 | `.agents/skills/graphify/SKILL.md` | Official project-scoped Graphify workflow. | Installed |
@@ -261,14 +265,15 @@ New planning documents must be added to this index when created.
 
 - Global CLI: installed with `uv tool`.
 - Project skill: installed using the official `agents` platform target at `.agents/skills/graphify`.
-- Skill instructions: fully read again for the Phase 2 scope revision on 2026-07-23.
-- Task-relevant references read for the readiness audit: `.agents/skills/graphify/references/update.md`, `.agents/skills/graphify/references/query.md`, and `.agents/skills/graphify/references/extraction-spec.md`.
-- Graph generation: intentionally rebuilt the changed semantic slice and merged it with the three unchanged ADR sources across the twelve intended planning documents, replacing obsolete Google-active and No-Go nodes.
-- Graph health: passed with 91 valid candidate edges and no missing endpoints, dangling edges, self-loops, exact duplicates, or directed/undirected same-endpoint collapse.
-- Source-scope control: Graphify 0.9.20 force-includes `graphify-out/memory/` despite repository ignore patterns. The direct `graphify . --update` attempt reproduced that defect and stopped before extraction; the successful skill-driven update explicitly restricted detection/extraction to the twelve intended `docs/` sources.
-- Sensitive-path review: completed; the report title was sanitized, the graph contains relative document paths only, and Graphify local learning, memory, reflection, vocabulary, incremental, and cost artifacts are excluded from version control.
+- Skill instructions: fully read again for `SPIKE-001` on 2026-07-23.
+- Task-relevant references read for the latest update: `.agents/skills/graphify/references/update.md` and `.agents/skills/graphify/references/extraction-spec.md`; the existing query rules were then applied through one bounded MCP impact query.
+- Graph generation: incrementally re-extracted only `docs/PROJECT_MASTER.md` and `docs/planning/READINESS_REPORT.md`, then merged them with the eleven unchanged approved sources. The executable spike fixture remained excluded so its synthetic endpoint could not be mistaken for a production contract.
+- Graph health: passed with 117 valid candidate edges and no missing endpoints, dangling edges, self-loops, exact duplicates, or directed/undirected same-endpoint collapse.
+- Source-scope control: per the project skill, the host-agent fallback completed the bounded semantic update without requesting an external LLM secret. Graphify 0.9.20 again force-detected five `graphify-out/memory/` notes despite repository ignore patterns; the successful extraction explicitly excluded them and retained only the thirteen intended `docs/` sources in the manifest.
+- Sensitive-path review: completed; the graph contains relative document paths only, the synthetic fixture and dependencies are excluded, and Graphify local learning, memory, reflection, vocabulary, incremental, and cost artifacts remain excluded from version control.
 - Intended use: architecture discovery and impact analysis.
 - Version-control policy: track the project skill and shareable `graphify-out` artifacts, excluding local/intermediate files and `cost.json`.
+- Token-efficiency policy: DEC-067 is active. The Phase 2 closure correction re-extracted only its two materially changed governance/readiness sources; unchanged planning documents were not re-read or re-extracted.
 
 Verified Stage 4 graph findings:
 
@@ -331,6 +336,15 @@ Verified Phase 2 final-scope graph findings:
 - Graph and source checks confirm no orphan active requirement, unsupported endpoint, ownerless persisted entity, or backlog-less MVP feature. The graph is intentionally concise, so source-level range expansion and direct document checks remain authoritative.
 - MCP reports 82% EXTRACTED, 18% INFERRED, and 0% AMBIGUOUS relationships. Inferred cross-document similarities were reviewed against source text and were not used as sole evidence for readiness.
 
+Verified `SPIKE-001` graph findings:
+
+- The incremental refresh changed the graph from 86 nodes/91 edges/three hyperedges/10 communities to 108 nodes/104 edges/four hyperedges/15 communities after replacing the seven changed document slices.
+- `Generator Compatibility Profile`, `REST OpenAPI Contract`, `EPIC-001 Delivery Sequence`, and `Generated Client Architecture` are distinct but connected communities. This matches the source boundary: the spike resolves a transport-tool uncertainty and enables later `BL-003` work without satisfying it.
+- DEC-068 links the confirmed generator and TypeScript pins to ADR-002 and the spike evidence. The security override, same-origin credentials rule, HttpOnly-cookie constraint, RFC 9457 union, deterministic digest, and response-header limitation are visible in the graph.
+- One bounded depth-2 MCP query reached the expected Architecture, ADR-002, API Contract, Backlog, User, AuthenticationIdentity, and security nodes. Direct source and Git review confirmed that the links describe constraints only: no production domain entity, endpoint, database schema, ownership operation, generated production client, or user-visible behavior was added.
+- The graph contains historical 86-node readiness metadata because the approved readiness documents record that prior generation. These are audit-history nodes, not evidence that the current 108-node graph is stale.
+- MCP reports 88% EXTRACTED, 12% INFERRED, and 0% AMBIGUOUS relationships. All inferred similarities were treated as navigation hints and not as sole decision evidence.
+
 ## Graphify version
 
 - Package: `graphifyy`
@@ -353,7 +367,7 @@ The recorded version must not be changed without a decision-log entry and revali
 - Registration status: configured and enabled in Codex.
 - Runtime status: operational with the pinned `graphifyy[mcp]==0.9.20` installation.
 - Verification: the registered MCP successfully called `graph_stats`, `get_community`, `god_nodes`, and targeted `query_graph` operations against the final scope graph; prior `get_neighbors` and `shortest_path` verification remains valid.
-- Verified graph response: 86 nodes, 91 edges, and 10 communities. MCP reports 82% EXTRACTED, 18% INFERRED, and 0% AMBIGUOUS relationships.
+- Verified graph response: 118 nodes, 117 edges, and 16 communities. The graph contains 86% EXTRACTED, 14% INFERRED, and 0% AMBIGUOUS relationships.
 - Available read-oriented tools: `query_graph`, `get_node`, `get_neighbors`, `get_community`, `god_nodes`, `graph_stats`, and `shortest_path`.
 - Session note: an already-running Codex desktop session may require a reload before the registered MCP tools appear in its dynamic tool list; this does not affect the successful direct stdio runtime verification.
 
@@ -362,19 +376,19 @@ The recorded version must not be changed without a decision-log entry and revali
 | Field | Value |
 | --- | --- |
 | Status | Successful |
-| Generated at | 2026-07-23T07:12:14Z |
+| Generated at | 2026-07-23T11:30:55Z |
 | Graphify version | 0.9.20 |
-| Source commit at generation | `cd0c6054a92ba1f5282168f41aa4cb4ff119367d` |
-| Working tree at generation | Includes the uncommitted final readiness report, DEC-066 scope revision, and refreshed Graphify artifacts; contains no production application code. |
-| Input scope | `docs/PROJECT_MASTER.md`, `docs/product/PRD.md`, `docs/product/UX_FLOWS.md`, `docs/domain/DOMAIN_MODEL.md`, `docs/data/DATA_MODEL.md`, `docs/api/API_CONTRACT.md`, `docs/architecture/ARCHITECTURE.md`, ADR-001 through ADR-003, `docs/planning/BACKLOG.md`, and `docs/planning/READINESS_REPORT.md` |
+| Source commit at generation | `af073b4297bd12912efc21d3ab0d762c1b14bc42` |
+| Working tree at generation | Includes the uncommitted Phase 2 closure correction, DEC-067 governance amendment, completed `SPIKE-001` evidence, planning/ADR synchronization, and refreshed Graphify artifacts; contains no production application code. |
+| Input scope | `docs/PROJECT_MASTER.md`, `docs/product/PRD.md`, `docs/product/UX_FLOWS.md`, `docs/domain/DOMAIN_MODEL.md`, `docs/data/DATA_MODEL.md`, `docs/api/API_CONTRACT.md`, `docs/architecture/ARCHITECTURE.md`, ADR-001 through ADR-003, `docs/planning/BACKLOG.md`, `docs/planning/READINESS_REPORT.md`, and `docs/spikes/SPIKE-001-openapi-generator.md` |
 | Output path | `graphify-out/graph.json` |
-| Nodes | 86 |
-| Edges | 91 |
-| Hyperedges | 3 |
-| Communities | 10 |
+| Nodes | 118 |
+| Edges | 117 |
+| Hyperedges | 6 |
+| Communities | 16 |
 | Graph health | Passed with zero missing/dangling endpoints, self-loops, duplicates, or endpoint-collapse warnings |
 | Recorded semantic tokens | 0 input / 0 output; the collaboration extraction tool did not expose token usage, so this is an unavailable measurement rather than evidence of zero model usage. |
-| Reason | Remove Google/social authentication from active MVP scope, preserve deferred IDs, record zero BLOCKER/HIGH readiness, freeze the email/password-only baseline, and retain the final-approval gate before implementation. |
+| Reason | Align the authoritative Phase 2 completion state, final readiness evidence, and `BL-001` handoff without introducing production behavior. |
 
 Update this section after every successful graph generation.
 
@@ -384,6 +398,11 @@ Update this section after every successful graph generation.
 - Read only the referenced files required for the current task, but read each selected reference completely.
 - Tell the user which skill is being used and why.
 - When `graphify-out/graph.json` exists, use Graphify first for architecture and impact-analysis questions unless an explicit rebuild is requested.
+- Start routine MCP use with one targeted depth-2 query and an output budget near 1,200 tokens; expand only when the result is insufficient.
+- Do not regenerate Graphify for Git-only actions, status reporting, formatting, wording-only changes, mechanical checks, or isolated changes that do not alter graph-relevant relationships.
+- Use incremental extraction only for the smallest materially changed set of requirements, domain, data, API, architecture, dependency, or traceability sources needed by the task.
+- Use a full rebuild only for an explicit request, incompatible extraction/ID changes, corruption, unusable staleness, or material repository-wide restructuring.
+- Phase completion triggers graph generation only when graph evidence is an explicit gate or the current graph would materially misrepresent the approved architecture.
 - Do not invent graph relationships or hide Graphify integrity warnings.
 - Do not use Graphify output as a substitute for source inspection, tests, type checking, or other verification.
 - Do not index secrets, credentials, private keys, environment files, dependencies, build output, or Graphify's own output.
@@ -403,12 +422,12 @@ Update this section after every successful graph generation.
 | 2026-07-20 | Stage 6 — API design | Completed and approved | User selected persisted in-app Notification preferences through option 4B and explicitly approved Stage 6. |
 | 2026-07-20 | Stage 7 — Solution architecture | Completed and approved | User explicitly accepted ADR-001, ADR-002, and ADR-003 and instructed Codex to approve and publish the stage. |
 | 2026-07-21 | Stage 8 — Backlog planning | Completed and approved | User explicitly approved the 18-epic vertical-slice backlog and instructed Codex to commit and push it to `develop`. |
-| 2026-07-23 | Stage 9 — Phase 2 readiness | Planning audit complete; final User approval pending | DEC-066 removed social authentication from MVP, the final audit reports zero BLOCKER/HIGH findings, and implementation remains prohibited until explicit approval. |
+| 2026-07-23 | Stage 9 — Phase 2 readiness | Completed and approved | DEC-066 removed social authentication from MVP, the final audit reports zero BLOCKER/HIGH findings, and the User explicitly approved the Phase 2 plan. |
 
 ## Current planning stage
 
-Phase 2 is complete at the planning level with a Go readiness recommendation and zero BLOCKER/HIGH findings. The approved MVP scope is frozen with email/password authentication only; social authentication, including Google, is deferred and requires fresh planning before re-entry. Final User approval is still required before implementation. No production implementation, Prisma schema, migration, SQL, controller, React component, or OpenAPI artifact has been created.
+Phase 2 Complete. The approved MVP scope is frozen with email/password authentication only; social authentication, including Google, is deferred and requires fresh planning before re-entry. The bounded non-production `SPIKE-001` is complete, but production implementation has not started. No production Prisma schema, migration, SQL, controller, React component, production OpenAPI artifact, or user-visible behavior has been created.
 
 ## Next required action
 
-Await explicit final User approval. After approval, run `SPIKE-001` as the first non-production work and then begin production implementation with `BL-001`. Do not begin either item before that approval.
+Await explicit User instruction to begin `BL-001`, the first approved production story. Do not begin any later backlog story first.

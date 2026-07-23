@@ -8,6 +8,10 @@
 graphify-out/
 graphify-out/**
 
+# OS metadata
+.DS_Store
+**/.DS_Store
+
 # JavaScript dependencies and generated output
 node_modules/
 node_modules/**
@@ -33,6 +37,10 @@ test-results/**
 .nx/**
 .cache/
 .cache/**
+pnpm-lock.yaml
+**/pnpm-lock.yaml
+docs/spikes/SPIKE-001/
+docs/spikes/SPIKE-001/**
 
 # Python environments and caches
 .venv/

@@ -1,8 +1,8 @@
 {
   "docs/PROJECT_MASTER.md": {
-    "mtime": 1784790762.1988804,
-    "ast_hash": "49a62ae1a5b0e72a8e058aa5fcb154a8",
-    "semantic_hash": "49a62ae1a5b0e72a8e058aa5fcb154a8"
+    "mtime": 1784806282.8858452,
+    "ast_hash": "6d7497b34cd9054dab5d9aedf8cca0c9",
+    "semantic_hash": "6d7497b34cd9054dab5d9aedf8cca0c9"
   },
   "docs/product/PRD.md": {
     "mtime": 1784789510.6032417,
@@ -30,9 +30,9 @@
     "semantic_hash": "d771ec81f1a0ef0f816da56c1f4d8db4"
   },
   "docs/architecture/ARCHITECTURE.md": {
-    "mtime": 1784789841.7246876,
-    "ast_hash": "c335c430d0c92b97de39271c7a9fa26e",
-    "semantic_hash": "c335c430d0c92b97de39271c7a9fa26e"
+    "mtime": 1784796029.1027718,
+    "ast_hash": "60d1a76cae148c1aaf1669b0191f38d4",
+    "semantic_hash": "60d1a76cae148c1aaf1669b0191f38d4"
   },
   "docs/architecture/adr/ADR-001-modular-monolith.md": {
     "mtime": 1784556798.0722327,
@@ -40,23 +40,28 @@
     "semantic_hash": "29792ec1b2765ec60b5643a1ef538b81"
   },
   "docs/architecture/adr/ADR-002-rest-openapi.md": {
-    "mtime": 1784556798.166078,
-    "ast_hash": "256938e7d5f47ad15a2db9c75c08af1d",
-    "semantic_hash": "256938e7d5f47ad15a2db9c75c08af1d"
+    "mtime": 1784796029.0157716,
+    "ast_hash": "434f0d82ae8367f1e5b91019a87cd005",
+    "semantic_hash": "434f0d82ae8367f1e5b91019a87cd005"
   },
   "docs/architecture/adr/ADR-003-graphify.md": {
-    "mtime": 1784556798.2574925,
-    "ast_hash": "d5f77a858bc3429d0547aac7a91c2392",
-    "semantic_hash": "d5f77a858bc3429d0547aac7a91c2392"
+    "mtime": 1784794912.0686042,
+    "ast_hash": "86aed1f10d936c07337d23cfa6de4f24",
+    "semantic_hash": "86aed1f10d936c07337d23cfa6de4f24"
   },
   "docs/planning/BACKLOG.md": {
-    "mtime": 1784789875.0429149,
-    "ast_hash": "1a9ebda5150ae7101864d588b78ee5ea",
-    "semantic_hash": "1a9ebda5150ae7101864d588b78ee5ea"
+    "mtime": 1784796038.7270193,
+    "ast_hash": "ccdef2f71b6e471d5eaa414fa5bd9b59",
+    "semantic_hash": "ccdef2f71b6e471d5eaa414fa5bd9b59"
   },
   "docs/planning/READINESS_REPORT.md": {
-    "mtime": 1784790775.4483397,
-    "ast_hash": "8a07ef5df19ebef2a8eb33c117b3812e",
-    "semantic_hash": "8a07ef5df19ebef2a8eb33c117b3812e"
+    "mtime": 1784806282.9817574,
+    "ast_hash": "70ee976dfa98724ad0fc06ddda97dafc",
+    "semantic_hash": "70ee976dfa98724ad0fc06ddda97dafc"
+  },
+  "docs/spikes/SPIKE-001-openapi-generator.md": {
+    "mtime": 1784796014.3791754,
+    "ast_hash": "c476763985d2cecea7230760b1137346",
+    "semantic_hash": "c476763985d2cecea7230760b1137346"
   }
 }

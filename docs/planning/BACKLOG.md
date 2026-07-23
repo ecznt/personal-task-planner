@@ -7,7 +7,7 @@
 | Product scope | MVP |
 | Document language | English |
 | Last updated | 2026-07-23 |
-| Implementation status | Not started |
+| Implementation status | `SPIKE-001` completed; production implementation not started |
 
 This backlog converts the approved product, UX, domain, data, API, and architecture baselines into small, independently verifiable delivery slices. It defines future implementation work only; it contains no production code, schema, migration, OpenAPI artifact, or framework scaffold.
 
@@ -121,6 +121,8 @@ This backlog converts the approved product, UX, domain, data, API, and architect
 | BL-005 | Pull requests cannot merge when a foundational contract or boundary is broken. | CI runs format, lint, strict type-check, unit/component tests, OpenAPI drift, builds, migration validation, integration/E2E placeholders where applicable, secret/dependency checks, and forbidden-import/cycle checks. | CT, SEC |
 | BL-006 | A worker can lease and complete one synthetic durable job without double execution. | PostgreSQL leasing is recoverable after lease expiry, two claim attempts produce one committed outcome, and bounded retry metadata is visible without personal content. | U, DB |
 | SPIKE-001 | The team has evidence that the selected OpenAPI generator supports the approved contract shapes before generated transport work begins. | As the first non-production work of EPIC-001 and before BL-003, a written proof records results for OpenAPI 3.1, cookie auth, RFC 9457 unions, nullable fields, response headers, operation IDs, and Fetch credentials, then pins compatible versions/configuration; failure opens a generator decision without shipping generated feature code. | CT |
+
+**Progress (2026-07-23):** `SPIKE-001` is complete. The reproducible proof in `docs/spikes/SPIKE-001-openapi-generator.md` confirms `@hey-api/openapi-ts@0.99.0` with `typescript@5.9.3`, the Fetch client, explicit same-origin credentials, and the recorded transitive security override. No production artifact or feature behavior was created. `BL-001` remains the next unstarted production story.
 
 **Epic acceptance criteria:** A clean checkout reaches a green protected-branch pipeline; web/API/worker boundaries start with validated configuration; contract generation is deterministic; architecture checks reject at least one known forbidden import fixture; secrets and authored planning content are absent from logs and generated artifacts.
 
