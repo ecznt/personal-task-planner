@@ -31,6 +31,9 @@ playwright-report/
 playwright-report/**
 test-results/
 test-results/**
+**/generated/
+**/generated/**
+*.tsbuildinfo
 .turbo/
 .turbo/**
 .nx/

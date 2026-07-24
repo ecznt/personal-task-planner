@@ -1,0 +1,46 @@
+{
+  "name": "personal-task-planner",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@11.9.0",
+  "engines": {
+    "node": "24.18.0",
+    "pnpm": "11.9.0"
+  },
+  "scripts": {
+    "build": "pnpm -r --if-present build",
+    "dev": "pnpm --parallel --filter @planner/web --filter @planner/api dev",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "pnpm -r --if-present lint && dependency-cruiser --config dependency-cruiser.cjs apps packages",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm test:unit && pnpm test:component && pnpm test:api && pnpm test:db && pnpm test:contract",
+    "test:unit": "pnpm --filter @planner/api test:unit",
+    "test:component": "pnpm --filter @planner/web test:component",
+    "test:api": "pnpm --filter @planner/api test:api",
+    "test:db": "pnpm --filter @planner/api test:db",
+    "test:e2e": "playwright test",
+    "test:contract": "pnpm openapi:generate && pnpm --filter @planner/api exec redocly lint openapi/openapi.json --config ../../redocly.yaml && pnpm api-client:generate && pnpm --filter @planner/api-client typecheck && node scripts/check-generated.mjs",
+    "test:security": "pnpm audit --audit-level high && node scripts/scan-secrets.mjs",
+    "verify:workspace": "node scripts/verify-workspace.mjs",
+    "verify:architecture": "dependency-cruiser --config dependency-cruiser.cjs apps packages && node scripts/verify-forbidden-import.mjs",
+    "prisma:validate": "pnpm --filter @planner/api prisma:validate",
+    "prisma:generate": "pnpm --filter @planner/api prisma:generate",
+    "prisma:migrate:deploy": "pnpm --filter @planner/api prisma:migrate:deploy",
+    "openapi:generate": "pnpm --filter @planner/api openapi:generate",
+    "api-client:generate": "pnpm --filter @planner/api-client generate",
+    "openapi:check": "pnpm test:contract"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "@playwright/test": "1.61.1",
+    "@planner/eslint-config": "workspace:*",
+    "@types/node": "24.13.3",
+    "dependency-cruiser": "18.1.0",
+    "eslint": "9.39.5",
+    "prettier": "3.9.6",
+    "tsx": "4.23.1",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.65.0"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "@planner/api-client",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./generated": "./src/generated/index.ts"
+  },
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "generate": "openapi-ts",
+    "lint": "eslint .",
+    "typecheck": "tsc --project tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@hey-api/openapi-ts": "0.99.0",
+    "@planner/eslint-config": "workspace:*",
+    "@planner/typescript-config": "workspace:*",
+    "@types/node": "24.13.3",
+    "eslint": "9.39.5",
+    "typescript": "5.9.3"
+  }
+}

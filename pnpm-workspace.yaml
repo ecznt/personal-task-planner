@@ -1,0 +1,25 @@
+packages:
+  - apps/*
+  - packages/*
+
+engineStrict: true
+confirmModulesPurge: false
+saveExact: true
+strictPeerDependencies: true
+
+overrides:
+  '@angular-devkit/core>ajv': 8.20.0
+  js-yaml: 4.3.0
+  picomatch: 4.0.5
+  postcss: 8.5.22
+  sharp: 0.35.3
+
+allowBuilds:
+  '@prisma/engines': true
+  '@scarf/scarf': false
+  cpu-features: false
+  esbuild: true
+  prisma: true
+  protobufjs: false
+  sharp: true
+  ssh2: false

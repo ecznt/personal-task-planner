@@ -1,0 +1,56 @@
+{
+  "components": {
+    "schemas": {
+      "VersionResponseDto": {
+        "properties": {
+          "version": {
+            "example": "0.0.0",
+            "type": "string"
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "contact": {},
+    "description": "Foundation contract. Product feature operations are intentionally absent.",
+    "title": "Personal Task Planner API",
+    "version": "0.0.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/version": {
+      "get": {
+        "operationId": "getVersion",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionResponseDto"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Return the running contract version",
+        "tags": [
+          "system"
+        ]
+      }
+    }
+  },
+  "security": [],
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "tags": []
+}

@@ -1,0 +1,12 @@
+{
+  "extends": "@planner/typescript-config/node.json",
+  "compilerOptions": {
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "outDir": "dist",
+    "rootDir": ".",
+    "sourceMap": true,
+    "strictPropertyInitialization": true
+  },
+  "include": ["prisma.config.ts", "scripts/**/*.ts", "src/**/*.ts", "test/**/*.ts"]
+}

@@ -1,0 +1,23 @@
+name: personal-task-planner
+
+services:
+  postgres:
+    image: postgres:18.3-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: personal_task_planner
+      POSTGRES_PASSWORD: planner_dev
+      POSTGRES_USER: planner
+    ports:
+      - '127.0.0.1:${POSTGRES_PORT:-5432}:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U planner -d personal_task_planner']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    volumes:
+      - planner_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  planner_postgres_data:

@@ -1,0 +1,25 @@
+{
+  "name": "@planner/eslint-config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./base": "./base.mjs",
+    "./next": "./next.mjs",
+    "./node": "./node.mjs"
+  },
+  "dependencies": {
+    "@eslint/js": "9.39.5",
+    "@next/eslint-plugin-next": "16.2.11",
+    "eslint-plugin-jsx-a11y": "6.10.2",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "globals": "17.7.0",
+    "typescript-eslint": "8.65.0"
+  },
+  "peerDependencies": {
+    "eslint": "9.39.5"
+  },
+  "scripts": {
+    "lint": "eslint ."
+  }
+}

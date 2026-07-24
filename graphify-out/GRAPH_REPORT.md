@@ -1,133 +1,279 @@
 # Graph Report - .  (2026-07-23)
 
 ## Corpus Check
-- 13 files · ~71,676 words (2 re-extracted in this incremental update)
+- 86 files · ~77,190 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 118 nodes · 117 edges · 16 communities (14 shown, 2 thin omitted)
-- Extraction: 86% EXTRACTED · 14% INFERRED · 0% AMBIGUOUS · INFERRED: 16 edges (avg confidence: 0.93)
+- 724 nodes · 746 edges · 64 communities (53 shown, 11 thin omitted)
+- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 21 edges (avg confidence: 0.91)
 - Token cost: 0 input · 0 output
 
 ## Community Hubs (Navigation)
-- API Security Contract
-- MVP Product Scope
-- Task Lifecycle Data
-- OpenAPI Generation Contract
-- Phase 2 Readiness
+- PostgreSQL Job Leasing
+- API Test Tooling
+- NestJS Composition Roots
+- Repository Quality Foundation
+- API Runtime Dependencies
+- Web Test Tooling
+- Workspace Runtime Scripts
+- OpenAPI Generator Contract
+- API Client Package
+- Package Build Configuration
+- Product Contract Corpus
+- Shared Package Scripts
+- Environment Validation
+- Web Workspace Scripts
+- Root Quality Tooling
+- Next TypeScript Policy
+- ESLint Package Metadata
+- API Client TypeScript
+- Next TypeScript Configuration
+- Config Package TypeScript
+- API Build Configuration
+- Web TypeScript Configuration
+- Shared ESLint Configuration
+- Core Task Domain
+- Phase Two Readiness
+- Node TypeScript Configuration
+- Package TypeScript Policy
+- Nest Build Configuration
 - Graphify Governance
-- Foundation Delivery
-- Generator Compatibility
-- Graphify Workflow
-- Modular Monolith Architecture
+- Architecture Runtime Topology
 - Account Identity Lifecycle
-- Generated Client Pipeline
-- Architecture Decisions
-- Notification Delivery
+- Generated Client Metadata
+- Web Foundation Shell
+- Prettier Configuration
+- Contract Drift Check
+- Secret Scanning
+- Security Contract Architecture
+- Dependency Update Automation
+- Next Runtime Configuration
+- Standalone Build Preparation
+- Web Root Layout
+- Modular Monolith Decision
+- Notification Domain
+- Next Generated Types
 - Domain Ownership Rules
+- Forbidden Import Verification
+- Workspace Verification
+- Logging Redaction
 - Requirement Coverage
+- Forbidden Boundary Value
 
 ## God Nodes (most connected - your core abstractions)
-1. `Personal Task Planner Product Requirements Document` - 6 edges
-2. `Task` - 6 edges
-3. `Personal Task Planner Conceptual REST API Authentication and Security Contract` - 6 edges
-4. `Confirmed non-production OpenAPI generator profile` - 6 edges
-5. `Personal Task Planner Project Master` - 6 edges
-6. `Personal Task Planner UX Flows and Information Architecture` - 5 edges
-7. `Phase 2 Final Readiness Audit` - 5 edges
-8. `Graphify repository-local discovery and impact analysis` - 4 edges
-9. `EPIC-001 Repository Foundation and Quality Gates` - 4 edges
-10. `SPIKE-001 OpenAPI generator compatibility evidence` - 4 edges
+1. `scripts` - 23 edges
+2. `compilerOptions` - 18 edges
+3. `scripts` - 15 edges
+4. `PrismaService` - 11 edges
+5. `EPIC-001 Repository Foundation and Quality Gates` - 11 edges
+6. `JobQueueService` - 10 edges
+7. `compilerOptions` - 9 edges
+8. `compilerOptions` - 8 edges
+9. `AppModule` - 7 edges
+10. `HealthController` - 7 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `Task` --shares_data_with--> `Task entity with required owner Area and AreaStatus relationships`  [INFERRED]
-  docs/domain/DOMAIN_MODEL.md → docs/data/DATA_MODEL.md
-- `Go with zero BLOCKER and zero HIGH findings` --semantically_similar_to--> `Phase 2 Complete and approved`  [INFERRED] [semantically similar]
-  docs/planning/READINESS_REPORT.md → docs/PROJECT_MASTER.md
-- `SPIKE-001 done then BL-001 begins production work` --semantically_similar_to--> `SPIKE-001 completed as bounded non-production evidence`  [INFERRED] [semantically similar]
-  docs/planning/READINESS_REPORT.md → docs/PROJECT_MASTER.md
-- `Restricted graph health with 118 nodes 117 edges 6 hyperedges and 16 communities` --semantically_similar_to--> `Current Graphify graph has 118 nodes 117 edges 6 hyperedges and 16 communities`  [INFERRED] [semantically similar]
-  docs/planning/READINESS_REPORT.md → docs/PROJECT_MASTER.md
-- `Project Master and confirmed generator profile are expected cross-community governance bridges` --semantically_similar_to--> `Generator Compatibility Profile bridges ADR-002 SPIKE-001 and EPIC-001 delivery`  [INFERRED] [semantically similar]
-  docs/planning/READINESS_REPORT.md → docs/PROJECT_MASTER.md
+- `PostgreSQL 18.3 Alpine local service` --semantically_similar_to--> `BL-002 PostgreSQL web API and worker composition roots`  [INFERRED] [semantically similar]
+  compose.yaml → docs/planning/BACKLOG.md
+- `Pinned Node.js 24.18.0 and pnpm 11.9.0 CI toolchain` --semantically_similar_to--> `BL-001 Pinned reproducible workspace`  [INFERRED] [semantically similar]
+  .github/workflows/ci.yml → docs/planning/BACKLOG.md
+- `Workspace architecture Prisma OpenAPI and contract gates` --semantically_similar_to--> `BL-005 Foundation contract architecture and security pipeline`  [INFERRED] [semantically similar]
+  .github/workflows/ci.yml → docs/planning/BACKLOG.md
+- `Reviewed generated OpenAPI and API client artifacts` --semantically_similar_to--> `BL-003 Deterministic OpenAPI and generated Fetch transport`  [INFERRED] [semantically similar]
+  README.md → docs/planning/BACKLOG.md
+- `Reviewed transitive dependency security overrides` --conceptually_related_to--> `DEC-069 EPIC-001 repository-foundation implementation plan`  [INFERRED]
+  pnpm-workspace.yaml → docs/PROJECT_MASTER.md
+
+## Import Cycles
+- None detected.
 
 ## Hyperedges (group relationships)
-- **DEC-066 frozen email/password scope and zero BLOCKER HIGH result form approved Phase 2 governance** — docs_project_master_dec_066, docs_project_master_frozen_email_password_mvp, docs_project_master_phase_2_complete, docs_planning_readiness_report_approved_readiness_result [EXTRACTED 1.00]
+- **SPIKE-001 and BL-001 through BL-006 form the completed EPIC-001 delivery set** — docs_planning_backlog_spike_001_generator_evidence, docs_planning_backlog_bl_001_pinned_workspace, docs_planning_backlog_bl_002_runtime_composition_roots, docs_planning_backlog_bl_003_generated_transport, docs_planning_backlog_bl_004_privacy_safe_diagnostics, docs_planning_backlog_bl_005_foundation_quality_pipeline, docs_planning_backlog_bl_006_recoverable_job_lease, docs_planning_backlog_epic_001_verified_completion [EXTRACTED 1.00]
+- **CI workspace policy OpenAPI lint and contributor checks implement the foundation quality-gate system** — _github_workflows_ci_quality_job, readme_required_quality_checks, pnpm_workspace_strict_exact_dependency_policy, redocly_recommended_strict_ruleset, docs_planning_backlog_bl_005_foundation_quality_pipeline [INFERRED 0.95]
+- **Pinned toolchain workspace PostgreSQL and separate process roots form the EPIC-001 runtime boundary** — _github_workflows_ci_pinned_node_pnpm_toolchain, pnpm_workspace_apps_and_packages_discovery, compose_postgresql_18_service, readme_web_api_worker_processes, docs_planning_backlog_bl_002_runtime_composition_roots [INFERRED 0.95]
 - **Requirements endpoint rows stories and spikes form the active MVP coverage baseline** — docs_planning_readiness_report_active_mvp_baseline_counts, docs_planning_readiness_report_requirement_traceability, docs_planning_readiness_report_no_coverage_gaps [EXTRACTED 1.00]
-- **Phase 2 approval and completed SPIKE-001 hand off to explicitly authorized BL-001** — docs_project_master_phase_2_complete, docs_project_master_spike_001_complete, docs_project_master_bl_001_instruction_gate, docs_planning_readiness_report_approved_execution_order [EXTRACTED 1.00]
 - **Pinned OpenAPI generator compatibility profile** — docs_spikes_spike_001_openapi_generator_hey_api_0_99_0, docs_spikes_spike_001_openapi_generator_typescript_5_9_3, docs_spikes_spike_001_openapi_generator_same_origin_fetch_credentials, docs_spikes_spike_001_openapi_generator_js_yaml_security_override [EXTRACTED 1.00]
 - **Architecture decision spike evidence and backlog story participate in the OpenAPI delivery chain** — docs_architecture_architecture_arc_013_openapi_ownership, docs_architecture_adr_adr_002_rest_openapi_rest_openapi_adr, docs_spikes_spike_001_openapi_generator_openapi_generator_compatibility_spike, docs_planning_backlog_bl_003_generated_transport [EXTRACTED 1.00]
 - **Required Area optional Project and Task form the preserved personal-planning core** — docs_domain_domain_model_area, docs_domain_domain_model_project, docs_domain_domain_model_task [EXTRACTED 1.00]
 
-## Communities (16 total, 2 thin omitted)
+## Communities (64 total, 11 thin omitted)
 
-### Community 0 - "API Security Contract"
-Cohesion: 0.14
-Nodes (14): Personal Task Planner Conceptual REST API Authentication and Security Contract, ETag If-Match and Idempotency-Key mutation contract, No provider authorization callback linking or unlinking endpoints in MVP, 73 active conceptual endpoint rows, Non-disclosing 404 RESOURCE_NOT_FOUND private-resource policy, Opaque server-side cookie session with CSRF and origin protection, Backend-owned OpenAPI contract and generated frontend client, Personal Task Planner Conceptual Data Model (+6 more)
+### Community 0 - "PostgreSQL Job Leasing"
+Cohesion: 0.06
+Nodes (24): ApiExcludeController, DatabaseModule, Module, PrismaService, Injectable, HealthController, Controller, Get (+16 more)
 
-### Community 1 - "MVP Product Scope"
+### Community 1 - "API Test Tooling"
+Cohesion: 0.05
+Nodes (41): devDependencies, eslint, jest, @jest/globals, @nestjs/cli, @nestjs/testing, pino-pretty, @planner/eslint-config (+33 more)
+
+### Community 2 - "NestJS Composition Roots"
+Cohesion: 0.07
+Nodes (25): ApiOkResponse, ApiOperation, ApiProperty, ApiTags, generateOpenApi(), sortRecursively(), AppModule, Module (+17 more)
+
+### Community 3 - "Repository Quality Foundation"
+Cohesion: 0.06
+Nodes (35): GitHub Actions CI Workflow, Pinned Node.js 24.18.0 and pnpm 11.9.0 CI toolchain, PostgreSQL 18.3 Alpine CI test service, CI Quality Job, Gitleaks and security verification gates, Unit component API database contract E2E and security test portfolio, Workspace architecture Prisma OpenAPI and contract gates, Loopback-bound configurable PostgreSQL port (+27 more)
+
+### Community 4 - "API Runtime Dependencies"
+Cohesion: 0.06
+Nodes (35): dependencies, class-transformer, class-validator, dotenv, helmet, @nestjs/common, @nestjs/core, nestjs-pino (+27 more)
+
+### Community 5 - "Web Test Tooling"
+Cohesion: 0.06
+Nodes (35): devDependencies, eslint, jsdom, @planner/eslint-config, @planner/typescript-config, postcss, tailwindcss, @tailwindcss/postcss (+27 more)
+
+### Community 6 - "Workspace Runtime Scripts"
+Cohesion: 0.06
+Nodes (30): engines, node, pnpm, name, packageManager, private, scripts, api-client:generate (+22 more)
+
+### Community 7 - "OpenAPI Generator Contract"
+Cohesion: 0.07
+Nodes (30): NestJS controllers and DTO schemas own the implemented HTTP contract, Same-origin browser credentials without HttpOnly cookie auth callback, Committed deterministic OpenAPI 3.1 artifact, OpenAPI lint compatibility Supertest ownership and generated-client verification, Pinned generated Fetch client without parallel transport types, ADR-002 REST API with Backend-Owned OpenAPI and Generated Client, Stable operation IDs as generated method names, BL-003 Deterministic OpenAPI and generated Fetch transport (+22 more)
+
+### Community 8 - "API Client Package"
+Cohesion: 0.07
+Nodes (26): eslint-plugin-jsx-a11y, eslint-plugin-react-hooks, globals, @next/eslint-plugin-next, dependencies, @eslint/js, eslint-plugin-jsx-a11y, eslint-plugin-react-hooks (+18 more)
+
+### Community 9 - "Package Build Configuration"
+Cohesion: 0.08
+Nodes (24): @hey-api/openapi-ts, devDependencies, eslint, @hey-api/openapi-ts, @planner/eslint-config, @planner/typescript-config, @types/node, typescript (+16 more)
+
+### Community 10 - "Product Contract Corpus"
+Cohesion: 0.09
+Nodes (23): Personal Task Planner Conceptual REST API Authentication and Security Contract, ETag If-Match and Idempotency-Key mutation contract, No provider authorization callback linking or unlinking endpoints in MVP, 73 active conceptual endpoint rows, Non-disclosing 404 RESOURCE_NOT_FOUND private-resource policy, Opaque server-side cookie session with CSRF and origin protection, Backend-owned OpenAPI contract and generated frontend client, Personal Task Planner Conceptual Data Model (+15 more)
+
+### Community 11 - "Shared Package Scripts"
+Cohesion: 0.09
+Nodes (22): dependencies, zod, devDependencies, eslint, @planner/eslint-config, @planner/typescript-config, @types/node, typescript (+14 more)
+
+### Community 12 - "Environment Validation"
+Cohesion: 0.13
+Nodes (18): ApiEnvironment, apiEnvironmentSchema, databaseUrl, logLevel, parseEnvironment(), parseWorkerEnvironment(), sharedEnvironmentSchema, WorkerEnvironment (+10 more)
+
+### Community 13 - "Web Workspace Scripts"
+Cohesion: 0.09
+Nodes (21): dependencies, next, @planner/api-client, react, react-dom, zod, zod, name (+13 more)
+
+### Community 14 - "Root Quality Tooling"
+Cohesion: 0.10
+Nodes (21): devDependencies, dependency-cruiser, eslint, @eslint/js, @planner/eslint-config, @playwright/test, prettier, tsx (+13 more)
+
+### Community 15 - "Next TypeScript Policy"
+Cohesion: 0.10
+Nodes (19): compilerOptions, allowJs, declaration, declarationMap, esModuleInterop, exactOptionalPropertyTypes, forceConsistentCasingInFileNames, isolatedModules (+11 more)
+
+### Community 16 - "ESLint Package Metadata"
+Cohesion: 0.11
+Nodes (18): name, private, scripts, build, dev, dev:worker, lint, openapi:generate (+10 more)
+
+### Community 17 - "API Client TypeScript"
+Cohesion: 0.12
+Nodes (16): compilerOptions, exactOptionalPropertyTypes, lib, module, moduleResolution, outDir, rootDir, types (+8 more)
+
+### Community 18 - "Next TypeScript Configuration"
+Cohesion: 0.12
+Nodes (15): compilerOptions, allowJs, incremental, jsx, lib, module, moduleResolution, noEmit (+7 more)
+
+### Community 19 - "Config Package TypeScript"
+Cohesion: 0.13
+Nodes (14): compilerOptions, emitDecoratorMetadata, experimentalDecorators, outDir, rootDir, sourceMap, strictPropertyInitialization, extends (+6 more)
+
+### Community 20 - "API Build Configuration"
 Cohesion: 0.15
-Nodes (13): Archive Trash 30-day retention and permanent account deletion, Required Area optional same-Area Project and Task model, Reserved deferred Google-authentication IDs US-002 FR-005 FR-006 PRV-005 RA-008, Email/password registration verification login recovery and deletion lifecycle, Future social authentication requires fresh cross-document planning, Personal Task Planner Product Requirements Document, Calendar and completion recurrence with multiple in-app reminders, Today List Global Kanban and Area Kanban work views (+5 more)
+Nodes (12): compilerOptions, declaration, declarationMap, rootDir, exclude, extends, include, src/**/*.ts (+4 more)
 
-### Community 2 - "Task Lifecycle Data"
+### Community 21 - "Web TypeScript Configuration"
+Cohesion: 0.15
+Nodes (12): compilerOptions, baseUrl, paths, exclude, extends, include, next-env.d.ts, .next/types/**/*.ts (+4 more)
+
+### Community 22 - "Shared ESLint Configuration"
+Cohesion: 0.31
+Nodes (3): baseConfig, nextConfig, nodeConfig
+
+### Community 23 - "Core Task Domain"
 Cohesion: 0.20
 Nodes (11): LifecycleOperation and LifecycleEffect cascade provenance, Recurrence occurrence predecessor and generation uniqueness constraints, Task entity with required owner Area and AreaStatus relationships, Distinct recoverable Archive and 30-day Trash lifecycles, Area, AreaStatus, CanonicalStatus, One open recurrence occurrence with no missed-slot backfill (+3 more)
 
-### Community 3 - "OpenAPI Generation Contract"
-Cohesion: 0.20
-Nodes (10): NestJS controllers and DTO schemas own the implemented HTTP contract, Same-origin browser credentials without HttpOnly cookie auth callback, Committed deterministic OpenAPI 3.1 artifact, OpenAPI lint compatibility Supertest ownership and generated-client verification, Pinned generated Fetch client without parallel transport types, ADR-002 REST API with Backend-Owned OpenAPI and Generated Client, Stable operation IDs as generated method names, Deterministic 16-file generation with stable combined SHA-256 (+2 more)
+### Community 24 - "Phase Two Readiness"
+Cohesion: 0.18
+Nodes (11): 178 accepted requirements 73 endpoint rows 120 active stories and 3 bounded spikes, SPIKE-001 done then BL-001 begins production work, Go with zero BLOCKER and zero HIGH findings, Restricted graph health with 118 nodes 117 edges 6 hyperedges and 16 communities, DEC-066 closes the fourth original HIGH readiness finding, Project Master and confirmed generator profile are expected cross-community governance bridges, No orphan requirement unsupported endpoint ownerless entity or backlog-less MVP feature, Phase 2 Final Readiness Audit (+3 more)
 
-### Community 4 - "Phase 2 Readiness"
-Cohesion: 0.24
-Nodes (10): 178 accepted requirements 73 endpoint rows 120 active stories and 3 bounded spikes, SPIKE-001 done then BL-001 begins production work, Go with zero BLOCKER and zero HIGH findings, No orphan requirement unsupported endpoint ownerless entity or backlog-less MVP feature, Phase 2 Final Readiness Audit, Complete active requirement endpoint and backlog traceability, Owner-scoped non-disclosing cookie CSRF rate-limit and account-deletion security baseline, BL-001 awaits explicit User instruction and must precede later backlog stories (+2 more)
+### Community 25 - "Node TypeScript Configuration"
+Cohesion: 0.18
+Nodes (10): compilerOptions, lib, module, moduleResolution, types, extends, ./base.json, ES2024 (+2 more)
 
-### Community 5 - "Graphify Governance"
-Cohesion: 0.24
-Nodes (10): Restricted graph health with 118 nodes 117 edges 6 hyperedges and 16 communities, Project Master and confirmed generator profile are expected cross-community governance bridges, Current Graphify graph has 118 nodes 117 edges 6 hyperedges and 16 communities, DEC-067 Proportional Graphify query and incremental extraction policy, DEC-068 Approved OpenAPI generator compatibility profile, Generator Compatibility Profile bridges ADR-002 SPIKE-001 and EPIC-001 delivery, Graphify findings are advisory and direct source remains authoritative, Historical readiness graph had 86 nodes 91 edges 3 hyperedges and 10 communities (+2 more)
+### Community 26 - "Package TypeScript Policy"
+Cohesion: 0.25
+Nodes (7): compilerOptions, outDir, rootDir, extends, include, @planner/typescript-config/node.json, src/**/*.ts
 
-### Community 6 - "Foundation Delivery"
-Cohesion: 0.28
-Nodes (9): BD-012 Bounded just-in-time spike evidence, BL-001 Install and validate the pinned workspace, BL-003 Deterministic OpenAPI and generated transport package, 18-epic delivery sequence, EPIC-001 Repository Foundation and Quality Gates, SPIKE-001 complete with BL-001 next and unstarted, SPIKE-001 OpenAPI generator compatibility evidence, Personal Task Planner Vertical-Slice Backlog (+1 more)
+### Community 27 - "Nest Build Configuration"
+Cohesion: 0.29
+Nodes (6): collection, compilerOptions, deleteOutDir, tsConfigPath, $schema, sourceRoot
 
-### Community 7 - "Generator Compatibility"
-Cohesion: 0.22
-Nodes (9): Approved pinned generator profile for BL-003, Confirmed non-production OpenAPI generator profile, @hey-api/openapi-ts 0.99.0, js-yaml 4.3.0 security override, Native Response.headers available without named header-map types, No generated auth callback for HttpOnly session cookie, Explicit same-origin Fetch credentials, TypeScript 5.9.3 strict compatibility (+1 more)
-
-### Community 8 - "Graphify Workflow"
+### Community 28 - "Graphify Governance"
 Cohesion: 0.29
 Nodes (7): Direct source remains authoritative over graph inference, Graphify repository-local discovery and impact analysis, Explicit full graph rebuild triggers, Graph staleness detection and reporting, ADR-003 Graphify for Architecture Discovery and Impact Analysis, Targeted query first and smallest material incremental extraction policy, Graph extraction secret and absolute-path controls
 
-### Community 9 - "Modular Monolith Architecture"
+### Community 29 - "Architecture Runtime Topology"
 Cohesion: 0.33
 Nodes (6): ARC-001 Web API and Worker runtime topology, ARC-005 Domain-aligned backend module map, ARC-009 PostgreSQL-backed durable worker without Redis, ARC-030 Architecture knowledge graph workflow, Architecture and Quality Strategy, TypeScript modular monolith with one pnpm workspace
 
-### Community 10 - "Account Identity Lifecycle"
+### Community 30 - "Account Identity Lifecycle"
 Cohesion: 0.33
 Nodes (6): AccountDeletionProcess durable idempotent purge coordination, AuthenticationIdentity entity with one email/password identity per active User, User entity, Confirmed account deletion and immediate access revocation, AuthenticationIdentity, User
 
-### Community 11 - "Generated Client Pipeline"
+### Community 31 - "Generated Client Metadata"
+Cohesion: 0.33
+Nodes (5): files, name, private, version, *.json
+
+### Community 33 - "Prettier Configuration"
+Cohesion: 0.40
+Nodes (4): printWidth, semi, singleQuote, trailingComma
+
+### Community 34 - "Contract Drift Check"
+Cohesion: 0.50
+Nodes (4): collectFiles(), digestGeneratedFiles(), generatedExtensions, generatedRoots
+
+### Community 35 - "Secret Scanning"
+Cohesion: 0.40
+Nodes (4): excluded, findings, patterns, trackedFiles
+
+### Community 36 - "Security Contract Architecture"
 Cohesion: 0.50
 Nodes (4): ARC-010 Opaque HttpOnly cookie session strategy, ARC-013 Backend-owned deterministic OpenAPI and generated-client pipeline, ARC-025 OpenAPI generated-client and architecture drift gates, Confirmed @hey-api/openapi-ts 0.99.0 TypeScript 5.9.3 Fetch profile
 
-### Community 12 - "Architecture Decisions"
+### Community 37 - "Dependency Update Automation"
+Cohesion: 0.67
+Nodes (3): Dependabot Configuration, Dependabot updates target develop, Weekly npm GitHub Actions and Docker dependency updates
+
+### Community 41 - "Modular Monolith Decision"
 Cohesion: 0.67
 Nodes (3): Domain-Aligned Modular Monolith, ADR-001: Modular Monolith with Separate Runtime Entry Points, PostgreSQL Job Leasing
 
-### Community 13 - "Notification Delivery"
+### Community 42 - "Notification Domain"
 Cohesion: 0.67
 Nodes (3): Default-enabled in-app reminder Notification preference and suppression semantics, Notification, TaskReminder
 
 ## Knowledge Gaps
-- **42 isolated node(s):** `ADR-001: Modular Monolith with Separate Runtime Entry Points`, `PostgreSQL Job Leasing`, `178 active accepted MVP requirement IDs`, `Email/password registration verification login recovery and deletion lifecycle`, `Required Area optional same-Area Project and Task model` (+37 more)
+- **350 isolated node(s):** `ADR-001: Modular Monolith with Separate Runtime Entry Points`, `PostgreSQL Job Leasing`, `178 active accepted MVP requirement IDs`, `Email/password registration verification login recovery and deletion lifecycle`, `Required Area optional same-Area Project and Task model` (+345 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **2 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **11 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `DEC-066 Remove social authentication from MVP and preserve deferred IDs` connect `API Security Contract` to `Graphify Governance`?**
-  _High betweenness centrality (0.110) - this node is a cross-community bridge._
+- **Why does `devDependencies` connect `API Test Tooling` to `ESLint Package Metadata`?**
+  _High betweenness centrality (0.011) - this node is a cross-community bridge._
+- **Why does `dependencies` connect `API Runtime Dependencies` to `ESLint Package Metadata`?**
+  _High betweenness centrality (0.010) - this node is a cross-community bridge._
+- **Why does `EPIC-001 Repository Foundation and Quality Gates` connect `Repository Quality Foundation` to `OpenAPI Generator Contract`?**
+  _High betweenness centrality (0.006) - this node is a cross-community bridge._
 - **What connects `ADR-001: Modular Monolith with Separate Runtime Entry Points`, `PostgreSQL Job Leasing`, `178 active accepted MVP requirement IDs` to the rest of the system?**
-  _42 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `API Security Contract` be split into smaller, more focused modules?**
-  _Cohesion score 0.14285714285714285 - nodes in this community are weakly interconnected._
+  _350 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `PostgreSQL Job Leasing` be split into smaller, more focused modules?**
+  _Cohesion score 0.06377551020408163 - nodes in this community are weakly interconnected._
+- **Should `API Test Tooling` be split into smaller, more focused modules?**
+  _Cohesion score 0.04878048780487805 - nodes in this community are weakly interconnected._
+- **Should `NestJS Composition Roots` be split into smaller, more focused modules?**
+  _Cohesion score 0.07422402159244265 - nodes in this community are weakly interconnected._

@@ -183,6 +183,7 @@ Every stage requires explicit user approval before the next stage begins.
 | DEC-066 | 2026-07-23 | Remove Google and all other social authentication from the MVP plan. Preserve `US-002`, `FR-005`, `FR-006`, `PRV-005`, `RA-008`, `UXF-005`, `BL-012`, and `BL-013` as deferred/reserved IDs; do not reuse them. Any future provider requires fresh cross-document planning and approval. | Approved scope change | User instruction |
 | DEC-067 | 2026-07-23 | Use Graphify proportionally: query the existing graph first with one targeted depth-2 query and an approximately 1,200-token output budget; expand only when insufficient, incrementally extract only materially changed graph-relevant files, and reserve full rebuilds for explicit requests, corruption/incompatibility, unusable staleness, or material repository-wide restructuring. Git-only, status, formatting, wording-only, mechanical, and isolated non-graph changes do not trigger regeneration. | Approved operating policy | User explicit instruction |
 | DEC-068 | 2026-07-23 | Confirm `@hey-api/openapi-ts@0.99.0` with `typescript@5.9.3` and its Fetch client as the initial generated-client profile. Use explicit same-origin Fetch credentials without a session-cookie auth callback, read response headers through native `Response.headers`, and retain the `js-yaml@4.3.0` security override until a dedicated upgrade reruns `SPIKE-001`. | Approved by completed technical spike | `SPIKE-001`; ADR-002 |
+| DEC-069 | 2026-07-23 | Implement EPIC-001 as the repository foundation only: pin Node.js 24.18.0 and pnpm 11.9.0; keep TypeScript `strict`; use the approved Next.js, NestJS, PostgreSQL 18, Prisma 7, OpenAPI/client, worker-lease, test, CI, logging, and Graphify boundaries; and defer every product feature to later epics. Pin ESLint 9.39.5 for current accessibility-plugin compatibility and use reviewed transitive overrides to keep the dependency audit clear. | Approved implementation plan; implemented and locally verified | User approval of the EPIC-001 implementation plan; BL-001–BL-006 |
 
 ## Open questions
 
@@ -231,6 +232,7 @@ The product boundary is defined in the approved PRD, and UX decisions are record
 | Spike experiments can be mistaken for shippable behavior or silently choose a tool. | Require a written evidence result and backlog/decision impact; production acceptance remains in the implementing story and any changed fixed decision requires approval. |
 | The Phase 2 readiness audit originally found four HIGH timing/decision-completeness findings. Three were resolved directly; the remaining external Google-provider dependency was removed from MVP by DEC-066. | Keep social authentication outside the frozen MVP and require a fresh cross-document decision before introducing any provider. |
 | The confirmed OpenAPI generator fails strict checking of its generated helper under TypeScript 6.0.3, and its default dependency tree can resolve a vulnerable `js-yaml`. | Keep the exact TypeScript 5.9.3 pin and `js-yaml` 4.3.0 override from DEC-068; rerun the bounded proof before upgrading either the generator or TypeScript. |
+| `@hey-api/openapi-ts@0.99.0` generated Fetch helpers do not compile with `exactOptionalPropertyTypes`; disabling that optional strictness flag for the generated-client package would also affect its two thin authored wrapper files. | Keep TypeScript `strict` enabled everywhere, constrain the exception to `packages/api-client`, prohibit business logic there, and rerun the generator compatibility proof before changing the generator or re-enabling the flag. |
 
 ## Document index
 
@@ -247,6 +249,7 @@ The product boundary is defined in the approved PRD, and UX decisions are record
 | `docs/architecture/adr/ADR-002-rest-openapi.md` | Decision record for REST, backend-owned OpenAPI, and generated frontend client. | Accepted |
 | `docs/architecture/adr/ADR-003-graphify.md` | Decision record for Graphify use, source authority, token-efficient query/update workflow, staleness, versioning, and secret controls. | Accepted; DEC-067 operating-policy amendment applied |
 | `docs/planning/BACKLOG.md` | Ordered vertical-slice epics, small stories, dependencies, requirement ownership, acceptance criteria, tests, exclusions, and Stage 8 gates. | Approved; 120 active MVP stories after DEC-066 |
+| `README.md` | Contributor entry point, pinned runtime, local PostgreSQL/bootstrap commands, required quality gates, and generated-artifact workflow. | Implemented by EPIC-001 |
 | `docs/planning/READINESS_REPORT.md` | Final cross-document readiness audit, severity-classified findings, traceability checks, Graphify review, and go/no-go recommendation. | Go — zero BLOCKER/HIGH; Phase 2 approved |
 | `docs/spikes/SPIKE-001-openapi-generator.md` | Executed OpenAPI generator compatibility evidence, constraints, exact pins, and decision. | Completed |
 | `docs/spikes/SPIKE-001/` | Reproducible non-production OpenAPI 3.1 contract, generation, strict type, determinism, and security fixture. | Completed; generated output ignored |
@@ -265,15 +268,15 @@ New planning documents must be added to this index when created.
 
 - Global CLI: installed with `uv tool`.
 - Project skill: installed using the official `agents` platform target at `.agents/skills/graphify`.
-- Skill instructions: fully read again for `SPIKE-001` on 2026-07-23.
-- Task-relevant references read for the latest update: `.agents/skills/graphify/references/update.md` and `.agents/skills/graphify/references/extraction-spec.md`; the existing query rules were then applied through one bounded MCP impact query.
-- Graph generation: incrementally re-extracted only `docs/PROJECT_MASTER.md` and `docs/planning/READINESS_REPORT.md`, then merged them with the eleven unchanged approved sources. The executable spike fixture remained excluded so its synthetic endpoint could not be mistaken for a production contract.
-- Graph health: passed with 117 valid candidate edges and no missing endpoints, dangling edges, self-loops, exact duplicates, or directed/undirected same-endpoint collapse.
-- Source-scope control: per the project skill, the host-agent fallback completed the bounded semantic update without requesting an external LLM secret. Graphify 0.9.20 again force-detected five `graphify-out/memory/` notes despite repository ignore patterns; the successful extraction explicitly excluded them and retained only the thirteen intended `docs/` sources in the manifest.
-- Sensitive-path review: completed; the graph contains relative document paths only, the synthetic fixture and dependencies are excluded, and Graphify local learning, memory, reflection, vocabulary, incremental, and cost artifacts remain excluded from version control.
+- Skill instructions and task-relevant `update.md` and `extraction-spec.md` references were read completely for the EPIC-001 update on 2026-07-23.
+- Graph generation: incremental AST extraction covered the new authored TypeScript/JavaScript/configuration surface; the required host-agent semantic pass covered the eight changed foundation documents/configurations; both were merged with the approved planning graph.
+- Graph health: passed with 746 valid candidate edges and no missing endpoints, dangling edges, self-loops, exact duplicates, or directed/undirected same-endpoint collapse.
+- Source-scope control: dependencies, generated clients, Prisma generated output, build/test artifacts, Graphify outputs, environment files, and sensitive paths are excluded. Five previously saved Graphify memory notes force-detected by 0.9.20 were removed from the changed semantic scope and manifest.
+- Extraction limitation: Graphify 0.9.20 produced no structural node for the generated OpenAPI JSON and skipped SQL AST extraction because the optional `tree_sitter_sql` extra is not installed. The OpenAPI pipeline and PostgreSQL migration were verified from their source files, deterministic contract checks, Prisma migration test, and Testcontainers evidence; no extra Graphify package was installed.
+- Sensitive-path review: completed; the graph contains repository-relative source paths only, and Graphify local learning, memory, reflection, vocabulary, incremental, and cost artifacts remain excluded from version control.
 - Intended use: architecture discovery and impact analysis.
 - Version-control policy: track the project skill and shareable `graphify-out` artifacts, excluding local/intermediate files and `cost.json`.
-- Token-efficiency policy: DEC-067 is active. The Phase 2 closure correction re-extracted only its two materially changed governance/readiness sources; unchanged planning documents were not re-read or re-extracted.
+- Token-efficiency policy: DEC-067 is active. The EPIC-001 refresh used local AST for code, one semantic chunk for eight changed foundation documents/configurations, and one bounded depth-2 MCP impact query; unchanged planning documents were not semantically re-extracted.
 
 Verified Stage 4 graph findings:
 
@@ -345,6 +348,14 @@ Verified `SPIKE-001` graph findings:
 - The graph contains historical 86-node readiness metadata because the approved readiness documents record that prior generation. These are audit-history nodes, not evidence that the current 108-node graph is stale.
 - MCP reports 88% EXTRACTED, 12% INFERRED, and 0% AMBIGUOUS relationships. All inferred similarities were treated as navigation hints and not as sole decision evidence.
 
+Verified EPIC-001 graph findings:
+
+- The incremental implementation refresh produced 724 nodes, 746 edges, seven hyperedges, and 64 communities; 97% of relationships are EXTRACTED, 3% INFERRED, and 0% AMBIGUOUS.
+- `EPIC-001 Repository Foundation and Quality Gates` is a top-five graph hub and connects to the implemented NestJS composition roots, PostgreSQL job leasing, OpenAPI generator/client pipeline, CI, and verified quality gates.
+- `PrismaService` and `JobQueueService` are the central runtime nodes. Source and Testcontainers review confirm this is the intentionally infrastructure-only synthetic durable-job boundary, not a Task/product persistence model.
+- The broad MCP query also returned planning-only `Task` and `AuthenticationIdentity` nodes because those terms were present in the exclusion question. A direct neighbor check shows the exclusion concept only supports the “foundation without product features” rationale. Source search confirms there is no authored authentication or Task implementation; the sole `auth.gen.ts` filename is a generic generated Fetch-client helper.
+- No dependency cycle was detected. The known forbidden-import fixture is rejected by the static architecture gate, and Graphify findings were verified against source, type-check, tests, builds, migration execution, and security scans rather than accepted as authoritative.
+
 ## Graphify version
 
 - Package: `graphifyy`
@@ -366,8 +377,8 @@ The recorded version must not be changed without a decision-log entry and revali
 - Codex configuration scope: project `.codex/config.toml`.
 - Registration status: configured and enabled in Codex.
 - Runtime status: operational with the pinned `graphifyy[mcp]==0.9.20` installation.
-- Verification: the registered MCP successfully called `graph_stats`, `get_community`, `god_nodes`, and targeted `query_graph` operations against the final scope graph; prior `get_neighbors` and `shortest_path` verification remains valid.
-- Verified graph response: 118 nodes, 117 edges, and 16 communities. The graph contains 86% EXTRACTED, 14% INFERRED, and 0% AMBIGUOUS relationships.
+- Verification: the registered MCP successfully called `graph_stats`, `god_nodes`, a bounded depth-2 `query_graph`, and a direct `get_neighbors` source-control check against the EPIC-001 graph; prior `get_community` and `shortest_path` verification remains valid.
+- Verified graph response: 724 nodes, 746 edges, and 64 communities. The graph contains 97% EXTRACTED, 3% INFERRED, and 0% AMBIGUOUS relationships.
 - Available read-oriented tools: `query_graph`, `get_node`, `get_neighbors`, `get_community`, `god_nodes`, `graph_stats`, and `shortest_path`.
 - Session note: an already-running Codex desktop session may require a reload before the registered MCP tools appear in its dynamic tool list; this does not affect the successful direct stdio runtime verification.
 
@@ -376,19 +387,19 @@ The recorded version must not be changed without a decision-log entry and revali
 | Field | Value |
 | --- | --- |
 | Status | Successful |
-| Generated at | 2026-07-23T11:30:55Z |
+| Generated at | 2026-07-23T12:45:52Z |
 | Graphify version | 0.9.20 |
-| Source commit at generation | `af073b4297bd12912efc21d3ab0d762c1b14bc42` |
-| Working tree at generation | Includes the uncommitted Phase 2 closure correction, DEC-067 governance amendment, completed `SPIKE-001` evidence, planning/ADR synchronization, and refreshed Graphify artifacts; contains no production application code. |
-| Input scope | `docs/PROJECT_MASTER.md`, `docs/product/PRD.md`, `docs/product/UX_FLOWS.md`, `docs/domain/DOMAIN_MODEL.md`, `docs/data/DATA_MODEL.md`, `docs/api/API_CONTRACT.md`, `docs/architecture/ARCHITECTURE.md`, ADR-001 through ADR-003, `docs/planning/BACKLOG.md`, `docs/planning/READINESS_REPORT.md`, and `docs/spikes/SPIKE-001-openapi-generator.md` |
+| Source commit at generation | `115ca7500f91652e06b027b37c570d4b1817477a` |
+| Working tree at generation | Includes the uncommitted EPIC-001 foundation implementation, generated OpenAPI/client artifacts, infrastructure-only Prisma migration, quality gates, README, and completion metadata; contains no product feature implementation. |
+| Input scope | 86 authored code/configuration/document files after excluding dependencies, generated clients, Prisma generated output, build/test output, Graphify outputs/memory, environment files, and sensitive paths. |
 | Output path | `graphify-out/graph.json` |
-| Nodes | 118 |
-| Edges | 117 |
-| Hyperedges | 6 |
-| Communities | 16 |
+| Nodes | 724 |
+| Edges | 746 |
+| Hyperedges | 7 |
+| Communities | 64 |
 | Graph health | Passed with zero missing/dangling endpoints, self-loops, duplicates, or endpoint-collapse warnings |
 | Recorded semantic tokens | 0 input / 0 output; the collaboration extraction tool did not expose token usage, so this is an unavailable measurement rather than evidence of zero model usage. |
-| Reason | Align the authoritative Phase 2 completion state, final readiness evidence, and `BL-001` handoff without introducing production behavior. |
+| Reason | Capture the implemented EPIC-001 runtime, dependency, test, contract, CI, and documentation boundaries and verify that no product feature entered the foundation slice. |
 
 Update this section after every successful graph generation.
 
@@ -423,11 +434,12 @@ Update this section after every successful graph generation.
 | 2026-07-20 | Stage 7 — Solution architecture | Completed and approved | User explicitly accepted ADR-001, ADR-002, and ADR-003 and instructed Codex to approve and publish the stage. |
 | 2026-07-21 | Stage 8 — Backlog planning | Completed and approved | User explicitly approved the 18-epic vertical-slice backlog and instructed Codex to commit and push it to `develop`. |
 | 2026-07-23 | Stage 9 — Phase 2 readiness | Completed and approved | DEC-066 removed social authentication from MVP, the final audit reports zero BLOCKER/HIGH findings, and the User explicitly approved the Phase 2 plan. |
+| 2026-07-23 | Phase 3 — EPIC-001 repository foundation and quality gates | Implemented; awaiting User acceptance/commit instruction | BL-001 through BL-006 pass their local Definition of Done; no product feature was started. |
 
 ## Current planning stage
 
-Phase 2 Complete. The approved MVP scope is frozen with email/password authentication only; social authentication, including Google, is deferred and requires fresh planning before re-entry. The bounded non-production `SPIKE-001` is complete, but production implementation has not started. No production Prisma schema, migration, SQL, controller, React component, production OpenAPI artifact, or user-visible behavior has been created.
+Phase 3 Implementation — EPIC-001 Complete. The approved MVP scope remains frozen with email/password authentication only; social authentication, including Google, remains deferred. The repository foundation now includes minimal production composition roots, infrastructure-only Prisma/job migration, generated OpenAPI/client artifacts, tests, and quality gates. No authentication flow, Task domain behavior, product persistence model, or other product feature has started.
 
 ## Next required action
 
-Await explicit User instruction to begin `BL-001`, the first approved production story. Do not begin any later backlog story first.
+Await User review and any commit/push instruction for EPIC-001. Do not begin EPIC-002 Authentication or any later product story without explicit User instruction.

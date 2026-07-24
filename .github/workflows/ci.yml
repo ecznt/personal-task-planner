@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:18.3-alpine
+        env:
+          POSTGRES_DB: personal_task_planner_test
+          POSTGRES_PASSWORD: planner_test
+          POSTGRES_USER: planner
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U planner -d personal_task_planner_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      COOKIE_SECURE: 'false'
+      DATABASE_URL: postgresql://planner:planner_test@127.0.0.1:5432/personal_task_planner_test
+      LOG_LEVEL: silent
+      NODE_ENV: test
+      PORT: '3001'
+      PUBLIC_ORIGIN: http://127.0.0.1:3000
+      TRUST_PROXY_HOPS: '0'
+      WORKER_LEASE_MS: '30000'
+      WORKER_POLL_INTERVAL_MS: '1000'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 11.9.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.18.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm verify:workspace
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm verify:architecture
+      - run: pnpm prisma:generate
+      - run: pnpm prisma:validate
+      - run: pnpm prisma:migrate:deploy
+      - run: pnpm typecheck
+      - run: pnpm test:unit
+      - run: pnpm test:component
+      - run: pnpm test:api
+      - run: pnpm test:db
+      - run: pnpm test:contract
+      - run: pnpm build
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+      - run: pnpm test:security
