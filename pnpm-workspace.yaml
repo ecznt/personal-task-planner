@@ -9,6 +9,7 @@ strictPeerDependencies: true
 
 overrides:
   '@angular-devkit/core>ajv': 8.20.0
+  find-my-way: 9.7.0
   js-yaml: 4.3.0
   picomatch: 4.0.5
   postcss: 8.5.22
