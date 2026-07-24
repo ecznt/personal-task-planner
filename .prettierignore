@@ -6,6 +6,7 @@ docs
 graphify-out
 node_modules
 playwright-report
+results.sarif
 test-results
 apps/api/openapi
 apps/api/src/platform/database/generated

@@ -9,6 +9,7 @@ build/
 out/
 coverage/
 playwright-report/
+results.sarif
 test-results/
 apps/api/src/platform/database/generated/
 *.tsbuildinfo
