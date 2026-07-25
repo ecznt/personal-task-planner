@@ -20,7 +20,7 @@ export default function LoginPage() {
           </CardTitle>
           <CardDescription>Yalnızca size ait planlama alanınıza devam edin.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="flex flex-col gap-6">
           <Suspense fallback={<p role="status">Giriş formu hazırlanıyor…</p>}>
             <LoginForm />
           </Suspense>

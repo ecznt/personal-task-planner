@@ -228,6 +228,11 @@ Failure behavior:
 3. Invalid credentials produce one generic error that does not reveal which field identifies an account.
 4. An unverified account receives a safe verification-pending path without exposing information to unauthenticated probes.
 5. Success returns the user to the requested valid application route or Today.
+6. The current-device sign-out action is available from the authenticated handoff during the foundation flow; it moves to the desktop user menu and mobile More navigation when those shells are implemented.
+7. Sign-out requires the same-origin CSRF proof and asks the server to revoke the current session before the browser cookie is cleared.
+8. Repeating sign-out with a missing, expired, or already-revoked session remains safe and returns the same successful outcome.
+9. After successful sign-out, the client performs a full-document navigation to `/login?signedOut=1` so in-memory authenticated state is discarded and a neutral confirmation is shown.
+10. If server-side revocation fails, the current page remains visible, no success confirmation is shown, and the user can retry.
 
 ### UXF-004 — Password recovery
 

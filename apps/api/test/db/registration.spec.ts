@@ -6,6 +6,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from '@jest/glo
 
 import { CsrfService } from '../../src/modules/accounts/application/csrf.service';
 import { LoginService } from '../../src/modules/accounts/application/login.service';
+import { LogoutService } from '../../src/modules/accounts/application/logout.service';
 import { ReadSessionService } from '../../src/modules/accounts/application/read-session.service';
 import { RegisterAccountService } from '../../src/modules/accounts/application/register-account.service';
 import { RequestEmailVerificationService } from '../../src/modules/accounts/application/request-email-verification.service';
@@ -18,6 +19,7 @@ describe('registration persistence', () => {
   let container: StartedPostgreSqlContainer;
   let csrf: CsrfService;
   let login: LoginService;
+  let logout: LogoutService;
   let prisma: PrismaService;
   let registration: RegisterAccountService;
   let repository: AccountsRepository;
@@ -47,6 +49,7 @@ describe('registration persistence', () => {
     security = new AuthSecurityService();
     csrf = new CsrfService(repository, security);
     login = new LoginService(repository, security);
+    logout = new LogoutService(repository, security);
     readSession = new ReadSessionService(repository, security);
     registration = new RegisterAccountService(repository, security);
     requestVerification = new RequestEmailVerificationService(repository, security);
@@ -337,5 +340,54 @@ describe('registration persistence', () => {
         },
       }),
     ).toBe(5);
+  });
+
+  it('revokes only the current session and treats a replay as successful', async () => {
+    await registration.execute({
+      email: 'user@example.com',
+      networkAddress: '192.0.2.14',
+      password: 'correct horse battery staple',
+    });
+    const challenge = await prisma.emailVerificationChallenge.findFirstOrThrow();
+    await verification.execute({
+      code: security.deriveEmailVerificationCode(challenge.id),
+      email: 'user@example.com',
+      idempotencyKey: '018f9f7c-0000-7000-8000-000000000093',
+      networkAddress: '192.0.2.14',
+    });
+    const user = await prisma.user.findFirstOrThrow();
+    const now = new Date();
+
+    for (const token of ['current-token', 'other-token']) {
+      await repository.createLoginSession({
+        absoluteExpiresAt: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1_000),
+        idleExpiresAt: new Date(now.getTime() + 12 * 60 * 60 * 1_000),
+        now,
+        tokenHash: security.hashSecret(token, 'session-storage'),
+        userId: user.id,
+      });
+    }
+
+    await logout.execute('current-token');
+    await logout.execute('current-token');
+
+    await expect(
+      prisma.session.findUniqueOrThrow({
+        where: {
+          tokenHash: security.hashSecret('current-token', 'session-storage'),
+        },
+      }),
+    ).resolves.toMatchObject({
+      revokedAt: expect.any(Date),
+    });
+    await expect(
+      prisma.session.findUniqueOrThrow({
+        where: {
+          tokenHash: security.hashSecret('other-token', 'session-storage'),
+        },
+      }),
+    ).resolves.toMatchObject({
+      revokedAt: null,
+    });
   });
 });

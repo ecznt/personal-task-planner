@@ -60,10 +60,18 @@ export function LoginForm() {
   });
   const verificationRequired =
     login.error instanceof AuthApiError && login.error.code === 'EMAIL_VERIFICATION_REQUIRED';
+  const signedOut = searchParams.get('signedOut') === '1';
 
   return (
     <form noValidate onSubmit={form.handleSubmit((values) => login.mutate(values))}>
       <FieldGroup>
+        {signedOut ? (
+          <Alert aria-live="polite">
+            <AlertTitle>Oturum kapatıldı</AlertTitle>
+            <AlertDescription>Bu cihazdaki oturumunuz güvenli biçimde kapatıldı.</AlertDescription>
+          </Alert>
+        ) : null}
+
         <Field data-invalid={Boolean(form.formState.errors.email)}>
           <FieldLabel htmlFor="email">E-posta</FieldLabel>
           <Input

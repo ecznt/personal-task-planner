@@ -10,11 +10,12 @@ const mocks = vi.hoisted(() => ({
   createAuthSession: vi.fn(),
   getAuthCsrf: vi.fn(),
   replace: vi.fn(),
+  searchParams: 'returnTo=%2Fapp%2Ftoday',
 }));
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: mocks.replace }),
-  useSearchParams: () => new URLSearchParams('returnTo=%2Fapp%2Ftoday'),
+  useSearchParams: () => new URLSearchParams(mocks.searchParams),
 }));
 
 vi.mock('@planner/api-client', () => ({
@@ -26,6 +27,7 @@ vi.mock('@planner/api-client', () => ({
 describe('LoginForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.searchParams = 'returnTo=%2Fapp%2Ftoday';
     mocks.getAuthCsrf.mockResolvedValue({
       data: { data: { expiresAt: '2099-01-01T00:00:00.000Z', token: 'csrf-token' } },
     });
@@ -76,6 +78,14 @@ describe('LoginForm', () => {
     expect(await screen.findByText('Geçerli bir e-posta adresi girin.')).toBeVisible();
     expect(screen.getByText('Parola zorunludur.')).toBeVisible();
     expect(mocks.createAuthSession).not.toHaveBeenCalled();
+  });
+
+  it('announces a completed sign-out without exposing session details', () => {
+    mocks.searchParams = 'signedOut=1';
+    renderLoginForm();
+
+    expect(screen.getByText('Oturum kapatıldı')).toBeVisible();
+    expect(screen.getByText('Bu cihazdaki oturumunuz güvenli biçimde kapatıldı.')).toBeVisible();
   });
 });
 

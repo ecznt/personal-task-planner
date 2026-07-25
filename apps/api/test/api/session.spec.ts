@@ -8,6 +8,7 @@ import request from 'supertest';
 
 import { CsrfService } from '../../src/modules/accounts/application/csrf.service';
 import { LoginService } from '../../src/modules/accounts/application/login.service';
+import { LogoutService } from '../../src/modules/accounts/application/logout.service';
 import { ReadSessionService } from '../../src/modules/accounts/application/read-session.service';
 import { AnonymousCsrfGuard } from '../../src/modules/accounts/transport/anonymous-csrf.guard';
 import { SessionController } from '../../src/modules/accounts/transport/session.controller';
@@ -20,6 +21,9 @@ describe('session HTTP contract', () => {
   };
   const login = {
     execute: jest.fn<LoginService['execute']>(),
+  };
+  const logout = {
+    execute: jest.fn<LogoutService['execute']>(),
   };
   const readSession = {
     execute: jest.fn<ReadSessionService['execute']>(),
@@ -39,6 +43,10 @@ describe('session HTTP contract', () => {
           useValue: login,
         },
         {
+          provide: LogoutService,
+          useValue: logout,
+        },
+        {
           provide: ReadSessionService,
           useValue: readSession,
         },
@@ -54,6 +62,7 @@ describe('session HTTP contract', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     csrf.isValid.mockResolvedValue(true);
+    logout.execute.mockResolvedValue();
     login.execute.mockResolvedValue({
       absoluteExpiresAt: new Date('2026-08-02T00:00:00.000Z'),
       idleExpiresAt: new Date('2026-07-26T12:00:00.000Z'),
@@ -165,5 +174,58 @@ describe('session HTTP contract', () => {
       },
     });
     expect(response.headers['cache-control']).toBe('no-store');
+  });
+
+  it.each([
+    {
+      cookie: 'planner-session=raw-session-secret; planner-csrf-context=browser-context',
+      expectedToken: 'raw-session-secret',
+    },
+    {
+      cookie: 'planner-csrf-context=browser-context',
+      expectedToken: undefined,
+    },
+  ])(
+    'idempotently revokes $expectedToken before clearing the cookie',
+    async ({ cookie, expectedToken }) => {
+      const response = await request(app.getHttpServer())
+        .delete('/api/v1/auth/session')
+        .set('Cookie', cookie)
+        .set('Origin', 'http://127.0.0.1:3000')
+        .set('X-CSRF-Token', 'csrf-token')
+        .expect(204);
+
+      expect(logout.execute).toHaveBeenCalledWith(expectedToken);
+      expect(response.headers['set-cookie']?.[0]).toContain('planner-session=;');
+      expect(response.headers['set-cookie']?.[0]).toContain('HttpOnly');
+      expect(response.headers['set-cookie']?.[0]).toContain('SameSite=Lax');
+      expect(response.headers['set-cookie']?.[0]).toContain('Path=/');
+    },
+  );
+
+  it('does not clear the browser cookie when server-side revocation fails', async () => {
+    logout.execute.mockRejectedValueOnce(new Error('database unavailable'));
+
+    const response = await request(app.getHttpServer())
+      .delete('/api/v1/auth/session')
+      .set('Cookie', 'planner-session=raw-session-secret; planner-csrf-context=browser-context')
+      .set('Origin', 'http://127.0.0.1:3000')
+      .set('X-CSRF-Token', 'csrf-token')
+      .expect(500);
+
+    expect(response.headers['set-cookie']).toBeUndefined();
+  });
+
+  it('rejects logout when browser CSRF validation fails', async () => {
+    csrf.isValid.mockResolvedValueOnce(false);
+
+    await request(app.getHttpServer())
+      .delete('/api/v1/auth/session')
+      .set('Cookie', 'planner-session=raw-session-secret; planner-csrf-context=browser-context')
+      .set('Origin', 'http://127.0.0.1:3000')
+      .set('X-CSRF-Token', 'invalid-token')
+      .expect(403);
+
+    expect(logout.execute).not.toHaveBeenCalled();
   });
 });

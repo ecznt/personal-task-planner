@@ -397,6 +397,18 @@ export class AccountsRepository {
     };
   }
 
+  async revokeSession(input: { readonly now: Date; readonly tokenHash: string }): Promise<void> {
+    await this.prisma.session.updateMany({
+      data: {
+        revokedAt: input.now,
+      },
+      where: {
+        revokedAt: null,
+        tokenHash: input.tokenHash,
+      },
+    });
+  }
+
   async createPendingAccount(input: PendingAccountInput): Promise<'CREATED' | 'RETAINED'> {
     try {
       await this.prisma.$transaction(async (transaction) => {

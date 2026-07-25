@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 
 import { CsrfService } from './application/csrf.service';
 import { LoginService } from './application/login.service';
+import { LogoutService } from './application/logout.service';
 import { ReadSessionService } from './application/read-session.service';
 import { RegisterAccountService } from './application/register-account.service';
 import { RequestEmailVerificationService } from './application/request-email-verification.service';
@@ -20,6 +21,7 @@ import { SessionController } from './transport/session.controller';
     AuthSecurityService,
     CsrfService,
     LoginService,
+    LogoutService,
     ReadSessionService,
     RegisterAccountService,
     RequestEmailVerificationService,

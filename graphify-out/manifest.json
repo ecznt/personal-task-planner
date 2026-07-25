@@ -80,9 +80,9 @@
     "semantic_hash": "0ead4164d077aedb74f41a0a9121c39c"
   },
   "apps/api/openapi/openapi.json": {
-    "mtime": 1785016913.599276,
-    "ast_hash": "e5b6a534cc39af555cb6bc5971540a78",
-    "semantic_hash": "e5b6a534cc39af555cb6bc5971540a78"
+    "mtime": 1785021764.672517,
+    "ast_hash": "5daa69d8a0f5e8d35cee6f9759a7b2f4",
+    "semantic_hash": "5daa69d8a0f5e8d35cee6f9759a7b2f4"
   },
   "apps/api/package.json": {
     "mtime": 1784990390.9772732,
@@ -345,9 +345,9 @@
     "semantic_hash": "820bc0b4841917e04821075a3bc37719"
   },
   "packages/api-client/src/index.ts": {
-    "mtime": 1785016666.3409705,
-    "ast_hash": "05a410594aa4aeb81a18934ccf040e2a",
-    "semantic_hash": "05a410594aa4aeb81a18934ccf040e2a"
+    "mtime": 1785021488.0608048,
+    "ast_hash": "6cf2c37071eb227ac9564d853ddcf9ca",
+    "semantic_hash": "6cf2c37071eb227ac9564d853ddcf9ca"
   },
   "packages/api-client/tsconfig.json": {
     "mtime": 1784809032.2757494,
@@ -450,9 +450,9 @@
     "semantic_hash": "d03870e9be936c91c896a118f9f4b113"
   },
   "tests/e2e/foundation.spec.ts": {
-    "mtime": 1785016788.86726,
-    "ast_hash": "908f631649b0313dca62fe50b38ddd77",
-    "semantic_hash": "908f631649b0313dca62fe50b38ddd77"
+    "mtime": 1785021557.9250424,
+    "ast_hash": "ca99b36d147fcec3770f63108f3bef00",
+    "semantic_hash": "ca99b36d147fcec3770f63108f3bef00"
   },
   ".github/dependabot.yml": {
     "mtime": 1784809938.8880858,
@@ -490,9 +490,9 @@
     "semantic_hash": "8916994aca6feae561b35fc9100e0810"
   },
   "apps/api/src/modules/accounts/accounts.module.ts": {
-    "mtime": 1785016270.0237834,
-    "ast_hash": "4e917e1982ead6d6d16a1fcd7a524a31",
-    "semantic_hash": "4e917e1982ead6d6d16a1fcd7a524a31"
+    "mtime": 1785021395.751974,
+    "ast_hash": "dac9775ca6a68b0a57bfacd66dda5651",
+    "semantic_hash": "dac9775ca6a68b0a57bfacd66dda5651"
   },
   "apps/api/src/modules/accounts/application/csrf.service.ts": {
     "mtime": 1784980398.6072528,
@@ -510,9 +510,9 @@
     "semantic_hash": "35659def3eb1d1725e405d49a0cefe2b"
   },
   "apps/api/src/modules/accounts/infrastructure/accounts.repository.ts": {
-    "mtime": 1785016472.3070722,
-    "ast_hash": "741d789b846eeedd0889eae8f298af02",
-    "semantic_hash": "741d789b846eeedd0889eae8f298af02"
+    "mtime": 1785021395.7511208,
+    "ast_hash": "c020fcf0be64f5351ac76d127c941565",
+    "semantic_hash": "c020fcf0be64f5351ac76d127c941565"
   },
   "apps/api/src/modules/accounts/security/auth-security.service.ts": {
     "mtime": 1785016129.7349684,
@@ -550,9 +550,9 @@
     "semantic_hash": "d3335c0997a8ec4c0f78dce47b59689a"
   },
   "apps/api/test/db/registration.spec.ts": {
-    "mtime": 1785016472.3837204,
-    "ast_hash": "83984ff9237085ff7f9c124ffca0bb93",
-    "semantic_hash": "83984ff9237085ff7f9c124ffca0bb93"
+    "mtime": 1785021418.9870112,
+    "ast_hash": "0213cb279cf48bbb03b5ebdc792ec938",
+    "semantic_hash": "0213cb279cf48bbb03b5ebdc792ec938"
   },
   "apps/api/test/unit/registration.spec.ts": {
     "mtime": 1784990597.9958699,
@@ -770,9 +770,9 @@
     "semantic_hash": "58bf12dca114becbfb4063dd75625b54"
   },
   "apps/api/src/modules/accounts/transport/session.controller.ts": {
-    "mtime": 1785016292.475227,
-    "ast_hash": "3edce6a98c0cdfa63f22ed7fd5bede1a",
-    "semantic_hash": "3edce6a98c0cdfa63f22ed7fd5bede1a"
+    "mtime": 1785021395.75352,
+    "ast_hash": "d012a6f75aa016cad0e050dace15a420",
+    "semantic_hash": "d012a6f75aa016cad0e050dace15a420"
   },
   "apps/api/src/modules/accounts/transport/session.dto.ts": {
     "mtime": 1785016238.7137256,
@@ -785,9 +785,9 @@
     "semantic_hash": "6877fd45bd25ed4fb41f6888e076e708"
   },
   "apps/api/test/api/session.spec.ts": {
-    "mtime": 1785016472.369972,
-    "ast_hash": "fb21927118bd10a73875da704f937120",
-    "semantic_hash": "fb21927118bd10a73875da704f937120"
+    "mtime": 1785021427.2352526,
+    "ast_hash": "788d6706dd1677a4f59c64b05bd4ae63",
+    "semantic_hash": "788d6706dd1677a4f59c64b05bd4ae63"
   },
   "apps/api/test/unit/login.spec.ts": {
     "mtime": 1785016472.363503,
@@ -800,19 +800,19 @@
     "semantic_hash": "3671e8e9891e2e6c4da9a418c883278b"
   },
   "apps/web/src/app/login/page.tsx": {
-    "mtime": 1785016838.9025483,
-    "ast_hash": "419e533c2c628d78dd8f361c0713eef1",
-    "semantic_hash": "419e533c2c628d78dd8f361c0713eef1"
+    "mtime": 1785021488.0631533,
+    "ast_hash": "96f8369e472da0e4c055a56c35a282c2",
+    "semantic_hash": "96f8369e472da0e4c055a56c35a282c2"
   },
   "apps/web/src/features/auth/login-form.test.tsx": {
-    "mtime": 1785016640.6818318,
-    "ast_hash": "19543367f7acea03a02b046f7a0d8fbe",
-    "semantic_hash": "19543367f7acea03a02b046f7a0d8fbe"
+    "mtime": 1785021488.0639513,
+    "ast_hash": "b6132eeab7bd68a07b7f1f7763b81e35",
+    "semantic_hash": "b6132eeab7bd68a07b7f1f7763b81e35"
   },
   "apps/web/src/features/auth/login-form.tsx": {
-    "mtime": 1785016640.6811998,
-    "ast_hash": "8a2d480edb21a4590d6a6ea2481ce3e8",
-    "semantic_hash": "8a2d480edb21a4590d6a6ea2481ce3e8"
+    "mtime": 1785021488.0625436,
+    "ast_hash": "1deeb6cb0b630016ceaf4fe7160014df",
+    "semantic_hash": "1deeb6cb0b630016ceaf4fe7160014df"
   },
   "apps/web/src/features/auth/login-schema.ts": {
     "mtime": 1785016648.3126702,
@@ -820,8 +820,28 @@
     "semantic_hash": "1b428b06840f78193e02e421fd89dc14"
   },
   "apps/web/src/features/auth/session-boundary.tsx": {
-    "mtime": 1785016838.9031143,
-    "ast_hash": "cc8490d55c23e1765e4dd6ce48318abd",
-    "semantic_hash": "cc8490d55c23e1765e4dd6ce48318abd"
+    "mtime": 1785021689.2102532,
+    "ast_hash": "9fa9ed16f0b1dc39197a301f3705eb3a",
+    "semantic_hash": "9fa9ed16f0b1dc39197a301f3705eb3a"
+  },
+  "apps/api/src/modules/accounts/application/logout.service.ts": {
+    "mtime": 1785021395.7495217,
+    "ast_hash": "754658a10e01548e703c4ece8aa19bcd",
+    "semantic_hash": "754658a10e01548e703c4ece8aa19bcd"
+  },
+  "apps/api/test/unit/logout.spec.ts": {
+    "mtime": 1785021395.7539637,
+    "ast_hash": "c08a428d3ba4000ffd1df3d0a04f79dd",
+    "semantic_hash": "c08a428d3ba4000ffd1df3d0a04f79dd"
+  },
+  "apps/web/src/features/auth/sign-out-button.test.tsx": {
+    "mtime": 1785021689.211471,
+    "ast_hash": "d6847082ea882bbb522ad874baf86c19",
+    "semantic_hash": "d6847082ea882bbb522ad874baf86c19"
+  },
+  "apps/web/src/features/auth/sign-out-button.tsx": {
+    "mtime": 1785021689.2095263,
+    "ast_hash": "cbf4830ad845f5dc15ba3a4b9b2af7c0",
+    "semantic_hash": "cbf4830ad845f5dc15ba3a4b9b2af7c0"
   }
 }

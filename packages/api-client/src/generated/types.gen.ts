@@ -207,6 +207,32 @@ export type RegisterAccountResponses = {
 
 export type RegisterAccountResponse = RegisterAccountResponses[keyof RegisterAccountResponses];
 
+export type DeleteAuthSessionData = {
+    body?: never;
+    headers: {
+        'X-CSRF-Token': string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/session';
+};
+
+export type DeleteAuthSessionErrors = {
+    /**
+     * Origin or CSRF validation failed.
+     */
+    403: unknown;
+};
+
+export type DeleteAuthSessionResponses = {
+    /**
+     * Current session is absent or revoked and its cookie is cleared.
+     */
+    204: void;
+};
+
+export type DeleteAuthSessionResponse = DeleteAuthSessionResponses[keyof DeleteAuthSessionResponses];
+
 export type GetAuthSessionData = {
     body?: never;
     path?: never;

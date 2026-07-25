@@ -1,6 +1,7 @@
 export { apiClient } from './client';
 export {
   createAuthSession,
+  deleteAuthSession,
   getAuthCsrf,
   getAuthSession,
   getVersion,

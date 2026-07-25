@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateAuthSessionData, CreateAuthSessionErrors, CreateAuthSessionResponses, GetAuthCsrfData, GetAuthCsrfResponses, GetAuthSessionData, GetAuthSessionResponses, GetVersionData, GetVersionResponses, RegisterAccountData, RegisterAccountErrors, RegisterAccountResponses, RequestEmailVerificationData, RequestEmailVerificationErrors, RequestEmailVerificationResponses, VerifyEmailData, VerifyEmailErrors, VerifyEmailResponses } from './types.gen';
+import type { CreateAuthSessionData, CreateAuthSessionErrors, CreateAuthSessionResponses, DeleteAuthSessionData, DeleteAuthSessionErrors, DeleteAuthSessionResponses, GetAuthCsrfData, GetAuthCsrfResponses, GetAuthSessionData, GetAuthSessionResponses, GetVersionData, GetVersionResponses, RegisterAccountData, RegisterAccountErrors, RegisterAccountResponses, RequestEmailVerificationData, RequestEmailVerificationErrors, RequestEmailVerificationResponses, VerifyEmailData, VerifyEmailErrors, VerifyEmailResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -58,6 +58,11 @@ export const registerAccount = <ThrowOnError extends boolean = false>(options: O
         ...options.headers
     }
 });
+
+/**
+ * Idempotently revoke the current opaque session before clearing its cookie
+ */
+export const deleteAuthSession = <ThrowOnError extends boolean = false>(options: Options<DeleteAuthSessionData, ThrowOnError>): RequestResult<DeleteAuthSessionResponses, DeleteAuthSessionErrors, ThrowOnError> => (options.client ?? client).delete<DeleteAuthSessionResponses, DeleteAuthSessionErrors, ThrowOnError>({ url: '/api/v1/auth/session', ...options });
 
 /**
  * Read safe current session state without exposing a session identifier

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Header,
   HttpCode,
@@ -16,6 +17,7 @@ import type { Request, Response } from 'express';
 import { parseApiEnvironment } from '../../../platform/config/environment';
 import { ApiProblemException } from '../../../platform/http/api-problem.exception';
 import { LoginService } from '../application/login.service';
+import { LogoutService } from '../application/logout.service';
 import { ReadSessionService } from '../application/read-session.service';
 import { AnonymousCsrfGuard } from './anonymous-csrf.guard';
 import { parseCookieValue, sessionCookieName } from './auth-cookie';
@@ -30,6 +32,8 @@ export class SessionController {
   constructor(
     @Inject(LoginService)
     private readonly login: LoginService,
+    @Inject(LogoutService)
+    private readonly logout: LogoutService,
     @Inject(ReadSessionService)
     private readonly readSession: ReadSessionService,
   ) {}
@@ -64,6 +68,44 @@ export class SessionController {
         idleExpiresAt: session.idleExpiresAt.toISOString(),
       },
     };
+  }
+
+  @Delete('session')
+  @HttpCode(204)
+  @Header('Cache-Control', 'no-store')
+  @UseGuards(AnonymousCsrfGuard)
+  @ApiOperation({
+    operationId: 'deleteAuthSession',
+    summary: 'Idempotently revoke the current opaque session before clearing its cookie',
+  })
+  @ApiHeader({
+    name: 'X-CSRF-Token',
+    required: true,
+  })
+  @ApiResponse({
+    description: 'Current session is absent or revoked and its cookie is cleared.',
+    status: 204,
+  })
+  @ApiResponse({
+    description: 'Origin or CSRF validation failed.',
+    status: 403,
+  })
+  async deleteSession(
+    @Req() request: Request,
+    @Res({
+      passthrough: true,
+    })
+    response: Response,
+  ): Promise<void> {
+    const token = parseCookieValue(request.headers.cookie, sessionCookieName());
+
+    await this.logout.execute(token);
+    response.clearCookie(sessionCookieName(), {
+      httpOnly: true,
+      path: '/',
+      sameSite: 'lax',
+      secure: this.environment.COOKIE_SECURE,
+    });
   }
 
   @Post('sessions')

@@ -8,6 +8,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/spinner';
 
+import { SignOutButton } from './sign-out-button';
+
 export function SessionBoundary() {
   const session = useQuery({
     queryKey: ['auth', 'session'],
@@ -51,11 +53,12 @@ export function SessionBoundary() {
         </CardTitle>
         <CardDescription>{session.data.email}</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex flex-col gap-4">
         <p>
           Today planlama deneyimi sonraki dikey dilimlerde oluşturulacak. Güvenli oturum handoff’u
           hazır.
         </p>
+        <SignOutButton />
       </CardContent>
     </Card>
   );
