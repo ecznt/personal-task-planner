@@ -37,7 +37,7 @@
     "@planner/eslint-config": "workspace:*",
     "@types/node": "24.13.3",
     "dependency-cruiser": "18.1.0",
-    "eslint": "9.39.5",
+    "eslint": "10.8.0",
     "prettier": "3.9.6",
     "tsx": "4.23.1",
     "typescript": "5.9.3",
