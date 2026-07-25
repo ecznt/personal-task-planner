@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetVersionData, GetVersionResponses } from './types.gen';
+import type { GetAuthCsrfData, GetAuthCsrfResponses, GetVersionData, GetVersionResponses, RegisterAccountData, RegisterAccountErrors, RegisterAccountResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -17,6 +17,23 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
      */
     meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;
 };
+
+/**
+ * Issue a CSRF token for an anonymous authentication transaction
+ */
+export const getAuthCsrf = <ThrowOnError extends boolean = false>(options?: Options<GetAuthCsrfData, ThrowOnError>): RequestResult<GetAuthCsrfResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetAuthCsrfResponses, unknown, ThrowOnError>({ url: '/api/v1/auth/csrf', ...options });
+
+/**
+ * Submit an email/password registration without account enumeration
+ */
+export const registerAccount = <ThrowOnError extends boolean = false>(options: Options<RegisterAccountData, ThrowOnError>): RequestResult<RegisterAccountResponses, RegisterAccountErrors, ThrowOnError> => (options.client ?? client).post<RegisterAccountResponses, RegisterAccountErrors, ThrowOnError>({
+    url: '/api/v1/auth/register',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
 /**
  * Return the running contract version

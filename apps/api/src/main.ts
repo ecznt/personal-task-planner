@@ -2,6 +2,7 @@ import 'reflect-metadata';
 
 import { ValidationPipe } from '@nestjs/common';
 import { HttpAdapterHost, NestFactory } from '@nestjs/core';
+import type { Application } from 'express';
 import helmet from 'helmet';
 import { Logger } from 'nestjs-pino';
 
@@ -18,6 +19,8 @@ export async function bootstrapApi(): Promise<void> {
   app.setGlobalPrefix('api/v1', {
     exclude: ['health/live', 'health/ready'],
   });
+  const expressApplication = app.getHttpAdapter().getInstance() as Application;
+  expressApplication.set('trust proxy', environment.TRUST_PROXY_HOPS);
   app.use(helmet());
   app.useLogger(app.get(Logger));
   app.useGlobalPipes(

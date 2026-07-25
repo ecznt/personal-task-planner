@@ -1,3 +1,4 @@
+process.env.AUTH_SECURITY_KEY = 'test-only-auth-security-key-32-chars';
 process.env.COOKIE_SECURE = 'false';
 process.env.DATABASE_URL =
   'postgresql://planner:planner_test@127.0.0.1:5432/personal_task_planner_test';

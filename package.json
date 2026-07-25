@@ -13,7 +13,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "pnpm -r --if-present lint && dependency-cruiser --config dependency-cruiser.cjs apps packages",
-    "typecheck": "pnpm -r --if-present typecheck",
+    "typecheck": "pnpm --filter @planner/api-client build && pnpm -r --if-present typecheck",
     "test": "pnpm test:unit && pnpm test:component && pnpm test:api && pnpm test:db && pnpm test:contract",
     "test:unit": "pnpm --filter @planner/api test:unit",
     "test:component": "pnpm --filter @planner/web test:component",

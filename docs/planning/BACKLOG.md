@@ -6,8 +6,8 @@
 | Planning stage | Stage 8 — Backlog planning |
 | Product scope | MVP |
 | Document language | English |
-| Last updated | 2026-07-23 |
-| Implementation status | `SPIKE-001` completed; production implementation not started |
+| Last updated | 2026-07-25 |
+| Implementation status | EPIC-001 and BL-007 complete and accepted; BL-008 is next and unstarted |
 
 This backlog converts the approved product, UX, domain, data, API, and architecture baselines into small, independently verifiable delivery slices. It defines future implementation work only; it contains no production code, schema, migration, OpenAPI artifact, or framework scaffold.
 
@@ -170,6 +170,8 @@ This backlog converts the approved product, UX, domain, data, API, and architect
 | BL-121 | A person can reach the public product, privacy, and terms entry points without authentication. | `/` explains the private personal-planning purpose and offers Login/Register; `/privacy` and `/terms` are reachable before and after authentication and from registration; authenticated `/` offers entry to Today; every route is Turkish, responsive, keyboard accessible, and reveals no account or resource existence. | C, E2E, A11Y, SEC |
 
 `BL-012` and `BL-013` are reserved historical IDs for the deferred Google sign-in and provider-linking stories. They are not active MVP work and must not be reassigned.
+
+**BL-007 progress (2026-07-25):** Complete, locally verified, and accepted for publication. The slice provides a Turkish accessible registration form, anonymous CSRF/origin protection, persistent privacy-safe identity/network rate limits, Argon2id password hashing, atomic pending User/AuthenticationIdentity/challenge creation, a non-enumerating `202` result, generated OpenAPI/Fetch-client updates, and unit/component/API/PostgreSQL integration/contract/security coverage. Email delivery and verification-token consumption remain BL-008. Login, sessions, password recovery, account deletion, social authentication, and planning data were not started.
 
 **Epic acceptance criteria:** All active AC-001 lifecycle paths work; public landing/privacy/terms entry points are accessible in supported layouts; two-owner tests show no cross-account planning/session leakage; public responses do not reveal email/account existence; deletion initiation revokes access immediately.
 

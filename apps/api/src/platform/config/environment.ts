@@ -21,6 +21,7 @@ const sharedEnvironmentSchema = z.object({
 });
 
 const apiEnvironmentSchema = sharedEnvironmentSchema.extend({
+  AUTH_SECURITY_KEY: z.string().min(32),
   COOKIE_SECURE: booleanFromEnvironment.default(false),
   PORT: integerFromEnvironment({ minimum: 1, maximum: 65_535 }).default(3001),
   PUBLIC_ORIGIN: z.string().url(),

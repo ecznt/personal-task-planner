@@ -28,6 +28,7 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     env:
+      AUTH_SECURITY_KEY: ci-only-auth-security-key-32-characters
       COOKIE_SECURE: 'false'
       DATABASE_URL: postgresql://planner:planner_test@127.0.0.1:5432/personal_task_planner_test
       LOG_LEVEL: silent

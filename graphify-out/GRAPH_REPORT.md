@@ -1,13 +1,18 @@
-# Graph Report - .  (2026-07-23)
+# Graph Report - personal-task-planner  (2026-07-25)
 
 ## Corpus Check
-- 86 files · ~77,190 words
+- 129 files · ~83,793 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 724 nodes · 746 edges · 64 communities (53 shown, 11 thin omitted)
-- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 21 edges (avg confidence: 0.91)
+- 966 nodes · 1185 edges · 80 communities (69 shown, 11 thin omitted)
+- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 23 edges (avg confidence: 0.87)
 - Token cost: 0 input · 0 output
+
+## Graph Freshness
+- Built from commit: `b9e9c817`
+- Run `git rev-parse HEAD` and compare to check if the graph is stale.
+- Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - PostgreSQL Job Leasing
@@ -60,18 +65,34 @@
 - Logging Redaction
 - Requirement Coverage
 - Forbidden Boundary Value
+- auth.controller.ts
+- cn
+- components.json
+- .register
+- problem-details.filter.ts
+- VersionController
+- registration.schema.ts
+- AppModule
+- foundation.spec.ts
+- Q: Authentication ile user-owned resources bağlantısı
+- Q: API ile karşılığı olmayan domain operasyonları
+- Q: Domain karşılığı olmayan API endpointleri
+- Q: Task mutations ile recurrence bağlantısı
+- Q: Trash restore ile Area ve Project bağlantısı
+- DatabaseModule
+- ARGON2ID_OPTIONS
 
 ## God Nodes (most connected - your core abstractions)
-1. `scripts` - 23 edges
-2. `compilerOptions` - 18 edges
-3. `scripts` - 15 edges
-4. `PrismaService` - 11 edges
-5. `EPIC-001 Repository Foundation and Quality Gates` - 11 edges
-6. `JobQueueService` - 10 edges
-7. `compilerOptions` - 9 edges
-8. `compilerOptions` - 8 edges
-9. `AppModule` - 7 edges
-10. `HealthController` - 7 edges
+1. `cn()` - 37 edges
+2. `scripts` - 23 edges
+3. `compilerOptions` - 18 edges
+4. `scripts` - 15 edges
+5. `AuthSecurityService` - 15 edges
+6. `PrismaService` - 15 edges
+7. `AccountsRepository` - 14 edges
+8. `CsrfService` - 12 edges
+9. `EPIC-001 Repository Foundation and Quality Gates` - 11 edges
+10. `RegisterAccountService` - 10 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `PostgreSQL 18.3 Alpine local service` --semantically_similar_to--> `BL-002 PostgreSQL web API and worker composition roots`  [INFERRED] [semantically similar]
@@ -97,31 +118,31 @@
 - **Architecture decision spike evidence and backlog story participate in the OpenAPI delivery chain** — docs_architecture_architecture_arc_013_openapi_ownership, docs_architecture_adr_adr_002_rest_openapi_rest_openapi_adr, docs_spikes_spike_001_openapi_generator_openapi_generator_compatibility_spike, docs_planning_backlog_bl_003_generated_transport [EXTRACTED 1.00]
 - **Required Area optional Project and Task form the preserved personal-planning core** — docs_domain_domain_model_area, docs_domain_domain_model_project, docs_domain_domain_model_task [EXTRACTED 1.00]
 
-## Communities (64 total, 11 thin omitted)
+## Communities (80 total, 11 thin omitted)
 
 ### Community 0 - "PostgreSQL Job Leasing"
-Cohesion: 0.06
-Nodes (24): ApiExcludeController, DatabaseModule, Module, PrismaService, Injectable, HealthController, Controller, Get (+16 more)
+Cohesion: 0.18
+Nodes (8): ApiExcludeController, HealthController, Controller, Get, Inject, HealthService, Inject, Injectable
 
 ### Community 1 - "API Test Tooling"
 Cohesion: 0.05
 Nodes (41): devDependencies, eslint, jest, @jest/globals, @nestjs/cli, @nestjs/testing, pino-pretty, @planner/eslint-config (+33 more)
 
 ### Community 2 - "NestJS Composition Roots"
-Cohesion: 0.07
-Nodes (25): ApiOkResponse, ApiOperation, ApiProperty, ApiTags, generateOpenApi(), sortRecursively(), AppModule, Module (+17 more)
+Cohesion: 0.21
+Nodes (9): AccountsModule, Module, HealthModule, Module, createLoggerParameters(), createPinoOptions(), redactPaths, Module (+1 more)
 
 ### Community 3 - "Repository Quality Foundation"
 Cohesion: 0.06
 Nodes (35): GitHub Actions CI Workflow, Pinned Node.js 24.18.0 and pnpm 11.9.0 CI toolchain, PostgreSQL 18.3 Alpine CI test service, CI Quality Job, Gitleaks and security verification gates, Unit component API database contract E2E and security test portfolio, Workspace architecture Prisma OpenAPI and contract gates, Loopback-bound configurable PostgreSQL port (+27 more)
 
 ### Community 4 - "API Runtime Dependencies"
-Cohesion: 0.06
-Nodes (35): dependencies, class-transformer, class-validator, dotenv, helmet, @nestjs/common, @nestjs/core, nestjs-pino (+27 more)
+Cohesion: 0.05
+Nodes (37): dependencies, class-transformer, class-validator, dotenv, helmet, @nestjs/common, @nestjs/core, nestjs-pino (+29 more)
 
 ### Community 5 - "Web Test Tooling"
-Cohesion: 0.06
-Nodes (35): devDependencies, eslint, jsdom, @planner/eslint-config, @planner/typescript-config, postcss, tailwindcss, @tailwindcss/postcss (+27 more)
+Cohesion: 0.05
+Nodes (37): devDependencies, eslint, jsdom, @planner/eslint-config, @planner/typescript-config, postcss, tailwindcss, @tailwindcss/postcss (+29 more)
 
 ### Community 6 - "Workspace Runtime Scripts"
 Cohesion: 0.06
@@ -136,8 +157,8 @@ Cohesion: 0.07
 Nodes (26): eslint-plugin-jsx-a11y, eslint-plugin-react-hooks, globals, @next/eslint-plugin-next, dependencies, @eslint/js, eslint-plugin-jsx-a11y, eslint-plugin-react-hooks (+18 more)
 
 ### Community 9 - "Package Build Configuration"
-Cohesion: 0.08
-Nodes (24): @hey-api/openapi-ts, devDependencies, eslint, @hey-api/openapi-ts, @planner/eslint-config, @planner/typescript-config, @types/node, typescript (+16 more)
+Cohesion: 0.07
+Nodes (26): @hey-api/openapi-ts, devDependencies, eslint, @hey-api/openapi-ts, @planner/eslint-config, @planner/typescript-config, @types/node, typescript (+18 more)
 
 ### Community 10 - "Product Contract Corpus"
 Cohesion: 0.09
@@ -148,12 +169,12 @@ Cohesion: 0.09
 Nodes (22): dependencies, zod, devDependencies, eslint, @planner/eslint-config, @planner/typescript-config, @types/node, typescript (+14 more)
 
 ### Community 12 - "Environment Validation"
-Cohesion: 0.13
-Nodes (18): ApiEnvironment, apiEnvironmentSchema, databaseUrl, logLevel, parseEnvironment(), parseWorkerEnvironment(), sharedEnvironmentSchema, WorkerEnvironment (+10 more)
+Cohesion: 0.07
+Nodes (26): ApiEnvironment, apiEnvironmentSchema, databaseUrl, logLevel, parseEnvironment(), parseWorkerEnvironment(), sharedEnvironmentSchema, WorkerEnvironment (+18 more)
 
 ### Community 13 - "Web Workspace Scripts"
-Cohesion: 0.09
-Nodes (21): dependencies, next, @planner/api-client, react, react-dom, zod, zod, name (+13 more)
+Cohesion: 0.05
+Nodes (40): dependencies, class-variance-authority, clsx, @hookform/resolvers, lucide-react, next, @planner/api-client, radix-ui (+32 more)
 
 ### Community 14 - "Root Quality Tooling"
 Cohesion: 0.10
@@ -247,6 +268,10 @@ Nodes (4): ARC-010 Opaque HttpOnly cookie session strategy, ARC-013 Backend-owne
 Cohesion: 0.67
 Nodes (3): Dependabot Configuration, Dependabot updates target develop, Weekly npm GitHub Actions and Docker dependency updates
 
+### Community 38 - "Next Runtime Configuration"
+Cohesion: 0.50
+Nodes (3): environment, nextConfig, webEnvironmentSchema
+
 ### Community 41 - "Modular Monolith Decision"
 Cohesion: 0.67
 Nodes (3): Domain-Aligned Modular Monolith, ADR-001: Modular Monolith with Separate Runtime Entry Points, PostgreSQL Job Leasing
@@ -255,25 +280,90 @@ Nodes (3): Domain-Aligned Modular Monolith, ADR-001: Modular Monolith with Separ
 Cohesion: 0.67
 Nodes (3): Default-enabled in-app reminder Notification preference and suppression semantics, Notification, TaskReminder
 
+### Community 64 - "auth.controller.ts"
+Cohesion: 0.06
+Nodes (39): CsrfService, Inject, Injectable, RegisterAccountCommand, RegisterAccountService, RegistrationResult, secondsUntilNextUtcHour(), Inject (+31 more)
+
+### Community 65 - "cn"
+Cohesion: 0.08
+Nodes (42): metadata, metadata, Alert(), AlertAction(), AlertDescription(), AlertTitle(), alertVariants, Button() (+34 more)
+
+### Community 66 - "components.json"
+Cohesion: 0.09
+Nodes (21): aliases, components, hooks, lib, ui, utils, iconLibrary, menuAccent (+13 more)
+
+### Community 67 - ".register"
+Cohesion: 0.13
+Nodes (18): ApiBody, ApiHeader, ApiResponse, ApiOperation, Get, CsrfTokenDataDto, CsrfTokenResponseDto, RegisterAccountRequestDto (+10 more)
+
+### Community 68 - "problem-details.filter.ts"
+Cohesion: 0.19
+Nodes (8): ApiProblemException, ApiProblemOptions, ValidationProblemItem, ProblemDetails, ProblemDetailsFilter, safeDetail(), statusCodes, Catch
+
+### Community 69 - "VersionController"
+Cohesion: 0.22
+Nodes (8): ApiOkResponse, ApiOperation, ApiTags, Controller, Get, VersionController, ApiProperty, VersionResponseDto
+
+### Community 70 - "registration.schema.ts"
+Cohesion: 0.36
+Nodes (7): parseRegistrationInput(), passwordSchema, RegistrationInput, registrationSchema, toJsonPointer(), toValidationProblem(), zodIssueCode()
+
+### Community 71 - "AppModule"
+Cohesion: 0.43
+Nodes (5): generateOpenApi(), sortRecursively(), AppModule, Module, bootstrapApi()
+
+### Community 72 - "foundation.spec.ts"
+Cohesion: 0.40
+Nodes (3): ThrowingController, Controller, Get
+
+### Community 73 - "Q: Authentication ile user-owned resources bağlantısı"
+Cohesion: 0.40
+Nodes (4): Answer, Outcome, Q: Authentication ile user-owned resources bağlantısı, Source Nodes
+
+### Community 74 - "Q: API ile karşılığı olmayan domain operasyonları"
+Cohesion: 0.40
+Nodes (4): Answer, Outcome, Q: API ile karşılığı olmayan domain operasyonları, Source Nodes
+
+### Community 75 - "Q: Domain karşılığı olmayan API endpointleri"
+Cohesion: 0.40
+Nodes (4): Answer, Outcome, Q: Domain karşılığı olmayan API endpointleri, Source Nodes
+
+### Community 76 - "Q: Task mutations ile recurrence bağlantısı"
+Cohesion: 0.40
+Nodes (4): Answer, Outcome, Q: Task mutations ile recurrence bağlantısı, Source Nodes
+
+### Community 77 - "Q: Trash restore ile Area ve Project bağlantısı"
+Cohesion: 0.40
+Nodes (4): Answer, Outcome, Q: Trash restore ile Area ve Project bağlantısı, Source Nodes
+
+### Community 78 - "DatabaseModule"
+Cohesion: 0.67
+Nodes (3): DatabaseModule, Module, Global
+
 ## Knowledge Gaps
-- **350 isolated node(s):** `ADR-001: Modular Monolith with Separate Runtime Entry Points`, `PostgreSQL Job Leasing`, `178 active accepted MVP requirement IDs`, `Email/password registration verification login recovery and deletion lifecycle`, `Required Area optional same-Area Project and Task model` (+345 more)
+- **418 isolated node(s):** `printWidth`, `semi`, `singleQuote`, `trailingComma`, `$schema` (+413 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **11 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+
+## Work-memory lessons
+
+**Preferred sources** — corroborated by past sessions; start here.
+- `Domain Operation to API Coverage` (2× useful, score=1.850829142) _(code changed — re-verify)_
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `devDependencies` connect `API Test Tooling` to `ESLint Package Metadata`?**
-  _High betweenness centrality (0.011) - this node is a cross-community bridge._
-- **Why does `dependencies` connect `API Runtime Dependencies` to `ESLint Package Metadata`?**
-  _High betweenness centrality (0.010) - this node is a cross-community bridge._
-- **Why does `EPIC-001 Repository Foundation and Quality Gates` connect `Repository Quality Foundation` to `OpenAPI Generator Contract`?**
   _High betweenness centrality (0.006) - this node is a cross-community bridge._
-- **What connects `ADR-001: Modular Monolith with Separate Runtime Entry Points`, `PostgreSQL Job Leasing`, `178 active accepted MVP requirement IDs` to the rest of the system?**
-  _350 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `PostgreSQL Job Leasing` be split into smaller, more focused modules?**
-  _Cohesion score 0.06377551020408163 - nodes in this community are weakly interconnected._
+- **Why does `PrismaService` connect `auth.controller.ts` to `PostgreSQL Job Leasing`, `Environment Validation`?**
+  _High betweenness centrality (0.006) - this node is a cross-community bridge._
+- **Why does `dependencies` connect `API Runtime Dependencies` to `ESLint Package Metadata`?**
+  _High betweenness centrality (0.006) - this node is a cross-community bridge._
+- **What connects `printWidth`, `semi`, `singleQuote` to the rest of the system?**
+  _418 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `API Test Tooling` be split into smaller, more focused modules?**
   _Cohesion score 0.04878048780487805 - nodes in this community are weakly interconnected._
-- **Should `NestJS Composition Roots` be split into smaller, more focused modules?**
-  _Cohesion score 0.07422402159244265 - nodes in this community are weakly interconnected._
+- **Should `Repository Quality Foundation` be split into smaller, more focused modules?**
+  _Cohesion score 0.058823529411764705 - nodes in this community are weakly interconnected._
+- **Should `API Runtime Dependencies` be split into smaller, more focused modules?**
+  _Cohesion score 0.05405405405405406 - nodes in this community are weakly interconnected._

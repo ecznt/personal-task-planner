@@ -1,6 +1,101 @@
 {
   "components": {
     "schemas": {
+      "CsrfTokenDataDto": {
+        "properties": {
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "token": {
+            "description": "Non-secret CSRF token bound to the anonymous browser transaction.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token",
+          "expiresAt"
+        ],
+        "type": "object"
+      },
+      "CsrfTokenResponseDto": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CsrfTokenDataDto"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "RegisterAccountRequestDto": {
+        "properties": {
+          "email": {
+            "example": "kullanici@example.com",
+            "format": "email",
+            "maxLength": 254,
+            "type": "string"
+          },
+          "password": {
+            "format": "password",
+            "maxLength": 128,
+            "minLength": 12,
+            "type": "string",
+            "writeOnly": true
+          },
+          "passwordConfirmation": {
+            "format": "password",
+            "maxLength": 128,
+            "minLength": 12,
+            "type": "string",
+            "writeOnly": true
+          },
+          "termsAccepted": {
+            "enum": [
+              true
+            ],
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "email",
+          "password",
+          "passwordConfirmation",
+          "termsAccepted"
+        ],
+        "type": "object"
+      },
+      "RegistrationAcceptedDataDto": {
+        "properties": {
+          "next": {
+            "example": "/verify-email",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "VERIFICATION_REQUIRED"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "next"
+        ],
+        "type": "object"
+      },
+      "RegistrationAcceptedResponseDto": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/RegistrationAcceptedDataDto"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
       "VersionResponseDto": {
         "properties": {
           "version": {
@@ -17,12 +112,81 @@
   },
   "info": {
     "contact": {},
-    "description": "Foundation contract. Product feature operations are intentionally absent.",
+    "description": "REST contract for the personal task planner.",
     "title": "Personal Task Planner API",
     "version": "0.0.0"
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/auth/csrf": {
+      "get": {
+        "operationId": "getAuthCsrf",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CsrfTokenResponseDto"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Issue a CSRF token for an anonymous authentication transaction",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/register": {
+      "post": {
+        "operationId": "registerAccount",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterAccountRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistrationAcceptedResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "422": {
+            "description": "Safe validation details."
+          },
+          "429": {
+            "description": "Generic registration rate limit."
+          }
+        },
+        "summary": "Submit an email/password registration without account enumeration",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
     "/api/v1/version": {
       "get": {
         "operationId": "getVersion",

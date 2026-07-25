@@ -184,6 +184,7 @@ Every stage requires explicit user approval before the next stage begins.
 | DEC-067 | 2026-07-23 | Use Graphify proportionally: query the existing graph first with one targeted depth-2 query and an approximately 1,200-token output budget; expand only when insufficient, incrementally extract only materially changed graph-relevant files, and reserve full rebuilds for explicit requests, corruption/incompatibility, unusable staleness, or material repository-wide restructuring. Git-only, status, formatting, wording-only, mechanical, and isolated non-graph changes do not trigger regeneration. | Approved operating policy | User explicit instruction |
 | DEC-068 | 2026-07-23 | Confirm `@hey-api/openapi-ts@0.99.0` with `typescript@5.9.3` and its Fetch client as the initial generated-client profile. Use explicit same-origin Fetch credentials without a session-cookie auth callback, read response headers through native `Response.headers`, and retain the `js-yaml@4.3.0` security override until a dedicated upgrade reruns `SPIKE-001`. | Approved by completed technical spike | `SPIKE-001`; ADR-002 |
 | DEC-069 | 2026-07-23 | Implement EPIC-001 as the repository foundation only: pin Node.js 24.18.0 and pnpm 11.9.0; keep TypeScript `strict`; use the approved Next.js, NestJS, PostgreSQL 18, Prisma 7, OpenAPI/client, worker-lease, test, CI, logging, and Graphify boundaries; and defer every product feature to later epics. Pin ESLint 9.39.5 for current accessibility-plugin compatibility and use reviewed transitive overrides to keep the dependency audit clear. | Approved implementation plan; implemented and locally verified | User approval of the EPIC-001 implementation plan; BL-001–BL-006 |
+| DEC-070 | 2026-07-25 | Implement BL-007 as the first Authentication vertical slice: provide Turkish email/password registration with generic retained-email outcomes, a pending User and email/password AuthenticationIdentity, a hashed 24-hour verification challenge for BL-008, Argon2id password hashing, persistent identity/network abuse counters, anonymous CSRF and strict-origin protection, generated OpenAPI/client updates, and no login, session, social-authentication, planning-data, or collaboration behavior. | Implemented, verified, and accepted | User approval of the BL-007 implementation plan and explicit completion/publish instruction; BL-007 |
 
 ## Open questions
 
@@ -268,11 +269,11 @@ New planning documents must be added to this index when created.
 
 - Global CLI: installed with `uv tool`.
 - Project skill: installed using the official `agents` platform target at `.agents/skills/graphify`.
-- Skill instructions and task-relevant `update.md` and `extraction-spec.md` references were read completely for the EPIC-001 update on 2026-07-23.
-- Graph generation: incremental AST extraction covered the new authored TypeScript/JavaScript/configuration surface; the required host-agent semantic pass covered the eight changed foundation documents/configurations; both were merged with the approved planning graph.
-- Graph health: passed with 746 valid candidate edges and no missing endpoints, dangling edges, self-loops, exact duplicates, or directed/undirected same-endpoint collapse.
+- Skill instructions and the task-relevant `update.md` reference were read completely for the BL-007 update on 2026-07-25.
+- Graph generation: the required incremental command first exposed an AST subprocess permission/cache failure. The source graph was therefore rebuilt through the official local `graphify update . --force` code-update path, preserving the approved semantic planning graph without adding an LLM key.
+- Graph health: passed with 1,185 valid candidate edges and no missing endpoints, dangling edges, self-loops, exact duplicates, or directed/undirected same-endpoint collapse.
 - Source-scope control: dependencies, generated clients, Prisma generated output, build/test artifacts, Graphify outputs, environment files, and sensitive paths are excluded. Five previously saved Graphify memory notes force-detected by 0.9.20 were removed from the changed semantic scope and manifest.
-- Extraction limitation: Graphify 0.9.20 produced no structural node for the generated OpenAPI JSON and skipped SQL AST extraction because the optional `tree_sitter_sql` extra is not installed. The OpenAPI pipeline and PostgreSQL migration were verified from their source files, deterministic contract checks, Prisma migration test, and Testcontainers evidence; no extra Graphify package was installed.
+- Extraction limitation: Graphify 0.9.20 produced no structural node for the generated OpenAPI JSON and skipped the two SQL migrations because the optional `tree_sitter_sql` extra is not installed. The BL-007 OpenAPI pipeline and PostgreSQL migration were verified from their source files, deterministic contract checks, successful Prisma migration execution, and Testcontainers evidence; no extra Graphify package was installed.
 - Sensitive-path review: completed; the graph contains repository-relative source paths only, and Graphify local learning, memory, reflection, vocabulary, incremental, and cost artifacts remain excluded from version control.
 - Intended use: architecture discovery and impact analysis.
 - Version-control policy: track the project skill and shareable `graphify-out` artifacts, excluding local/intermediate files and `cost.json`.
@@ -356,6 +357,15 @@ Verified EPIC-001 graph findings:
 - The broad MCP query also returned planning-only `Task` and `AuthenticationIdentity` nodes because those terms were present in the exclusion question. A direct neighbor check shows the exclusion concept only supports the “foundation without product features” rationale. Source search confirms there is no authored authentication or Task implementation; the sole `auth.gen.ts` filename is a generic generated Fetch-client helper.
 - No dependency cycle was detected. The known forbidden-import fixture is rejected by the static architecture gate, and Graphify findings were verified against source, type-check, tests, builds, migration execution, and security scans rather than accepted as authoritative.
 
+Verified BL-007 graph findings:
+
+- The forced local code refresh produced 966 nodes, 1,185 edges, seven hyperedges, and 80 communities; 98% of relationships are EXTRACTED, 2% INFERRED, and 0% AMBIGUOUS.
+- `RegisterAccountService`, `AuthSecurityService`, `AccountsRepository`, `CsrfService`, `AnonymousCsrfGuard`, `AuthController`, and the Turkish `RegistrationForm` are present in the updated graph and connect through the intended accounts, API composition, generated-client, and web boundaries.
+- `cn()` is the highest-connectivity node with 37 edges because generated shadcn/ui components share the class-name helper. Source review confirms this is mechanical UI composition rather than a domain abstraction or unexpected business dependency.
+- `AuthSecurityService` and `AccountsRepository` are expected Authentication-slice hubs with 15 and 14 edges. Their centrality is a review signal for later authentication stories, not evidence of a new cross-module repository dependency.
+- Bounded MCP queries found no BL-007 implementation path into login, sessions, social authentication, Task, Project, or collaboration behavior. Source search and changed-file review confirmed the absence of those out-of-scope operations.
+- Graph findings were verified against the registration source, Prisma schema/migration, generated OpenAPI/client, automated tests, builds, dependency audit, and secret scan rather than accepted as authoritative on their own.
+
 ## Graphify version
 
 - Package: `graphifyy`
@@ -377,8 +387,8 @@ The recorded version must not be changed without a decision-log entry and revali
 - Codex configuration scope: project `.codex/config.toml`.
 - Registration status: configured and enabled in Codex.
 - Runtime status: operational with the pinned `graphifyy[mcp]==0.9.20` installation.
-- Verification: the registered MCP successfully called `graph_stats`, `god_nodes`, a bounded depth-2 `query_graph`, and a direct `get_neighbors` source-control check against the EPIC-001 graph; prior `get_community` and `shortest_path` verification remains valid.
-- Verified graph response: 724 nodes, 746 edges, and 64 communities. The graph contains 97% EXTRACTED, 3% INFERRED, and 0% AMBIGUOUS relationships.
+- Verification: the registered MCP successfully called `graph_stats`, `god_nodes`, bounded depth-2 `query_graph` searches, and `get_node` against the BL-007 graph; prior `get_community`, `get_neighbors`, and `shortest_path` verification remains valid.
+- Verified graph response: 966 nodes, 1,185 edges, and 80 communities. The graph contains 98% EXTRACTED, 2% INFERRED, and 0% AMBIGUOUS relationships.
 - Available read-oriented tools: `query_graph`, `get_node`, `get_neighbors`, `get_community`, `god_nodes`, `graph_stats`, and `shortest_path`.
 - Session note: an already-running Codex desktop session may require a reload before the registered MCP tools appear in its dynamic tool list; this does not affect the successful direct stdio runtime verification.
 
@@ -387,19 +397,19 @@ The recorded version must not be changed without a decision-log entry and revali
 | Field | Value |
 | --- | --- |
 | Status | Successful |
-| Generated at | 2026-07-23T12:45:52Z |
+| Generated at | 2026-07-25T13:09:13Z |
 | Graphify version | 0.9.20 |
-| Source commit at generation | `115ca7500f91652e06b027b37c570d4b1817477a` |
-| Working tree at generation | Includes the uncommitted EPIC-001 foundation implementation, generated OpenAPI/client artifacts, infrastructure-only Prisma migration, quality gates, README, and completion metadata; contains no product feature implementation. |
-| Input scope | 86 authored code/configuration/document files after excluding dependencies, generated clients, Prisma generated output, build/test output, Graphify outputs/memory, environment files, and sensitive paths. |
+| Source commit at generation | `b9e9c817bcf53e071542fe2592756058c56dd1a3` |
+| Working tree at generation | Includes the uncommitted BL-007 registration implementation, generated OpenAPI/client artifacts, authentication persistence migration, tests, dependency/security adjustments, and Graphify outputs; contains no later Authentication story or planning feature. |
+| Input scope | 125 tracked authored inputs in the incremental manifest, including 102 code files force-refreshed for BL-007; dependencies, generated Prisma output, build/test output, environment files, Graphify outputs/memory, and sensitive paths remain excluded. |
 | Output path | `graphify-out/graph.json` |
-| Nodes | 724 |
-| Edges | 746 |
+| Nodes | 966 |
+| Edges | 1,185 |
 | Hyperedges | 7 |
-| Communities | 64 |
+| Communities | 80 |
 | Graph health | Passed with zero missing/dangling endpoints, self-loops, duplicates, or endpoint-collapse warnings |
-| Recorded semantic tokens | 0 input / 0 output; the collaboration extraction tool did not expose token usage, so this is an unavailable measurement rather than evidence of zero model usage. |
-| Reason | Capture the implemented EPIC-001 runtime, dependency, test, contract, CI, and documentation boundaries and verify that no product feature entered the foundation slice. |
+| Recorded semantic tokens | 0 input / 0 output; BL-007 used local AST code extraction and retained the approved semantic planning graph. |
+| Reason | Capture BL-007 registration across web, API, persistence, generated contract/client, tests, and security controls and verify that no later Authentication or planning feature entered the slice. |
 
 Update this section after every successful graph generation.
 
@@ -434,12 +444,13 @@ Update this section after every successful graph generation.
 | 2026-07-20 | Stage 7 — Solution architecture | Completed and approved | User explicitly accepted ADR-001, ADR-002, and ADR-003 and instructed Codex to approve and publish the stage. |
 | 2026-07-21 | Stage 8 — Backlog planning | Completed and approved | User explicitly approved the 18-epic vertical-slice backlog and instructed Codex to commit and push it to `develop`. |
 | 2026-07-23 | Stage 9 — Phase 2 readiness | Completed and approved | DEC-066 removed social authentication from MVP, the final audit reports zero BLOCKER/HIGH findings, and the User explicitly approved the Phase 2 plan. |
-| 2026-07-23 | Phase 3 — EPIC-001 repository foundation and quality gates | Implemented; awaiting User acceptance/commit instruction | BL-001 through BL-006 pass their local Definition of Done; no product feature was started. |
+| 2026-07-23 | Phase 3 — EPIC-001 repository foundation and quality gates | Completed, accepted, committed, and published | BL-001 through BL-006 passed their Definition of Done and the User instructed publication before BL-007 planning began. |
+| 2026-07-25 | Phase 3 — BL-007 email/password registration | Completed and accepted; publication requested | Registration behavior, persistence, OpenAPI/client, security controls, tests, Graphify impact review, and documentation passed; the User explicitly accepted completion and requested commit/push. |
 
 ## Current planning stage
 
-Phase 3 Implementation — EPIC-001 Complete. The approved MVP scope remains frozen with email/password authentication only; social authentication, including Google, remains deferred. The repository foundation now includes minimal production composition roots, infrastructure-only Prisma/job migration, generated OpenAPI/client artifacts, tests, and quality gates. No authentication flow, Task domain behavior, product persistence model, or other product feature has started.
+Phase 3 Implementation — BL-007 Complete and Accepted. EPIC-001 remains complete. The approved MVP scope remains frozen with email/password authentication only; social authentication, including Google, remains deferred. BL-007 provides non-enumerating email/password registration and its required web, API, persistence, OpenAPI/client, security, and test boundaries. Email verification consumption/delivery, login, sessions, password recovery, account deletion, Task behavior, and all later stories remain unimplemented.
 
 ## Next required action
 
-Await User review and any commit/push instruction for EPIC-001. Do not begin EPIC-002 Authentication or any later product story without explicit User instruction.
+Publish the accepted BL-007 slice to `develop`. After publication, do not begin BL-008 email verification or any later story without a new approved implementation plan.

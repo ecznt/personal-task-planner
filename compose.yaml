@@ -17,7 +17,7 @@ services:
       retries: 10
       start_period: 5s
     volumes:
-      - planner_postgres_data:/var/lib/postgresql/data
+      - planner_postgres_data:/var/lib/postgresql
 
 volumes:
   planner_postgres_data:

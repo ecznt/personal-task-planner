@@ -13,6 +13,7 @@ describe('environment validation', () => {
     expect(
       parseApiEnvironment({
         ...sharedEnvironment,
+        AUTH_SECURITY_KEY: 'test-only-auth-security-key-32-chars',
         COOKIE_SECURE: 'false',
         PORT: '3001',
         PUBLIC_ORIGIN: 'http://localhost:3000',
@@ -29,6 +30,7 @@ describe('environment validation', () => {
     expect(() =>
       parseApiEnvironment({
         ...sharedEnvironment,
+        AUTH_SECURITY_KEY: 'short',
         COOKIE_SECURE: 'sometimes',
         PORT: 'not-a-port',
         PUBLIC_ORIGIN: 'not-an-origin',

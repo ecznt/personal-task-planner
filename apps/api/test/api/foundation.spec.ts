@@ -67,9 +67,10 @@ describe('foundation HTTP surface', () => {
     expect(response.headers['content-type']).toContain('application/problem+json');
     expect(response.body).toMatchObject({
       detail: 'An unexpected error occurred.',
+      code: 'INTERNAL_ERROR',
       status: 500,
       traceId: expect.any(String),
-      type: 'about:blank',
+      type: 'https://personal-task-planner.local/problems/internal-error',
     });
     expect(response.headers['x-request-id']).toBe(response.body.traceId);
     expect(JSON.stringify(response.body)).not.toContain('private internal detail');

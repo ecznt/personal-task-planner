@@ -23,6 +23,7 @@ function sortRecursively(value: unknown): unknown {
 }
 
 async function generateOpenApi(): Promise<void> {
+  process.env.AUTH_SECURITY_KEY ??= 'openapi-only-auth-security-key-value';
   process.env.DATABASE_URL ??= 'postgresql://planner:planner_dev@127.0.0.1:5432/planner';
   process.env.LOG_LEVEL ??= 'silent';
   process.env.NODE_ENV ??= 'test';
@@ -37,7 +38,7 @@ async function generateOpenApi(): Promise<void> {
 
   const configuration = new DocumentBuilder()
     .setTitle('Personal Task Planner API')
-    .setDescription('Foundation contract. Product feature operations are intentionally absent.')
+    .setDescription('REST contract for the personal task planner.')
     .setVersion('0.0.0')
     .addServer('/')
     .build();

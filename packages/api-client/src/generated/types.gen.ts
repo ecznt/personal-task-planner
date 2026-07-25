@@ -4,9 +4,82 @@ export type ClientOptions = {
     baseUrl: `${string}://${string}` | (string & {});
 };
 
+export type CsrfTokenDataDto = {
+    expiresAt: string;
+    /**
+     * Non-secret CSRF token bound to the anonymous browser transaction.
+     */
+    token: string;
+};
+
+export type CsrfTokenResponseDto = {
+    data: CsrfTokenDataDto;
+};
+
+export type RegisterAccountRequestDto = {
+    email: string;
+    termsAccepted: true;
+};
+
+export type RegistrationAcceptedDataDto = {
+    next: string;
+    status: 'VERIFICATION_REQUIRED';
+};
+
+export type RegistrationAcceptedResponseDto = {
+    data: RegistrationAcceptedDataDto;
+};
+
 export type VersionResponseDto = {
     version: string;
 };
+
+export type RegisterAccountRequestDtoWritable = {
+    email: string;
+    password: string;
+    passwordConfirmation: string;
+    termsAccepted: true;
+};
+
+export type GetAuthCsrfData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/csrf';
+};
+
+export type GetAuthCsrfResponses = {
+    200: CsrfTokenResponseDto;
+};
+
+export type GetAuthCsrfResponse = GetAuthCsrfResponses[keyof GetAuthCsrfResponses];
+
+export type RegisterAccountData = {
+    body: RegisterAccountRequestDtoWritable;
+    headers: {
+        'X-CSRF-Token': string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/register';
+};
+
+export type RegisterAccountErrors = {
+    /**
+     * Safe validation details.
+     */
+    422: unknown;
+    /**
+     * Generic registration rate limit.
+     */
+    429: unknown;
+};
+
+export type RegisterAccountResponses = {
+    202: RegistrationAcceptedResponseDto;
+};
+
+export type RegisterAccountResponse = RegisterAccountResponses[keyof RegisterAccountResponses];
 
 export type GetVersionData = {
     body?: never;

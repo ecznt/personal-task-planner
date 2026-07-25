@@ -15,6 +15,25 @@ enum JobState {
   FAILED
 }
 
+enum AccountLifecycleState {
+  ACTIVE
+  DELETION_CONFIRMED
+}
+
+enum OnboardingState {
+  PENDING
+  COMPLETED
+}
+
+enum IdentityVerificationState {
+  PENDING
+  ACTIVE
+}
+
+enum AuthAbuseAction {
+  REGISTRATION
+}
+
 model Job {
   id                BigInt    @id @default(autoincrement())
   type              String
@@ -31,4 +50,78 @@ model Job {
 
   @@index([state, availableAt, id], map: "job_pending_claim_idx")
   @@index([state, leaseExpiresAt, id], map: "job_expired_lease_idx")
+}
+
+model User {
+  id                                String                  @id @default(uuid()) @db.Uuid
+  primaryEmail                      String
+  normalizedPrimaryEmail            String                  @unique(map: "user_normalized_primary_email_key")
+  timeZone                          String                  @default("UTC")
+  inAppReminderNotificationsEnabled Boolean                 @default(true)
+  onboardingState                   OnboardingState         @default(PENDING)
+  accountLifecycleState             AccountLifecycleState   @default(ACTIVE)
+  version                           Int                     @default(1)
+  createdAt                         DateTime                @default(now()) @db.Timestamptz(3)
+  updatedAt                         DateTime                @updatedAt @db.Timestamptz(3)
+  authenticationIdentity            AuthenticationIdentity?
+
+  @@map("users")
+}
+
+model AuthenticationIdentity {
+  id                     String                       @id @default(uuid()) @db.Uuid
+  userId                 String                       @unique(map: "authentication_identity_user_id_key") @db.Uuid
+  normalizedEmail        String                       @unique(map: "authentication_identity_normalized_email_key")
+  verificationState      IdentityVerificationState    @default(PENDING)
+  enabled                Boolean                      @default(true)
+  passwordHash           String
+  lastAuthenticatedAt    DateTime?                    @db.Timestamptz(3)
+  disabledAt             DateTime?                    @db.Timestamptz(3)
+  disabledReason         String?
+  version                Int                          @default(1)
+  createdAt              DateTime                     @default(now()) @db.Timestamptz(3)
+  updatedAt              DateTime                     @updatedAt @db.Timestamptz(3)
+  user                   User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verificationChallenges EmailVerificationChallenge[]
+
+  @@map("authentication_identities")
+}
+
+model EmailVerificationChallenge {
+  id                       String                 @id @default(uuid()) @db.Uuid
+  authenticationIdentityId String                 @db.Uuid
+  tokenHash                String                 @unique(map: "email_verification_challenge_token_hash_key")
+  expiresAt                DateTime               @db.Timestamptz(3)
+  consumedAt               DateTime?              @db.Timestamptz(3)
+  createdAt                DateTime               @default(now()) @db.Timestamptz(3)
+  authenticationIdentity   AuthenticationIdentity @relation(fields: [authenticationIdentityId], references: [id], onDelete: Cascade)
+
+  @@index([authenticationIdentityId, expiresAt], map: "email_verification_challenge_identity_expiry_idx")
+  @@map("email_verification_challenges")
+}
+
+model AnonymousAuthTransaction {
+  id               String   @id @default(uuid()) @db.Uuid
+  browserTokenHash String   @unique(map: "anonymous_auth_transaction_browser_token_hash_key")
+  csrfTokenHash    String
+  expiresAt        DateTime @db.Timestamptz(3)
+  createdAt        DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([expiresAt], map: "anonymous_auth_transaction_expiry_idx")
+  @@map("anonymous_auth_transactions")
+}
+
+model AuthAbuseCounter {
+  id              BigInt          @id @default(autoincrement())
+  action          AuthAbuseAction
+  keyHash         String
+  windowStartedAt DateTime        @db.Timestamptz(3)
+  requestCount    Int             @default(1)
+  expiresAt       DateTime        @db.Timestamptz(3)
+  createdAt       DateTime        @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime        @updatedAt @db.Timestamptz(3)
+
+  @@unique([action, keyHash, windowStartedAt], map: "auth_abuse_counter_window_key")
+  @@index([expiresAt], map: "auth_abuse_counter_expiry_idx")
+  @@map("auth_abuse_counters")
 }
