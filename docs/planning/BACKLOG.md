@@ -6,8 +6,8 @@
 | Planning stage | Stage 8 — Backlog planning |
 | Product scope | MVP |
 | Document language | English |
-| Last updated | 2026-07-25 |
-| Implementation status | EPIC-001 and BL-007 complete and accepted; BL-008 implemented and verified, awaiting User acceptance |
+| Last updated | 2026-07-26 |
+| Implementation status | EPIC-001, BL-007, and BL-008 complete, accepted, and published; BL-009 planning authorized |
 
 This backlog converts the approved product, UX, domain, data, API, and architecture baselines into small, independently verifiable delivery slices. It defines future implementation work only; it contains no production code, schema, migration, OpenAPI artifact, or framework scaffold.
 
@@ -173,7 +173,7 @@ This backlog converts the approved product, UX, domain, data, API, and architect
 
 **BL-007 progress (2026-07-25):** Complete, locally verified, and accepted for publication. The slice provides a Turkish accessible registration form, anonymous CSRF/origin protection, persistent privacy-safe identity/network rate limits, Argon2id password hashing, atomic pending User/AuthenticationIdentity/challenge creation, a non-enumerating `202` result, generated OpenAPI/Fetch-client updates, and unit/component/API/PostgreSQL integration/contract/security coverage. Email delivery and verification-token consumption remain BL-008. Login, sessions, password recovery, account deletion, social authentication, and planning data were not started.
 
-**BL-008 progress (2026-07-25):** Implemented and locally verified; User acceptance is pending. Registration and resend atomically queue a challenge-ID-only PostgreSQL job. The worker derives the eight-digit code at delivery time, sends through configurable SMTP, and retries at most five times with bounded exponential backoff and jitter; Mailpit is the loopback-bound local/CI capture service. The Turkish responsive form accepts email plus code, supports non-enumerating resend, and does not navigate to the unimplemented login route. Confirmation requires anonymous CSRF and `Idempotency-Key`, stores only purpose-bound HMAC values, rate-limits privacy-safe identity/network keys, activates one pending identity exactly once, and creates no session. Unit, component/accessibility, API, PostgreSQL/Testcontainers, OpenAPI/client, build, E2E, SMTP smoke, dependency, and secret checks pass. BL-009 and every later story remain unstarted.
+**BL-008 progress (2026-07-25):** Complete, accepted, published to `develop`, and CI-verified. Registration and resend atomically queue a challenge-ID-only PostgreSQL job. The worker derives the eight-digit code at delivery time, sends through configurable SMTP, and retries at most five times with bounded exponential backoff and jitter; Mailpit is the loopback-bound local/CI capture service. The Turkish responsive form accepts email plus code, supports non-enumerating resend, and does not navigate to the unimplemented login route. Confirmation requires anonymous CSRF and `Idempotency-Key`, stores only purpose-bound HMAC values, rate-limits privacy-safe identity/network keys, activates one pending identity exactly once, and creates no session. Unit, component/accessibility, API, PostgreSQL/Testcontainers, OpenAPI/client, build, E2E, SMTP smoke, dependency, and secret checks pass. BL-009 and every later story remain unstarted.
 
 **Epic acceptance criteria:** All active AC-001 lifecycle paths work; public landing/privacy/terms entry points are accessible in supported layouts; two-owner tests show no cross-account planning/session leakage; public responses do not reveal email/account existence; deletion initiation revokes access immediately.
 

@@ -2,7 +2,7 @@
 
 Status: Accepted
 Date: 2026-07-20
-Last amended: 2026-07-23
+Last amended: 2026-07-25
 
 ## Context
 
@@ -44,6 +44,16 @@ After a graph generation, inspect only the statistics, communities, hubs, and ta
 Governance-only changes to this operating policy are recorded in source documents and absorbed by the next material graph refresh. Until then, direct source remains authoritative for the policy and the existing graph may still be used for unaffected architecture questions.
 
 Graphify `0.9.20` can force its own memory directory into broad scans despite ignore patterns. Until that behavior changes, graph generation must explicitly restrict detection/extraction to the intended repository source corpus and must verify that `graphify-out/memory` was not indexed.
+
+### Token-efficient operating profile
+
+- Never print or read the full `graphify-out/graph.json`, `graph.html`, manifest, or an unbounded MCP/API response during routine work. Query through Graphify/MCP and project only the fields needed for the current decision.
+- Keep the first query to one precise question, depth 2, and approximately 1,200 output tokens. Do not run the standard `graph_stats` + `god_nodes` + `get_community` suite unless the task's acceptance criteria require those separate views.
+- Filter command output at its source. Prefer counts, identifiers, changed paths, failed checks, and bounded context over full JSON, graph diffs, reports, or build logs.
+- Do not reread unchanged approved documents merely to repeat a previous Graphify review. Read the authoritative source locations returned by the targeted query; reread a complete document only when its exact decision scope is required or another applicable skill explicitly requires it.
+- During an implementation story, refresh the graph at most once after the material source changes and tests are stable. A second refresh is justified only when the first refresh fails, reports corruption, or the implementation changes again in a graph-relevant way.
+- Summarize versioned Graphify artifact changes with file statistics and targeted integrity checks. Do not include generated graph bodies in conversational output.
+- If a targeted query and direct-source verification answer the question, stop. Additional traversal, community inspection, or regeneration is not performed for reassurance alone.
 
 ### Versioned output
 

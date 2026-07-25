@@ -185,7 +185,8 @@ Every stage requires explicit user approval before the next stage begins.
 | DEC-068 | 2026-07-23 | Confirm `@hey-api/openapi-ts@0.99.0` with `typescript@5.9.3` and its Fetch client as the initial generated-client profile. Use explicit same-origin Fetch credentials without a session-cookie auth callback, read response headers through native `Response.headers`, and retain the `js-yaml@4.3.0` security override until a dedicated upgrade reruns `SPIKE-001`. | Approved by completed technical spike | `SPIKE-001`; ADR-002 |
 | DEC-069 | 2026-07-23 | Implement EPIC-001 as the repository foundation only: pin Node.js 24.18.0 and pnpm 11.9.0; keep TypeScript `strict`; use the approved Next.js, NestJS, PostgreSQL 18, Prisma 7, OpenAPI/client, worker-lease, test, CI, logging, and Graphify boundaries; and defer every product feature to later epics. Pin ESLint 9.39.5 for current accessibility-plugin compatibility and use reviewed transitive overrides to keep the dependency audit clear. | Approved implementation plan; implemented and locally verified | User approval of the EPIC-001 implementation plan; BL-001–BL-006 |
 | DEC-070 | 2026-07-25 | Implement BL-007 as the first Authentication vertical slice: provide Turkish email/password registration with generic retained-email outcomes, a pending User and email/password AuthenticationIdentity, a hashed 24-hour verification challenge for BL-008, Argon2id password hashing, persistent identity/network abuse counters, anonymous CSRF and strict-origin protection, generated OpenAPI/client updates, and no login, session, social-authentication, planning-data, or collaboration behavior. | Implemented, verified, and accepted | User approval of the BL-007 implementation plan and explicit completion/publish instruction; BL-007 |
-| DEC-071 | 2026-07-25 | Implement BL-008 with a manual eight-digit, 24-hour verification code submitted only in the dedicated confirmation body; queue delivery atomically in PostgreSQL and send through a generic SMTP worker with bounded exponential retry and jitter; make resend non-enumerating, invalidate every earlier unused challenge, require CSRF and an idempotency key for confirmation, activate the identity exactly once, and create no session. | Approved implementation decision; implemented and verified; acceptance pending | User selections 1A, 2A, and 3A; BL-008 |
+| DEC-071 | 2026-07-25 | Implement BL-008 with a manual eight-digit, 24-hour verification code submitted only in the dedicated confirmation body; queue delivery atomically in PostgreSQL and send through a generic SMTP worker with bounded exponential retry and jitter; make resend non-enumerating, invalidate every earlier unused challenge, require CSRF and an idempotency key for confirmation, activate the identity exactly once, and create no session. | Implemented, verified, accepted, and published | User selections 1A, 2A, and 3A; explicit commit/push instruction; green CI; BL-008 |
+| DEC-072 | 2026-07-25 | Fix Graphify's token-efficient operating profile: never dump full graph artifacts or unbounded responses; begin with one targeted depth-2 query near 1,200 tokens; project only required fields; avoid rereading unchanged approved documents; refresh at most once after stable material changes; and stop when targeted graph evidence plus direct-source verification answers the question. | Approved operating policy | User explicit instruction |
 
 ## Open questions
 
@@ -430,10 +431,16 @@ Update this section after every successful graph generation.
 - Tell the user which skill is being used and why.
 - When `graphify-out/graph.json` exists, use Graphify first for architecture and impact-analysis questions unless an explicit rebuild is requested.
 - Start routine MCP use with one targeted depth-2 query and an output budget near 1,200 tokens; expand only when the result is insufficient.
+- Never read or print complete `graph.json`, `graph.html`, manifest, generated graph diffs, or unbounded MCP/API responses during routine work; project only the fields required for the current decision.
+- Do not run a broad statistics, god-node, and community query suite by default. Run additional graph views only when an acceptance criterion or insufficient first result requires them.
+- Filter tool output at the source to counts, identifiers, changed paths, failed checks, and bounded context.
+- Do not reread unchanged approved documents merely to repeat prior Graphify analysis. Verify findings from the specific authoritative source locations needed by the current question.
 - Do not regenerate Graphify for Git-only actions, status reporting, formatting, wording-only changes, mechanical checks, or isolated changes that do not alter graph-relevant relationships.
 - Use incremental extraction only for the smallest materially changed set of requirements, domain, data, API, architecture, dependency, or traceability sources needed by the task.
+- For an implementation story, refresh the graph once after material changes and tests are stable; repeat only after a failed/corrupt refresh or another graph-relevant source change.
 - Use a full rebuild only for an explicit request, incompatible extraction/ID changes, corruption, unusable staleness, or material repository-wide restructuring.
 - Phase completion triggers graph generation only when graph evidence is an explicit gate or the current graph would materially misrepresent the approved architecture.
+- Stop graph exploration when the targeted query and direct-source verification answer the question; do not expand traversal for reassurance alone.
 - Do not invent graph relationships or hide Graphify integrity warnings.
 - Do not use Graphify output as a substitute for source inspection, tests, type checking, or other verification.
 - Do not index secrets, credentials, private keys, environment files, dependencies, build output, or Graphify's own output.
@@ -456,11 +463,12 @@ Update this section after every successful graph generation.
 | 2026-07-23 | Stage 9 — Phase 2 readiness | Completed and approved | DEC-066 removed social authentication from MVP, the final audit reports zero BLOCKER/HIGH findings, and the User explicitly approved the Phase 2 plan. |
 | 2026-07-23 | Phase 3 — EPIC-001 repository foundation and quality gates | Completed, accepted, committed, and published | BL-001 through BL-006 passed their Definition of Done and the User instructed publication before BL-007 planning began. |
 | 2026-07-25 | Phase 3 — BL-007 email/password registration | Completed and accepted; publication requested | Registration behavior, persistence, OpenAPI/client, security controls, tests, Graphify impact review, and documentation passed; the User explicitly accepted completion and requested commit/push. |
+| 2026-07-25 | Phase 3 — BL-008 email verification | Completed, accepted, committed, published, and CI-verified | Email verification, resend, durable SMTP delivery, exact-once activation, generated contract/client, security controls, automated tests, and Graphify impact review passed; commit `1386853` was published to `develop` and CI run `30163472149` succeeded. |
 
 ## Current planning stage
 
-Phase 3 Implementation — BL-008 Implemented and Verified; User Acceptance Pending. EPIC-001 and accepted BL-007 remain complete. BL-008 provides manual email-code verification, non-enumerating resend, exact-once identity activation, durable PostgreSQL delivery jobs, generic SMTP/Mailpit delivery, generated OpenAPI/client updates, security controls, and automated verification. Login, sessions, password recovery, account deletion, Task behavior, and all later stories remain unimplemented.
+Phase 3 Implementation — BL-008 Complete and Accepted; BL-009 Planning Authorized. EPIC-001, BL-007, and BL-008 are complete. Login, sessions, password recovery, account deletion, Task behavior, and all later stories remain unimplemented.
 
 ## Next required action
 
-Obtain explicit User acceptance for BL-008. Do not commit, push, or begin BL-009 until the User accepts this implementation and separately authorizes publication or the next story.
+Publish the accepted BL-008 status reconciliation and DEC-072 Graphify operating policy, verify CI, then prepare the decision-complete BL-009 sign-in implementation plan.
