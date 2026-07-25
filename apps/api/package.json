@@ -39,7 +39,7 @@
     "zod": "4.4.3"
   },
   "devDependencies": {
-    "@jest/globals": "29.7.0",
+    "@jest/globals": "30.4.1",
     "@nestjs/cli": "11.0.16",
     "@nestjs/testing": "11.1.28",
     "@planner/eslint-config": "workspace:*",
