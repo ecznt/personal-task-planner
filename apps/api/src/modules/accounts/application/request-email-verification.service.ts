@@ -1,16 +1,16 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import { normalizeEmail, toEmailDisplayValue } from '../domain/email';
+import { normalizeEmail } from '../domain/email';
 import { AccountsRepository } from '../infrastructure/accounts.repository';
 import { AuthSecurityService } from '../security/auth-security.service';
+import { secondsUntilWindowEnd } from './auth-rate-limit';
 
-export type RegisterAccountCommand = {
+export type RequestEmailVerificationCommand = {
   readonly email: string;
   readonly networkAddress: string | undefined;
-  readonly password: string;
 };
 
-export type RegistrationResult =
+export type RequestEmailVerificationResult =
   | {
       readonly outcome: 'ACCEPTED';
     }
@@ -20,7 +20,7 @@ export type RegistrationResult =
     };
 
 @Injectable()
-export class RegisterAccountService {
+export class RequestEmailVerificationService {
   constructor(
     @Inject(AccountsRepository)
     private readonly accounts: AccountsRepository,
@@ -28,14 +28,20 @@ export class RegisterAccountService {
     private readonly security: AuthSecurityService,
   ) {}
 
-  async execute(command: RegisterAccountCommand): Promise<RegistrationResult> {
+  async execute(command: RequestEmailVerificationCommand): Promise<RequestEmailVerificationResult> {
     const now = new Date();
     const normalizedEmail = normalizeEmail(command.email);
     const networkPrefix = this.security.privacySafeNetworkPrefix(command.networkAddress);
     const counters = await this.accounts.incrementAuthCounters({
-      action: 'REGISTRATION',
-      identityKeyHash: this.security.hashSecret(normalizedEmail, 'registration-identity-limit'),
-      networkKeyHash: this.security.hashSecret(networkPrefix, 'registration-network-limit'),
+      action: 'EMAIL_VERIFICATION_REQUEST',
+      identityKeyHash: this.security.hashSecret(
+        normalizedEmail,
+        'email-verification-request-identity-limit',
+      ),
+      networkKeyHash: this.security.hashSecret(
+        networkPrefix,
+        'email-verification-request-network-limit',
+      ),
       now,
       windowMinutes: 60,
     });
@@ -43,36 +49,26 @@ export class RegisterAccountService {
     if (counters.identityCount > 3 || counters.networkCount > 20) {
       return {
         outcome: 'RATE_LIMITED',
-        retryAfterSeconds: secondsUntilNextUtcHour(now),
+        retryAfterSeconds: secondsUntilWindowEnd(now, 60),
       };
     }
 
-    const passwordHash = await this.security.hashPassword(command.password);
     const challengeId = this.security.createIdentifier();
     const verificationCode = this.security.deriveEmailVerificationCode(challengeId);
 
-    await this.accounts.createPendingAccount({
+    await this.accounts.replacePendingVerificationChallenge({
       challengeExpiresAt: new Date(now.getTime() + 24 * 60 * 60 * 1_000),
       challengeId,
       challengeTokenHash: this.security.hashEmailVerificationCode(
         normalizedEmail,
         verificationCode,
       ),
-      emailDisplayValue: toEmailDisplayValue(command.email),
-      identityId: this.security.createIdentifier(),
       normalizedEmail,
-      passwordHash,
-      userId: this.security.createIdentifier(),
+      now,
     });
 
     return {
       outcome: 'ACCEPTED',
     };
   }
-}
-
-function secondsUntilNextUtcHour(now: Date): number {
-  const nextHour = new Date(now);
-  nextHour.setUTCMinutes(60, 0, 0);
-  return Math.max(1, Math.ceil((nextHour.getTime() - now.getTime()) / 1_000));
 }

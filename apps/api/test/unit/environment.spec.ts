@@ -42,6 +42,12 @@ describe('environment validation', () => {
     expect(
       parseWorkerEnvironment({
         ...sharedEnvironment,
+        AUTH_SECURITY_KEY: 'test-only-auth-security-key-32-chars',
+        PUBLIC_ORIGIN: 'http://localhost:3000',
+        SMTP_FROM: 'planner@example.test',
+        SMTP_HOST: 'localhost',
+        SMTP_PORT: '1025',
+        SMTP_SECURE: 'false',
         WORKER_LEASE_MS: '30000',
         WORKER_POLL_INTERVAL_MS: '1000',
       }),
@@ -49,5 +55,18 @@ describe('environment validation', () => {
       WORKER_LEASE_MS: 30_000,
       WORKER_POLL_INTERVAL_MS: 1_000,
     });
+  });
+
+  it('requires SMTP username and password to be configured together', () => {
+    expect(() =>
+      parseWorkerEnvironment({
+        ...sharedEnvironment,
+        AUTH_SECURITY_KEY: 'test-only-auth-security-key-32-chars',
+        PUBLIC_ORIGIN: 'http://localhost:3000',
+        SMTP_FROM: 'planner@example.test',
+        SMTP_HOST: 'localhost',
+        SMTP_USERNAME: 'planner',
+      }),
+    ).toThrow('Invalid environment');
   });
 });

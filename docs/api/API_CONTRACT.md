@@ -6,8 +6,8 @@
 | Planning stage | Stage 6 — API design |
 | Product scope | MVP |
 | Document language | English |
-| Last updated | 2026-07-23 |
-| Implementation status | Not started |
+| Last updated | 2026-07-25 |
+| Implementation status | Partially implemented through BL-008; remaining contract groups are unstarted |
 
 This document defines the conceptual HTTP contract for the approved MVP. It describes observable REST resources, commands, authentication and session behavior, ownership enforcement, concurrency, idempotency, errors, collection semantics, and OpenAPI/client responsibilities. It does not create an OpenAPI file, controller, DTO class, backend module, persistence schema, migration, SQL statement, or production application code.
 
@@ -304,7 +304,7 @@ All private endpoints inherit the ownership and non-disclosure rules in Section 
 | `GET /auth/session` | Public; no private lookup without valid cookie | Returns only the current valid session state. | None. | `200` authenticated boolean and, when authenticated, safe User/session-expiry summary. | `429`, `503`. Invalid cookie is represented as unauthenticated. | FR-003, FR-010, FR-012 |
 | `POST /auth/register` | Public + CSRF; abuse-limited | Never confirms whether normalized email is retained. | Email, password, confirmation, terms acceptance. | `202` generic verification-next-step result. | `422` safe policy errors, `429`, `503`; no duplicate-account disclosure. | FR-001–FR-002, FR-007, AC-001 |
 | `POST /auth/email-verification-requests` | Public + CSRF | Same response for existing, verified, pending, or absent email. | Email. | `202` generic result. | `422` format only, `429`, `503`. | FR-002, FR-007, NFR-002 |
-| `POST /auth/email-verifications` | Public + CSRF; `Idem` | Token is purpose-bound; response does not reveal unrelated identity state. | Single-use verification token. | `200` verified result and safe login/onboarding next step. | `409` already-consumed semantic replay when not idempotently resolved, `422` invalid/expired token, `429`. | FR-002–FR-003, AC-001 |
+| `POST /auth/email-verifications` | Public + CSRF; `Idem` | The manual code is purpose-bound and submitted only in the dedicated body; response does not reveal unrelated identity state. | Normalized email and single-use eight-digit verification code; never a URL/query credential. | `200` verified result and safe login next step without creating a session. | `409` already-consumed or in-progress semantic replay when not idempotently resolved, `422` invalid/expired code or idempotency-key reuse, `429`. | FR-002–FR-003, AC-001; DEC-071 |
 | `POST /auth/sessions` | Public + CSRF | Credential lookup and error are non-enumerating. | Email, password, safe allowlisted return intent. | `200` safe User/session summary; opaque cookie set and rotated. | `401 AUTHENTICATION_FAILED`, `409 EMAIL_VERIFICATION_REQUIRED` only after correct credential proof, `429`. | FR-003, FR-007, NFR-002, AC-001 |
 | `DELETE /auth/session` | Session + CSRF | Invalidates only the current session; already-invalid is safe/idempotent. | None. | `204`; cookie cleared. | `403` CSRF, `429`, `503`. | FR-003, FR-010 |
 | `POST /auth/password-reset-requests` | Public + CSRF | Same response regardless of account or identity existence. | Email. | `202` generic result. | `422` format only, `429`, `503`. | FR-004, FR-007, NFR-002 |

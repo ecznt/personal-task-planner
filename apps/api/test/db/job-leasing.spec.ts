@@ -2,7 +2,7 @@ import { spawnSync } from 'node:child_process';
 import { resolve } from 'node:path';
 
 import { PostgreSqlContainer, type StartedPostgreSqlContainer } from '@testcontainers/postgresql';
-import { afterAll, beforeAll, describe, expect, it } from '@jest/globals';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
 
 import { PrismaService } from '../../src/platform/database/prisma.service';
 import { JobQueueService } from '../../src/platform/jobs/job-queue.service';
@@ -32,6 +32,10 @@ describe('PostgreSQL job leasing', () => {
     jobs = new JobQueueService(prisma);
   });
 
+  beforeEach(async () => {
+    await prisma.job.deleteMany();
+  });
+
   afterAll(async () => {
     await prisma?.$disconnect();
     await container?.stop();
@@ -41,6 +45,31 @@ describe('PostgreSQL job leasing', () => {
     const id = await jobs.enqueueSynthetic({
       proof: 'single-claim',
     });
+    const eligibility = await prisma.$queryRaw<
+      {
+        readonly availableAt: Date;
+        readonly databaseNow: Date;
+        readonly eligible: boolean;
+        readonly id: bigint;
+        readonly state: string;
+      }[]
+    >`
+      SELECT
+        "id",
+        "state"::text,
+        "availableAt",
+        "availableAt" <= NOW() AS "eligible",
+        NOW() AS "databaseNow"
+      FROM "Job"
+      WHERE "id" = ${id}
+    `;
+    expect(eligibility).toEqual([
+      expect.objectContaining({
+        id,
+        eligible: true,
+        state: 'PENDING',
+      }),
+    ]);
     const [first, second] = await Promise.all([
       jobs.claimNext({
         leaseMilliseconds: 30_000,
@@ -95,5 +124,46 @@ describe('PostgreSQL job leasing', () => {
       throw new Error('Expected the expired lease to be recovered');
     }
     await expect(jobs.complete(recovered)).resolves.toBe(true);
+  });
+
+  it('uses bounded retry and marks a job failed after five attempts', async () => {
+    const id = await jobs.enqueueSynthetic({
+      proof: 'bounded-retry',
+    });
+
+    for (let expectedAttempt = 1; expectedAttempt <= 5; expectedAttempt += 1) {
+      const leased = await jobs.claimNext({
+        leaseMilliseconds: 30_000,
+        workerId: 'worker-a',
+      });
+      expect(leased).toMatchObject({
+        attemptCount: expectedAttempt,
+        id,
+      });
+      if (leased === null) {
+        throw new Error('Expected a leased retry job');
+      }
+
+      await expect(jobs.fail(leased, 'EMAIL_DELIVERY_FAILED')).resolves.toBe(
+        expectedAttempt === 5 ? 'FAILED' : 'RETRY_SCHEDULED',
+      );
+
+      if (expectedAttempt < 5) {
+        await prisma.job.update({
+          data: {
+            availableAt: new Date(Date.now() - 1_000),
+          },
+          where: {
+            id,
+          },
+        });
+      }
+    }
+
+    await expect(prisma.job.findUniqueOrThrow({ where: { id } })).resolves.toMatchObject({
+      attemptCount: 5,
+      lastErrorCategory: 'EMAIL_DELIVERY_FAILED',
+      state: 'FAILED',
+    });
   });
 });

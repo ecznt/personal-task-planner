@@ -2,6 +2,7 @@ import { MailCheck } from 'lucide-react';
 import type { Metadata } from 'next';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { EmailVerificationForm } from '@/features/auth/email-verification-form';
 
 export const metadata: Metadata = {
   title: 'E-postanızı doğrulayın | Kişisel İş Planlayıcı',
@@ -15,15 +16,13 @@ export default function VerifyEmailPage() {
           <div className="mb-2 flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
             <MailCheck aria-hidden="true" />
           </div>
-          <CardTitle>E-postanızı kontrol edin</CardTitle>
-          <CardDescription>
-            Hesabınız varsa veya yeni oluşturulduysa doğrulama adımlarını e-posta ile alacaksınız.
-          </CardDescription>
+          <CardTitle role="heading" aria-level={1}>
+            E-postanızı kontrol edin
+          </CardTitle>
+          <CardDescription>E-posta adresinizi ve gelen 8 haneli kodu girin.</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Bu ekran e-posta adresinin sistemde bulunup bulunmadığını açıklamaz.
-          </p>
+          <EmailVerificationForm />
         </CardContent>
       </Card>
     </main>

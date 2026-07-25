@@ -4,7 +4,7 @@ import { isIP } from 'node:net';
 import { hash } from '@node-rs/argon2';
 import { Injectable } from '@nestjs/common';
 
-import { parseApiEnvironment } from '../../../platform/config/environment';
+import { parseSecurityEnvironment } from '../../../platform/config/environment';
 
 const argon2idOptions = {
   algorithm: 2,
@@ -16,7 +16,7 @@ const argon2idOptions = {
 
 @Injectable()
 export class AuthSecurityService {
-  private readonly environment = parseApiEnvironment();
+  private readonly environment = parseSecurityEnvironment();
 
   createOpaqueToken(): string {
     return randomBytes(32).toString('base64url');
@@ -32,8 +32,17 @@ export class AuthSecurityService {
       .digest('base64url');
   }
 
-  deriveEmailVerificationToken(challengeId: string): string {
-    return this.hashSecret(challengeId, 'email-verification-token');
+  deriveEmailVerificationCode(challengeId: string): string {
+    const digest = createHmac('sha256', this.environment.AUTH_SECURITY_KEY)
+      .update(`email-verification-code\0${challengeId}`, 'utf8')
+      .digest();
+    const numericCode = digest.readUInt32BE(0) % 100_000_000;
+
+    return numericCode.toString().padStart(8, '0');
+  }
+
+  hashEmailVerificationCode(normalizedEmail: string, code: string): string {
+    return this.hashSecret(`${normalizedEmail}\0${code}`, 'email-verification-storage');
   }
 
   hashPassword(password: string): Promise<string> {

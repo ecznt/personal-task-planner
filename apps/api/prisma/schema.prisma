@@ -32,6 +32,13 @@ enum IdentityVerificationState {
 
 enum AuthAbuseAction {
   REGISTRATION
+  EMAIL_VERIFICATION_REQUEST
+  EMAIL_VERIFICATION_CONFIRMATION
+}
+
+enum IdempotencyState {
+  PROCESSING
+  COMPLETED
 }
 
 model Job {
@@ -39,7 +46,7 @@ model Job {
   type              String
   payload           Json
   state             JobState  @default(PENDING)
-  availableAt       DateTime  @default(now()) @db.Timestamptz(3)
+  availableAt       DateTime  @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamptz(3)
   attemptCount      Int       @default(0)
   leaseOwner        String?
   leaseToken        String?   @db.Uuid
@@ -75,6 +82,7 @@ model AuthenticationIdentity {
   verificationState      IdentityVerificationState    @default(PENDING)
   enabled                Boolean                      @default(true)
   passwordHash           String
+  verifiedAt             DateTime?                    @db.Timestamptz(3)
   lastAuthenticatedAt    DateTime?                    @db.Timestamptz(3)
   disabledAt             DateTime?                    @db.Timestamptz(3)
   disabledReason         String?
@@ -93,6 +101,7 @@ model EmailVerificationChallenge {
   tokenHash                String                 @unique(map: "email_verification_challenge_token_hash_key")
   expiresAt                DateTime               @db.Timestamptz(3)
   consumedAt               DateTime?              @db.Timestamptz(3)
+  invalidatedAt            DateTime?              @db.Timestamptz(3)
   createdAt                DateTime               @default(now()) @db.Timestamptz(3)
   authenticationIdentity   AuthenticationIdentity @relation(fields: [authenticationIdentityId], references: [id], onDelete: Cascade)
 
@@ -124,4 +133,21 @@ model AuthAbuseCounter {
   @@unique([action, keyHash, windowStartedAt], map: "auth_abuse_counter_window_key")
   @@index([expiresAt], map: "auth_abuse_counter_expiry_idx")
   @@map("auth_abuse_counters")
+}
+
+model IdempotencyRecord {
+  id                 String           @id @default(uuid()) @db.Uuid
+  keyHash            String           @unique(map: "idempotency_record_key_hash_key")
+  requestFingerprint String
+  method             String
+  route              String
+  state              IdempotencyState @default(PROCESSING)
+  responseStatus     Int?
+  responseBody       Json?
+  expiresAt          DateTime         @db.Timestamptz(3)
+  createdAt          DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt          DateTime         @updatedAt @db.Timestamptz(3)
+
+  @@index([expiresAt], map: "idempotency_record_expiry_idx")
+  @@map("idempotency_records")
 }

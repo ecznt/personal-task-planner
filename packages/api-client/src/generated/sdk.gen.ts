@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetAuthCsrfData, GetAuthCsrfResponses, GetVersionData, GetVersionResponses, RegisterAccountData, RegisterAccountErrors, RegisterAccountResponses } from './types.gen';
+import type { GetAuthCsrfData, GetAuthCsrfResponses, GetVersionData, GetVersionResponses, RegisterAccountData, RegisterAccountErrors, RegisterAccountResponses, RequestEmailVerificationData, RequestEmailVerificationErrors, RequestEmailVerificationResponses, VerifyEmailData, VerifyEmailErrors, VerifyEmailResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -22,6 +22,30 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
  * Issue a CSRF token for an anonymous authentication transaction
  */
 export const getAuthCsrf = <ThrowOnError extends boolean = false>(options?: Options<GetAuthCsrfData, ThrowOnError>): RequestResult<GetAuthCsrfResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetAuthCsrfResponses, unknown, ThrowOnError>({ url: '/api/v1/auth/csrf', ...options });
+
+/**
+ * Request a fresh verification email without account enumeration
+ */
+export const requestEmailVerification = <ThrowOnError extends boolean = false>(options: Options<RequestEmailVerificationData, ThrowOnError>): RequestResult<RequestEmailVerificationResponses, RequestEmailVerificationErrors, ThrowOnError> => (options.client ?? client).post<RequestEmailVerificationResponses, RequestEmailVerificationErrors, ThrowOnError>({
+    url: '/api/v1/auth/email-verification-requests',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Verify a pending email identity with a manual code
+ */
+export const verifyEmail = <ThrowOnError extends boolean = false>(options: Options<VerifyEmailData, ThrowOnError>): RequestResult<VerifyEmailResponses, VerifyEmailErrors, ThrowOnError> => (options.client ?? client).post<VerifyEmailResponses, VerifyEmailErrors, ThrowOnError>({
+    url: '/api/v1/auth/email-verifications',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
 /**
  * Submit an email/password registration without account enumeration

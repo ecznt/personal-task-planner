@@ -6,6 +6,8 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from '@jest/glo
 
 import { CsrfService } from '../../src/modules/accounts/application/csrf.service';
 import { RegisterAccountService } from '../../src/modules/accounts/application/register-account.service';
+import { RequestEmailVerificationService } from '../../src/modules/accounts/application/request-email-verification.service';
+import { VerifyEmailService } from '../../src/modules/accounts/application/verify-email.service';
 import { AccountsRepository } from '../../src/modules/accounts/infrastructure/accounts.repository';
 import { AuthSecurityService } from '../../src/modules/accounts/security/auth-security.service';
 import { PrismaService } from '../../src/platform/database/prisma.service';
@@ -15,6 +17,9 @@ describe('registration persistence', () => {
   let csrf: CsrfService;
   let prisma: PrismaService;
   let registration: RegisterAccountService;
+  let requestVerification: RequestEmailVerificationService;
+  let security: AuthSecurityService;
+  let verification: VerifyEmailService;
 
   beforeAll(async () => {
     container = await new PostgreSqlContainer('postgres:18.3-alpine').start();
@@ -34,14 +39,18 @@ describe('registration persistence', () => {
     prisma = new PrismaService();
     await prisma.$connect();
     const repository = new AccountsRepository(prisma);
-    const security = new AuthSecurityService();
+    security = new AuthSecurityService();
     csrf = new CsrfService(repository, security);
     registration = new RegisterAccountService(repository, security);
+    requestVerification = new RequestEmailVerificationService(repository, security);
+    verification = new VerifyEmailService(repository, security);
   });
 
   beforeEach(async () => {
     await prisma.authAbuseCounter.deleteMany();
     await prisma.anonymousAuthTransaction.deleteMany();
+    await prisma.idempotencyRecord.deleteMany();
+    await prisma.job.deleteMany();
     await prisma.emailVerificationChallenge.deleteMany();
     await prisma.authenticationIdentity.deleteMany();
     await prisma.user.deleteMany();
@@ -81,6 +90,16 @@ describe('registration persistence', () => {
     expect(identity.verificationState).toBe('PENDING');
     expect(identity.passwordHash.startsWith('$argon2id$')).toBe(true);
     expect(identity.passwordHash).not.toContain(command.password);
+
+    const challenge = await prisma.emailVerificationChallenge.findFirstOrThrow();
+    const queued = await prisma.job.findFirstOrThrow();
+    expect(queued.payload).toEqual({
+      challengeId: challenge.id,
+    });
+    expect(JSON.stringify(queued.payload)).not.toContain(identity.normalizedEmail);
+    expect(JSON.stringify(queued.payload)).not.toContain(
+      security.deriveEmailVerificationCode(challenge.id),
+    );
   });
 
   it('stores only HMAC-derived CSRF transaction values', async () => {
@@ -91,5 +110,123 @@ describe('registration persistence', () => {
     expect(persisted.csrfTokenHash).not.toBe(issued.csrfToken);
     await expect(csrf.isValid(issued.browserToken, issued.csrfToken)).resolves.toBe(true);
     await expect(csrf.isValid(issued.browserToken, 'wrong-token')).resolves.toBe(false);
+  });
+
+  it('activates a pending identity once and replays an identical idempotent request', async () => {
+    await registration.execute({
+      email: 'user@example.com',
+      networkAddress: '192.0.2.14',
+      password: 'correct horse battery staple',
+    });
+    const challenge = await prisma.emailVerificationChallenge.findFirstOrThrow();
+    const command = {
+      code: security.deriveEmailVerificationCode(challenge.id),
+      email: 'user@example.com',
+      idempotencyKey: '018f9f7c-0000-7000-8000-000000000001',
+      networkAddress: '192.0.2.14',
+    };
+
+    await expect(verification.execute(command)).resolves.toMatchObject({
+      outcome: 'VERIFIED',
+    });
+    await expect(verification.execute(command)).resolves.toMatchObject({
+      outcome: 'REPLAYED',
+    });
+
+    const identity = await prisma.authenticationIdentity.findFirstOrThrow();
+    expect(identity.verificationState).toBe('ACTIVE');
+    expect(identity.verifiedAt).toEqual(expect.any(Date));
+    expect((await prisma.emailVerificationChallenge.findFirstOrThrow()).consumedAt).toEqual(
+      expect.any(Date),
+    );
+    expect(await prisma.idempotencyRecord.count()).toBe(1);
+  });
+
+  it('invalidates earlier unused codes when a new verification email is requested', async () => {
+    await registration.execute({
+      email: 'user@example.com',
+      networkAddress: '192.0.2.14',
+      password: 'correct horse battery staple',
+    });
+    const original = await prisma.emailVerificationChallenge.findFirstOrThrow();
+    const originalCode = security.deriveEmailVerificationCode(original.id);
+
+    await expect(
+      requestVerification.execute({
+        email: 'user@example.com',
+        networkAddress: '192.0.2.14',
+      }),
+    ).resolves.toEqual({
+      outcome: 'ACCEPTED',
+    });
+
+    expect(await prisma.emailVerificationChallenge.count()).toBe(2);
+    await expect(
+      prisma.emailVerificationChallenge.findUniqueOrThrow({
+        where: {
+          id: original.id,
+        },
+      }),
+    ).resolves.toMatchObject({
+      invalidatedAt: expect.any(Date),
+    });
+    const replacement = await prisma.emailVerificationChallenge.findFirstOrThrow({
+      where: {
+        id: {
+          not: original.id,
+        },
+      },
+    });
+
+    const invalidatedCommand = {
+      code: originalCode,
+      email: 'user@example.com',
+      idempotencyKey: '018f9f7c-0000-7000-8000-000000000002',
+      networkAddress: '192.0.2.14',
+    };
+    await expect(verification.execute(invalidatedCommand)).resolves.toEqual({
+      outcome: 'INVALID_OR_EXPIRED',
+    });
+    await expect(verification.execute(invalidatedCommand)).resolves.toEqual({
+      outcome: 'INVALID_OR_EXPIRED',
+    });
+    await expect(
+      verification.execute({
+        code: security.deriveEmailVerificationCode(replacement.id),
+        email: 'user@example.com',
+        idempotencyKey: '018f9f7c-0000-7000-8000-000000000003',
+        networkAddress: '192.0.2.14',
+      }),
+    ).resolves.toMatchObject({
+      outcome: 'VERIFIED',
+    });
+  });
+
+  it('leaves only one usable challenge after concurrent resend requests', async () => {
+    await registration.execute({
+      email: 'user@example.com',
+      networkAddress: '192.0.2.14',
+      password: 'correct horse battery staple',
+    });
+
+    await Promise.all([
+      requestVerification.execute({
+        email: 'user@example.com',
+        networkAddress: '192.0.2.14',
+      }),
+      requestVerification.execute({
+        email: 'user@example.com',
+        networkAddress: '192.0.2.15',
+      }),
+    ]);
+
+    const challenges = await prisma.emailVerificationChallenge.findMany();
+    const usableChallenges = challenges.filter(
+      (challenge) => challenge.consumedAt === null && challenge.invalidatedAt === null,
+    );
+
+    expect(challenges).toHaveLength(3);
+    expect(usableChallenges).toHaveLength(1);
+    expect(await prisma.job.count()).toBe(3);
   });
 });

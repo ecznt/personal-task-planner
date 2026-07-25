@@ -29,6 +29,45 @@
         ],
         "type": "object"
       },
+      "EmailVerificationRequestAcceptedDataDto": {
+        "properties": {
+          "status": {
+            "enum": [
+              "VERIFICATION_EMAIL_SENT_IF_ELIGIBLE"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "type": "object"
+      },
+      "EmailVerificationRequestAcceptedResponseDto": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/EmailVerificationRequestAcceptedDataDto"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "EmailVerificationRequestDto": {
+        "properties": {
+          "email": {
+            "example": "kullanici@example.com",
+            "format": "email",
+            "maxLength": 254,
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "type": "object"
+      },
       "RegisterAccountRequestDto": {
         "properties": {
           "email": {
@@ -96,6 +135,59 @@
         ],
         "type": "object"
       },
+      "VerifyEmailDataDto": {
+        "properties": {
+          "next": {
+            "example": "/login",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "VERIFIED"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "next"
+        ],
+        "type": "object"
+      },
+      "VerifyEmailRequestDto": {
+        "properties": {
+          "code": {
+            "example": "12345678",
+            "maxLength": 8,
+            "minLength": 8,
+            "pattern": "^\\d{8}$",
+            "type": "string",
+            "writeOnly": true
+          },
+          "email": {
+            "example": "kullanici@example.com",
+            "format": "email",
+            "maxLength": 254,
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "code"
+        ],
+        "type": "object"
+      },
+      "VerifyEmailResponseDto": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/VerifyEmailDataDto"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
       "VersionResponseDto": {
         "properties": {
           "version": {
@@ -135,6 +227,112 @@
           }
         },
         "summary": "Issue a CSRF token for an anonymous authentication transaction",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/email-verification-requests": {
+      "post": {
+        "operationId": "requestEmailVerification",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailVerificationRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailVerificationRequestAcceptedResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "422": {
+            "description": "Safe validation details."
+          },
+          "429": {
+            "description": "Generic verification request rate limit."
+          }
+        },
+        "summary": "Request a fresh verification email without account enumeration",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/email-verifications": {
+      "post": {
+        "operationId": "verifyEmail",
+        "parameters": [
+          {
+            "description": "A unique key for this verification attempt.",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyEmailRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyEmailResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "409": {
+            "description": "The code was already used or the idempotent request is still processing."
+          },
+          "422": {
+            "description": "Safe validation or invalid/expired-code details."
+          },
+          "429": {
+            "description": "Generic verification rate limit."
+          }
+        },
+        "summary": "Verify a pending email identity with a manual code",
         "tags": [
           "Authentication"
         ]

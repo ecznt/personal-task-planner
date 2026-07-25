@@ -16,6 +16,18 @@ export type CsrfTokenResponseDto = {
     data: CsrfTokenDataDto;
 };
 
+export type EmailVerificationRequestAcceptedDataDto = {
+    status: 'VERIFICATION_EMAIL_SENT_IF_ELIGIBLE';
+};
+
+export type EmailVerificationRequestAcceptedResponseDto = {
+    data: EmailVerificationRequestAcceptedDataDto;
+};
+
+export type EmailVerificationRequestDto = {
+    email: string;
+};
+
 export type RegisterAccountRequestDto = {
     email: string;
     termsAccepted: true;
@@ -30,6 +42,19 @@ export type RegistrationAcceptedResponseDto = {
     data: RegistrationAcceptedDataDto;
 };
 
+export type VerifyEmailDataDto = {
+    next: string;
+    status: 'VERIFIED';
+};
+
+export type VerifyEmailRequestDto = {
+    email: string;
+};
+
+export type VerifyEmailResponseDto = {
+    data: VerifyEmailDataDto;
+};
+
 export type VersionResponseDto = {
     version: string;
 };
@@ -39,6 +64,11 @@ export type RegisterAccountRequestDtoWritable = {
     password: string;
     passwordConfirmation: string;
     termsAccepted: true;
+};
+
+export type VerifyEmailRequestDtoWritable = {
+    code: string;
+    email: string;
 };
 
 export type GetAuthCsrfData = {
@@ -53,6 +83,68 @@ export type GetAuthCsrfResponses = {
 };
 
 export type GetAuthCsrfResponse = GetAuthCsrfResponses[keyof GetAuthCsrfResponses];
+
+export type RequestEmailVerificationData = {
+    body: EmailVerificationRequestDto;
+    headers: {
+        'X-CSRF-Token': string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/email-verification-requests';
+};
+
+export type RequestEmailVerificationErrors = {
+    /**
+     * Safe validation details.
+     */
+    422: unknown;
+    /**
+     * Generic verification request rate limit.
+     */
+    429: unknown;
+};
+
+export type RequestEmailVerificationResponses = {
+    202: EmailVerificationRequestAcceptedResponseDto;
+};
+
+export type RequestEmailVerificationResponse = RequestEmailVerificationResponses[keyof RequestEmailVerificationResponses];
+
+export type VerifyEmailData = {
+    body: VerifyEmailRequestDtoWritable;
+    headers: {
+        /**
+         * A unique key for this verification attempt.
+         */
+        'Idempotency-Key': string;
+        'X-CSRF-Token': string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/email-verifications';
+};
+
+export type VerifyEmailErrors = {
+    /**
+     * The code was already used or the idempotent request is still processing.
+     */
+    409: unknown;
+    /**
+     * Safe validation or invalid/expired-code details.
+     */
+    422: unknown;
+    /**
+     * Generic verification rate limit.
+     */
+    429: unknown;
+};
+
+export type VerifyEmailResponses = {
+    200: VerifyEmailResponseDto;
+};
+
+export type VerifyEmailResponse = VerifyEmailResponses[keyof VerifyEmailResponses];
 
 export type RegisterAccountData = {
     body: RegisterAccountRequestDtoWritable;

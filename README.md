@@ -1,9 +1,9 @@
 # Personal Task Planner
 
 This repository contains the approved planning baseline and the Phase 3 modular-monolith
-workspace. Product features have not started. The first implementation slice establishes
-only reproducible tooling, composition roots, PostgreSQL/Prisma infrastructure, generated
-OpenAPI transport, and enforceable quality gates.
+workspace. The implemented authentication slices currently cover non-enumerating
+email/password registration and manual email verification. Login, sessions, recovery,
+account deletion, onboarding, and planning features have not started.
 
 ## Start here
 
@@ -11,10 +11,10 @@ OpenAPI transport, and enforceable quality gates.
 2. Read the current story in [`docs/planning/BACKLOG.md`](docs/planning/BACKLOG.md).
 3. Use Node.js `24.18.0` and pnpm `11.9.0`.
 4. Copy `.env.example` to an untracked `.env`.
-5. Start PostgreSQL and install dependencies:
+5. Start PostgreSQL plus the local Mailpit SMTP capture service and install dependencies:
 
    ```sh
-   docker-compose up -d postgres
+   docker-compose up -d postgres mailpit
    pnpm install --frozen-lockfile
    pnpm prisma:generate
    pnpm prisma:migrate:deploy
@@ -28,8 +28,9 @@ OpenAPI transport, and enforceable quality gates.
    pnpm --filter @planner/api dev:worker
    ```
 
-The web shell listens on `http://127.0.0.1:3000`. API liveness and readiness are
-`http://127.0.0.1:3001/health/live` and `/health/ready`.
+The web app listens on `http://127.0.0.1:3000`. API liveness and readiness are
+`http://127.0.0.1:3001/health/live` and `/health/ready`. Mailpit captures development
+verification email at `http://127.0.0.1:8025`; it is not a production provider.
 
 ## Required checks
 
@@ -51,6 +52,5 @@ docker-compose config
 reviewed artifacts. Regenerate them with `pnpm openapi:generate` and
 `pnpm api-client:generate`; `pnpm test:contract` verifies deterministic output.
 
-Do not add product tables, authentication, or task behavior while working on the
-foundation story. Do not commit real `.env` files, credentials, private keys, or
-`graphify-out/cost.json`.
+Do not begin a backlog story without its approved implementation plan. Do not commit real
+`.env` files, credentials, private keys, or `graphify-out/cost.json`.

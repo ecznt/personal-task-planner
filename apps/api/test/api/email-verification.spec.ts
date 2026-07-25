@@ -14,14 +14,17 @@ import { AnonymousCsrfGuard } from '../../src/modules/accounts/transport/anonymo
 import { AuthController } from '../../src/modules/accounts/transport/auth.controller';
 import { ProblemDetailsFilter } from '../../src/platform/http/problem-details.filter';
 
-describe('registration HTTP contract', () => {
+describe('email verification HTTP contract', () => {
   let app: INestApplication;
   const csrf = {
     isValid: jest.fn<CsrfService['isValid']>(),
     issue: jest.fn<CsrfService['issue']>(),
   };
-  const registration = {
-    execute: jest.fn<RegisterAccountService['execute']>(),
+  const requestVerification = {
+    execute: jest.fn<RequestEmailVerificationService['execute']>(),
+  };
+  const verification = {
+    execute: jest.fn<VerifyEmailService['execute']>(),
   };
 
   beforeAll(async () => {
@@ -35,19 +38,17 @@ describe('registration HTTP contract', () => {
         },
         {
           provide: RegisterAccountService,
-          useValue: registration,
+          useValue: {
+            execute: jest.fn(),
+          },
         },
         {
           provide: RequestEmailVerificationService,
-          useValue: {
-            execute: jest.fn(),
-          },
+          useValue: requestVerification,
         },
         {
           provide: VerifyEmailService,
-          useValue: {
-            execute: jest.fn(),
-          },
+          useValue: verification,
         },
       ],
     }).compile();
@@ -59,14 +60,24 @@ describe('registration HTTP contract', () => {
   });
 
   beforeEach(() => {
+    jest.clearAllMocks();
     csrf.issue.mockResolvedValue({
       browserToken: 'browser-secret',
       csrfToken: 'csrf-secret',
       expiresAt: new Date(Date.now() + 30 * 60 * 1_000),
     });
     csrf.isValid.mockResolvedValue(true);
-    registration.execute.mockResolvedValue({
+    requestVerification.execute.mockResolvedValue({
       outcome: 'ACCEPTED',
+    });
+    verification.execute.mockResolvedValue({
+      outcome: 'VERIFIED',
+      response: {
+        data: {
+          next: '/login',
+          status: 'VERIFIED',
+        },
+      },
     });
   });
 
@@ -74,130 +85,124 @@ describe('registration HTTP contract', () => {
     await app.close();
   });
 
-  it('issues a non-cacheable CSRF token bound to an HttpOnly browser cookie', async () => {
-    const response = await request(app.getHttpServer()).get('/api/v1/auth/csrf').expect(200);
-
-    expect(response.headers['cache-control']).toBe('no-store');
-    expect(response.headers['set-cookie']?.[0]).toContain('HttpOnly');
-    expect(response.headers['set-cookie']?.[0]).toContain('SameSite=Lax');
-    expect(response.body).toMatchObject({
-      data: {
-        token: 'csrf-secret',
-      },
-    });
-    expect(JSON.stringify(response.body)).not.toContain('browser-secret');
-  });
-
-  it('returns one generic accepted shape for different valid emails', async () => {
+  it('returns the same resend response without disclosing account state', async () => {
     const agent = request.agent(app.getHttpServer());
     const csrfResponse = await agent.get('/api/v1/auth/csrf').expect(200);
-    const token = csrfResponse.body.data.token as string;
-    const payload = {
-      password: 'twelve-chars!',
-      passwordConfirmation: 'twelve-chars!',
-      termsAccepted: true,
+    const headers = {
+      Origin: 'http://127.0.0.1:3000',
+      'X-CSRF-Token': csrfResponse.body.data.token as string,
     };
 
     const first = await agent
-      .post('/api/v1/auth/register')
-      .set('Origin', 'http://127.0.0.1:3000')
-      .set('X-CSRF-Token', token)
-      .send({
-        ...payload,
-        email: 'new@example.com',
-      })
+      .post('/api/v1/auth/email-verification-requests')
+      .set(headers)
+      .send({ email: 'pending@example.com' })
       .expect(202);
     const second = await agent
-      .post('/api/v1/auth/register')
-      .set('Origin', 'http://127.0.0.1:3000')
-      .set('X-CSRF-Token', token)
-      .send({
-        ...payload,
-        email: 'retained@example.com',
-      })
+      .post('/api/v1/auth/email-verification-requests')
+      .set(headers)
+      .send({ email: 'missing@example.com' })
       .expect(202);
 
     expect(first.body).toEqual(second.body);
     expect(first.body).toEqual({
       data: {
-        next: '/verify-email',
-        status: 'VERIFICATION_REQUIRED',
+        status: 'VERIFICATION_EMAIL_SENT_IF_ELIGIBLE',
       },
     });
+    expect(first.headers['cache-control']).toBe('no-store');
   });
 
-  it('rejects invalid origins without probing registration state', async () => {
+  it('requires CSRF and Idempotency-Key and passes the code only in the body', async () => {
     const agent = request.agent(app.getHttpServer());
     const csrfResponse = await agent.get('/api/v1/auth/csrf').expect(200);
 
     const response = await agent
-      .post('/api/v1/auth/register')
-      .set('Origin', 'https://attacker.example')
+      .post('/api/v1/auth/email-verifications')
+      .set('Origin', 'http://127.0.0.1:3000')
       .set('X-CSRF-Token', csrfResponse.body.data.token as string)
+      .set('Idempotency-Key', '018f9f7c-0000-7000-8000-000000000001')
       .send({
+        code: '12345678',
         email: 'user@example.com',
-        password: 'twelve-chars!',
-        passwordConfirmation: 'twelve-chars!',
-        termsAccepted: true,
       })
-      .expect(403);
+      .expect(200);
 
-    expect(response.body).toMatchObject({
-      code: 'REQUEST_FORBIDDEN',
-      status: 403,
+    expect(verification.execute).toHaveBeenCalledWith({
+      code: '12345678',
+      email: 'user@example.com',
+      idempotencyKey: '018f9f7c-0000-7000-8000-000000000001',
+      networkAddress: expect.anything(),
     });
-    expect(registration.execute).not.toHaveBeenCalled();
-  });
+    expect(response.body).toEqual({
+      data: {
+        next: '/login',
+        status: 'VERIFIED',
+      },
+    });
+    expect(response.headers['cache-control']).toBe('no-store');
 
-  it('returns safe 422 details without password echo', async () => {
-    const agent = request.agent(app.getHttpServer());
-    const csrfResponse = await agent.get('/api/v1/auth/csrf').expect(200);
-    const rejectedPassword = 'private-value';
-
-    const response = await agent
-      .post('/api/v1/auth/register')
+    const missingKey = await agent
+      .post('/api/v1/auth/email-verifications')
       .set('Origin', 'http://127.0.0.1:3000')
       .set('X-CSRF-Token', csrfResponse.body.data.token as string)
       .send({
-        email: 'invalid',
-        password: rejectedPassword,
-        passwordConfirmation: 'different-value',
-        termsAccepted: false,
+        code: '12345678',
+        email: 'user@example.com',
       })
       .expect(422);
 
-    expect(response.body).toMatchObject({
+    expect(missingKey.body).toMatchObject({
       code: 'VALIDATION_FAILED',
-      errors: expect.any(Array),
-      status: 422,
+      errors: [
+        expect.objectContaining({
+          path: '/headers/idempotency-key',
+        }),
+      ],
     });
-    expect(JSON.stringify(response.body)).not.toContain(rejectedPassword);
   });
 
-  it('returns a generic rate-limit problem with Retry-After', async () => {
-    registration.execute.mockResolvedValue({
-      outcome: 'RATE_LIMITED',
-      retryAfterSeconds: 120,
-    });
+  it.each([
+    {
+      code: 'VERIFICATION_INVALID_OR_EXPIRED',
+      outcome: 'INVALID_OR_EXPIRED',
+      status: 422,
+    },
+    {
+      code: 'VERIFICATION_ALREADY_USED',
+      outcome: 'ALREADY_USED',
+      status: 409,
+    },
+    {
+      code: 'IDEMPOTENCY_KEY_REUSED',
+      outcome: 'IDEMPOTENCY_KEY_REUSED',
+      status: 422,
+    },
+    {
+      code: 'IDEMPOTENCY_IN_PROGRESS',
+      outcome: 'IDEMPOTENCY_IN_PROGRESS',
+      status: 409,
+    },
+  ] as const)('maps $outcome to a safe problem', async ({ outcome, status, code }) => {
+    verification.execute.mockResolvedValueOnce({ outcome });
     const agent = request.agent(app.getHttpServer());
     const csrfResponse = await agent.get('/api/v1/auth/csrf').expect(200);
 
     const response = await agent
-      .post('/api/v1/auth/register')
+      .post('/api/v1/auth/email-verifications')
       .set('Origin', 'http://127.0.0.1:3000')
       .set('X-CSRF-Token', csrfResponse.body.data.token as string)
+      .set('Idempotency-Key', `018f9f7c-0000-7000-8000-${outcome}`)
       .send({
+        code: '12345678',
         email: 'user@example.com',
-        password: 'twelve-chars!',
-        passwordConfirmation: 'twelve-chars!',
-        termsAccepted: true,
       })
-      .expect(429);
+      .expect(status);
 
-    expect(response.headers['retry-after']).toBe('120');
     expect(response.body).toMatchObject({
-      code: 'RATE_LIMITED',
-      retryAfterSeconds: 120,
+      code,
+      status,
     });
+    expect(JSON.stringify(response.body)).not.toContain('12345678');
   });
 });

@@ -51,9 +51,9 @@ describe('email/password registration rules', () => {
   it('returns the same accepted outcome when persistence reports a retained account', async () => {
     const accounts = {
       createPendingAccount: jest.fn<AccountsRepository['createPendingAccount']>(),
-      incrementRegistrationCounters: jest.fn<AccountsRepository['incrementRegistrationCounters']>(),
+      incrementAuthCounters: jest.fn<AccountsRepository['incrementAuthCounters']>(),
     };
-    accounts.incrementRegistrationCounters.mockResolvedValue({
+    accounts.incrementAuthCounters.mockResolvedValue({
       identityCount: 1,
       networkCount: 1,
     });
@@ -64,9 +64,12 @@ describe('email/password registration rules', () => {
         .mockReturnValueOnce('challenge-id')
         .mockReturnValueOnce('identity-id')
         .mockReturnValueOnce('user-id'),
-      deriveEmailVerificationToken: jest
-        .fn<AuthSecurityService['deriveEmailVerificationToken']>()
-        .mockReturnValue('verification-token'),
+      deriveEmailVerificationCode: jest
+        .fn<AuthSecurityService['deriveEmailVerificationCode']>()
+        .mockReturnValue('12345678'),
+      hashEmailVerificationCode: jest
+        .fn<AuthSecurityService['hashEmailVerificationCode']>()
+        .mockReturnValue('verification-code-hash'),
       hashPassword: jest
         .fn<AuthSecurityService['hashPassword']>()
         .mockResolvedValue('argon2id-hash'),
@@ -97,8 +100,8 @@ describe('email/password registration rules', () => {
   it('does not perform password hashing after the privacy-safe rate limit is exceeded', async () => {
     const accounts = {
       createPendingAccount: jest.fn<AccountsRepository['createPendingAccount']>(),
-      incrementRegistrationCounters: jest
-        .fn<AccountsRepository['incrementRegistrationCounters']>()
+      incrementAuthCounters: jest
+        .fn<AccountsRepository['incrementAuthCounters']>()
         .mockResolvedValue({
           identityCount: 4,
           networkCount: 4,

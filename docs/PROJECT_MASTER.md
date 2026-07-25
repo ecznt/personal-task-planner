@@ -5,7 +5,7 @@
 | Repository | `ecznt/personal-task-planner` |
 | Document role | Authoritative planning index and decision record |
 | Document language | English |
-| Last updated | 2026-07-23 |
+| Last updated | 2026-07-25 |
 
 ## Product vision
 
@@ -185,6 +185,7 @@ Every stage requires explicit user approval before the next stage begins.
 | DEC-068 | 2026-07-23 | Confirm `@hey-api/openapi-ts@0.99.0` with `typescript@5.9.3` and its Fetch client as the initial generated-client profile. Use explicit same-origin Fetch credentials without a session-cookie auth callback, read response headers through native `Response.headers`, and retain the `js-yaml@4.3.0` security override until a dedicated upgrade reruns `SPIKE-001`. | Approved by completed technical spike | `SPIKE-001`; ADR-002 |
 | DEC-069 | 2026-07-23 | Implement EPIC-001 as the repository foundation only: pin Node.js 24.18.0 and pnpm 11.9.0; keep TypeScript `strict`; use the approved Next.js, NestJS, PostgreSQL 18, Prisma 7, OpenAPI/client, worker-lease, test, CI, logging, and Graphify boundaries; and defer every product feature to later epics. Pin ESLint 9.39.5 for current accessibility-plugin compatibility and use reviewed transitive overrides to keep the dependency audit clear. | Approved implementation plan; implemented and locally verified | User approval of the EPIC-001 implementation plan; BL-001–BL-006 |
 | DEC-070 | 2026-07-25 | Implement BL-007 as the first Authentication vertical slice: provide Turkish email/password registration with generic retained-email outcomes, a pending User and email/password AuthenticationIdentity, a hashed 24-hour verification challenge for BL-008, Argon2id password hashing, persistent identity/network abuse counters, anonymous CSRF and strict-origin protection, generated OpenAPI/client updates, and no login, session, social-authentication, planning-data, or collaboration behavior. | Implemented, verified, and accepted | User approval of the BL-007 implementation plan and explicit completion/publish instruction; BL-007 |
+| DEC-071 | 2026-07-25 | Implement BL-008 with a manual eight-digit, 24-hour verification code submitted only in the dedicated confirmation body; queue delivery atomically in PostgreSQL and send through a generic SMTP worker with bounded exponential retry and jitter; make resend non-enumerating, invalidate every earlier unused challenge, require CSRF and an idempotency key for confirmation, activate the identity exactly once, and create no session. | Approved implementation decision; implemented and verified; acceptance pending | User selections 1A, 2A, and 3A; BL-008 |
 
 ## Open questions
 
@@ -366,6 +367,15 @@ Verified BL-007 graph findings:
 - Bounded MCP queries found no BL-007 implementation path into login, sessions, social authentication, Task, Project, or collaboration behavior. Source search and changed-file review confirmed the absence of those out-of-scope operations.
 - Graph findings were verified against the registration source, Prisma schema/migration, generated OpenAPI/client, automated tests, builds, dependency audit, and secret scan rather than accepted as authoritative on their own.
 
+Verified BL-008 graph findings:
+
+- The incremental local-AST refresh produced 1,075 nodes, 1,365 edges, and 102 communities; 98% of relationships are EXTRACTED, 2% INFERRED, and 0% AMBIGUOUS.
+- `AccountsRepository`, `AuthSecurityService`, `AuthController`, `RequestEmailVerificationService`, `VerifyEmailService`, `EmailVerificationJobHandler`, `JobQueueService`, `SmtpVerificationEmailAdapter`, and the Turkish `EmailVerificationForm` are present across the expected accounts, worker, API, persistence, generated-client, and web boundaries.
+- `AccountsRepository` and `AuthSecurityService` are expected Authentication hubs with 25 and 24 edges. Source review confirms that neither gained a planning-domain dependency or a cross-module repository consumer.
+- `cn()` remains the highest-connectivity node because app-local shadcn/ui components share the class-name helper. It is a mechanical UI hub, not a business abstraction.
+- The bounded depth-2 MCP query found the intended verification-delivery chain and no implementation path into login, sessions, social authentication, Task, Project, or collaboration behavior. Source review and architecture checks confirmed those exclusions.
+- Graphify skipped the changed SQL migration because the optional SQL parser is not installed and skipped the generated OpenAPI JSON as structurally empty. Prisma validation, Testcontainers migration execution, deterministic OpenAPI/client checks, API/DB tests, and direct source review provide the authoritative evidence for those artifacts.
+
 ## Graphify version
 
 - Package: `graphifyy`
@@ -387,8 +397,8 @@ The recorded version must not be changed without a decision-log entry and revali
 - Codex configuration scope: project `.codex/config.toml`.
 - Registration status: configured and enabled in Codex.
 - Runtime status: operational with the pinned `graphifyy[mcp]==0.9.20` installation.
-- Verification: the registered MCP successfully called `graph_stats`, `god_nodes`, bounded depth-2 `query_graph` searches, and `get_node` against the BL-007 graph; prior `get_community`, `get_neighbors`, and `shortest_path` verification remains valid.
-- Verified graph response: 966 nodes, 1,185 edges, and 80 communities. The graph contains 98% EXTRACTED, 2% INFERRED, and 0% AMBIGUOUS relationships.
+- Verification: the registered MCP successfully called `graph_stats`, `god_nodes`, and one bounded depth-2 `query_graph` against the BL-008 graph; prior `get_node`, `get_community`, `get_neighbors`, and `shortest_path` verification remains valid.
+- Verified graph response: 1,075 nodes, 1,365 edges, and 102 communities. The graph contains 98% EXTRACTED, 2% INFERRED, and 0% AMBIGUOUS relationships.
 - Available read-oriented tools: `query_graph`, `get_node`, `get_neighbors`, `get_community`, `god_nodes`, `graph_stats`, and `shortest_path`.
 - Session note: an already-running Codex desktop session may require a reload before the registered MCP tools appear in its dynamic tool list; this does not affect the successful direct stdio runtime verification.
 
@@ -397,19 +407,19 @@ The recorded version must not be changed without a decision-log entry and revali
 | Field | Value |
 | --- | --- |
 | Status | Successful |
-| Generated at | 2026-07-25T13:09:13Z |
+| Generated at | 2026-07-25T15:14:47Z |
 | Graphify version | 0.9.20 |
-| Source commit at generation | `b9e9c817bcf53e071542fe2592756058c56dd1a3` |
-| Working tree at generation | Includes the uncommitted BL-007 registration implementation, generated OpenAPI/client artifacts, authentication persistence migration, tests, dependency/security adjustments, and Graphify outputs; contains no later Authentication story or planning feature. |
-| Input scope | 125 tracked authored inputs in the incremental manifest, including 102 code files force-refreshed for BL-007; dependencies, generated Prisma output, build/test output, environment files, Graphify outputs/memory, and sensitive paths remain excluded. |
+| Source commit at generation | `b08d972e1687561d6250a5227de4ad2dd69206a8` |
+| Working tree at generation | Includes the uncommitted BL-008 email-verification implementation, migration, generated OpenAPI/client artifacts, tests, Mailpit/SMTP configuration, and Graphify outputs; contains no login, session, recovery, account-deletion, or planning feature. |
+| Input scope | Incremental local-AST update of 41 changed code-classified files followed by focused retry-jitter and concurrent-resend transaction refreshes; the final pass re-extracted two files and reported 136 cached/unchanged files. Twelve non-code files were intentionally skipped without an LLM key, and dependencies, generated Prisma output, build/test output, environment files, Graphify outputs/memory, and sensitive paths remain excluded. |
 | Output path | `graphify-out/graph.json` |
-| Nodes | 966 |
-| Edges | 1,185 |
+| Nodes | 1,075 |
+| Edges | 1,365 |
 | Hyperedges | 7 |
-| Communities | 80 |
-| Graph health | Passed with zero missing/dangling endpoints, self-loops, duplicates, or endpoint-collapse warnings |
-| Recorded semantic tokens | 0 input / 0 output; BL-007 used local AST code extraction and retained the approved semantic planning graph. |
-| Reason | Capture BL-007 registration across web, API, persistence, generated contract/client, tests, and security controls and verify that no later Authentication or planning feature entered the slice. |
+| Communities | 102 |
+| Graph health | Incremental extraction completed; MCP statistics and bounded impact traversal succeeded. The SQL-parser and generated-OpenAPI limitations were verified through authoritative non-Graphify checks. |
+| Recorded semantic tokens | 0 input / 0 output; BL-008 used local AST code extraction and no LLM API key. |
+| Reason | Capture BL-008 across manual-code web UX, REST contract, idempotent persistence, durable worker/SMTP delivery, generated client, tests, and security controls, then verify that no later Authentication or planning feature entered the slice. |
 
 Update this section after every successful graph generation.
 
@@ -449,8 +459,8 @@ Update this section after every successful graph generation.
 
 ## Current planning stage
 
-Phase 3 Implementation — BL-007 Complete and Accepted. EPIC-001 remains complete. The approved MVP scope remains frozen with email/password authentication only; social authentication, including Google, remains deferred. BL-007 provides non-enumerating email/password registration and its required web, API, persistence, OpenAPI/client, security, and test boundaries. Email verification consumption/delivery, login, sessions, password recovery, account deletion, Task behavior, and all later stories remain unimplemented.
+Phase 3 Implementation — BL-008 Implemented and Verified; User Acceptance Pending. EPIC-001 and accepted BL-007 remain complete. BL-008 provides manual email-code verification, non-enumerating resend, exact-once identity activation, durable PostgreSQL delivery jobs, generic SMTP/Mailpit delivery, generated OpenAPI/client updates, security controls, and automated verification. Login, sessions, password recovery, account deletion, Task behavior, and all later stories remain unimplemented.
 
 ## Next required action
 
-Publish the accepted BL-007 slice to `develop`. After publication, do not begin BL-008 email verification or any later story without a new approved implementation plan.
+Obtain explicit User acceptance for BL-008. Do not commit, push, or begin BL-009 until the User accepts this implementation and separately authorizes publication or the next story.

@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { apiClient, getAuthCsrf, registerAccount } from '@planner/api-client';
+import { apiClient, registerAccount } from '@planner/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { Controller, useForm } from 'react-hook-form';
@@ -13,14 +13,8 @@ import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/c
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 
+import { apiError, csrfQueryKey, fetchCsrf } from './auth-api';
 import { registrationFormSchema, type RegistrationFormValues } from './registration-schema';
-
-const csrfQueryKey = ['auth', 'csrf'] as const;
-
-type CsrfData = {
-  readonly token: string;
-  readonly expiresAt: string;
-};
 
 export function RegistrationForm() {
   const router = useRouter();
@@ -172,33 +166,4 @@ export function RegistrationForm() {
       </FieldGroup>
     </form>
   );
-}
-
-async function fetchCsrf(): Promise<CsrfData> {
-  const result = await getAuthCsrf({
-    client: apiClient,
-  });
-
-  if (result.error !== undefined) {
-    throw apiError(result.error);
-  }
-
-  if (result.data?.data === undefined) {
-    throw new Error('Güvenli bağlantı kurulamadı.');
-  }
-
-  return result.data.data;
-}
-
-function apiError(value: unknown): Error {
-  if (
-    typeof value === 'object' &&
-    value !== null &&
-    'detail' in value &&
-    typeof value.detail === 'string'
-  ) {
-    return new Error(value.detail);
-  }
-
-  return new Error('İşlem tamamlanamadı. Lütfen yeniden deneyin.');
 }

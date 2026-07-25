@@ -75,3 +75,69 @@ export class RegistrationAcceptedResponseDto {
   })
   data!: RegistrationAcceptedDataDto;
 }
+
+export class EmailVerificationRequestDto {
+  @ApiProperty({
+    example: 'kullanici@example.com',
+    format: 'email',
+    maxLength: 254,
+    type: String,
+  })
+  email!: string;
+}
+
+export class EmailVerificationRequestAcceptedDataDto {
+  @ApiProperty({
+    enum: ['VERIFICATION_EMAIL_SENT_IF_ELIGIBLE'],
+    type: String,
+  })
+  status!: 'VERIFICATION_EMAIL_SENT_IF_ELIGIBLE';
+}
+
+export class EmailVerificationRequestAcceptedResponseDto {
+  @ApiProperty({
+    type: () => EmailVerificationRequestAcceptedDataDto,
+  })
+  data!: EmailVerificationRequestAcceptedDataDto;
+}
+
+export class VerifyEmailRequestDto {
+  @ApiProperty({
+    example: 'kullanici@example.com',
+    format: 'email',
+    maxLength: 254,
+    type: String,
+  })
+  email!: string;
+
+  @ApiProperty({
+    example: '12345678',
+    maxLength: 8,
+    minLength: 8,
+    pattern: '^\\d{8}$',
+    type: String,
+    writeOnly: true,
+  })
+  code!: string;
+}
+
+export class VerifyEmailDataDto {
+  @ApiProperty({
+    enum: ['VERIFIED'],
+    type: String,
+  })
+  status!: 'VERIFIED';
+
+  @ApiProperty({
+    example: '/login',
+    type: String,
+  })
+  next!: '/login';
+}
+
+export class VerifyEmailResponseDto {
+  @ApiProperty({
+    type: () => VerifyEmailDataDto,
+  })
+  data!: VerifyEmailDataDto;
+}

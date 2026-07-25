@@ -19,6 +19,11 @@ Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
   value: vi.fn(() => null),
 });
 
+Object.defineProperty(document, 'elementFromPoint', {
+  configurable: true,
+  value: vi.fn(() => null),
+});
+
 afterEach(() => {
   cleanup();
 });
