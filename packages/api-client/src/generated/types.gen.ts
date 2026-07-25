@@ -4,6 +4,14 @@ export type ClientOptions = {
     baseUrl: `${string}://${string}` | (string & {});
 };
 
+export type AuthenticatedSessionDataDto = {
+    absoluteExpiresAt: string;
+    authenticated: boolean;
+    email: string;
+    idleExpiresAt: string;
+    next: string;
+};
+
 export type CsrfTokenDataDto = {
     expiresAt: string;
     /**
@@ -28,6 +36,15 @@ export type EmailVerificationRequestDto = {
     email: string;
 };
 
+export type LoginRequestDto = {
+    email: string;
+    returnTo?: string;
+};
+
+export type LoginResponseDto = {
+    data: AuthenticatedSessionDataDto;
+};
+
 export type RegisterAccountRequestDto = {
     email: string;
     termsAccepted: true;
@@ -40,6 +57,17 @@ export type RegistrationAcceptedDataDto = {
 
 export type RegistrationAcceptedResponseDto = {
     data: RegistrationAcceptedDataDto;
+};
+
+export type SessionStateDataDto = {
+    absoluteExpiresAt?: string;
+    authenticated: boolean;
+    email?: string;
+    idleExpiresAt?: string;
+};
+
+export type SessionStateResponseDto = {
+    data: SessionStateDataDto;
 };
 
 export type VerifyEmailDataDto = {
@@ -57,6 +85,12 @@ export type VerifyEmailResponseDto = {
 
 export type VersionResponseDto = {
     version: string;
+};
+
+export type LoginRequestDtoWritable = {
+    email: string;
+    password: string;
+    returnTo?: string;
 };
 
 export type RegisterAccountRequestDtoWritable = {
@@ -172,6 +206,50 @@ export type RegisterAccountResponses = {
 };
 
 export type RegisterAccountResponse = RegisterAccountResponses[keyof RegisterAccountResponses];
+
+export type GetAuthSessionData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/session';
+};
+
+export type GetAuthSessionResponses = {
+    200: SessionStateResponseDto;
+};
+
+export type GetAuthSessionResponse = GetAuthSessionResponses[keyof GetAuthSessionResponses];
+
+export type CreateAuthSessionData = {
+    body: LoginRequestDtoWritable;
+    headers: {
+        'X-CSRF-Token': string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/sessions';
+};
+
+export type CreateAuthSessionErrors = {
+    /**
+     * Credentials did not authenticate.
+     */
+    401: unknown;
+    /**
+     * Correct credentials require email verification before sign-in.
+     */
+    409: unknown;
+    /**
+     * Generic login rate limit.
+     */
+    429: unknown;
+};
+
+export type CreateAuthSessionResponses = {
+    200: LoginResponseDto;
+};
+
+export type CreateAuthSessionResponse = CreateAuthSessionResponses[keyof CreateAuthSessionResponses];
 
 export type GetVersionData = {
     body?: never;

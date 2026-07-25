@@ -5,6 +5,7 @@ import type { Request } from 'express';
 import { parseApiEnvironment } from '../../../platform/config/environment';
 import { ApiProblemException } from '../../../platform/http/api-problem.exception';
 import { CsrfService } from '../application/csrf.service';
+import { anonymousCsrfCookieName, parseCookieValue } from './auth-cookie';
 
 @Injectable()
 export class AnonymousCsrfGuard implements CanActivate {
@@ -16,7 +17,7 @@ export class AnonymousCsrfGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<Request>();
     const origin = request.headers.origin;
     const csrfToken = request.headers['x-csrf-token'];
-    const browserToken = parseBrowserToken(request.headers.cookie);
+    const browserToken = parseCookieValue(request.headers.cookie, anonymousCsrfCookieName());
 
     if (
       typeof origin !== 'string' ||
@@ -44,38 +45,4 @@ function safeOrigin(value: string): string | undefined {
   }
 }
 
-function parseBrowserToken(cookieHeader: string | undefined): string | undefined {
-  if (cookieHeader === undefined) {
-    return undefined;
-  }
-
-  const cookieName = anonymousCsrfCookieName();
-
-  for (const item of cookieHeader.split(';')) {
-    const separatorIndex = item.indexOf('=');
-    if (separatorIndex < 1) {
-      continue;
-    }
-
-    const name = item.slice(0, separatorIndex).trim();
-    if (name === cookieName) {
-      return safelyDecodeCookieValue(item.slice(separatorIndex + 1).trim());
-    }
-  }
-
-  return undefined;
-}
-
-export function anonymousCsrfCookieName(): string {
-  return parseApiEnvironment().COOKIE_SECURE
-    ? '__Host-planner-csrf-context'
-    : 'planner-csrf-context';
-}
-
-function safelyDecodeCookieValue(value: string): string {
-  try {
-    return decodeURIComponent(value);
-  } catch {
-    return value;
-  }
-}
+export { anonymousCsrfCookieName } from './auth-cookie';

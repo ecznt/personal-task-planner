@@ -5,11 +5,37 @@ import { EMAIL_VERIFICATION_JOB_TYPE } from '../application/verification-email-d
 
 type AuthCounterInput = {
   readonly action:
-    'REGISTRATION' | 'EMAIL_VERIFICATION_REQUEST' | 'EMAIL_VERIFICATION_CONFIRMATION';
+    'REGISTRATION' | 'EMAIL_VERIFICATION_REQUEST' | 'EMAIL_VERIFICATION_CONFIRMATION' | 'LOGIN';
   readonly identityKeyHash: string;
   readonly networkKeyHash: string;
   readonly now: Date;
   readonly windowMinutes: number;
+};
+
+export type LoginIdentity = {
+  readonly enabled: boolean;
+  readonly normalizedEmail: string;
+  readonly passwordHash: string;
+  readonly primaryEmail: string;
+  readonly userId: string;
+  readonly userIsActive: boolean;
+  readonly verificationState: 'ACTIVE' | 'PENDING';
+};
+
+export type AuthenticatedSession = {
+  readonly absoluteExpiresAt: Date;
+  readonly idleExpiresAt: Date;
+  readonly primaryEmail: string;
+  readonly userId: string;
+};
+
+type CreateLoginSessionInput = {
+  readonly absoluteExpiresAt: Date;
+  readonly idleExpiresAt: Date;
+  readonly now: Date;
+  readonly previousTokenHash?: string;
+  readonly tokenHash: string;
+  readonly userId: string;
 };
 
 type PendingAccountInput = {
@@ -158,6 +184,217 @@ export class AccountsRepository {
         networkCount: networkCounter.requestCount,
       };
     });
+  }
+
+  async findLoginIdentity(normalizedEmail: string): Promise<LoginIdentity | null> {
+    const identity = await this.prisma.authenticationIdentity.findUnique({
+      select: {
+        enabled: true,
+        normalizedEmail: true,
+        passwordHash: true,
+        verificationState: true,
+        user: {
+          select: {
+            accountLifecycleState: true,
+            id: true,
+            primaryEmail: true,
+          },
+        },
+      },
+      where: {
+        normalizedEmail,
+      },
+    });
+
+    if (identity === null) {
+      return null;
+    }
+
+    return {
+      enabled: identity.enabled,
+      normalizedEmail: identity.normalizedEmail,
+      passwordHash: identity.passwordHash,
+      primaryEmail: identity.user.primaryEmail,
+      userId: identity.user.id,
+      userIsActive: identity.user.accountLifecycleState === 'ACTIVE',
+      verificationState: identity.verificationState,
+    };
+  }
+
+  async createLoginSession(input: CreateLoginSessionInput): Promise<AuthenticatedSession | null> {
+    return this.prisma.$transaction(async (transaction) => {
+      const users = await transaction.$queryRaw<
+        {
+          readonly id: string;
+          readonly primaryEmail: string;
+        }[]
+      >`
+        SELECT "id", "primaryEmail"
+        FROM "users"
+        WHERE "id" = ${input.userId}::uuid
+          AND "accountLifecycleState" = 'ACTIVE'
+        FOR UPDATE
+      `;
+      const user = users[0];
+
+      if (user === undefined) {
+        return null;
+      }
+
+      if (input.previousTokenHash !== undefined) {
+        await transaction.session.updateMany({
+          data: {
+            revokedAt: input.now,
+          },
+          where: {
+            revokedAt: null,
+            tokenHash: input.previousTokenHash,
+          },
+        });
+      }
+
+      await transaction.session.create({
+        data: {
+          absoluteExpiresAt: input.absoluteExpiresAt,
+          idleExpiresAt: input.idleExpiresAt,
+          lastSeenAt: input.now,
+          tokenHash: input.tokenHash,
+          userId: input.userId,
+        },
+      });
+
+      const activeSessions = await transaction.session.findMany({
+        orderBy: [{ lastSeenAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
+        select: {
+          id: true,
+        },
+        where: {
+          absoluteExpiresAt: {
+            gt: input.now,
+          },
+          idleExpiresAt: {
+            gt: input.now,
+          },
+          revokedAt: null,
+          userId: input.userId,
+        },
+      });
+      const overflowSessionIds = activeSessions.slice(5).map((session) => session.id);
+
+      if (overflowSessionIds.length > 0) {
+        await transaction.session.updateMany({
+          data: {
+            revokedAt: input.now,
+          },
+          where: {
+            id: {
+              in: overflowSessionIds,
+            },
+            revokedAt: null,
+          },
+        });
+      }
+
+      await transaction.authenticationIdentity.update({
+        data: {
+          lastAuthenticatedAt: input.now,
+        },
+        where: {
+          userId: input.userId,
+        },
+      });
+
+      return {
+        absoluteExpiresAt: input.absoluteExpiresAt,
+        idleExpiresAt: input.idleExpiresAt,
+        primaryEmail: user.primaryEmail,
+        userId: user.id,
+      };
+    });
+  }
+
+  async findAuthenticatedSession(input: {
+    readonly now: Date;
+    readonly refreshAfter: Date;
+    readonly refreshedIdleExpiresAt: Date;
+    readonly tokenHash: string;
+  }): Promise<AuthenticatedSession | null> {
+    const session = await this.prisma.session.findUnique({
+      select: {
+        absoluteExpiresAt: true,
+        id: true,
+        idleExpiresAt: true,
+        lastSeenAt: true,
+        revokedAt: true,
+        user: {
+          select: {
+            accountLifecycleState: true,
+            authenticationIdentity: {
+              select: {
+                enabled: true,
+                verificationState: true,
+              },
+            },
+            id: true,
+            primaryEmail: true,
+          },
+        },
+      },
+      where: {
+        tokenHash: input.tokenHash,
+      },
+    });
+
+    if (
+      session === null ||
+      session.revokedAt !== null ||
+      session.idleExpiresAt <= input.now ||
+      session.absoluteExpiresAt <= input.now ||
+      session.user.accountLifecycleState !== 'ACTIVE' ||
+      session.user.authenticationIdentity?.enabled !== true ||
+      session.user.authenticationIdentity.verificationState !== 'ACTIVE'
+    ) {
+      if (session !== null && session.revokedAt === null) {
+        await this.prisma.session.updateMany({
+          data: {
+            revokedAt: input.now,
+          },
+          where: {
+            id: session.id,
+            revokedAt: null,
+          },
+        });
+      }
+
+      return null;
+    }
+
+    let idleExpiresAt = session.idleExpiresAt;
+
+    if (session.lastSeenAt <= input.refreshAfter) {
+      idleExpiresAt =
+        input.refreshedIdleExpiresAt < session.absoluteExpiresAt
+          ? input.refreshedIdleExpiresAt
+          : session.absoluteExpiresAt;
+      await this.prisma.session.updateMany({
+        data: {
+          idleExpiresAt,
+          lastSeenAt: input.now,
+        },
+        where: {
+          id: session.id,
+          lastSeenAt: session.lastSeenAt,
+          revokedAt: null,
+        },
+      });
+    }
+
+    return {
+      absoluteExpiresAt: session.absoluteExpiresAt,
+      idleExpiresAt,
+      primaryEmail: session.user.primaryEmail,
+      userId: session.user.id,
+    };
   }
 
   async createPendingAccount(input: PendingAccountInput): Promise<'CREATED' | 'RETAINED'> {

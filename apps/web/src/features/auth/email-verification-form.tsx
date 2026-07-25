@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { apiClient, requestEmailVerification, verifyEmail } from '@planner/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
+import Link from 'next/link';
 import { Controller, useForm } from 'react-hook-form';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -157,7 +158,11 @@ export function EmailVerificationForm() {
           <Alert aria-live="polite">
             <AlertTitle>E-posta doğrulandı</AlertTitle>
             <AlertDescription>
-              Hesabınız etkinleştirildi. Oturum açma özelliği sonraki story kapsamında sunulacak.
+              Hesabınız etkinleştirildi.{' '}
+              <Link className="underline underline-offset-4" href="/login">
+                Oturum açın
+              </Link>
+              .
             </AlertDescription>
           </Alert>
         ) : null}

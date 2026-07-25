@@ -7,6 +7,16 @@ export type CsrfData = {
   readonly expiresAt: string;
 };
 
+export class AuthApiError extends Error {
+  constructor(
+    message: string,
+    readonly code?: string,
+  ) {
+    super(message);
+    this.name = 'AuthApiError';
+  }
+}
+
 export async function fetchCsrf(): Promise<CsrfData> {
   const result = await getAuthCsrf({
     client: apiClient,
@@ -30,8 +40,11 @@ export function apiError(value: unknown): Error {
     'detail' in value &&
     typeof value.detail === 'string'
   ) {
-    return new Error(value.detail);
+    return new AuthApiError(
+      value.detail,
+      'code' in value && typeof value.code === 'string' ? value.code : undefined,
+    );
   }
 
-  return new Error('İşlem tamamlanamadı. Lütfen yeniden deneyin.');
+  return new AuthApiError('İşlem tamamlanamadı. Lütfen yeniden deneyin.');
 }

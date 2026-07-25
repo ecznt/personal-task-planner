@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetAuthCsrfData, GetAuthCsrfResponses, GetVersionData, GetVersionResponses, RegisterAccountData, RegisterAccountErrors, RegisterAccountResponses, RequestEmailVerificationData, RequestEmailVerificationErrors, RequestEmailVerificationResponses, VerifyEmailData, VerifyEmailErrors, VerifyEmailResponses } from './types.gen';
+import type { CreateAuthSessionData, CreateAuthSessionErrors, CreateAuthSessionResponses, GetAuthCsrfData, GetAuthCsrfResponses, GetAuthSessionData, GetAuthSessionResponses, GetVersionData, GetVersionResponses, RegisterAccountData, RegisterAccountErrors, RegisterAccountResponses, RequestEmailVerificationData, RequestEmailVerificationErrors, RequestEmailVerificationResponses, VerifyEmailData, VerifyEmailErrors, VerifyEmailResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -52,6 +52,23 @@ export const verifyEmail = <ThrowOnError extends boolean = false>(options: Optio
  */
 export const registerAccount = <ThrowOnError extends boolean = false>(options: Options<RegisterAccountData, ThrowOnError>): RequestResult<RegisterAccountResponses, RegisterAccountErrors, ThrowOnError> => (options.client ?? client).post<RegisterAccountResponses, RegisterAccountErrors, ThrowOnError>({
     url: '/api/v1/auth/register',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Read safe current session state without exposing a session identifier
+ */
+export const getAuthSession = <ThrowOnError extends boolean = false>(options?: Options<GetAuthSessionData, ThrowOnError>): RequestResult<GetAuthSessionResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetAuthSessionResponses, unknown, ThrowOnError>({ url: '/api/v1/auth/session', ...options });
+
+/**
+ * Create a rotated opaque session with verified email/password credentials
+ */
+export const createAuthSession = <ThrowOnError extends boolean = false>(options: Options<CreateAuthSessionData, ThrowOnError>): RequestResult<CreateAuthSessionResponses, CreateAuthSessionErrors, ThrowOnError> => (options.client ?? client).post<CreateAuthSessionResponses, CreateAuthSessionErrors, ThrowOnError>({
+    url: '/api/v1/auth/sessions',
     ...options,
     headers: {
         'Content-Type': 'application/json',

@@ -1,6 +1,37 @@
 {
   "components": {
     "schemas": {
+      "AuthenticatedSessionDataDto": {
+        "properties": {
+          "absoluteExpiresAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "authenticated": {
+            "type": "boolean"
+          },
+          "email": {
+            "format": "email",
+            "type": "string"
+          },
+          "idleExpiresAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "next": {
+            "example": "/app/today",
+            "type": "string"
+          }
+        },
+        "required": [
+          "authenticated",
+          "email",
+          "idleExpiresAt",
+          "absoluteExpiresAt",
+          "next"
+        ],
+        "type": "object"
+      },
       "CsrfTokenDataDto": {
         "properties": {
           "expiresAt": {
@@ -68,6 +99,44 @@
         ],
         "type": "object"
       },
+      "LoginRequestDto": {
+        "properties": {
+          "email": {
+            "example": "kullanici@example.com",
+            "format": "email",
+            "maxLength": 254,
+            "type": "string"
+          },
+          "password": {
+            "format": "password",
+            "maxLength": 128,
+            "type": "string",
+            "writeOnly": true
+          },
+          "returnTo": {
+            "default": "/app/today",
+            "example": "/app/today",
+            "maxLength": 2048,
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ],
+        "type": "object"
+      },
+      "LoginResponseDto": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AuthenticatedSessionDataDto"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
       "RegisterAccountRequestDto": {
         "properties": {
           "email": {
@@ -128,6 +197,40 @@
         "properties": {
           "data": {
             "$ref": "#/components/schemas/RegistrationAcceptedDataDto"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "SessionStateDataDto": {
+        "properties": {
+          "absoluteExpiresAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "authenticated": {
+            "type": "boolean"
+          },
+          "email": {
+            "format": "email",
+            "type": "string"
+          },
+          "idleExpiresAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "authenticated"
+        ],
+        "type": "object"
+      },
+      "SessionStateResponseDto": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SessionStateDataDto"
           }
         },
         "required": [
@@ -380,6 +483,78 @@
           }
         },
         "summary": "Submit an email/password registration without account enumeration",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/session": {
+      "get": {
+        "operationId": "getAuthSession",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionStateResponseDto"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "Read safe current session state without exposing a session identifier",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/sessions": {
+      "post": {
+        "operationId": "createAuthSession",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "Credentials did not authenticate."
+          },
+          "409": {
+            "description": "Correct credentials require email verification before sign-in."
+          },
+          "429": {
+            "description": "Generic login rate limit."
+          }
+        },
+        "summary": "Create a rotated opaque session with verified email/password credentials",
         "tags": [
           "Authentication"
         ]

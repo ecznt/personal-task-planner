@@ -70,7 +70,7 @@ describe('EmailVerificationForm', () => {
       );
     });
     expect(await screen.findByText('E-posta doğrulandı')).toBeVisible();
-    expect(screen.queryByRole('link', { name: /oturum aç/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /oturum aç/i })).toHaveAttribute('href', '/login');
     expect((await axe(container)).violations).toHaveLength(0);
   });
 

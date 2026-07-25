@@ -1,7 +1,7 @@
 import { createHmac, randomBytes, randomUUID } from 'node:crypto';
 import { isIP } from 'node:net';
 
-import { hash } from '@node-rs/argon2';
+import { hash, verify } from '@node-rs/argon2';
 import { Injectable } from '@nestjs/common';
 
 import { parseSecurityEnvironment } from '../../../platform/config/environment';
@@ -47,6 +47,10 @@ export class AuthSecurityService {
 
   hashPassword(password: string): Promise<string> {
     return hash(password, argon2idOptions);
+  }
+
+  verifyPassword(passwordHash: string, password: string): Promise<boolean> {
+    return verify(passwordHash, password);
   }
 
   privacySafeNetworkPrefix(address: string | undefined): string {

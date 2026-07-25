@@ -1,0 +1,62 @@
+'use client';
+
+import { apiClient, getAuthSession } from '@planner/api-client';
+import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
+
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Spinner } from '@/components/ui/spinner';
+
+export function SessionBoundary() {
+  const session = useQuery({
+    queryKey: ['auth', 'session'],
+    queryFn: async () => {
+      const result = await getAuthSession({ client: apiClient });
+      if (result.error !== undefined || result.data?.data === undefined) {
+        throw new Error('Oturum bilgisi alınamadı.');
+      }
+      return result.data.data;
+    },
+  });
+
+  useEffect(() => {
+    if (session.data?.authenticated === false) {
+      window.location.replace('/login?returnTo=%2Fapp%2Ftoday');
+    }
+  }, [session.data?.authenticated]);
+
+  if (session.isPending || session.data?.authenticated === false) {
+    return (
+      <p className="flex items-center gap-2" role="status">
+        <Spinner /> Oturum kontrol ediliyor…
+      </p>
+    );
+  }
+
+  if (session.isError) {
+    return (
+      <Alert variant="destructive">
+        <AlertTitle>Oturum kontrol edilemedi</AlertTitle>
+        <AlertDescription>Sayfayı yenileyin veya yeniden oturum açın.</AlertDescription>
+      </Alert>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle role="heading" aria-level={1}>
+          Oturumunuz açık
+        </CardTitle>
+        <CardDescription>{session.data.email}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p>
+          Today planlama deneyimi sonraki dikey dilimlerde oluşturulacak. Güvenli oturum handoff’u
+          hazır.
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
