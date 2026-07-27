@@ -182,4 +182,3 @@ docker compose config
 - Reset completion must update password and revoke sessions atomically enough that no old session remains usable after success.
 - Non-enumerating public responses must still provide useful Turkish UX without revealing account state.
 - Graphify should not be refreshed broadly during planning-only handoff work; use the next code-only update after implementation tests are stable.
-
