@@ -427,19 +427,19 @@ The recorded version must not be changed without a decision-log entry and revali
 | Field | Value |
 | --- | --- |
 | Status | Successful |
-| Generated at | 2026-07-28T20:53:38Z |
+| Generated at | 2026-07-30T07:13:28Z |
 | Graphify version | 0.9.20 |
-| Source commit at generation | `a31b4dccc71b6c60beb693347cb9bee6d0102f6b` |
-| Working tree at generation | Includes the uncommitted BL-011 password recovery implementation, generated OpenAPI/client artifacts, Turkish web flow, tests, documentation updates, and Graphify outputs; contains no onboarding, Area, Task, Project, collaboration, social authentication, or account-deletion implementation. |
-| Input scope | Incremental local-AST `--code-only` update of 30 changed code-classified files with 140 cached/unchanged files. Fifteen documentation files were intentionally skipped without an LLM key; dependencies, generated Prisma output, build/test output, environment files, Graphify outputs/memory, and sensitive paths remain excluded. |
+| Source commit at generation | `d2a33b13bd38ad6b7ac2d92c9a4cd784c9f27512` |
+| Working tree at generation | Includes the uncommitted BL-014 current account profile implementation, generated OpenAPI/client artifacts, API and PostgreSQL integration tests, documentation updates, and Graphify outputs; contains no onboarding, Area, Task, Project, collaboration, social authentication, or account-deletion implementation. |
+| Input scope | Incremental local-AST `--code-only` update of 9 changed code-classified files with 165 cached/unchanged files. Fifteen documentation files were intentionally skipped by policy to avoid unnecessary semantic token use; dependencies, generated Prisma output, build/test output, environment files, Graphify outputs/memory, and sensitive paths remain excluded. |
 | Output path | `graphify-out/graph.json` |
-| Nodes | 1,240 |
-| Edges | 1,667 |
+| Nodes | 1,258 |
+| Edges | 1,696 |
 | Hyperedges | Not reported by the incremental CLI summary |
-| Communities | 125 |
-| Graph health | Incremental extraction completed; `cluster-only` refreshed `GRAPH_REPORT.md`; MCP statistics, bounded impact traversal, and god-node review succeeded. The SQL-parser and generated-OpenAPI limitations were verified through authoritative non-Graphify checks. |
-| Recorded semantic tokens | 0 input / 0 output; BL-011 used local AST code extraction and no LLM API key. |
-| Reason | Capture BL-011 across password reset challenge persistence, services, worker delivery, HTTP contract, generated client, web recovery flow, and tests, then verify that no later planning feature entered the slice. |
+| Communities | 120 |
+| Graph health | Incremental extraction completed; `cluster-only` refreshed `GRAPH_REPORT.md`; one bounded impact traversal succeeded. Generated `openapi.json` produced zero AST nodes, so OpenAPI correctness was verified through deterministic generation, Redocly lint, generated-client type-check, and contract drift checks. |
+| Recorded semantic tokens | 0 input / 0 output; BL-014 used local AST code extraction and no LLM API key. |
+| Reason | Capture BL-014 across current-session profile lookup, `/users/me` controller/DTOs, repository session ownership lookup, generated client, API/DB tests, and documentation updates, then verify that no later planning feature entered the slice. |
 
 Update this section after every successful graph generation.
 
@@ -487,11 +487,12 @@ Update this section after every successful graph generation.
 | 2026-07-26 | Phase 3 — BL-010 current-device sign-out | Completed, accepted, committed, published, and CI-verified | Current-session revocation, cookie cleanup, generated contract/client, accessible web behavior, automated tests, Graphify impact review, and documentation passed; commit `636c373` was published to `develop` and CI run `30179467625` succeeded. |
 | 2026-07-27 | Phase 3 — BL-011 password recovery planning | Decision-complete handoff prepared | User selected reset link via URL fragment and latest-token-only invalidation; the handoff plan records the next-session start point, expected changes, tests, security checks, and Graphify usage. |
 | 2026-07-28 | Phase 3 — BL-011 password recovery implementation | Completed, accepted, committed, published, and CI-verified | Non-enumerating request, idempotent confirmation, reset challenge persistence, durable reset-link delivery, session revocation, Turkish web flows, generated contract/client, automated tests, secret scan, and bounded Graphify impact review passed; commit `4e33e2f` was published to `develop` and CI run `30519298773` succeeded. |
+| 2026-07-30 | Phase 3 — BL-014 current account profile implementation | Implemented locally; awaiting User acceptance/publication | Authenticated `GET /users/me` returns only approved current account/session-safe profile fields with ETag, keeps arbitrary User lookup absent, updates generated OpenAPI/client artifacts, and passes local quality gates. |
 
 ## Current planning stage
 
-Phase 3 Implementation — BL-014 Current Account Profile Ready for Implementation Planning. EPIC-001 and BL-007 through BL-011 are complete, published, and CI-verified. No onboarding, Area, Task, Project, collaboration, social authentication, or account-deletion implementation has started.
+Phase 3 Implementation — BL-014 Current Account Profile Implemented Locally. EPIC-001 and BL-007 through BL-011 are complete, published, and CI-verified; BL-014 is implemented locally and awaiting User acceptance/publication. No onboarding, Area, Task, Project, collaboration, social authentication, or account-deletion implementation has started.
 
 ## Next required action
 
-Prepare the BL-014 implementation plan for `/users/me` current account/session-safe profile state, including requirement traceability, UX/API/data/security impact, required tests, and bounded Graphify impact findings. Do not write BL-014 production code before User approval.
+Complete the post-implementation Graphify update/impact review for BL-014, then request User acceptance. Do not start BL-015, BL-121, onboarding, Area, Task, Project, collaboration, social authentication, or account-deletion implementation before explicit User instruction.

@@ -35,6 +35,17 @@ export type AuthenticatedSession = {
   readonly userId: string;
 };
 
+export type CurrentUserProfile = {
+  readonly accountLifecycleState: 'ACTIVE' | 'DELETION_CONFIRMED';
+  readonly inAppReminderNotificationsEnabled: boolean;
+  readonly normalizedPrimaryEmail: string;
+  readonly onboardingState: 'PENDING' | 'COMPLETED';
+  readonly primaryEmail: string;
+  readonly timeZone: string;
+  readonly userId: string;
+  readonly version: number;
+};
+
 type CreateLoginSessionInput = {
   readonly absoluteExpiresAt: Date;
   readonly idleExpiresAt: Date;
@@ -433,6 +444,96 @@ export class AccountsRepository {
       idleExpiresAt,
       primaryEmail: session.user.primaryEmail,
       userId: session.user.id,
+    };
+  }
+
+  async findCurrentUserProfileBySession(input: {
+    readonly now: Date;
+    readonly refreshAfter: Date;
+    readonly refreshedIdleExpiresAt: Date;
+    readonly tokenHash: string;
+  }): Promise<CurrentUserProfile | null> {
+    const session = await this.prisma.session.findUnique({
+      select: {
+        absoluteExpiresAt: true,
+        id: true,
+        idleExpiresAt: true,
+        lastSeenAt: true,
+        revokedAt: true,
+        user: {
+          select: {
+            accountLifecycleState: true,
+            authenticationIdentity: {
+              select: {
+                enabled: true,
+                verificationState: true,
+              },
+            },
+            id: true,
+            inAppReminderNotificationsEnabled: true,
+            normalizedPrimaryEmail: true,
+            onboardingState: true,
+            primaryEmail: true,
+            timeZone: true,
+            version: true,
+          },
+        },
+      },
+      where: {
+        tokenHash: input.tokenHash,
+      },
+    });
+
+    if (
+      session === null ||
+      session.revokedAt !== null ||
+      session.idleExpiresAt <= input.now ||
+      session.absoluteExpiresAt <= input.now ||
+      session.user.accountLifecycleState !== 'ACTIVE' ||
+      session.user.authenticationIdentity?.enabled !== true ||
+      session.user.authenticationIdentity.verificationState !== 'ACTIVE'
+    ) {
+      if (session !== null && session.revokedAt === null) {
+        await this.prisma.session.updateMany({
+          data: {
+            revokedAt: input.now,
+          },
+          where: {
+            id: session.id,
+            revokedAt: null,
+          },
+        });
+      }
+
+      return null;
+    }
+
+    if (session.lastSeenAt <= input.refreshAfter) {
+      await this.prisma.session.updateMany({
+        data: {
+          idleExpiresAt:
+            input.refreshedIdleExpiresAt < session.absoluteExpiresAt
+              ? input.refreshedIdleExpiresAt
+              : session.absoluteExpiresAt,
+          lastSeenAt: input.now,
+        },
+        where: {
+          id: session.id,
+          lastSeenAt: session.lastSeenAt,
+          revokedAt: null,
+        },
+      });
+    }
+
+    return {
+      accountLifecycleState: session.user.accountLifecycleState,
+      inAppReminderNotificationsEnabled: session.user.inAppReminderNotificationsEnabled,
+      normalizedPrimaryEmail: session.user.normalizedPrimaryEmail,
+      onboardingState: session.user.onboardingState,
+      primaryEmail: session.user.primaryEmail,
+      timeZone: session.user.timeZone,
+      userId: session.user.id,
+      version: session.user.version,
     };
   }
 

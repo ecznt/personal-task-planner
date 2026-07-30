@@ -60,6 +60,59 @@
         ],
         "type": "object"
       },
+      "CurrentUserProfileDataDto": {
+        "properties": {
+          "accountLifecycleState": {
+            "enum": [
+              "ACTIVE",
+              "DELETION_CONFIRMED"
+            ],
+            "type": "string"
+          },
+          "email": {
+            "format": "email",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "inAppReminderNotificationsEnabled": {
+            "type": "boolean"
+          },
+          "onboardingState": {
+            "enum": [
+              "PENDING",
+              "COMPLETED"
+            ],
+            "type": "string"
+          },
+          "timeZone": {
+            "example": "UTC",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "timeZone",
+          "onboardingState",
+          "accountLifecycleState",
+          "inAppReminderNotificationsEnabled"
+        ],
+        "type": "object"
+      },
+      "CurrentUserProfileResponseDto": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CurrentUserProfileDataDto"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
       "EmailVerificationRequestAcceptedDataDto": {
         "properties": {
           "status": {
@@ -750,6 +803,31 @@
         "summary": "Create a rotated opaque session with verified email/password credentials",
         "tags": [
           "Authentication"
+        ]
+      }
+    },
+    "/api/v1/users/me": {
+      "get": {
+        "operationId": "getCurrentUser",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrentUserProfileResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          }
+        },
+        "summary": "Read the current account profile resolved only from the active session",
+        "tags": [
+          "Users"
         ]
       }
     },

@@ -24,6 +24,19 @@ export type CsrfTokenResponseDto = {
     data: CsrfTokenDataDto;
 };
 
+export type CurrentUserProfileDataDto = {
+    accountLifecycleState: 'ACTIVE' | 'DELETION_CONFIRMED';
+    email: string;
+    id: string;
+    inAppReminderNotificationsEnabled: boolean;
+    onboardingState: 'PENDING' | 'COMPLETED';
+    timeZone: string;
+};
+
+export type CurrentUserProfileResponseDto = {
+    data: CurrentUserProfileDataDto;
+};
+
 export type EmailVerificationRequestAcceptedDataDto = {
     status: 'VERIFICATION_EMAIL_SENT_IF_ELIGIBLE';
 };
@@ -359,6 +372,26 @@ export type CreateAuthSessionResponses = {
 };
 
 export type CreateAuthSessionResponse = CreateAuthSessionResponses[keyof CreateAuthSessionResponses];
+
+export type GetCurrentUserData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me';
+};
+
+export type GetCurrentUserErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+};
+
+export type GetCurrentUserResponses = {
+    200: CurrentUserProfileResponseDto;
+};
+
+export type GetCurrentUserResponse = GetCurrentUserResponses[keyof GetCurrentUserResponses];
 
 export type GetVersionData = {
     body?: never;

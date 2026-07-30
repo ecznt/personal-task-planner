@@ -4,6 +4,7 @@ export {
   deleteAuthSession,
   getAuthCsrf,
   getAuthSession,
+  getCurrentUser,
   getVersion,
   registerAccount,
   requestEmailVerification,
@@ -14,6 +15,7 @@ export {
 export type {
   AuthenticatedSessionDataDto,
   CsrfTokenResponseDto,
+  CurrentUserProfileResponseDto,
   EmailVerificationRequestAcceptedResponseDto,
   EmailVerificationRequestDto,
   LoginRequestDtoWritable,

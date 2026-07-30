@@ -287,6 +287,60 @@ describe('registration persistence', () => {
     });
   });
 
+  it('reads the current user profile only from a valid active session', async () => {
+    await registration.execute({
+      email: 'user@example.com',
+      networkAddress: '192.0.2.14',
+      password: 'correct horse battery staple',
+    });
+    const challenge = await prisma.emailVerificationChallenge.findFirstOrThrow();
+    await verification.execute({
+      code: security.deriveEmailVerificationCode(challenge.id),
+      email: 'user@example.com',
+      idempotencyKey: '018f9f7c-0000-7000-8000-000000000094',
+      networkAddress: '192.0.2.14',
+    });
+    const result = await login.execute({
+      email: 'user@example.com',
+      networkAddress: '192.0.2.14',
+      password: 'correct horse battery staple',
+      returnTo: '/app/today',
+    });
+
+    expect(result.outcome).toBe('AUTHENTICATED');
+    if (result.outcome !== 'AUTHENTICATED') {
+      throw new Error('Expected authenticated result.');
+    }
+
+    await expect(
+      repository.findCurrentUserProfileBySession({
+        now: new Date(),
+        refreshAfter: new Date(Date.now() - 5 * 60 * 1_000),
+        refreshedIdleExpiresAt: new Date(Date.now() + 12 * 60 * 60 * 1_000),
+        tokenHash: security.hashSecret(result.sessionToken, 'session-storage'),
+      }),
+    ).resolves.toMatchObject({
+      accountLifecycleState: 'ACTIVE',
+      inAppReminderNotificationsEnabled: true,
+      normalizedPrimaryEmail: 'user@example.com',
+      onboardingState: 'PENDING',
+      primaryEmail: 'user@example.com',
+      timeZone: 'UTC',
+      version: 1,
+    });
+
+    await logout.execute(result.sessionToken);
+
+    await expect(
+      repository.findCurrentUserProfileBySession({
+        now: new Date(),
+        refreshAfter: new Date(Date.now() - 5 * 60 * 1_000),
+        refreshedIdleExpiresAt: new Date(Date.now() + 12 * 60 * 60 * 1_000),
+        tokenHash: security.hashSecret(result.sessionToken, 'session-storage'),
+      }),
+    ).resolves.toBeNull();
+  });
+
   it('rotates an existing token and keeps at most five active sessions', async () => {
     await registration.execute({
       email: 'user@example.com',
