@@ -10,6 +10,8 @@ import { LogoutService } from '../../src/modules/accounts/application/logout.ser
 import { ReadSessionService } from '../../src/modules/accounts/application/read-session.service';
 import { RegisterAccountService } from '../../src/modules/accounts/application/register-account.service';
 import { RequestEmailVerificationService } from '../../src/modules/accounts/application/request-email-verification.service';
+import { RequestPasswordResetService } from '../../src/modules/accounts/application/request-password-reset.service';
+import { ResetPasswordService } from '../../src/modules/accounts/application/reset-password.service';
 import { VerifyEmailService } from '../../src/modules/accounts/application/verify-email.service';
 import { AccountsRepository } from '../../src/modules/accounts/infrastructure/accounts.repository';
 import { AuthSecurityService } from '../../src/modules/accounts/security/auth-security.service';
@@ -25,6 +27,8 @@ describe('registration persistence', () => {
   let repository: AccountsRepository;
   let readSession: ReadSessionService;
   let requestVerification: RequestEmailVerificationService;
+  let requestPasswordReset: RequestPasswordResetService;
+  let resetPassword: ResetPasswordService;
   let security: AuthSecurityService;
   let verification: VerifyEmailService;
 
@@ -53,6 +57,8 @@ describe('registration persistence', () => {
     readSession = new ReadSessionService(repository, security);
     registration = new RegisterAccountService(repository, security);
     requestVerification = new RequestEmailVerificationService(repository, security);
+    requestPasswordReset = new RequestPasswordResetService(repository, security);
+    resetPassword = new ResetPasswordService(repository, security);
     verification = new VerifyEmailService(repository, security);
   });
 
@@ -62,6 +68,7 @@ describe('registration persistence', () => {
     await prisma.idempotencyRecord.deleteMany();
     await prisma.session.deleteMany();
     await prisma.job.deleteMany();
+    await prisma.passwordResetChallenge.deleteMany();
     await prisma.emailVerificationChallenge.deleteMany();
     await prisma.authenticationIdentity.deleteMany();
     await prisma.user.deleteMany();
@@ -389,5 +396,113 @@ describe('registration persistence', () => {
     ).resolves.toMatchObject({
       revokedAt: null,
     });
+  });
+
+  it('resets a verified account password once and revokes all active sessions', async () => {
+    await registration.execute({
+      email: 'user@example.com',
+      networkAddress: '192.0.2.14',
+      password: 'correct horse battery staple',
+    });
+    const emailChallenge = await prisma.emailVerificationChallenge.findFirstOrThrow();
+    await verification.execute({
+      code: security.deriveEmailVerificationCode(emailChallenge.id),
+      email: 'user@example.com',
+      idempotencyKey: '018f9f7c-0000-7000-8000-000000000101',
+      networkAddress: '192.0.2.14',
+    });
+    const user = await prisma.user.findFirstOrThrow();
+    const now = new Date();
+
+    for (const token of ['first-session-token', 'second-session-token']) {
+      await repository.createLoginSession({
+        absoluteExpiresAt: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1_000),
+        idleExpiresAt: new Date(now.getTime() + 12 * 60 * 60 * 1_000),
+        now,
+        tokenHash: security.hashSecret(token, 'session-storage'),
+        userId: user.id,
+      });
+    }
+
+    await expect(
+      requestPasswordReset.execute({
+        email: 'USER@example.com',
+        networkAddress: '198.51.100.14',
+      }),
+    ).resolves.toEqual({
+      outcome: 'ACCEPTED',
+    });
+
+    const resetChallenge = await prisma.passwordResetChallenge.findFirstOrThrow();
+    const rawResetToken = security.derivePasswordResetToken(resetChallenge.id);
+
+    expect(
+      JSON.stringify((await prisma.job.findFirstOrThrow({ orderBy: { id: 'desc' } })).payload),
+    ).not.toContain(rawResetToken);
+
+    await expect(
+      resetPassword.execute({
+        idempotencyKey: '018f9f7c-0000-7000-8000-000000000102',
+        networkAddress: '198.51.100.14',
+        password: 'changed horse battery staple',
+        token: rawResetToken,
+      }),
+    ).resolves.toEqual({
+      outcome: 'RESET',
+    });
+    await expect(
+      resetPassword.execute({
+        idempotencyKey: '018f9f7c-0000-7000-8000-000000000102',
+        networkAddress: '198.51.100.14',
+        password: 'changed horse battery staple',
+        token: rawResetToken,
+      }),
+    ).resolves.toEqual({
+      outcome: 'REPLAYED',
+    });
+    await expect(
+      resetPassword.execute({
+        idempotencyKey: '018f9f7c-0000-7000-8000-000000000103',
+        networkAddress: '198.51.100.14',
+        password: 'another horse battery staple',
+        token: rawResetToken,
+      }),
+    ).resolves.toEqual({
+      outcome: 'INVALID_OR_EXPIRED',
+    });
+
+    await expect(
+      login.execute({
+        email: 'user@example.com',
+        networkAddress: '198.51.100.14',
+        password: 'correct horse battery staple',
+        returnTo: '/app/today',
+      }),
+    ).resolves.toEqual({
+      outcome: 'AUTHENTICATION_FAILED',
+    });
+    await expect(
+      login.execute({
+        email: 'user@example.com',
+        networkAddress: '198.51.100.14',
+        password: 'changed horse battery staple',
+        returnTo: '/app/today',
+      }),
+    ).resolves.toMatchObject({
+      outcome: 'AUTHENTICATED',
+    });
+    expect(
+      await prisma.session.count({
+        where: {
+          revokedAt: null,
+          tokenHash: {
+            in: [
+              security.hashSecret('first-session-token', 'session-storage'),
+              security.hashSecret('second-session-token', 'session-storage'),
+            ],
+          },
+        },
+      }),
+    ).toBe(0);
   });
 });

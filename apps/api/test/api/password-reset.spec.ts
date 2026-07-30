@@ -16,17 +16,17 @@ import { AnonymousCsrfGuard } from '../../src/modules/accounts/transport/anonymo
 import { AuthController } from '../../src/modules/accounts/transport/auth.controller';
 import { ProblemDetailsFilter } from '../../src/platform/http/problem-details.filter';
 
-describe('email verification HTTP contract', () => {
+describe('password reset HTTP contract', () => {
   let app: INestApplication;
   const csrf = {
     isValid: jest.fn<CsrfService['isValid']>(),
     issue: jest.fn<CsrfService['issue']>(),
   };
-  const requestVerification = {
-    execute: jest.fn<RequestEmailVerificationService['execute']>(),
+  const requestReset = {
+    execute: jest.fn<RequestPasswordResetService['execute']>(),
   };
-  const verification = {
-    execute: jest.fn<VerifyEmailService['execute']>(),
+  const resetPassword = {
+    execute: jest.fn<ResetPasswordService['execute']>(),
   };
 
   beforeAll(async () => {
@@ -46,23 +46,23 @@ describe('email verification HTTP contract', () => {
         },
         {
           provide: RequestEmailVerificationService,
-          useValue: requestVerification,
+          useValue: {
+            execute: jest.fn(),
+          },
         },
         {
           provide: VerifyEmailService,
-          useValue: verification,
+          useValue: {
+            execute: jest.fn(),
+          },
         },
         {
           provide: RequestPasswordResetService,
-          useValue: {
-            execute: jest.fn(),
-          },
+          useValue: requestReset,
         },
         {
           provide: ResetPasswordService,
-          useValue: {
-            execute: jest.fn(),
-          },
+          useValue: resetPassword,
         },
       ],
     }).compile();
@@ -81,17 +81,11 @@ describe('email verification HTTP contract', () => {
       expiresAt: new Date(Date.now() + 30 * 60 * 1_000),
     });
     csrf.isValid.mockResolvedValue(true);
-    requestVerification.execute.mockResolvedValue({
+    requestReset.execute.mockResolvedValue({
       outcome: 'ACCEPTED',
     });
-    verification.execute.mockResolvedValue({
-      outcome: 'VERIFIED',
-      response: {
-        data: {
-          next: '/login',
-          status: 'VERIFIED',
-        },
-      },
+    resetPassword.execute.mockResolvedValue({
+      outcome: 'RESET',
     });
   });
 
@@ -99,7 +93,7 @@ describe('email verification HTTP contract', () => {
     await app.close();
   });
 
-  it('returns the same resend response without disclosing account state', async () => {
+  it('returns the same accepted reset request response without disclosing account state', async () => {
     const agent = request.agent(app.getHttpServer());
     const csrfResponse = await agent.get('/api/v1/auth/csrf').expect(200);
     const headers = {
@@ -108,12 +102,12 @@ describe('email verification HTTP contract', () => {
     };
 
     const first = await agent
-      .post('/api/v1/auth/email-verification-requests')
+      .post('/api/v1/auth/password-reset-requests')
       .set(headers)
-      .send({ email: 'pending@example.com' })
+      .send({ email: 'user@example.com' })
       .expect(202);
     const second = await agent
-      .post('/api/v1/auth/email-verification-requests')
+      .post('/api/v1/auth/password-reset-requests')
       .set(headers)
       .send({ email: 'missing@example.com' })
       .expect(202);
@@ -121,48 +115,43 @@ describe('email verification HTTP contract', () => {
     expect(first.body).toEqual(second.body);
     expect(first.body).toEqual({
       data: {
-        status: 'VERIFICATION_EMAIL_SENT_IF_ELIGIBLE',
+        status: 'PASSWORD_RESET_EMAIL_SENT_IF_ELIGIBLE',
       },
     });
     expect(first.headers['cache-control']).toBe('no-store');
   });
 
-  it('requires CSRF and Idempotency-Key and passes the code only in the body', async () => {
+  it('requires CSRF and Idempotency-Key and passes the reset token only in the body', async () => {
     const agent = request.agent(app.getHttpServer());
     const csrfResponse = await agent.get('/api/v1/auth/csrf').expect(200);
 
-    const response = await agent
-      .post('/api/v1/auth/email-verifications')
+    await agent
+      .post('/api/v1/auth/password-resets')
       .set('Origin', 'http://127.0.0.1:3000')
       .set('X-CSRF-Token', csrfResponse.body.data.token as string)
       .set('Idempotency-Key', '018f9f7c-0000-7000-8000-000000000001')
       .send({
-        code: '12345678',
-        email: 'user@example.com',
+        password: 'a changed password',
+        passwordConfirmation: 'a changed password',
+        token: 'abcdefghijklmnopqrstuvwxyzABCDEF0123456789',
       })
-      .expect(200);
+      .expect(204);
 
-    expect(verification.execute).toHaveBeenCalledWith({
-      code: '12345678',
-      email: 'user@example.com',
+    expect(resetPassword.execute).toHaveBeenCalledWith({
       idempotencyKey: '018f9f7c-0000-7000-8000-000000000001',
       networkAddress: expect.anything(),
+      password: 'a changed password',
+      token: 'abcdefghijklmnopqrstuvwxyzABCDEF0123456789',
     });
-    expect(response.body).toEqual({
-      data: {
-        next: '/login',
-        status: 'VERIFIED',
-      },
-    });
-    expect(response.headers['cache-control']).toBe('no-store');
 
     const missingKey = await agent
-      .post('/api/v1/auth/email-verifications')
+      .post('/api/v1/auth/password-resets')
       .set('Origin', 'http://127.0.0.1:3000')
       .set('X-CSRF-Token', csrfResponse.body.data.token as string)
       .send({
-        code: '12345678',
-        email: 'user@example.com',
+        password: 'a changed password',
+        passwordConfirmation: 'a changed password',
+        token: 'abcdefghijklmnopqrstuvwxyzABCDEF0123456789',
       })
       .expect(422);
 
@@ -178,14 +167,9 @@ describe('email verification HTTP contract', () => {
 
   it.each([
     {
-      code: 'VERIFICATION_INVALID_OR_EXPIRED',
+      code: 'PASSWORD_RESET_INVALID_OR_EXPIRED',
       outcome: 'INVALID_OR_EXPIRED',
       status: 422,
-    },
-    {
-      code: 'VERIFICATION_ALREADY_USED',
-      outcome: 'ALREADY_USED',
-      status: 409,
     },
     {
       code: 'IDEMPOTENCY_KEY_REUSED',
@@ -198,18 +182,21 @@ describe('email verification HTTP contract', () => {
       status: 409,
     },
   ] as const)('maps $outcome to a safe problem', async ({ outcome, status, code }) => {
-    verification.execute.mockResolvedValueOnce({ outcome });
+    resetPassword.execute.mockResolvedValueOnce({ outcome });
     const agent = request.agent(app.getHttpServer());
     const csrfResponse = await agent.get('/api/v1/auth/csrf').expect(200);
+    const rawToken = 'abcdefghijklmnopqrstuvwxyzABCDEF0123456789';
+    const rawPassword = 'a changed password';
 
     const response = await agent
-      .post('/api/v1/auth/email-verifications')
+      .post('/api/v1/auth/password-resets')
       .set('Origin', 'http://127.0.0.1:3000')
       .set('X-CSRF-Token', csrfResponse.body.data.token as string)
       .set('Idempotency-Key', `018f9f7c-0000-7000-8000-${outcome}`)
       .send({
-        code: '12345678',
-        email: 'user@example.com',
+        password: rawPassword,
+        passwordConfirmation: rawPassword,
+        token: rawToken,
       })
       .expect(status);
 
@@ -217,6 +204,7 @@ describe('email verification HTTP contract', () => {
       code,
       status,
     });
-    expect(JSON.stringify(response.body)).not.toContain('12345678');
+    expect(JSON.stringify(response.body)).not.toContain(rawToken);
+    expect(JSON.stringify(response.body)).not.toContain(rawPassword);
   });
 });

@@ -45,6 +45,16 @@ export class AuthSecurityService {
     return this.hashSecret(`${normalizedEmail}\0${code}`, 'email-verification-storage');
   }
 
+  derivePasswordResetToken(challengeId: string): string {
+    return createHmac('sha256', this.environment.AUTH_SECURITY_KEY)
+      .update(`password-reset-token\0${challengeId}`, 'utf8')
+      .digest('base64url');
+  }
+
+  hashPasswordResetToken(token: string): string {
+    return this.hashSecret(token, 'password-reset-storage');
+  }
+
   hashPassword(password: string): Promise<string> {
     return hash(password, argon2idOptions);
   }

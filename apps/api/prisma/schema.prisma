@@ -35,6 +35,8 @@ enum AuthAbuseAction {
   EMAIL_VERIFICATION_REQUEST
   EMAIL_VERIFICATION_CONFIRMATION
   LOGIN
+  PASSWORD_RESET_REQUEST
+  PASSWORD_RESET_CONFIRMATION
 }
 
 enum IdempotencyState {
@@ -93,6 +95,7 @@ model AuthenticationIdentity {
   updatedAt              DateTime                     @updatedAt @db.Timestamptz(3)
   user                   User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
   verificationChallenges EmailVerificationChallenge[]
+  passwordResetChallenges PasswordResetChallenge[]
 
   @@map("authentication_identities")
 }
@@ -109,6 +112,20 @@ model EmailVerificationChallenge {
 
   @@index([authenticationIdentityId, expiresAt], map: "email_verification_challenge_identity_expiry_idx")
   @@map("email_verification_challenges")
+}
+
+model PasswordResetChallenge {
+  id                       String                 @id @default(uuid()) @db.Uuid
+  authenticationIdentityId String                 @db.Uuid
+  tokenHash                String                 @unique(map: "password_reset_challenge_token_hash_key")
+  expiresAt                DateTime               @db.Timestamptz(3)
+  consumedAt               DateTime?              @db.Timestamptz(3)
+  invalidatedAt            DateTime?              @db.Timestamptz(3)
+  createdAt                DateTime               @default(now()) @db.Timestamptz(3)
+  authenticationIdentity   AuthenticationIdentity @relation(fields: [authenticationIdentityId], references: [id], onDelete: Cascade)
+
+  @@index([authenticationIdentityId, expiresAt], map: "password_reset_challenge_identity_expiry_idx")
+  @@map("password_reset_challenges")
 }
 
 model AnonymousAuthTransaction {

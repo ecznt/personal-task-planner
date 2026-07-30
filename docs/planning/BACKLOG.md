@@ -6,8 +6,8 @@
 | Planning stage | Stage 8 — Backlog planning |
 | Product scope | MVP |
 | Document language | English |
-| Last updated | 2026-07-27 |
-| Implementation status | EPIC-001 and BL-007 through BL-010 complete, accepted, published, and CI-verified; BL-011 decision-complete handoff prepared; BL-011 implementation not started |
+| Last updated | 2026-07-28 |
+| Implementation status | EPIC-001 and BL-007 through BL-010 complete, accepted, published, and CI-verified; BL-011 password recovery implemented locally and awaiting user acceptance/publication |
 
 This backlog converts the approved product, UX, domain, data, API, and architecture baselines into small, independently verifiable delivery slices. It defines future implementation work only; it contains no production code, schema, migration, OpenAPI artifact, or framework scaffold.
 
@@ -180,6 +180,8 @@ This backlog converts the approved product, UX, domain, data, API, and architect
 **BL-010 progress (2026-07-26):** Complete, accepted, published to `develop`, and CI-verified in commit `636c373` and run `30179467625`. The CSRF-protected `DELETE /auth/session` operation conditionally revokes only the presented session before clearing its cookie and returns the same idempotent result for missing, expired, or already-revoked sessions. The generated client and accessible authenticated-handoff control use a full-document transition to a neutral signed-out login state; a revocation failure keeps the cookie and offers retry. Unit, API, PostgreSQL/Testcontainers, component/accessibility, E2E, type-check, lint, architecture, contract, build, Docker/PostgreSQL, dependency, secret, and bounded Graphify impact checks pass. No schema migration or later authentication/planning behavior was introduced.
 
 **BL-011 planning progress (2026-07-27):** Decision-complete handoff prepared; production implementation not started. The User approved reset links with the secret token carried in the URL fragment and latest-token-only invalidation for new recovery requests. `docs/planning/BL-011_PASSWORD_RECOVERY_PLAN.md` records the next-session start point, expected backend/frontend/data/API changes, required tests, security checks, and Graphify usage.
+
+**BL-011 implementation progress (2026-07-28):** Implemented locally and awaiting User acceptance/publication. The slice adds non-enumerating `POST /auth/password-reset-requests`, idempotent `POST /auth/password-resets`, hashed single-use reset challenges, latest-token-only invalidation, challenge-ID-only durable email jobs, SMTP reset-link delivery with the secret token in the URL fragment, session revocation after a successful reset, generated OpenAPI/client updates, Turkish `/forgot-password` and `/reset-password` flows, and login success messaging. Unit, component/accessibility, API, PostgreSQL/Testcontainers, contract, type-check, lint, build, E2E, Compose config, secret scan, and bounded Graphify impact checks pass locally. Local commands were run with Node 24.14.0 plus `PNPM_CONFIG_ENGINE_STRICT=false` because Node 24.18.0 is not installed in the current shell; CI remains the authoritative Node 24.18.0 verification after publication.
 
 **Epic acceptance criteria:** All active AC-001 lifecycle paths work; public landing/privacy/terms entry points are accessible in supported layouts; two-owner tests show no cross-account planning/session leakage; public responses do not reveal email/account existence; deletion initiation revokes access immediately.
 

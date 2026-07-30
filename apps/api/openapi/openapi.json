@@ -137,6 +137,45 @@
         ],
         "type": "object"
       },
+      "PasswordResetRequestAcceptedDataDto": {
+        "properties": {
+          "status": {
+            "enum": [
+              "PASSWORD_RESET_EMAIL_SENT_IF_ELIGIBLE"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "type": "object"
+      },
+      "PasswordResetRequestAcceptedResponseDto": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PasswordResetRequestAcceptedDataDto"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "PasswordResetRequestDto": {
+        "properties": {
+          "email": {
+            "example": "kullanici@example.com",
+            "format": "email",
+            "maxLength": 254,
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "type": "object"
+      },
       "RegisterAccountRequestDto": {
         "properties": {
           "email": {
@@ -201,6 +240,36 @@
         },
         "required": [
           "data"
+        ],
+        "type": "object"
+      },
+      "ResetPasswordRequestDto": {
+        "properties": {
+          "password": {
+            "format": "password",
+            "maxLength": 128,
+            "minLength": 12,
+            "type": "string",
+            "writeOnly": true
+          },
+          "passwordConfirmation": {
+            "format": "password",
+            "maxLength": 128,
+            "minLength": 12,
+            "type": "string",
+            "writeOnly": true
+          },
+          "token": {
+            "maxLength": 512,
+            "minLength": 32,
+            "type": "string",
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "token",
+          "password",
+          "passwordConfirmation"
         ],
         "type": "object"
       },
@@ -436,6 +505,105 @@
           }
         },
         "summary": "Verify a pending email identity with a manual code",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/password-reset-requests": {
+      "post": {
+        "operationId": "requestPasswordReset",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordResetRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PasswordResetRequestAcceptedResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "422": {
+            "description": "Safe validation details."
+          },
+          "429": {
+            "description": "Generic password reset request rate limit."
+          }
+        },
+        "summary": "Request a password reset email without account enumeration",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/password-resets": {
+      "post": {
+        "operationId": "resetPassword",
+        "parameters": [
+          {
+            "description": "A unique key for this password reset attempt.",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Password changed and existing sessions revoked."
+          },
+          "409": {
+            "description": "The idempotent request is still processing."
+          },
+          "422": {
+            "description": "Safe validation or invalid/expired-token details."
+          },
+          "429": {
+            "description": "Generic password reset rate limit."
+          }
+        },
+        "summary": "Set a new password with a password reset token",
         "tags": [
           "Authentication"
         ]

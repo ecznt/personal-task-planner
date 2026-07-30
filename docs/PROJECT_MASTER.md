@@ -5,7 +5,7 @@
 | Repository | `ecznt/personal-task-planner` |
 | Document role | Authoritative planning index and decision record |
 | Document language | English |
-| Last updated | 2026-07-25 |
+| Last updated | 2026-07-28 |
 
 ## Product vision
 
@@ -189,7 +189,8 @@ Every stage requires explicit user approval before the next stage begins.
 | DEC-072 | 2026-07-25 | Fix Graphify's token-efficient operating profile: never dump full graph artifacts or unbounded responses; begin with one targeted depth-2 query near 1,200 tokens; project only required fields; avoid rereading unchanged approved documents; refresh at most once after stable material changes; and stop when targeted graph evidence plus direct-source verification answers the question. | Approved operating policy | User explicit instruction |
 | DEC-073 | 2026-07-26 | Implement BL-009 with verified email/password login, generic invalid-credential behavior, credential-gated unverified guidance, safe `/app/*` return paths defaulting to `/app/today`, opaque host-only cookie sessions stored only as HMACs, 12-hour idle and seven-day absolute expiry, rotation, a five-session limit, and persisted identity/network abuse limits. | Implemented, verified, accepted, published, and CI-green | User-approved BL-009 implementation plan, selections 1A, 2A, and 3A, explicit implementation acceptance, commit `1fc5514`, and CI run `30177705743`; BL-009 |
 | DEC-074 | 2026-07-26 | Implement BL-010 current-device sign-out with CSRF, revoke a valid presented session before clearing its cookie, and return the same idempotent `204` for missing, expired, or already-revoked sessions. Keep the temporary control on the authenticated handoff, then move it to the desktop user menu and mobile More menu; use a full-document redirect to `/login?signedOut=1`. | Implemented, verified, accepted, published, and CI-green | User selections 1A and 2A, approved implementation plan, explicit implementation/publication instruction, commit `636c373`, and CI run `30179467625`; BL-010 |
-| DEC-075 | 2026-07-27 | Plan BL-011 password recovery with reset links that carry the secret token in the URL fragment and invalidate every previous unused reset token when a new request is created for the same eligible email/password identity. | Approved implementation decision; handoff plan prepared; production code not started | User selected 1A and 2A; `docs/planning/BL-011_PASSWORD_RECOVERY_PLAN.md`; BL-011 |
+| DEC-075 | 2026-07-27 | Plan BL-011 password recovery with reset links that carry the secret token in the URL fragment and invalidate every previous unused reset token when a new request is created for the same eligible email/password identity. | Implemented locally and awaiting user acceptance/publication | User selected 1A and 2A; `docs/planning/BL-011_PASSWORD_RECOVERY_PLAN.md`; BL-011 |
+| DEC-076 | 2026-07-28 | Implement BL-011 password recovery with non-enumerating reset requests, idempotent reset confirmation, hashed single-use reset challenges, challenge-ID-only durable delivery jobs, URL-fragment reset links, latest-token-only invalidation, and revocation of all active sessions after a successful reset. | Implemented and locally verified; not yet accepted or published | User instructed implementation; BL-011 |
 
 ## Open questions
 
@@ -203,7 +204,7 @@ The product boundary is defined in the approved PRD, and UX decisions are record
 
 | Risk | Current response |
 | --- | --- |
-| The active Node.js version is 25.8.1 rather than the fixed Node.js 24 LTS version. | Resolve and pin the runtime before application scaffolding. |
+| The active local shell does not provide the pinned Node.js 24.18.0 runtime; Codex validation used Node 24.14.0 with temporary `PNPM_CONFIG_ENGINE_STRICT=false`, and `/opt/homebrew/bin/node` currently points to a broken Node 25 install. | Treat CI on pinned Node 24.18.0 as authoritative after publication; repair the local Node installation before relying on unmodified local engine-strict commands. |
 | The approved planning corpus can make broad Graphify extraction and bundled MCP queries disproportionately expensive. | Apply DEC-067: begin with one targeted existing-graph query, expand only when evidence is insufficient, and extract only the smallest materially changed graph-relevant source set. |
 | Removing or failing to refresh `graphify-out/graph.json` would make the Graphify MCP unavailable or stale for affected questions. | Keep the graph versioned; refresh only when material graph relationships change or an explicit rebuild trigger applies, and use direct source as authority for intentionally deferred governance-only refreshes. |
 | The Graphify MCP runtime can become unavailable if its optional dependency is omitted during a global tool reinstall. | Reproduce the pinned installation as `uv tool install 'graphifyy[mcp]==0.9.20'` and re-run the stdio tool-call verification after any reinstall. |
@@ -255,7 +256,7 @@ The product boundary is defined in the approved PRD, and UX decisions are record
 | `docs/architecture/adr/ADR-002-rest-openapi.md` | Decision record for REST, backend-owned OpenAPI, and generated frontend client. | Accepted |
 | `docs/architecture/adr/ADR-003-graphify.md` | Decision record for Graphify use, source authority, token-efficient query/update workflow, staleness, versioning, and secret controls. | Accepted; DEC-067 operating-policy amendment applied |
 | `docs/planning/BACKLOG.md` | Ordered vertical-slice epics, small stories, dependencies, requirement ownership, acceptance criteria, tests, exclusions, and Stage 8 gates. | Approved; 120 active MVP stories after DEC-066 |
-| `docs/planning/BL-011_PASSWORD_RECOVERY_PLAN.md` | Decision-complete handoff for the next password recovery vertical slice, including approved reset-link and token-invalidation decisions, expected files, tests, risks, and next-session start point. | Prepared; production implementation not started |
+| `docs/planning/BL-011_PASSWORD_RECOVERY_PLAN.md` | Decision-complete handoff for the password recovery vertical slice, including approved reset-link and token-invalidation decisions, expected files, tests, risks, and next-session start point. | Implemented locally; retained as historical handoff |
 | `README.md` | Contributor entry point, pinned runtime, local PostgreSQL/bootstrap commands, required quality gates, and generated-artifact workflow. | Implemented by EPIC-001 |
 | `docs/planning/READINESS_REPORT.md` | Final cross-document readiness audit, severity-classified findings, traceability checks, Graphify review, and go/no-go recommendation. | Go — zero BLOCKER/HIGH; Phase 2 approved |
 | `docs/spikes/SPIKE-001-openapi-generator.md` | Executed OpenAPI generator compatibility evidence, constraints, exact pins, and decision. | Completed |
@@ -416,8 +417,8 @@ The recorded version must not be changed without a decision-log entry and revali
 - Codex configuration scope: project `.codex/config.toml`.
 - Registration status: configured and enabled in Codex.
 - Runtime status: operational with the pinned `graphifyy[mcp]==0.9.20` installation.
-- Verification: the registered MCP successfully ran one bounded depth-2 `query_graph` against the BL-010 graph; prior `graph_stats`, `god_nodes`, `get_node`, `get_community`, `get_neighbors`, and `shortest_path` verification remains valid.
-- Verified graph response: 1,155 nodes, 1,494 edges, and 120 communities. The graph contains 98% EXTRACTED, 2% INFERRED, and 0% AMBIGUOUS relationships.
+- Verification: the registered MCP successfully ran one bounded depth-2 `query_graph` against the BL-011 graph; prior `get_node`, `get_community`, `get_neighbors`, and `shortest_path` verification remains valid.
+- Verified graph response: 1,240 nodes, 1,667 edges, and 125 communities. The graph contains 98% EXTRACTED, 2% INFERRED, and 0% AMBIGUOUS relationships.
 - Available read-oriented tools: `query_graph`, `get_node`, `get_neighbors`, `get_community`, `god_nodes`, `graph_stats`, and `shortest_path`.
 - Session note: an already-running Codex desktop session may require a reload before the registered MCP tools appear in its dynamic tool list; this does not affect the successful direct stdio runtime verification.
 
@@ -426,19 +427,19 @@ The recorded version must not be changed without a decision-log entry and revali
 | Field | Value |
 | --- | --- |
 | Status | Successful |
-| Generated at | 2026-07-25T23:23:27Z |
+| Generated at | 2026-07-28T20:53:38Z |
 | Graphify version | 0.9.20 |
-| Source commit at generation | `800fd24bdcdf74f48409c8d98f5aed18fa5a036a` |
-| Working tree at generation | Includes the uncommitted BL-010 current-device sign-out implementation, generated OpenAPI/client artifacts, Turkish web flow, tests, and Graphify outputs; contains no password recovery, account deletion, Task, Project, or collaboration behavior. |
-| Input scope | Incremental local-AST `--code-only` update of 16 changed code-classified files with 140 cached/unchanged files. Thirteen documentation files were intentionally skipped without an LLM key; dependencies, generated Prisma output, build/test output, environment files, Graphify outputs/memory, and sensitive paths remain excluded. |
+| Source commit at generation | `a31b4dccc71b6c60beb693347cb9bee6d0102f6b` |
+| Working tree at generation | Includes the uncommitted BL-011 password recovery implementation, generated OpenAPI/client artifacts, Turkish web flow, tests, documentation updates, and Graphify outputs; contains no onboarding, Area, Task, Project, collaboration, social authentication, or account-deletion implementation. |
+| Input scope | Incremental local-AST `--code-only` update of 30 changed code-classified files with 140 cached/unchanged files. Fifteen documentation files were intentionally skipped without an LLM key; dependencies, generated Prisma output, build/test output, environment files, Graphify outputs/memory, and sensitive paths remain excluded. |
 | Output path | `graphify-out/graph.json` |
-| Nodes | 1,155 |
-| Edges | 1,494 |
+| Nodes | 1,240 |
+| Edges | 1,667 |
 | Hyperedges | Not reported by the incremental CLI summary |
-| Communities | 120 |
-| Graph health | Incremental extraction completed; MCP statistics and bounded impact traversal succeeded. The SQL-parser and generated-OpenAPI limitations were verified through authoritative non-Graphify checks. |
-| Recorded semantic tokens | 0 input / 0 output; BL-010 used local AST code extraction and no LLM API key. |
-| Reason | Capture BL-010 across current-session revocation, cookie cleanup, generated client, web flow, and tests, then verify that no later Authentication or planning feature entered the slice. |
+| Communities | 125 |
+| Graph health | Incremental extraction completed; `cluster-only` refreshed `GRAPH_REPORT.md`; MCP statistics, bounded impact traversal, and god-node review succeeded. The SQL-parser and generated-OpenAPI limitations were verified through authoritative non-Graphify checks. |
+| Recorded semantic tokens | 0 input / 0 output; BL-011 used local AST code extraction and no LLM API key. |
+| Reason | Capture BL-011 across password reset challenge persistence, services, worker delivery, HTTP contract, generated client, web recovery flow, and tests, then verify that no later planning feature entered the slice. |
 
 Update this section after every successful graph generation.
 
@@ -484,12 +485,13 @@ Update this section after every successful graph generation.
 | 2026-07-25 | Phase 3 — BL-008 email verification | Completed, accepted, committed, published, and CI-verified | Email verification, resend, durable SMTP delivery, exact-once activation, generated contract/client, security controls, automated tests, and Graphify impact review passed; commit `1386853` was published to `develop` and CI run `30163472149` succeeded. |
 | 2026-07-26 | Phase 3 — BL-009 email/password login | Completed, accepted, committed, published, and CI-verified | Login/session behavior, generated contract/client, security controls, automated tests, Graphify impact review, and documentation passed; commit `1fc5514` was published to `develop` and CI run `30177705743` succeeded. |
 | 2026-07-26 | Phase 3 — BL-010 current-device sign-out | Completed, accepted, committed, published, and CI-verified | Current-session revocation, cookie cleanup, generated contract/client, accessible web behavior, automated tests, Graphify impact review, and documentation passed; commit `636c373` was published to `develop` and CI run `30179467625` succeeded. |
-| 2026-07-27 | Phase 3 — BL-011 password recovery planning | Decision-complete handoff prepared; implementation not started | User selected reset link via URL fragment and latest-token-only invalidation; the handoff plan records the next-session start point, expected changes, tests, security checks, and Graphify usage. |
+| 2026-07-27 | Phase 3 — BL-011 password recovery planning | Decision-complete handoff prepared | User selected reset link via URL fragment and latest-token-only invalidation; the handoff plan records the next-session start point, expected changes, tests, security checks, and Graphify usage. |
+| 2026-07-28 | Phase 3 — BL-011 password recovery implementation | Implemented and locally verified; awaiting User acceptance/publication | Non-enumerating request, idempotent confirmation, reset challenge persistence, durable reset-link delivery, session revocation, Turkish web flows, generated contract/client, automated tests, secret scan, and bounded Graphify impact review passed locally. |
 
 ## Current planning stage
 
-Phase 3 Implementation — BL-011 Password Recovery Ready for Implementation. EPIC-001 and BL-007 through BL-010 are complete, published, and CI-verified. BL-011 decisions 1A and 2A are approved and documented, but no password recovery production code has been started.
+Phase 3 Implementation — BL-011 Password Recovery implemented locally and awaiting User acceptance/publication. EPIC-001 and BL-007 through BL-010 are complete, published, and CI-verified. BL-011 decisions 1A and 2A are implemented; no onboarding, Area, Task, Project, collaboration, social authentication, or account-deletion implementation has started.
 
 ## Next required action
 
-In the next implementation session, start from `docs/planning/BL-011_PASSWORD_RECOVERY_PLAN.md`, confirm the worktree is clean and `develop` is current, then implement only BL-011 password recovery unless the User changes scope.
+Review the BL-011 local implementation result, then either request fixes or explicitly accept and request commit/push. Do not start BL-014 or any later story until BL-011 is accepted/published and the required checks remain green.

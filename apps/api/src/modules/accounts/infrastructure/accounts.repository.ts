@@ -1,11 +1,17 @@
 import { Inject, Injectable } from '@nestjs/common';
 
 import { PrismaService } from '../../../platform/database/prisma.service';
+import { PASSWORD_RESET_JOB_TYPE } from '../application/password-reset-email-delivery.port';
 import { EMAIL_VERIFICATION_JOB_TYPE } from '../application/verification-email-delivery.port';
 
 type AuthCounterInput = {
   readonly action:
-    'REGISTRATION' | 'EMAIL_VERIFICATION_REQUEST' | 'EMAIL_VERIFICATION_CONFIRMATION' | 'LOGIN';
+    | 'REGISTRATION'
+    | 'EMAIL_VERIFICATION_REQUEST'
+    | 'EMAIL_VERIFICATION_CONFIRMATION'
+    | 'LOGIN'
+    | 'PASSWORD_RESET_REQUEST'
+    | 'PASSWORD_RESET_CONFIRMATION';
   readonly identityKeyHash: string;
   readonly networkKeyHash: string;
   readonly now: Date;
@@ -63,12 +69,28 @@ type VerificationChallengeInput = {
   readonly now: Date;
 };
 
+type PasswordResetChallengeInput = {
+  readonly challengeExpiresAt: Date;
+  readonly challengeId: string;
+  readonly challengeTokenHash: string;
+  readonly normalizedEmail: string;
+  readonly now: Date;
+};
+
 export type VerificationDelivery = {
   readonly challengeId: string;
   readonly expiresAt: Date;
   readonly invalidatedAt: Date | null;
   readonly consumedAt: Date | null;
   readonly normalizedEmail: string;
+  readonly recipient: string;
+};
+
+export type PasswordResetDelivery = {
+  readonly challengeId: string;
+  readonly expiresAt: Date;
+  readonly invalidatedAt: Date | null;
+  readonly consumedAt: Date | null;
   readonly recipient: string;
 };
 
@@ -97,6 +119,23 @@ export type VerifyEmailPersistenceResult =
         | 'IDEMPOTENCY_IN_PROGRESS'
         | 'IDEMPOTENCY_KEY_REUSED'
         | 'INVALID_OR_EXPIRED';
+    };
+
+export type ResetPasswordInput = {
+  readonly idempotencyId: string;
+  readonly idempotencyKeyHash: string;
+  readonly newPasswordHash: string;
+  readonly now: Date;
+  readonly requestFingerprint: string;
+  readonly tokenHash: string;
+};
+
+export type ResetPasswordPersistenceResult =
+  | {
+      readonly outcome: 'RESET' | 'REPLAYED';
+    }
+  | {
+      readonly outcome: 'IDEMPOTENCY_IN_PROGRESS' | 'IDEMPOTENCY_KEY_REUSED' | 'INVALID_OR_EXPIRED';
     };
 
 @Injectable()
@@ -544,6 +583,103 @@ export class AccountsRepository {
     };
   }
 
+  async replacePasswordResetChallenge(input: PasswordResetChallengeInput): Promise<boolean> {
+    return this.prisma.$transaction(async (transaction) => {
+      const identities = await transaction.$queryRaw<
+        {
+          readonly accountLifecycleState: string;
+          readonly enabled: boolean;
+          readonly id: string;
+          readonly verificationState: string;
+        }[]
+      >`
+        SELECT
+          identities."id",
+          identities."enabled",
+          identities."verificationState"::text AS "verificationState",
+          users."accountLifecycleState"::text AS "accountLifecycleState"
+        FROM "authentication_identities" identities
+        INNER JOIN "users" users ON users."id" = identities."userId"
+        WHERE identities."normalizedEmail" = ${input.normalizedEmail}
+        FOR UPDATE OF identities
+      `;
+      const identity = identities[0];
+
+      if (
+        identity === undefined ||
+        !identity.enabled ||
+        identity.verificationState !== 'ACTIVE' ||
+        identity.accountLifecycleState !== 'ACTIVE'
+      ) {
+        return false;
+      }
+
+      await transaction.passwordResetChallenge.updateMany({
+        data: {
+          invalidatedAt: input.now,
+        },
+        where: {
+          authenticationIdentityId: identity.id,
+          consumedAt: null,
+          invalidatedAt: null,
+        },
+      });
+      await transaction.passwordResetChallenge.create({
+        data: {
+          authenticationIdentityId: identity.id,
+          expiresAt: input.challengeExpiresAt,
+          id: input.challengeId,
+          tokenHash: input.challengeTokenHash,
+        },
+      });
+      await transaction.job.create({
+        data: {
+          payload: {
+            challengeId: input.challengeId,
+          },
+          type: PASSWORD_RESET_JOB_TYPE,
+        },
+      });
+
+      return true;
+    });
+  }
+
+  async findPasswordResetDelivery(challengeId: string): Promise<PasswordResetDelivery | null> {
+    const challenge = await this.prisma.passwordResetChallenge.findUnique({
+      select: {
+        consumedAt: true,
+        expiresAt: true,
+        id: true,
+        invalidatedAt: true,
+        authenticationIdentity: {
+          select: {
+            user: {
+              select: {
+                primaryEmail: true,
+              },
+            },
+          },
+        },
+      },
+      where: {
+        id: challengeId,
+      },
+    });
+
+    if (challenge === null) {
+      return null;
+    }
+
+    return {
+      challengeId: challenge.id,
+      consumedAt: challenge.consumedAt,
+      expiresAt: challenge.expiresAt,
+      invalidatedAt: challenge.invalidatedAt,
+      recipient: challenge.authenticationIdentity.user.primaryEmail,
+    };
+  }
+
   async verifyEmail(input: VerifyEmailInput): Promise<VerifyEmailPersistenceResult> {
     const response = {
       data: {
@@ -724,6 +860,174 @@ export class AccountsRepository {
       };
     });
   }
+
+  async resetPassword(input: ResetPasswordInput): Promise<ResetPasswordPersistenceResult> {
+    return this.prisma.$transaction(async (transaction) => {
+      const inserted = await transaction.idempotencyRecord.createMany({
+        data: {
+          expiresAt: new Date(input.now.getTime() + 48 * 60 * 60 * 1_000),
+          id: input.idempotencyId,
+          keyHash: input.idempotencyKeyHash,
+          method: 'POST',
+          requestFingerprint: input.requestFingerprint,
+          route: '/api/v1/auth/password-resets',
+        },
+        skipDuplicates: true,
+      });
+
+      if (inserted.count === 0) {
+        const existing = await transaction.idempotencyRecord.findUniqueOrThrow({
+          where: {
+            keyHash: input.idempotencyKeyHash,
+          },
+        });
+
+        if (existing.requestFingerprint !== input.requestFingerprint) {
+          return {
+            outcome: 'IDEMPOTENCY_KEY_REUSED',
+          };
+        }
+
+        if (existing.state === 'COMPLETED' && isResetPasswordResponse(existing.responseBody)) {
+          return {
+            outcome: 'REPLAYED',
+          };
+        }
+
+        if (existing.state === 'COMPLETED' && isResetPasswordFailure(existing.responseBody)) {
+          return existing.responseBody;
+        }
+
+        return {
+          outcome: 'IDEMPOTENCY_IN_PROGRESS',
+        };
+      }
+
+      const challenge = await transaction.passwordResetChallenge.findFirst({
+        select: {
+          authenticationIdentityId: true,
+          consumedAt: true,
+          expiresAt: true,
+          id: true,
+          invalidatedAt: true,
+          authenticationIdentity: {
+            select: {
+              enabled: true,
+              userId: true,
+              verificationState: true,
+              user: {
+                select: {
+                  accountLifecycleState: true,
+                },
+              },
+            },
+          },
+        },
+        where: {
+          tokenHash: input.tokenHash,
+        },
+      });
+
+      if (
+        challenge === null ||
+        challenge.consumedAt !== null ||
+        challenge.invalidatedAt !== null ||
+        challenge.expiresAt <= input.now ||
+        !challenge.authenticationIdentity.enabled ||
+        challenge.authenticationIdentity.verificationState !== 'ACTIVE' ||
+        challenge.authenticationIdentity.user.accountLifecycleState !== 'ACTIVE'
+      ) {
+        await transaction.idempotencyRecord.update({
+          data: {
+            responseBody: {
+              outcome: 'INVALID_OR_EXPIRED',
+            },
+            responseStatus: 422,
+            state: 'COMPLETED',
+          },
+          where: {
+            id: input.idempotencyId,
+          },
+        });
+
+        return {
+          outcome: 'INVALID_OR_EXPIRED',
+        };
+      }
+
+      const consumed = await transaction.passwordResetChallenge.updateMany({
+        data: {
+          consumedAt: input.now,
+        },
+        where: {
+          consumedAt: null,
+          expiresAt: {
+            gt: input.now,
+          },
+          id: challenge.id,
+          invalidatedAt: null,
+        },
+      });
+      const updated = await transaction.authenticationIdentity.updateMany({
+        data: {
+          passwordHash: input.newPasswordHash,
+          version: {
+            increment: 1,
+          },
+        },
+        where: {
+          enabled: true,
+          id: challenge.authenticationIdentityId,
+          verificationState: 'ACTIVE',
+        },
+      });
+
+      if (consumed.count !== 1 || updated.count !== 1) {
+        await transaction.idempotencyRecord.update({
+          data: {
+            responseBody: {
+              outcome: 'INVALID_OR_EXPIRED',
+            },
+            responseStatus: 422,
+            state: 'COMPLETED',
+          },
+          where: {
+            id: input.idempotencyId,
+          },
+        });
+
+        return {
+          outcome: 'INVALID_OR_EXPIRED',
+        };
+      }
+
+      await transaction.session.updateMany({
+        data: {
+          revokedAt: input.now,
+        },
+        where: {
+          revokedAt: null,
+          userId: challenge.authenticationIdentity.userId,
+        },
+      });
+      await transaction.idempotencyRecord.update({
+        data: {
+          responseBody: {
+            outcome: 'RESET',
+          },
+          responseStatus: 204,
+          state: 'COMPLETED',
+        },
+        where: {
+          id: input.idempotencyId,
+        },
+      });
+
+      return {
+        outcome: 'RESET',
+      };
+    });
+  }
 }
 
 function startOfWindow(value: Date, windowMinutes: number): Date {
@@ -763,6 +1067,26 @@ function isVerificationFailure(value: unknown): value is {
   }
 
   return value.outcome === 'ALREADY_USED' || value.outcome === 'INVALID_OR_EXPIRED';
+}
+
+function isResetPasswordResponse(value: unknown): value is {
+  readonly outcome: 'RESET';
+} {
+  if (typeof value !== 'object' || value === null || !('outcome' in value)) {
+    return false;
+  }
+
+  return value.outcome === 'RESET';
+}
+
+function isResetPasswordFailure(value: unknown): value is {
+  readonly outcome: 'INVALID_OR_EXPIRED';
+} {
+  if (typeof value !== 'object' || value === null || !('outcome' in value)) {
+    return false;
+  }
+
+  return value.outcome === 'INVALID_OR_EXPIRED';
 }
 
 function isUniqueConstraintError(error: unknown): error is { readonly code: 'P2002' } {

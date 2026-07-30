@@ -34,6 +34,83 @@ test('serves the manual email verification form without exposing a code in the U
   await expect(page).toHaveURL(/\/verify-email$/);
 });
 
+test('requests a password reset without exposing account state', async ({ page }) => {
+  await page.route('**/api/v1/auth/csrf', async (route) => {
+    await route.fulfill({
+      json: {
+        data: {
+          expiresAt: new Date(Date.now() + 30 * 60 * 1_000).toISOString(),
+          token: 'e2e-csrf-token',
+        },
+      },
+      status: 200,
+    });
+  });
+  await page.route('**/api/v1/auth/password-reset-requests', async (route) => {
+    expect(await route.request().postDataJSON()).toEqual({
+      email: 'user@example.com',
+    });
+    expect(route.request().headers()['x-csrf-token']).toBe('e2e-csrf-token');
+    await route.fulfill({
+      json: {
+        data: {
+          status: 'PASSWORD_RESET_EMAIL_SENT_IF_ELIGIBLE',
+        },
+      },
+      status: 202,
+    });
+  });
+
+  await page.goto('/forgot-password');
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Parolanızı sıfırlayın' }),
+  ).toBeVisible();
+  await page.getByLabel('E-posta').fill('user@example.com');
+  await page.getByRole('button', { name: 'Sıfırlama bağlantısı gönder' }).click();
+
+  await expect(
+    page.getByText('Hesap parola sıfırlamaya uygunsa bağlantı e-posta adresine gönderilecektir.'),
+  ).toBeVisible();
+});
+
+test('submits a reset token from URL fragment and removes the fragment from the URL', async ({
+  page,
+}) => {
+  await page.route('**/api/v1/auth/csrf', async (route) => {
+    await route.fulfill({
+      json: {
+        data: {
+          expiresAt: new Date(Date.now() + 30 * 60 * 1_000).toISOString(),
+          token: 'e2e-csrf-token',
+        },
+      },
+      status: 200,
+    });
+  });
+  await page.route('**/api/v1/auth/password-resets', async (route) => {
+    expect(await route.request().postDataJSON()).toEqual({
+      password: 'a changed password',
+      passwordConfirmation: 'a changed password',
+      token: 'abcdefghijklmnopqrstuvwxyzABCDEF0123456789',
+    });
+    expect(route.request().headers()['idempotency-key']).toEqual(expect.any(String));
+    expect(route.request().headers()['x-csrf-token']).toBe('e2e-csrf-token');
+    await route.fulfill({
+      body: '',
+      status: 204,
+    });
+  });
+
+  await page.goto('/reset-password#token=abcdefghijklmnopqrstuvwxyzABCDEF0123456789');
+  await expect(page).toHaveURL(/\/reset-password$/);
+  await page.getByLabel('Yeni parola', { exact: true }).fill('a changed password');
+  await page.getByLabel('Yeni parola tekrarı').fill('a changed password');
+  await page.getByRole('button', { name: 'Yeni parolayı kaydet' }).click();
+
+  await expect(page).toHaveURL(/\/login\?passwordReset=1$/);
+  await expect(page.getByText('Parola güncellendi')).toBeVisible();
+});
+
 test('signs in and idempotently ends only the current browser session', async ({ page }) => {
   let authenticated = true;
 

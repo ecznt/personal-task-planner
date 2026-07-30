@@ -141,3 +141,56 @@ export class VerifyEmailResponseDto {
   })
   data!: VerifyEmailDataDto;
 }
+
+export class PasswordResetRequestDto {
+  @ApiProperty({
+    example: 'kullanici@example.com',
+    format: 'email',
+    maxLength: 254,
+    type: String,
+  })
+  email!: string;
+}
+
+export class PasswordResetRequestAcceptedDataDto {
+  @ApiProperty({
+    enum: ['PASSWORD_RESET_EMAIL_SENT_IF_ELIGIBLE'],
+    type: String,
+  })
+  status!: 'PASSWORD_RESET_EMAIL_SENT_IF_ELIGIBLE';
+}
+
+export class PasswordResetRequestAcceptedResponseDto {
+  @ApiProperty({
+    type: () => PasswordResetRequestAcceptedDataDto,
+  })
+  data!: PasswordResetRequestAcceptedDataDto;
+}
+
+export class ResetPasswordRequestDto {
+  @ApiProperty({
+    minLength: 32,
+    maxLength: 512,
+    type: String,
+    writeOnly: true,
+  })
+  token!: string;
+
+  @ApiProperty({
+    format: 'password',
+    minLength: 12,
+    maxLength: 128,
+    type: String,
+    writeOnly: true,
+  })
+  password!: string;
+
+  @ApiProperty({
+    format: 'password',
+    minLength: 12,
+    maxLength: 128,
+    type: String,
+    writeOnly: true,
+  })
+  passwordConfirmation!: string;
+}

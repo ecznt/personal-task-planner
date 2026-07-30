@@ -87,6 +87,18 @@ describe('LoginForm', () => {
     expect(screen.getByText('Oturum kapatıldı')).toBeVisible();
     expect(screen.getByText('Bu cihazdaki oturumunuz güvenli biçimde kapatıldı.')).toBeVisible();
   });
+
+  it('links to password recovery and announces a completed reset', () => {
+    mocks.searchParams = 'passwordReset=1';
+    renderLoginForm();
+
+    expect(screen.getByRole('link', { name: 'Parolanızı mı unuttunuz?' })).toHaveAttribute(
+      'href',
+      '/forgot-password',
+    );
+    expect(screen.getByText('Parola güncellendi')).toBeVisible();
+    expect(screen.getByText('Yeni parolanızla oturum açabilirsiniz.')).toBeVisible();
+  });
 });
 
 function renderLoginForm() {

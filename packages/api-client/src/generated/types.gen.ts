@@ -45,6 +45,18 @@ export type LoginResponseDto = {
     data: AuthenticatedSessionDataDto;
 };
 
+export type PasswordResetRequestAcceptedDataDto = {
+    status: 'PASSWORD_RESET_EMAIL_SENT_IF_ELIGIBLE';
+};
+
+export type PasswordResetRequestAcceptedResponseDto = {
+    data: PasswordResetRequestAcceptedDataDto;
+};
+
+export type PasswordResetRequestDto = {
+    email: string;
+};
+
 export type RegisterAccountRequestDto = {
     email: string;
     termsAccepted: true;
@@ -57,6 +69,12 @@ export type RegistrationAcceptedDataDto = {
 
 export type RegistrationAcceptedResponseDto = {
     data: RegistrationAcceptedDataDto;
+};
+
+export type ResetPasswordRequestDto = {
+    password: string;
+    passwordConfirmation: string;
+    token: string;
 };
 
 export type SessionStateDataDto = {
@@ -179,6 +197,71 @@ export type VerifyEmailResponses = {
 };
 
 export type VerifyEmailResponse = VerifyEmailResponses[keyof VerifyEmailResponses];
+
+export type RequestPasswordResetData = {
+    body: PasswordResetRequestDto;
+    headers: {
+        'X-CSRF-Token': string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/password-reset-requests';
+};
+
+export type RequestPasswordResetErrors = {
+    /**
+     * Safe validation details.
+     */
+    422: unknown;
+    /**
+     * Generic password reset request rate limit.
+     */
+    429: unknown;
+};
+
+export type RequestPasswordResetResponses = {
+    202: PasswordResetRequestAcceptedResponseDto;
+};
+
+export type RequestPasswordResetResponse = RequestPasswordResetResponses[keyof RequestPasswordResetResponses];
+
+export type ResetPasswordData = {
+    body: ResetPasswordRequestDto;
+    headers: {
+        /**
+         * A unique key for this password reset attempt.
+         */
+        'Idempotency-Key': string;
+        'X-CSRF-Token': string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/password-resets';
+};
+
+export type ResetPasswordErrors = {
+    /**
+     * The idempotent request is still processing.
+     */
+    409: unknown;
+    /**
+     * Safe validation or invalid/expired-token details.
+     */
+    422: unknown;
+    /**
+     * Generic password reset rate limit.
+     */
+    429: unknown;
+};
+
+export type ResetPasswordResponses = {
+    /**
+     * Password changed and existing sessions revoked.
+     */
+    204: void;
+};
+
+export type ResetPasswordResponse = ResetPasswordResponses[keyof ResetPasswordResponses];
 
 export type RegisterAccountData = {
     body: RegisterAccountRequestDtoWritable;

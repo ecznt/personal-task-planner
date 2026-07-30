@@ -7,6 +7,8 @@ export {
   getVersion,
   registerAccount,
   requestEmailVerification,
+  requestPasswordReset,
+  resetPassword,
   verifyEmail,
 } from './generated/sdk.gen';
 export type {
@@ -16,8 +18,11 @@ export type {
   EmailVerificationRequestDto,
   LoginRequestDtoWritable,
   LoginResponseDto,
+  PasswordResetRequestAcceptedResponseDto,
+  PasswordResetRequestDto,
   RegisterAccountRequestDtoWritable,
   RegistrationAcceptedResponseDto,
+  ResetPasswordRequestDto,
   SessionStateResponseDto,
   VerifyEmailRequestDtoWritable,
   VerifyEmailResponseDto,

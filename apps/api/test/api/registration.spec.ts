@@ -9,6 +9,8 @@ import request from 'supertest';
 import { CsrfService } from '../../src/modules/accounts/application/csrf.service';
 import { RegisterAccountService } from '../../src/modules/accounts/application/register-account.service';
 import { RequestEmailVerificationService } from '../../src/modules/accounts/application/request-email-verification.service';
+import { RequestPasswordResetService } from '../../src/modules/accounts/application/request-password-reset.service';
+import { ResetPasswordService } from '../../src/modules/accounts/application/reset-password.service';
 import { VerifyEmailService } from '../../src/modules/accounts/application/verify-email.service';
 import { AnonymousCsrfGuard } from '../../src/modules/accounts/transport/anonymous-csrf.guard';
 import { AuthController } from '../../src/modules/accounts/transport/auth.controller';
@@ -45,6 +47,18 @@ describe('registration HTTP contract', () => {
         },
         {
           provide: VerifyEmailService,
+          useValue: {
+            execute: jest.fn(),
+          },
+        },
+        {
+          provide: RequestPasswordResetService,
+          useValue: {
+            execute: jest.fn(),
+          },
+        },
+        {
+          provide: ResetPasswordService,
           useValue: {
             execute: jest.fn(),
           },

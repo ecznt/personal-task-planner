@@ -7,6 +7,8 @@ import {
 import { PinoLogger } from 'nestjs-pino';
 
 import { EmailVerificationJobHandler } from '../../modules/accounts/application/email-verification-job.handler';
+import { PasswordResetJobHandler } from '../../modules/accounts/application/password-reset-job.handler';
+import { PASSWORD_RESET_JOB_TYPE } from '../../modules/accounts/application/password-reset-email-delivery.port';
 import { EMAIL_VERIFICATION_JOB_TYPE } from '../../modules/accounts/application/verification-email-delivery.port';
 import { parseWorkerEnvironment } from '../config/environment';
 import { FOUNDATION_JOB_TYPE, type LeasedJob, JobQueueService } from './job-queue.service';
@@ -21,6 +23,8 @@ export class JobRunnerService implements OnApplicationBootstrap, OnApplicationSh
     @Inject(JobQueueService) private readonly jobs: JobQueueService,
     @Inject(EmailVerificationJobHandler)
     private readonly emailVerification: EmailVerificationJobHandler,
+    @Inject(PasswordResetJobHandler)
+    private readonly passwordReset: PasswordResetJobHandler,
     @Inject(PinoLogger) private readonly logger: PinoLogger,
   ) {
     this.logger.setContext(JobRunnerService.name);
@@ -87,6 +91,12 @@ export class JobRunnerService implements OnApplicationBootstrap, OnApplicationSh
     if (job.type === EMAIL_VERIFICATION_JOB_TYPE) {
       const challengeId = parseChallengeId(job.payload);
       await this.emailVerification.handle(challengeId);
+      return;
+    }
+
+    if (job.type === PASSWORD_RESET_JOB_TYPE) {
+      const challengeId = parseChallengeId(job.payload);
+      await this.passwordReset.handle(challengeId);
       return;
     }
 

@@ -6,6 +6,8 @@ import { LogoutService } from './application/logout.service';
 import { ReadSessionService } from './application/read-session.service';
 import { RegisterAccountService } from './application/register-account.service';
 import { RequestEmailVerificationService } from './application/request-email-verification.service';
+import { RequestPasswordResetService } from './application/request-password-reset.service';
+import { ResetPasswordService } from './application/reset-password.service';
 import { VerifyEmailService } from './application/verify-email.service';
 import { AccountsRepository } from './infrastructure/accounts.repository';
 import { AuthSecurityService } from './security/auth-security.service';
@@ -25,6 +27,8 @@ import { SessionController } from './transport/session.controller';
     ReadSessionService,
     RegisterAccountService,
     RequestEmailVerificationService,
+    RequestPasswordResetService,
+    ResetPasswordService,
     VerifyEmailService,
   ],
 })

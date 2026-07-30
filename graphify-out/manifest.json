@@ -80,9 +80,9 @@
     "semantic_hash": "0ead4164d077aedb74f41a0a9121c39c"
   },
   "apps/api/openapi/openapi.json": {
-    "mtime": 1785021764.672517,
-    "ast_hash": "5daa69d8a0f5e8d35cee6f9759a7b2f4",
-    "semantic_hash": "5daa69d8a0f5e8d35cee6f9759a7b2f4"
+    "mtime": 1785271905.369063,
+    "ast_hash": "867e8141a0835292522178bc88251b8a",
+    "semantic_hash": "867e8141a0835292522178bc88251b8a"
   },
   "apps/api/package.json": {
     "mtime": 1784990390.9772732,
@@ -155,9 +155,9 @@
     "semantic_hash": "c28422ad26f368a784c1581ffeb04ff7"
   },
   "apps/api/src/platform/jobs/job-runner.service.ts": {
-    "mtime": 1784991165.1315694,
-    "ast_hash": "a77668ed1878d0ecfddcbaec37bc2d12",
-    "semantic_hash": "a77668ed1878d0ecfddcbaec37bc2d12"
+    "mtime": 1785271386.230879,
+    "ast_hash": "62c489c71f27009e9730c2c1dd62fc4c",
+    "semantic_hash": "62c489c71f27009e9730c2c1dd62fc4c"
   },
   "apps/api/src/platform/jobs/jobs.module.ts": {
     "mtime": 1784989707.2300436,
@@ -345,9 +345,9 @@
     "semantic_hash": "820bc0b4841917e04821075a3bc37719"
   },
   "packages/api-client/src/index.ts": {
-    "mtime": 1785021488.0608048,
-    "ast_hash": "6cf2c37071eb227ac9564d853ddcf9ca",
-    "semantic_hash": "6cf2c37071eb227ac9564d853ddcf9ca"
+    "mtime": 1785271772.2958267,
+    "ast_hash": "d8992412314f6af83e026b8bf8fae70c",
+    "semantic_hash": "d8992412314f6af83e026b8bf8fae70c"
   },
   "packages/api-client/tsconfig.json": {
     "mtime": 1784809032.2757494,
@@ -450,9 +450,9 @@
     "semantic_hash": "d03870e9be936c91c896a118f9f4b113"
   },
   "tests/e2e/foundation.spec.ts": {
-    "mtime": 1785021557.9250424,
-    "ast_hash": "ca99b36d147fcec3770f63108f3bef00",
-    "semantic_hash": "ca99b36d147fcec3770f63108f3bef00"
+    "mtime": 1785271931.8980594,
+    "ast_hash": "f3e52969349167575b669b4f5e5cc20d",
+    "semantic_hash": "f3e52969349167575b669b4f5e5cc20d"
   },
   ".github/dependabot.yml": {
     "mtime": 1784809938.8880858,
@@ -490,9 +490,9 @@
     "semantic_hash": "8916994aca6feae561b35fc9100e0810"
   },
   "apps/api/src/modules/accounts/accounts.module.ts": {
-    "mtime": 1785021395.751974,
-    "ast_hash": "dac9775ca6a68b0a57bfacd66dda5651",
-    "semantic_hash": "dac9775ca6a68b0a57bfacd66dda5651"
+    "mtime": 1785271370.168831,
+    "ast_hash": "a2954be532cb963b984df4c68c01c33a",
+    "semantic_hash": "a2954be532cb963b984df4c68c01c33a"
   },
   "apps/api/src/modules/accounts/application/csrf.service.ts": {
     "mtime": 1784980398.6072528,
@@ -510,14 +510,14 @@
     "semantic_hash": "35659def3eb1d1725e405d49a0cefe2b"
   },
   "apps/api/src/modules/accounts/infrastructure/accounts.repository.ts": {
-    "mtime": 1785021395.7511208,
-    "ast_hash": "c020fcf0be64f5351ac76d127c941565",
-    "semantic_hash": "c020fcf0be64f5351ac76d127c941565"
+    "mtime": 1785271799.1081991,
+    "ast_hash": "e577f584a48c9fe67e29856020c94015",
+    "semantic_hash": "e577f584a48c9fe67e29856020c94015"
   },
   "apps/api/src/modules/accounts/security/auth-security.service.ts": {
-    "mtime": 1785016129.7349684,
-    "ast_hash": "aab5487aab10d0dc4c48ca58f6b8cdd7",
-    "semantic_hash": "aab5487aab10d0dc4c48ca58f6b8cdd7"
+    "mtime": 1785271203.0014012,
+    "ast_hash": "ca2656587d8541b7aac127e4d4b5c0a6",
+    "semantic_hash": "ca2656587d8541b7aac127e4d4b5c0a6"
   },
   "apps/api/src/modules/accounts/transport/anonymous-csrf.guard.ts": {
     "mtime": 1785016129.7372544,
@@ -525,14 +525,14 @@
     "semantic_hash": "655cecc92a90a87a5e5e4efc90c0808e"
   },
   "apps/api/src/modules/accounts/transport/auth.controller.ts": {
-    "mtime": 1784990597.8244169,
-    "ast_hash": "c9925cd472185a6e829b8dd1467f0f44",
-    "semantic_hash": "c9925cd472185a6e829b8dd1467f0f44"
+    "mtime": 1785271364.7147894,
+    "ast_hash": "9a9b38744ef778d4928e41782d40bb6e",
+    "semantic_hash": "9a9b38744ef778d4928e41782d40bb6e"
   },
   "apps/api/src/modules/accounts/transport/auth.dto.ts": {
-    "mtime": 1784989878.365288,
-    "ast_hash": "0089e53e0a1efb8c75699ee02b827c4a",
-    "semantic_hash": "0089e53e0a1efb8c75699ee02b827c4a"
+    "mtime": 1785271319.3434649,
+    "ast_hash": "173babc166978ae49f1c53f25f42b587",
+    "semantic_hash": "173babc166978ae49f1c53f25f42b587"
   },
   "apps/api/src/modules/accounts/transport/registration.schema.ts": {
     "mtime": 1784979398.807811,
@@ -545,14 +545,14 @@
     "semantic_hash": "46d1b1348efaa61aff47d6f26d0675b2"
   },
   "apps/api/test/api/registration.spec.ts": {
-    "mtime": 1784990736.0868907,
-    "ast_hash": "d3335c0997a8ec4c0f78dce47b59689a",
-    "semantic_hash": "d3335c0997a8ec4c0f78dce47b59689a"
+    "mtime": 1785271514.2169356,
+    "ast_hash": "b81207efe06c46977d5fd58b5c66e602",
+    "semantic_hash": "b81207efe06c46977d5fd58b5c66e602"
   },
   "apps/api/test/db/registration.spec.ts": {
-    "mtime": 1785021418.9870112,
-    "ast_hash": "0213cb279cf48bbb03b5ebdc792ec938",
-    "semantic_hash": "0213cb279cf48bbb03b5ebdc792ec938"
+    "mtime": 1785271799.2718773,
+    "ast_hash": "f8d547b4cca0161b506172e2b017d3b9",
+    "semantic_hash": "f8d547b4cca0161b506172e2b017d3b9"
   },
   "apps/api/test/unit/registration.spec.ts": {
     "mtime": 1784990597.9958699,
@@ -675,9 +675,9 @@
     "semantic_hash": "6da89ced9972e6ecb94c7616dc144112"
   },
   "apps/api/src/modules/accounts/accounts-worker.module.ts": {
-    "mtime": 1784989707.0593922,
-    "ast_hash": "542bc6719f8a1f66fcb65629af4fd75d",
-    "semantic_hash": "542bc6719f8a1f66fcb65629af4fd75d"
+    "mtime": 1785271378.5512676,
+    "ast_hash": "d25fec1c398c491a0ace29e9a51e90f9",
+    "semantic_hash": "d25fec1c398c491a0ace29e9a51e90f9"
   },
   "apps/api/src/modules/accounts/application/auth-rate-limit.ts": {
     "mtime": 1784991165.036665,
@@ -715,9 +715,9 @@
     "semantic_hash": "b8110a2e7c8d641a20f9dfe4f6170b9b"
   },
   "apps/api/test/api/email-verification.spec.ts": {
-    "mtime": 1784991265.140691,
-    "ast_hash": "bc0757b0595262ed1cdc4cfe2250043d",
-    "semantic_hash": "bc0757b0595262ed1cdc4cfe2250043d"
+    "mtime": 1785271519.3084655,
+    "ast_hash": "dc3b515b4909afa0de56978876db05ac",
+    "semantic_hash": "dc3b515b4909afa0de56978876db05ac"
   },
   "apps/api/test/unit/email-verification.spec.ts": {
     "mtime": 1784990990.823344,
@@ -805,14 +805,14 @@
     "semantic_hash": "96f8369e472da0e4c055a56c35a282c2"
   },
   "apps/web/src/features/auth/login-form.test.tsx": {
-    "mtime": 1785021488.0639513,
-    "ast_hash": "b6132eeab7bd68a07b7f1f7763b81e35",
-    "semantic_hash": "b6132eeab7bd68a07b7f1f7763b81e35"
+    "mtime": 1785271620.0995905,
+    "ast_hash": "65702a6465531fa9320181c708a2f2b5",
+    "semantic_hash": "65702a6465531fa9320181c708a2f2b5"
   },
   "apps/web/src/features/auth/login-form.tsx": {
-    "mtime": 1785021488.0625436,
-    "ast_hash": "1deeb6cb0b630016ceaf4fe7160014df",
-    "semantic_hash": "1deeb6cb0b630016ceaf4fe7160014df"
+    "mtime": 1785271475.345711,
+    "ast_hash": "7f1bdb7762ef87d37398882c422cc463",
+    "semantic_hash": "7f1bdb7762ef87d37398882c422cc463"
   },
   "apps/web/src/features/auth/login-schema.ts": {
     "mtime": 1785016648.3126702,
@@ -843,5 +843,80 @@
     "mtime": 1785021689.2095263,
     "ast_hash": "cbf4830ad845f5dc15ba3a4b9b2af7c0",
     "semantic_hash": "cbf4830ad845f5dc15ba3a4b9b2af7c0"
+  },
+  "apps/api/prisma/migrations/20260728120000_password_reset/migration.sql": {
+    "mtime": 1785271197.9423914,
+    "ast_hash": "7b36c59e13166edb008c7158fbf0d122",
+    "semantic_hash": "7b36c59e13166edb008c7158fbf0d122"
+  },
+  "apps/api/src/modules/accounts/application/password-reset-email-delivery.port.ts": {
+    "mtime": 1785271206.3611155,
+    "ast_hash": "1581ac137b25c71191aaae036f3826c7",
+    "semantic_hash": "1581ac137b25c71191aaae036f3826c7"
+  },
+  "apps/api/src/modules/accounts/application/password-reset-job.handler.ts": {
+    "mtime": 1785271213.4733136,
+    "ast_hash": "cd351e92e441475b75711d2302bce2d7",
+    "semantic_hash": "cd351e92e441475b75711d2302bce2d7"
+  },
+  "apps/api/src/modules/accounts/application/request-password-reset.service.ts": {
+    "mtime": 1785271799.0669236,
+    "ast_hash": "4ed02f77523a7fbb1ab41e4099ade191",
+    "semantic_hash": "4ed02f77523a7fbb1ab41e4099ade191"
+  },
+  "apps/api/src/modules/accounts/application/reset-password.service.ts": {
+    "mtime": 1785271799.0703092,
+    "ast_hash": "f6af88499ce77de56bf9322414ce4c75",
+    "semantic_hash": "f6af88499ce77de56bf9322414ce4c75"
+  },
+  "apps/api/src/modules/accounts/transport/password-reset.schema.ts": {
+    "mtime": 1785271799.152582,
+    "ast_hash": "0c4bf288d04ac812aef6f404a1dd048e",
+    "semantic_hash": "0c4bf288d04ac812aef6f404a1dd048e"
+  },
+  "apps/api/src/platform/email/smtp-password-reset-email.adapter.ts": {
+    "mtime": 1785271224.8237915,
+    "ast_hash": "cefc9c66b678bf1ac5b0491a10de5010",
+    "semantic_hash": "cefc9c66b678bf1ac5b0491a10de5010"
+  },
+  "apps/api/test/api/password-reset.spec.ts": {
+    "mtime": 1785271555.0842385,
+    "ast_hash": "8827fe5db207cfca43b263044079f648",
+    "semantic_hash": "8827fe5db207cfca43b263044079f648"
+  },
+  "apps/api/test/unit/password-reset.spec.ts": {
+    "mtime": 1785271799.3025355,
+    "ast_hash": "7e8cea7b040d2ec967a35f9a7a0d4893",
+    "semantic_hash": "7e8cea7b040d2ec967a35f9a7a0d4893"
+  },
+  "apps/web/src/app/forgot-password/page.tsx": {
+    "mtime": 1785271459.9695754,
+    "ast_hash": "bd5a5fd2a256b6b3b94f2de877aa86e5",
+    "semantic_hash": "bd5a5fd2a256b6b3b94f2de877aa86e5"
+  },
+  "apps/web/src/app/reset-password/page.tsx": {
+    "mtime": 1785271467.69699,
+    "ast_hash": "d2a81485a6ab6034b9e8239252bea7a5",
+    "semantic_hash": "d2a81485a6ab6034b9e8239252bea7a5"
+  },
+  "apps/web/src/features/auth/password-reset-form.test.tsx": {
+    "mtime": 1785271799.4242532,
+    "ast_hash": "37464d1acd217367ea378834224e4035",
+    "semantic_hash": "37464d1acd217367ea378834224e4035"
+  },
+  "apps/web/src/features/auth/password-reset-request-form.tsx": {
+    "mtime": 1785271421.456715,
+    "ast_hash": "acaac3f039a7e7e55a0149d5e21cafa8",
+    "semantic_hash": "acaac3f039a7e7e55a0149d5e21cafa8"
+  },
+  "apps/web/src/features/auth/password-reset-schema.ts": {
+    "mtime": 1785271400.3239279,
+    "ast_hash": "7f453d5f3fe7581b4209e6bc1065c88e",
+    "semantic_hash": "7f453d5f3fe7581b4209e6bc1065c88e"
+  },
+  "apps/web/src/features/auth/reset-password-form.tsx": {
+    "mtime": 1785271824.0915117,
+    "ast_hash": "dbcc597ec16c75d5c87f5a71e027be57",
+    "semantic_hash": "dbcc597ec16c75d5c87f5a71e027be57"
   }
 }

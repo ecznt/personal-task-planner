@@ -61,6 +61,7 @@ export function LoginForm() {
   const verificationRequired =
     login.error instanceof AuthApiError && login.error.code === 'EMAIL_VERIFICATION_REQUIRED';
   const signedOut = searchParams.get('signedOut') === '1';
+  const passwordReset = searchParams.get('passwordReset') === '1';
 
   return (
     <form noValidate onSubmit={form.handleSubmit((values) => login.mutate(values))}>
@@ -69,6 +70,13 @@ export function LoginForm() {
           <Alert aria-live="polite">
             <AlertTitle>Oturum kapatıldı</AlertTitle>
             <AlertDescription>Bu cihazdaki oturumunuz güvenli biçimde kapatıldı.</AlertDescription>
+          </Alert>
+        ) : null}
+
+        {passwordReset ? (
+          <Alert aria-live="polite">
+            <AlertTitle>Parola güncellendi</AlertTitle>
+            <AlertDescription>Yeni parolanızla oturum açabilirsiniz.</AlertDescription>
           </Alert>
         ) : null}
 
@@ -87,7 +95,15 @@ export function LoginForm() {
         </Field>
 
         <Field data-invalid={Boolean(form.formState.errors.password)}>
-          <FieldLabel htmlFor="password">Parola</FieldLabel>
+          <div className="flex items-center justify-between gap-4">
+            <FieldLabel htmlFor="password">Parola</FieldLabel>
+            <Link
+              className="text-sm font-medium text-foreground underline underline-offset-4"
+              href="/forgot-password"
+            >
+              Parolanızı mı unuttunuz?
+            </Link>
+          </div>
           <Input
             id="password"
             type="password"

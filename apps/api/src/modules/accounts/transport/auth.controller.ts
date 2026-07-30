@@ -19,14 +19,19 @@ import { ApiProblemException } from '../../../platform/http/api-problem.exceptio
 import { CsrfService } from '../application/csrf.service';
 import { RegisterAccountService } from '../application/register-account.service';
 import { RequestEmailVerificationService } from '../application/request-email-verification.service';
+import { RequestPasswordResetService } from '../application/request-password-reset.service';
+import { ResetPasswordService } from '../application/reset-password.service';
 import { VerifyEmailService } from '../application/verify-email.service';
 import { AnonymousCsrfGuard, anonymousCsrfCookieName } from './anonymous-csrf.guard';
 import {
   CsrfTokenResponseDto,
   EmailVerificationRequestAcceptedResponseDto,
   EmailVerificationRequestDto,
+  PasswordResetRequestAcceptedResponseDto,
+  PasswordResetRequestDto,
   RegisterAccountRequestDto,
   RegistrationAcceptedResponseDto,
+  ResetPasswordRequestDto,
   VerifyEmailRequestDto,
   VerifyEmailResponseDto,
 } from './auth.dto';
@@ -35,6 +40,7 @@ import {
   parseIdempotencyKey,
   parseVerifyEmail,
 } from './email-verification.schema';
+import { parsePasswordResetRequest, parseResetPassword } from './password-reset.schema';
 import { parseRegistrationInput } from './registration.schema';
 
 @ApiTags('Authentication')
@@ -51,6 +57,10 @@ export class AuthController {
     private readonly requestEmailVerification: RequestEmailVerificationService,
     @Inject(VerifyEmailService)
     private readonly verifyEmail: VerifyEmailService,
+    @Inject(RequestPasswordResetService)
+    private readonly requestPasswordReset: RequestPasswordResetService,
+    @Inject(ResetPasswordService)
+    private readonly resetPassword: ResetPasswordService,
   ) {}
 
   @Get('csrf')
@@ -291,5 +301,148 @@ export class AuthController {
     }
 
     throw new Error('Unhandled email verification outcome.');
+  }
+
+  @Post('password-reset-requests')
+  @HttpCode(202)
+  @Header('Cache-Control', 'no-store')
+  @UseGuards(AnonymousCsrfGuard)
+  @ApiOperation({
+    operationId: 'requestPasswordReset',
+    summary: 'Request a password reset email without account enumeration',
+  })
+  @ApiHeader({
+    name: 'X-CSRF-Token',
+    required: true,
+  })
+  @ApiBody({
+    type: PasswordResetRequestDto,
+  })
+  @ApiResponse({
+    status: 202,
+    type: PasswordResetRequestAcceptedResponseDto,
+  })
+  @ApiResponse({
+    description: 'Safe validation details.',
+    status: 422,
+  })
+  @ApiResponse({
+    description: 'Generic password reset request rate limit.',
+    status: 429,
+  })
+  async requestPasswordResetEmail(
+    @Body() body: unknown,
+    @Req() request: Request,
+  ): Promise<PasswordResetRequestAcceptedResponseDto> {
+    const input = parsePasswordResetRequest(body);
+    const result = await this.requestPasswordReset.execute({
+      email: input.email,
+      networkAddress: request.ip,
+    });
+
+    if (result.outcome === 'RATE_LIMITED') {
+      throw new ApiProblemException({
+        status: 429,
+        code: 'RATE_LIMITED',
+        detail: 'Çok fazla parola sıfırlama isteği gönderildi. Lütfen daha sonra tekrar deneyin.',
+        retryAfterSeconds: result.retryAfterSeconds,
+      });
+    }
+
+    return {
+      data: {
+        status: 'PASSWORD_RESET_EMAIL_SENT_IF_ELIGIBLE',
+      },
+    };
+  }
+
+  @Post('password-resets')
+  @HttpCode(204)
+  @Header('Cache-Control', 'no-store')
+  @UseGuards(AnonymousCsrfGuard)
+  @ApiOperation({
+    operationId: 'resetPassword',
+    summary: 'Set a new password with a password reset token',
+  })
+  @ApiHeader({
+    name: 'X-CSRF-Token',
+    required: true,
+  })
+  @ApiHeader({
+    description: 'A unique key for this password reset attempt.',
+    name: 'Idempotency-Key',
+    required: true,
+  })
+  @ApiBody({
+    type: ResetPasswordRequestDto,
+  })
+  @ApiResponse({
+    description: 'Password changed and existing sessions revoked.',
+    status: 204,
+  })
+  @ApiResponse({
+    description: 'Safe validation or invalid/expired-token details.',
+    status: 422,
+  })
+  @ApiResponse({
+    description: 'The idempotent request is still processing.',
+    status: 409,
+  })
+  @ApiResponse({
+    description: 'Generic password reset rate limit.',
+    status: 429,
+  })
+  async confirmPasswordReset(
+    @Body() body: unknown,
+    @Headers('idempotency-key') idempotencyKeyHeader: unknown,
+    @Req() request: Request,
+  ): Promise<void> {
+    const input = parseResetPassword(body);
+    const idempotencyKey = parseIdempotencyKey(idempotencyKeyHeader);
+    const result = await this.resetPassword.execute({
+      idempotencyKey,
+      networkAddress: request.ip,
+      password: input.password,
+      token: input.token,
+    });
+
+    if (result.outcome === 'RATE_LIMITED') {
+      throw new ApiProblemException({
+        status: 429,
+        code: 'RATE_LIMITED',
+        detail: 'Çok fazla parola sıfırlama denemesi yapıldı. Lütfen daha sonra tekrar deneyin.',
+        retryAfterSeconds: result.retryAfterSeconds,
+      });
+    }
+
+    if (result.outcome === 'INVALID_OR_EXPIRED') {
+      throw new ApiProblemException({
+        status: 422,
+        code: 'PASSWORD_RESET_INVALID_OR_EXPIRED',
+        detail: 'Parola sıfırlama bağlantısı geçersiz veya süresi dolmuş.',
+      });
+    }
+
+    if (result.outcome === 'IDEMPOTENCY_KEY_REUSED') {
+      throw new ApiProblemException({
+        status: 422,
+        code: 'IDEMPOTENCY_KEY_REUSED',
+        detail: 'Idempotency-Key farklı bir istek için daha önce kullanılmış.',
+      });
+    }
+
+    if (result.outcome === 'IDEMPOTENCY_IN_PROGRESS') {
+      throw new ApiProblemException({
+        status: 409,
+        code: 'IDEMPOTENCY_IN_PROGRESS',
+        detail: 'Aynı parola sıfırlama isteği halen işleniyor.',
+      });
+    }
+
+    if (result.outcome === 'RESET' || result.outcome === 'REPLAYED') {
+      return;
+    }
+
+    throw new Error('Unhandled password reset outcome.');
   }
 }
