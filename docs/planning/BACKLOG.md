@@ -7,7 +7,7 @@
 | Product scope | MVP |
 | Document language | English |
 | Last updated | 2026-07-30 |
-| Implementation status | EPIC-001 and BL-007 through BL-011 and BL-014 complete, accepted, published, and CI-verified; BL-015 account deletion initiation is implemented locally and awaiting user acceptance/publication |
+| Implementation status | EPIC-001 and BL-007 through BL-011, BL-014, and BL-015 complete, accepted, published, and CI-verified; BL-121 public entry points are implemented locally and awaiting user acceptance/publication |
 
 This backlog converts the approved product, UX, domain, data, API, and architecture baselines into small, independently verifiable delivery slices. It defines future implementation work only; it contains no production code, schema, migration, OpenAPI artifact, or framework scaffold.
 
@@ -185,7 +185,9 @@ This backlog converts the approved product, UX, domain, data, API, and architect
 
 **BL-014 progress (2026-07-30):** Complete, accepted, published to `develop`, and CI-verified in commit `b012e8a` and run `30526911410`. The slice adds authenticated `GET /users/me`, returns only the approved current account/session-safe profile fields with an ETag, keeps arbitrary User lookup routes absent, resolves the profile strictly from the presented session cookie, and updates the deterministic OpenAPI/generated client artifacts. Unit, API, PostgreSQL/Testcontainers, component, contract, type-check, lint, format-check, build, E2E, Compose config, PostgreSQL health, Prisma generate/validate, dependency audit, secret scan, and bounded Graphify impact checks pass. No onboarding, Area, Task, Project, account deletion, collaboration, social authentication, or planning data behavior was introduced.
 
-**BL-015 progress (2026-07-30):** Implemented locally and awaiting user acceptance/publication. The slice adds recent password reauthentication for account deletion, explicit permanent-deletion confirmation, idempotent `POST /users/me/account-deletions`, durable `AccountDeletionProcess` initiation, immediate all-session revocation, cookie clearing, Turkish account danger-area UX, neutral deletion-started completion UX, generated OpenAPI/client updates, and unit/API/PostgreSQL/Testcontainers/component/E2E coverage. Full primary planning-data purge, deletion replay worker, restore after account deletion, onboarding, Area, Task, Project, collaboration, and social authentication remain out of scope.
+**BL-015 progress (2026-08-02):** Complete, accepted, published to `develop`, and CI-verified in commit `c7907ab` and run `30738500840`. The slice adds recent password reauthentication for account deletion, explicit permanent-deletion confirmation, idempotent `POST /users/me/account-deletions`, durable `AccountDeletionProcess` initiation, immediate all-session revocation, cookie clearing, Turkish account danger-area UX, neutral deletion-started completion UX, generated OpenAPI/client updates, and unit/API/PostgreSQL/Testcontainers/component/E2E coverage. Full primary planning-data purge, deletion replay worker, restore after account deletion, onboarding, Area, Task, Project, collaboration, and social authentication remain out of scope.
+
+**BL-121 progress (2026-08-02):** Implemented locally and awaiting user acceptance/publication. The slice turns `/` into a Turkish public product entry point, adds unauthenticated `/privacy` and `/terms`, links privacy/terms from registration, preserves public non-disclosure, and keeps backend/API/schema unchanged. Component/accessibility, E2E, type-check, lint, build, secret scan, and bounded Graphify impact checks are required before publication.
 
 **Epic acceptance criteria:** All active AC-001 lifecycle paths work; public landing/privacy/terms entry points are accessible in supported layouts; two-owner tests show no cross-account planning/session leakage; public responses do not reveal email/account existence; deletion initiation revokes access immediately.
 

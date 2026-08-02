@@ -192,7 +192,8 @@ Every stage requires explicit user approval before the next stage begins.
 | DEC-075 | 2026-07-27 | Plan BL-011 password recovery with reset links that carry the secret token in the URL fragment and invalidate every previous unused reset token when a new request is created for the same eligible email/password identity. | Implemented, published, and CI-verified | User selected 1A and 2A; `docs/planning/BL-011_PASSWORD_RECOVERY_PLAN.md`; BL-011 |
 | DEC-076 | 2026-07-28 | Implement BL-011 password recovery with non-enumerating reset requests, idempotent reset confirmation, hashed single-use reset challenges, challenge-ID-only durable delivery jobs, URL-fragment reset links, latest-token-only invalidation, and revocation of all active sessions after a successful reset. | Implemented, published, and CI-verified | User instructed implementation; commit `4e33e2f`; CI run `30519298773`; BL-011 |
 | DEC-077 | 2026-07-30 | Implement BL-014 current account profile with authenticated `GET /users/me`, approved profile fields only, ETag support, no arbitrary User lookup route, and session-derived ownership. | Implemented, published, and CI-verified | User instruction; commit `b012e8a`; CI run `30526911410`; BL-014 |
-| DEC-078 | 2026-07-30 | Implement BL-015 account deletion initiation with recent password reauthentication, explicit permanent-deletion confirmation, idempotent process creation/replay, immediate all-session revocation, cookie clearing, and deferred full primary-data purge to EPIC-016. | Implemented locally; awaiting acceptance/publication | User-approved BL-015 implementation plan; BL-015 |
+| DEC-078 | 2026-08-02 | Implement BL-015 account deletion initiation with recent password reauthentication, explicit permanent-deletion confirmation, idempotent process creation/replay, immediate all-session revocation, cookie clearing, and deferred full primary-data purge to EPIC-016. | Implemented, published, and CI-verified | User-approved BL-015 implementation plan; commit `c7907ab`; CI run `30738500840`; BL-015 |
+| DEC-079 | 2026-08-02 | Implement BL-121 as a frontend-only public entry-point slice: `/` explains the private personal-planning product and links Login/Register/Today, `/privacy` and `/terms` are public Turkish pages, registration links to both, and no backend/API/schema, onboarding, planning data, social authentication, collaboration, billing, or native-mobile behavior is introduced. | Implemented locally; awaiting acceptance/publication | User-approved continuation after BL-121 plan; BL-121 |
 
 ## Open questions
 
@@ -406,6 +407,13 @@ Verified BL-015 graph findings:
 - Full primary-data purge, deletion replay worker, Area, Task, Project, collaboration, and social authentication remain outside the BL-015 implementation boundary and are still governed by later backlog slices.
 - Graphify skipped the changed SQL migration because the optional SQL parser is not installed and generated OpenAPI JSON remains structurally empty to Graphify. Migration and contract correctness are instead verified by Prisma validation, successful local PostgreSQL migration deploy, Testcontainers coverage, Redocly, deterministic client generation, API tests, and direct source review.
 
+Verified BL-121 graph findings:
+
+- The bounded incremental code refresh produced 1,360 nodes, 1,823 edges, and 130 communities.
+- One bounded depth-2 query found the intended public-route impact around `HomePage`, `PrivacyPage`, `TermsPage`, `RegistrationForm`, `page.test.tsx`, and the Playwright foundation journey.
+- Source review confirms BL-121 is frontend-only: no backend controller/service/repository, Prisma schema, migration, OpenAPI contract, generated API client, Area, Task, Project, collaboration, social authentication, billing, or native-mobile behavior was added.
+- Public pages contain Turkish copy, semantic headings, keyboard-reachable links, and no user/account/resource-specific data.
+
 ## Graphify version
 
 - Package: `graphifyy`
@@ -437,19 +445,19 @@ The recorded version must not be changed without a decision-log entry and revali
 | Field | Value |
 | --- | --- |
 | Status | Successful |
-| Generated at | 2026-07-30T09:20:15Z |
+| Generated at | 2026-08-02T07:57:47Z |
 | Graphify version | 0.9.20 |
-| Source commit at generation | `2d0cbf84aa39ac42e606656f43b1c72656179216` |
-| Working tree at generation | Includes the uncommitted BL-015 account deletion initiation implementation, Prisma schema/migration, generated OpenAPI/client artifacts, backend/web tests, documentation updates, and Graphify outputs; contains no onboarding, Area, Task, Project, collaboration, social authentication, or full primary-data purge implementation. |
-| Input scope | Incremental local-AST `--code-only` update of 25 changed code-classified files with 160 cached/unchanged files. Fifteen documentation files were intentionally skipped by policy to avoid unnecessary semantic token use; dependencies, generated Prisma output, build/test output, environment files, Graphify outputs/memory, and sensitive paths remain excluded. |
+| Source commit at generation | `c7907ab39080d33885eac54f88870337104f158f` |
+| Working tree at generation | Includes the uncommitted BL-121 public entry-points implementation, frontend component/E2E tests, documentation updates, and Graphify outputs; contains no backend/API/schema, onboarding, Area, Task, Project, collaboration, social authentication, billing, native-mobile, or full primary-data purge implementation. |
+| Input scope | Incremental local-AST `--code-only` update of eight changed code-classified files with 179 cached/unchanged files. Fifteen documentation files were intentionally skipped by policy to avoid unnecessary semantic token use; dependencies, generated Prisma output, build/test output, environment files, Graphify outputs/memory, and sensitive paths remain excluded. |
 | Output path | `graphify-out/graph.json` |
-| Nodes | 1,353 |
-| Edges | 1,820 |
+| Nodes | 1,360 |
+| Edges | 1,823 |
 | Hyperedges | Not reported by the incremental CLI summary |
-| Communities | 125 |
-| Graph health | Incremental extraction completed; `cluster-only` refreshed `GRAPH_REPORT.md`; one bounded impact traversal succeeded. Generated `openapi.json` produced zero AST nodes, and the SQL migration was skipped because the optional SQL parser is not installed, so OpenAPI and migration correctness were verified through deterministic generation, Redocly lint, generated-client type-check, Prisma validation/deploy, Testcontainers coverage, and direct source review. |
-| Recorded semantic tokens | 0 input / 0 output; BL-015 used local AST code extraction and no LLM API key. |
-| Reason | Capture BL-015 across recent reauthentication, account-deletion process initiation, all-session revocation, Prisma persistence, generated client, account deletion UX, API/DB/component/E2E tests, and documentation updates, then verify that full purge and planning-domain features stayed outside the slice. |
+| Communities | 130 |
+| Graph health | Incremental extraction completed; `cluster-only` refreshed `GRAPH_REPORT.md`; one bounded impact traversal succeeded. Backend contract and migration artifacts were unchanged for BL-121. |
+| Recorded semantic tokens | 0 input / 0 output; BL-121 used local AST code extraction and no LLM API key. |
+| Reason | Capture BL-121 across the public landing page, privacy and terms pages, registration legal links, component tests, E2E route coverage, and documentation updates, then verify that backend/API/schema and planning-domain behavior stayed outside the slice. |
 
 Update this section after every successful graph generation.
 
@@ -498,12 +506,13 @@ Update this section after every successful graph generation.
 | 2026-07-27 | Phase 3 — BL-011 password recovery planning | Decision-complete handoff prepared | User selected reset link via URL fragment and latest-token-only invalidation; the handoff plan records the next-session start point, expected changes, tests, security checks, and Graphify usage. |
 | 2026-07-28 | Phase 3 — BL-011 password recovery implementation | Completed, accepted, committed, published, and CI-verified | Non-enumerating request, idempotent confirmation, reset challenge persistence, durable reset-link delivery, session revocation, Turkish web flows, generated contract/client, automated tests, secret scan, and bounded Graphify impact review passed; commit `4e33e2f` was published to `develop` and CI run `30519298773` succeeded. |
 | 2026-07-30 | Phase 3 — BL-014 current account profile implementation | Completed, accepted, committed, published, and CI-verified | Authenticated `GET /users/me` returns only approved current account/session-safe profile fields with ETag, keeps arbitrary User lookup absent, updates generated OpenAPI/client artifacts, and passed local quality gates plus CI run `30526911410`; commit `b012e8a` was published to `develop`. |
-| 2026-07-30 | Phase 3 — BL-015 account deletion initiation implementation | Implemented locally; awaiting user acceptance/publication | Recent password reauthentication, explicit confirmation, idempotent deletion-process initiation, all-session revocation, cookie clearing, generated OpenAPI/client artifacts, tests, security scan, and bounded Graphify impact review passed locally. |
+| 2026-08-02 | Phase 3 — BL-015 account deletion initiation implementation | Completed, accepted, committed, published, and CI-verified | Recent password reauthentication, explicit confirmation, idempotent deletion-process initiation, all-session revocation, cookie clearing, generated OpenAPI/client artifacts, tests, security scan, and bounded Graphify impact review passed; commit `c7907ab` was published to `develop` and CI run `30738500840` succeeded. |
+| 2026-08-02 | Phase 3 — BL-121 public entry points implementation | Implemented locally; awaiting user acceptance/publication | Public landing, privacy, terms, registration legal links, tests, build, and security checks are being finalized locally. |
 
 ## Current planning stage
 
-Phase 3 Implementation — BL-015 Account Deletion Initiation Implemented Locally. EPIC-001 and BL-007 through BL-011 and BL-014 are complete, published, and CI-verified. BL-015 is implemented locally and awaiting user acceptance/publication. No onboarding, Area, Task, Project, collaboration, social authentication, or full primary-data purge implementation has started.
+Phase 3 Implementation — BL-121 Public Entry Points Implemented Locally. EPIC-001 and BL-007 through BL-011, BL-014, and BL-015 are complete, published, and CI-verified. BL-121 is implemented locally and awaiting user acceptance/publication. No onboarding, Area, Task, Project, collaboration, social authentication, or full primary-data purge implementation has started.
 
 ## Next required action
 
-Ask the User to review and accept BL-015. After acceptance and explicit publication instruction, commit/push BL-015 and verify CI. The next backlog candidate remains BL-121 public product/privacy/terms entry points before EPIC-003 onboarding unless the User explicitly chooses a different approved story.
+Ask the User to review and accept BL-121. After acceptance and explicit publication instruction, commit/push BL-121 and verify CI. The next backlog candidate after BL-121 is EPIC-003 onboarding unless the User explicitly chooses a different approved story.

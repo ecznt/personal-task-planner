@@ -280,19 +280,19 @@
     "semantic_hash": "bc2df2913861d0bc7d23ef2e194af265"
   },
   "apps/web/src/app/page.test.tsx": {
-    "mtime": 1784809439.5332932,
-    "ast_hash": "5c3e88dd50aec5ac6726c9b580a60378",
-    "semantic_hash": "5c3e88dd50aec5ac6726c9b580a60378"
+    "mtime": 1785657228.8702123,
+    "ast_hash": "2e2eb2c38102fdd17c49beb18a2b5029",
+    "semantic_hash": "2e2eb2c38102fdd17c49beb18a2b5029"
   },
   "apps/web/src/app/page.tsx": {
-    "mtime": 1784807875.459579,
-    "ast_hash": "28ffd6ba88521b0534ec10a3e68bcda4",
-    "semantic_hash": "28ffd6ba88521b0534ec10a3e68bcda4"
+    "mtime": 1785657366.9478967,
+    "ast_hash": "66b38b5b2777768a251f231c41e0aeec",
+    "semantic_hash": "66b38b5b2777768a251f231c41e0aeec"
   },
   "apps/web/src/i18n/messages/tr.ts": {
-    "mtime": 1784807875.620677,
-    "ast_hash": "3ae5759e905d9482552805f61bedceaf",
-    "semantic_hash": "3ae5759e905d9482552805f61bedceaf"
+    "mtime": 1785657139.9117506,
+    "ast_hash": "686d4ab14c7acfc7389bbf1d5599a4ee",
+    "semantic_hash": "686d4ab14c7acfc7389bbf1d5599a4ee"
   },
   "apps/web/src/test/setup.ts": {
     "mtime": 1784990927.1274428,
@@ -450,9 +450,9 @@
     "semantic_hash": "d03870e9be936c91c896a118f9f4b113"
   },
   "tests/e2e/foundation.spec.ts": {
-    "mtime": 1785402137.8287957,
-    "ast_hash": "04cd4fc50f19af6b29021737f0d5b001",
-    "semantic_hash": "04cd4fc50f19af6b29021737f0d5b001"
+    "mtime": 1785657280.0743763,
+    "ast_hash": "0f5b76d4f8a50de0a57801f4d8a2f719",
+    "semantic_hash": "0f5b76d4f8a50de0a57801f4d8a2f719"
   },
   ".github/dependabot.yml": {
     "mtime": 1784809938.8880858,
@@ -625,14 +625,14 @@
     "semantic_hash": "c909dbd5f76a597663f597b884c1c0da"
   },
   "apps/web/src/features/auth/registration-form.test.tsx": {
-    "mtime": 1784980256.3003337,
-    "ast_hash": "50cb2fccf7330b32e2c175a74ba63328",
-    "semantic_hash": "50cb2fccf7330b32e2c175a74ba63328"
+    "mtime": 1785657235.218826,
+    "ast_hash": "688ff4f6ccb61297e73795648fd992f4",
+    "semantic_hash": "688ff4f6ccb61297e73795648fd992f4"
   },
   "apps/web/src/features/auth/registration-form.tsx": {
-    "mtime": 1784990396.2597094,
-    "ast_hash": "96e27964e81c4762c3d58a3ad1652e77",
-    "semantic_hash": "96e27964e81c4762c3d58a3ad1652e77"
+    "mtime": 1785657279.9700584,
+    "ast_hash": "596a08c3b35278af0a5473688aa048a9",
+    "semantic_hash": "596a08c3b35278af0a5473688aa048a9"
   },
   "apps/web/src/features/auth/registration-schema.ts": {
     "mtime": 1784979519.3259628,
@@ -993,5 +993,15 @@
     "mtime": 1785402137.6692827,
     "ast_hash": "7bbc573d9e334de08980d93d20a5a0a8",
     "semantic_hash": "7bbc573d9e334de08980d93d20a5a0a8"
+  },
+  "apps/web/src/app/privacy/page.tsx": {
+    "mtime": 1785657279.8659863,
+    "ast_hash": "2f34020b1a73512f3adc47945cca7e9a",
+    "semantic_hash": "2f34020b1a73512f3adc47945cca7e9a"
+  },
+  "apps/web/src/app/terms/page.tsx": {
+    "mtime": 1785657279.8772662,
+    "ast_hash": "3fd5008bcf6a364dcc141a81a736e6e3",
+    "semantic_hash": "3fd5008bcf6a364dcc141a81a736e6e3"
   }
 }

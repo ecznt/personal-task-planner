@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { apiClient, registerAccount } from '@planner/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Controller, useForm } from 'react-hook-form';
 
@@ -126,12 +127,25 @@ export function RegistrationForm() {
                 checked={field.value}
                 onCheckedChange={(checked) => field.onChange(checked === true)}
                 aria-invalid={fieldState.invalid}
-                aria-describedby={fieldState.invalid ? 'terms-error' : undefined}
+                aria-describedby={
+                  fieldState.invalid ? 'terms-description terms-error' : 'terms-description'
+                }
               />
               <div className="grid gap-1">
                 <FieldLabel htmlFor="terms-accepted">
                   Kullanım koşullarını kabul ediyorum.
                 </FieldLabel>
+                <FieldDescription id="terms-description">
+                  Devam ederek{' '}
+                  <Link className="underline underline-offset-4" href="/terms">
+                    kullanım koşullarını
+                  </Link>{' '}
+                  ve{' '}
+                  <Link className="underline underline-offset-4" href="/privacy">
+                    gizlilik açıklamasını
+                  </Link>{' '}
+                  okuyup kabul etmiş olursunuz.
+                </FieldDescription>
                 <FieldError id="terms-error" errors={[fieldState.error]} />
               </div>
             </Field>

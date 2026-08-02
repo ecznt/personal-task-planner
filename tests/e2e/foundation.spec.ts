@@ -1,12 +1,33 @@
 import { expect, test } from '@playwright/test';
 
-test('serves the production-built Turkish foundation shell', async ({ page }) => {
+test('serves public product, privacy, and terms entry points', async ({ page }) => {
   await page.goto('/');
 
   await expect(
     page.getByRole('heading', { level: 1, name: 'Kişisel İş Planlayıcı' }),
   ).toBeVisible();
-  await expect(page.getByText(/Ürün özellikleri henüz başlamadı/)).toBeVisible();
+  await expect(page.getByText(/yalnızca size ait özel bir alanda/)).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Hesap oluştur' })).toHaveAttribute(
+    'href',
+    '/register',
+  );
+  await expect(page.getByRole('link', { name: 'Oturum aç' })).toHaveAttribute('href', '/login');
+  await expect(page.getByRole('link', { name: 'Bugün’e devam et' })).toHaveAttribute(
+    'href',
+    '/app/today',
+  );
+
+  await page.getByRole('link', { name: 'Gizlilik' }).click();
+  await expect(page).toHaveURL(/\/privacy$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Gizlilik' })).toBeVisible();
+  await expect(page.getByText(/Kullanıcılar birbirlerinin verilerini göremez/)).toBeVisible();
+
+  await page.getByRole('link', { name: 'Kullanım koşulları' }).click();
+  await expect(page).toHaveURL(/\/terms$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Kullanım koşulları' })).toBeVisible();
+  await expect(page.getByText(/Ekip, organizasyon, ortak çalışma, billing/)).toBeVisible();
+
+  await expect(page.getByText(/Google ile giriş/)).toHaveCount(0);
 });
 
 test('serves the manual email verification form without exposing a code in the URL', async ({

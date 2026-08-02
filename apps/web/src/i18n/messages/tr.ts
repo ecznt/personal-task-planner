@@ -1,6 +1,6 @@
 export const foundationMessages = {
   description:
-    'Ürün özellikleri henüz başlamadı. Bu ekran yalnızca doğrulanmış uygulama kabuğunu gösterir.',
-  eyebrow: 'Faz 3 · Repository foundation',
+    'Area, opsiyonel Project ve Task yapısıyla kişisel işlerinizi yalnızca size ait özel bir alanda düzenleyin.',
+  eyebrow: 'Kişisel kullanım · Özel planlama alanı',
   title: 'Kişisel İş Planlayıcı',
 } as const;

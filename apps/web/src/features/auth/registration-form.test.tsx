@@ -88,6 +88,19 @@ describe('RegistrationForm', () => {
     expect(screen.getByText('Parolalar eşleşmiyor.')).toBeVisible();
     expect(mocks.registerAccount).not.toHaveBeenCalled();
   });
+
+  it('links to the public terms and privacy pages from registration', () => {
+    renderRegistrationForm();
+
+    expect(screen.getByRole('link', { name: 'kullanım koşullarını' })).toHaveAttribute(
+      'href',
+      '/terms',
+    );
+    expect(screen.getByRole('link', { name: 'gizlilik açıklamasını' })).toHaveAttribute(
+      'href',
+      '/privacy',
+    );
+  });
 });
 
 function renderRegistrationForm() {
