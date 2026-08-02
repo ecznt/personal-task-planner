@@ -6,6 +6,8 @@ export {
   getAuthSession,
   getCurrentUser,
   getVersion,
+  initiateAccountDeletion,
+  reauthenticate,
   registerAccount,
   requestEmailVerification,
   requestPasswordReset,
@@ -13,6 +15,8 @@ export {
   verifyEmail,
 } from './generated/sdk.gen';
 export type {
+  AccountDeletionProcessResponseDto,
+  AccountDeletionRequestDto,
   AuthenticatedSessionDataDto,
   CsrfTokenResponseDto,
   CurrentUserProfileResponseDto,
@@ -22,6 +26,8 @@ export type {
   LoginResponseDto,
   PasswordResetRequestAcceptedResponseDto,
   PasswordResetRequestDto,
+  ReauthenticationRequestDtoWritable,
+  ReauthenticationResponseDto,
   RegisterAccountRequestDtoWritable,
   RegistrationAcceptedResponseDto,
   ResetPasswordRequestDto,

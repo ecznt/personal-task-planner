@@ -7,6 +7,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from '@je
 import request from 'supertest';
 
 import { CsrfService } from '../../src/modules/accounts/application/csrf.service';
+import { ReauthenticateService } from '../../src/modules/accounts/application/reauthenticate.service';
 import { RegisterAccountService } from '../../src/modules/accounts/application/register-account.service';
 import { RequestEmailVerificationService } from '../../src/modules/accounts/application/request-email-verification.service';
 import { RequestPasswordResetService } from '../../src/modules/accounts/application/request-password-reset.service';
@@ -60,6 +61,12 @@ describe('email verification HTTP contract', () => {
         },
         {
           provide: ResetPasswordService,
+          useValue: {
+            execute: jest.fn(),
+          },
+        },
+        {
+          provide: ReauthenticateService,
           useValue: {
             execute: jest.fn(),
           },

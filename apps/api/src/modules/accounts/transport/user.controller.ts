@@ -1,18 +1,43 @@
-import { Controller, Get, Header, Inject, Req, Res } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Get,
+  Header,
+  Headers,
+  HttpCode,
+  Inject,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBody, ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 
+import { parseApiEnvironment } from '../../../platform/config/environment';
 import { ApiProblemException } from '../../../platform/http/api-problem.exception';
+import { InitiateAccountDeletionService } from '../application/initiate-account-deletion.service';
 import { ReadCurrentUserService } from '../application/read-current-user.service';
+import { AnonymousCsrfGuard } from './anonymous-csrf.guard';
+import { parseAccountDeletionInput, parseIfMatch } from './account-deletion.schema';
 import { parseCookieValue, sessionCookieName } from './auth-cookie';
-import { CurrentUserProfileResponseDto } from './user.dto';
+import { parseIdempotencyKey } from './email-verification.schema';
+import {
+  AccountDeletionProcessResponseDto,
+  AccountDeletionRequestDto,
+  CurrentUserProfileResponseDto,
+} from './user.dto';
 
 @ApiTags('Users')
 @Controller('users')
 export class UserController {
+  private readonly environment = parseApiEnvironment();
+
   constructor(
     @Inject(ReadCurrentUserService)
     private readonly readCurrentUser: ReadCurrentUserService,
+    @Inject(InitiateAccountDeletionService)
+    private readonly initiateAccountDeletion: InitiateAccountDeletionService,
   ) {}
 
   @Get('me')
@@ -57,6 +82,137 @@ export class UserController {
         inAppReminderNotificationsEnabled: currentUser.profile.inAppReminderNotificationsEnabled,
         onboardingState: currentUser.profile.onboardingState,
         timeZone: currentUser.profile.timeZone,
+      },
+    };
+  }
+
+  @Post('me/account-deletions')
+  @HttpCode(202)
+  @Header('Cache-Control', 'no-store')
+  @UseGuards(AnonymousCsrfGuard)
+  @ApiOperation({
+    operationId: 'initiateAccountDeletion',
+    summary: 'Start confirmed account deletion, revoke access immediately, and enqueue purge',
+  })
+  @ApiHeader({
+    name: 'X-CSRF-Token',
+    required: true,
+  })
+  @ApiHeader({
+    name: 'If-Match',
+    required: true,
+  })
+  @ApiHeader({
+    name: 'Idempotency-Key',
+    required: true,
+  })
+  @ApiBody({
+    type: AccountDeletionRequestDto,
+  })
+  @ApiResponse({
+    status: 202,
+    type: AccountDeletionProcessResponseDto,
+  })
+  @ApiResponse({
+    description: 'No valid authenticated session or recent reauthentication is present.',
+    status: 401,
+  })
+  @ApiResponse({
+    description: 'The current User ETag is missing or stale.',
+    status: 412,
+  })
+  @ApiResponse({
+    description: 'Idempotency request is in progress or incompatible.',
+    status: 409,
+  })
+  async initiateDeletion(
+    @Body() body: unknown,
+    @Headers('if-match') ifMatchHeader: unknown,
+    @Headers('idempotency-key') idempotencyKeyHeader: unknown,
+    @Req() request: Request,
+    @Res({
+      passthrough: true,
+    })
+    response: Response,
+  ): Promise<AccountDeletionProcessResponseDto> {
+    const input = parseAccountDeletionInput(body);
+    const result = await this.initiateAccountDeletion.execute({
+      confirmation: input.confirmation,
+      etag: parseIfMatch(ifMatchHeader),
+      idempotencyKey: parseIdempotencyKey(idempotencyKeyHeader),
+      sessionToken: parseCookieValue(request.headers.cookie, sessionCookieName()),
+    });
+
+    if (result.outcome === 'AUTHENTICATION_REQUIRED') {
+      throw new ApiProblemException({
+        status: 401,
+        code: 'AUTHENTICATION_REQUIRED',
+        detail: 'Oturum açmanız gerekiyor.',
+      });
+    }
+
+    if (result.outcome === 'REAUTHENTICATION_REQUIRED') {
+      throw new ApiProblemException({
+        status: 401,
+        code: 'REAUTHENTICATION_REQUIRED',
+        detail: 'Bu işlem için parolanızı yeniden doğrulamanız gerekiyor.',
+      });
+    }
+
+    if (result.outcome === 'PRECONDITION_REQUIRED') {
+      throw new ApiProblemException({
+        status: 428,
+        code: 'PRECONDITION_REQUIRED',
+        detail: 'Güncel hesap sürümü gereklidir.',
+      });
+    }
+
+    if (result.outcome === 'PRECONDITION_FAILED') {
+      throw new ApiProblemException({
+        status: 412,
+        code: 'PRECONDITION_FAILED',
+        detail: 'Hesap bilgisi değişmiş. Lütfen sayfayı yenileyip tekrar deneyin.',
+      });
+    }
+
+    if (result.outcome === 'IDEMPOTENCY_KEY_REUSED') {
+      throw new ApiProblemException({
+        status: 422,
+        code: 'IDEMPOTENCY_KEY_REUSED',
+        detail: 'Idempotency-Key farklı bir istek için daha önce kullanılmış.',
+      });
+    }
+
+    if (result.outcome === 'IDEMPOTENCY_IN_PROGRESS') {
+      throw new ApiProblemException({
+        status: 409,
+        code: 'IDEMPOTENCY_IN_PROGRESS',
+        detail: 'Bu istek hâlâ işleniyor. Lütfen tekrar deneyin.',
+      });
+    }
+
+    if (result.outcome !== 'ACCEPTED' && result.outcome !== 'REPLAYED') {
+      throw new ApiProblemException({
+        status: 503,
+        code: 'ACCOUNT_DELETION_UNAVAILABLE',
+        detail: 'Hesap silme işlemi şu anda başlatılamadı. Lütfen daha sonra tekrar deneyin.',
+      });
+    }
+
+    response.clearCookie(sessionCookieName(), {
+      httpOnly: true,
+      path: '/',
+      sameSite: 'lax',
+      secure: this.environment.COOKIE_SECURE,
+    });
+
+    return {
+      data: {
+        accessRevokedAt: result.process.accessRevokedAt.toISOString(),
+        primaryPurgePending: true,
+        processId: result.process.processId,
+        requestedAt: result.process.requestedAt.toISOString(),
+        state: result.process.state,
       },
     };
   }

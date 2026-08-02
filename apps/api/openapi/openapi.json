@@ -1,6 +1,71 @@
 {
   "components": {
     "schemas": {
+      "AccountDeletionProcessDataDto": {
+        "properties": {
+          "accessRevokedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "primaryPurgePending": {
+            "type": "boolean"
+          },
+          "processId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "requestedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "PENDING_PRIMARY_PURGE"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "processId",
+          "state",
+          "requestedAt",
+          "accessRevokedAt",
+          "primaryPurgePending"
+        ],
+        "type": "object"
+      },
+      "AccountDeletionProcessResponseDto": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AccountDeletionProcessDataDto"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "AccountDeletionRequestDto": {
+        "properties": {
+          "acknowledgedPermanentDeletion": {
+            "enum": [
+              true
+            ],
+            "type": "boolean"
+          },
+          "confirmation": {
+            "enum": [
+              "DELETE_MY_ACCOUNT"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "confirmation",
+          "acknowledgedPermanentDeletion"
+        ],
+        "type": "object"
+      },
       "AuthenticatedSessionDataDto": {
         "properties": {
           "absoluteExpiresAt": {
@@ -226,6 +291,64 @@
         },
         "required": [
           "email"
+        ],
+        "type": "object"
+      },
+      "ReauthenticationDataDto": {
+        "properties": {
+          "action": {
+            "enum": [
+              "ACCOUNT_DELETION"
+            ],
+            "type": "string"
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "REAUTHENTICATED"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "action",
+          "status",
+          "expiresAt"
+        ],
+        "type": "object"
+      },
+      "ReauthenticationRequestDto": {
+        "properties": {
+          "action": {
+            "enum": [
+              "ACCOUNT_DELETION"
+            ],
+            "type": "string"
+          },
+          "password": {
+            "format": "password",
+            "maxLength": 128,
+            "type": "string",
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "action",
+          "password"
+        ],
+        "type": "object"
+      },
+      "ReauthenticationResponseDto": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ReauthenticationDataDto"
+          }
+        },
+        "required": [
+          "data"
         ],
         "type": "object"
       },
@@ -662,6 +785,53 @@
         ]
       }
     },
+    "/api/v1/auth/reauthentications": {
+      "post": {
+        "operationId": "reauthenticate",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReauthenticationRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReauthenticationResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "Current session or password did not authenticate."
+          },
+          "429": {
+            "description": "Generic reauthentication rate limit."
+          }
+        },
+        "summary": "Confirm the current password for one short-lived sensitive account action",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
     "/api/v1/auth/register": {
       "post": {
         "operationId": "registerAccount",
@@ -826,6 +996,72 @@
           }
         },
         "summary": "Read the current account profile resolved only from the active session",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/v1/users/me/account-deletions": {
+      "post": {
+        "operationId": "initiateAccountDeletion",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "If-Match",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountDeletionRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountDeletionProcessResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session or recent reauthentication is present."
+          },
+          "409": {
+            "description": "Idempotency request is in progress or incompatible."
+          },
+          "412": {
+            "description": "The current User ETag is missing or stale."
+          }
+        },
+        "summary": "Start confirmed account deletion, revoke access immediately, and enqueue purge",
         "tags": [
           "Users"
         ]

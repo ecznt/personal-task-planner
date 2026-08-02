@@ -80,9 +80,9 @@
     "semantic_hash": "0ead4164d077aedb74f41a0a9121c39c"
   },
   "apps/api/openapi/openapi.json": {
-    "mtime": 1785395453.791395,
-    "ast_hash": "7417e486ba20a2334d752628ce5c9819",
-    "semantic_hash": "7417e486ba20a2334d752628ce5c9819"
+    "mtime": 1785403157.9271166,
+    "ast_hash": "57bfbe84a2ba5097ef56f0559655a031",
+    "semantic_hash": "57bfbe84a2ba5097ef56f0559655a031"
   },
   "apps/api/package.json": {
     "mtime": 1784990390.9772732,
@@ -100,9 +100,9 @@
     "semantic_hash": "522dd84e0d91d9512b615bd352c64dae"
   },
   "apps/api/scripts/generate-openapi.ts": {
-    "mtime": 1784979422.991194,
-    "ast_hash": "1a2e7633285a48dfae40d6ecfc1b703b",
-    "semantic_hash": "1a2e7633285a48dfae40d6ecfc1b703b"
+    "mtime": 1785403144.5000045,
+    "ast_hash": "b5950ccf0266b966b19343fba063ef2b",
+    "semantic_hash": "b5950ccf0266b966b19343fba063ef2b"
   },
   "apps/api/src/app.module.ts": {
     "mtime": 1784979399.293262,
@@ -345,9 +345,9 @@
     "semantic_hash": "820bc0b4841917e04821075a3bc37719"
   },
   "packages/api-client/src/index.ts": {
-    "mtime": 1785395313.716461,
-    "ast_hash": "d98eb0325e4cd40ee3d05ec3f18e1bfd",
-    "semantic_hash": "d98eb0325e4cd40ee3d05ec3f18e1bfd"
+    "mtime": 1785401837.3773873,
+    "ast_hash": "8c5976c893a25a870d382b4462dbab04",
+    "semantic_hash": "8c5976c893a25a870d382b4462dbab04"
   },
   "packages/api-client/tsconfig.json": {
     "mtime": 1784809032.2757494,
@@ -450,9 +450,9 @@
     "semantic_hash": "d03870e9be936c91c896a118f9f4b113"
   },
   "tests/e2e/foundation.spec.ts": {
-    "mtime": 1785271931.8980594,
-    "ast_hash": "f3e52969349167575b669b4f5e5cc20d",
-    "semantic_hash": "f3e52969349167575b669b4f5e5cc20d"
+    "mtime": 1785402137.8287957,
+    "ast_hash": "04cd4fc50f19af6b29021737f0d5b001",
+    "semantic_hash": "04cd4fc50f19af6b29021737f0d5b001"
   },
   ".github/dependabot.yml": {
     "mtime": 1784809938.8880858,
@@ -490,9 +490,9 @@
     "semantic_hash": "8916994aca6feae561b35fc9100e0810"
   },
   "apps/api/src/modules/accounts/accounts.module.ts": {
-    "mtime": 1785395257.393004,
-    "ast_hash": "c642e8846e34bdfd9eeea6c5d4c0eda7",
-    "semantic_hash": "c642e8846e34bdfd9eeea6c5d4c0eda7"
+    "mtime": 1785401586.792483,
+    "ast_hash": "95a0d87e03ab4cff50f94211fca27910",
+    "semantic_hash": "95a0d87e03ab4cff50f94211fca27910"
   },
   "apps/api/src/modules/accounts/application/csrf.service.ts": {
     "mtime": 1784980398.6072528,
@@ -510,9 +510,9 @@
     "semantic_hash": "35659def3eb1d1725e405d49a0cefe2b"
   },
   "apps/api/src/modules/accounts/infrastructure/accounts.repository.ts": {
-    "mtime": 1785395213.34854,
-    "ast_hash": "733e765d879db4743410bbc21a08e316",
-    "semantic_hash": "733e765d879db4743410bbc21a08e316"
+    "mtime": 1785402257.5353138,
+    "ast_hash": "ea7528b457365f9bfc32f8a08c9676fe",
+    "semantic_hash": "ea7528b457365f9bfc32f8a08c9676fe"
   },
   "apps/api/src/modules/accounts/security/auth-security.service.ts": {
     "mtime": 1785271203.0014012,
@@ -525,14 +525,14 @@
     "semantic_hash": "655cecc92a90a87a5e5e4efc90c0808e"
   },
   "apps/api/src/modules/accounts/transport/auth.controller.ts": {
-    "mtime": 1785271364.7147894,
-    "ast_hash": "9a9b38744ef778d4928e41782d40bb6e",
-    "semantic_hash": "9a9b38744ef778d4928e41782d40bb6e"
+    "mtime": 1785401616.9105182,
+    "ast_hash": "575abac43f9cfffc33b20cfeab871349",
+    "semantic_hash": "575abac43f9cfffc33b20cfeab871349"
   },
   "apps/api/src/modules/accounts/transport/auth.dto.ts": {
-    "mtime": 1785271319.3434649,
-    "ast_hash": "173babc166978ae49f1c53f25f42b587",
-    "semantic_hash": "173babc166978ae49f1c53f25f42b587"
+    "mtime": 1785401498.6906886,
+    "ast_hash": "9f148a098f7ebd47b5b48beb62065887",
+    "semantic_hash": "9f148a098f7ebd47b5b48beb62065887"
   },
   "apps/api/src/modules/accounts/transport/registration.schema.ts": {
     "mtime": 1784979398.807811,
@@ -545,14 +545,14 @@
     "semantic_hash": "46d1b1348efaa61aff47d6f26d0675b2"
   },
   "apps/api/test/api/registration.spec.ts": {
-    "mtime": 1785271514.2169356,
-    "ast_hash": "b81207efe06c46977d5fd58b5c66e602",
-    "semantic_hash": "b81207efe06c46977d5fd58b5c66e602"
+    "mtime": 1785401665.582642,
+    "ast_hash": "1597b89f5cfcc1163696f77912b12b64",
+    "semantic_hash": "1597b89f5cfcc1163696f77912b12b64"
   },
   "apps/api/test/db/registration.spec.ts": {
-    "mtime": 1785395322.811388,
-    "ast_hash": "895a91c5debf382dd59bb1cdcf683751",
-    "semantic_hash": "895a91c5debf382dd59bb1cdcf683751"
+    "mtime": 1785402137.5382154,
+    "ast_hash": "d76c8c9ddb523f8e67858fee9709bdd3",
+    "semantic_hash": "d76c8c9ddb523f8e67858fee9709bdd3"
   },
   "apps/api/test/unit/registration.spec.ts": {
     "mtime": 1784990597.9958699,
@@ -715,9 +715,9 @@
     "semantic_hash": "b8110a2e7c8d641a20f9dfe4f6170b9b"
   },
   "apps/api/test/api/email-verification.spec.ts": {
-    "mtime": 1785271519.3084655,
-    "ast_hash": "dc3b515b4909afa0de56978876db05ac",
-    "semantic_hash": "dc3b515b4909afa0de56978876db05ac"
+    "mtime": 1785401672.468139,
+    "ast_hash": "8e161948c21346d3ba335e0a286fc9aa",
+    "semantic_hash": "8e161948c21346d3ba335e0a286fc9aa"
   },
   "apps/api/test/unit/email-verification.spec.ts": {
     "mtime": 1784990990.823344,
@@ -880,9 +880,9 @@
     "semantic_hash": "cefc9c66b678bf1ac5b0491a10de5010"
   },
   "apps/api/test/api/password-reset.spec.ts": {
-    "mtime": 1785271555.0842385,
-    "ast_hash": "8827fe5db207cfca43b263044079f648",
-    "semantic_hash": "8827fe5db207cfca43b263044079f648"
+    "mtime": 1785401677.1597428,
+    "ast_hash": "81f42bd63eab3425687c5cc230999eda",
+    "semantic_hash": "81f42bd63eab3425687c5cc230999eda"
   },
   "apps/api/test/unit/password-reset.spec.ts": {
     "mtime": 1785271799.3025355,
@@ -925,18 +925,73 @@
     "semantic_hash": "7694c5d32ae438ae467dda47900d5bd7"
   },
   "apps/api/src/modules/accounts/transport/user.controller.ts": {
-    "mtime": 1785395322.7024546,
-    "ast_hash": "f8a2f5afd3bb124b09e5ae23f52fda6f",
-    "semantic_hash": "f8a2f5afd3bb124b09e5ae23f52fda6f"
+    "mtime": 1785402137.4302256,
+    "ast_hash": "a22789b0862c7003d9fa2a108231195a",
+    "semantic_hash": "a22789b0862c7003d9fa2a108231195a"
   },
   "apps/api/src/modules/accounts/transport/user.dto.ts": {
-    "mtime": 1785395236.6396081,
-    "ast_hash": "befb00f87e6a124dda85ed42b1d97bbf",
-    "semantic_hash": "befb00f87e6a124dda85ed42b1d97bbf"
+    "mtime": 1785401507.6763937,
+    "ast_hash": "36f0a0ce23b53befa37ddad6773ad458",
+    "semantic_hash": "36f0a0ce23b53befa37ddad6773ad458"
   },
   "apps/api/test/api/current-user.spec.ts": {
-    "mtime": 1785395278.0321162,
-    "ast_hash": "92eb2b56723b3d6085c621be86cfed02",
-    "semantic_hash": "92eb2b56723b3d6085c621be86cfed02"
+    "mtime": 1785401972.2752063,
+    "ast_hash": "962dfd7f35439894cdd86b936fc2964a",
+    "semantic_hash": "962dfd7f35439894cdd86b936fc2964a"
+  },
+  "apps/api/prisma/migrations/20260730090000_account_deletion_initiation/migration.sql": {
+    "mtime": 1785401325.9464715,
+    "ast_hash": "3799f8569452752dd03ce10d2650f036",
+    "semantic_hash": "3799f8569452752dd03ce10d2650f036"
+  },
+  "apps/api/src/modules/accounts/application/initiate-account-deletion.service.ts": {
+    "mtime": 1785402085.8945727,
+    "ast_hash": "81c5022665451fee97a6129fafd5960a",
+    "semantic_hash": "81c5022665451fee97a6129fafd5960a"
+  },
+  "apps/api/src/modules/accounts/application/reauthenticate.service.ts": {
+    "mtime": 1785401465.1372187,
+    "ast_hash": "dc8eb31308d239b3058a6ca9f318d47d",
+    "semantic_hash": "dc8eb31308d239b3058a6ca9f318d47d"
+  },
+  "apps/api/src/modules/accounts/transport/account-deletion.schema.ts": {
+    "mtime": 1785401532.7600477,
+    "ast_hash": "2f1368c0baf572504785c47766baea0e",
+    "semantic_hash": "2f1368c0baf572504785c47766baea0e"
+  },
+  "apps/api/src/modules/accounts/transport/reauthentication.schema.ts": {
+    "mtime": 1785401518.0854597,
+    "ast_hash": "5e40418e27e8e402d92b818b9c51dee8",
+    "semantic_hash": "5e40418e27e8e402d92b818b9c51dee8"
+  },
+  "apps/api/test/api/reauthentication.spec.ts": {
+    "mtime": 1785401757.4203289,
+    "ast_hash": "d149f80b84d1a546f335654b97baf7fb",
+    "semantic_hash": "d149f80b84d1a546f335654b97baf7fb"
+  },
+  "apps/web/src/app/account-deletion-started/page.tsx": {
+    "mtime": 1785402381.6061776,
+    "ast_hash": "33b4ed54c9b140f57f0f8e6e6516a20d",
+    "semantic_hash": "33b4ed54c9b140f57f0f8e6e6516a20d"
+  },
+  "apps/web/src/app/app/settings/account/page.tsx": {
+    "mtime": 1785401916.1370742,
+    "ast_hash": "270de1354fd19cc1496397bae3edd5a1",
+    "semantic_hash": "270de1354fd19cc1496397bae3edd5a1"
+  },
+  "apps/web/src/features/auth/account-deletion-form.test.tsx": {
+    "mtime": 1785402137.6602492,
+    "ast_hash": "1cebbb7ffcf839bd788ef7b0a8958d9c",
+    "semantic_hash": "1cebbb7ffcf839bd788ef7b0a8958d9c"
+  },
+  "apps/web/src/features/auth/account-deletion-form.tsx": {
+    "mtime": 1785402297.774982,
+    "ast_hash": "c333f4e4aeaf4572a76d8efd85653090",
+    "semantic_hash": "c333f4e4aeaf4572a76d8efd85653090"
+  },
+  "apps/web/src/features/auth/account-deletion-schema.ts": {
+    "mtime": 1785402137.6692827,
+    "ast_hash": "7bbc573d9e334de08980d93d20a5a0a8",
+    "semantic_hash": "7bbc573d9e334de08980d93d20a5a0a8"
   }
 }

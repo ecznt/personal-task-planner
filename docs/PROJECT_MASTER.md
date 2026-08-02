@@ -191,6 +191,8 @@ Every stage requires explicit user approval before the next stage begins.
 | DEC-074 | 2026-07-26 | Implement BL-010 current-device sign-out with CSRF, revoke a valid presented session before clearing its cookie, and return the same idempotent `204` for missing, expired, or already-revoked sessions. Keep the temporary control on the authenticated handoff, then move it to the desktop user menu and mobile More menu; use a full-document redirect to `/login?signedOut=1`. | Implemented, verified, accepted, published, and CI-green | User selections 1A and 2A, approved implementation plan, explicit implementation/publication instruction, commit `636c373`, and CI run `30179467625`; BL-010 |
 | DEC-075 | 2026-07-27 | Plan BL-011 password recovery with reset links that carry the secret token in the URL fragment and invalidate every previous unused reset token when a new request is created for the same eligible email/password identity. | Implemented, published, and CI-verified | User selected 1A and 2A; `docs/planning/BL-011_PASSWORD_RECOVERY_PLAN.md`; BL-011 |
 | DEC-076 | 2026-07-28 | Implement BL-011 password recovery with non-enumerating reset requests, idempotent reset confirmation, hashed single-use reset challenges, challenge-ID-only durable delivery jobs, URL-fragment reset links, latest-token-only invalidation, and revocation of all active sessions after a successful reset. | Implemented, published, and CI-verified | User instructed implementation; commit `4e33e2f`; CI run `30519298773`; BL-011 |
+| DEC-077 | 2026-07-30 | Implement BL-014 current account profile with authenticated `GET /users/me`, approved profile fields only, ETag support, no arbitrary User lookup route, and session-derived ownership. | Implemented, published, and CI-verified | User instruction; commit `b012e8a`; CI run `30526911410`; BL-014 |
+| DEC-078 | 2026-07-30 | Implement BL-015 account deletion initiation with recent password reauthentication, explicit permanent-deletion confirmation, idempotent process creation/replay, immediate all-session revocation, cookie clearing, and deferred full primary-data purge to EPIC-016. | Implemented locally; awaiting acceptance/publication | User-approved BL-015 implementation plan; BL-015 |
 
 ## Open questions
 
@@ -396,6 +398,14 @@ Verified BL-010 graph findings:
 - Source review confirms the conditional update revokes only the presented current-session token, cookie clearing occurs only after repository success, and no planning-domain or cross-user resource dependency entered the slice.
 - No Prisma schema change or migration was required. The generated OpenAPI limitation remains covered by Redocly, deterministic client generation, API tests, and direct contract review.
 
+Verified BL-015 graph findings:
+
+- The final bounded incremental code refresh produced 1,353 nodes, 1,820 edges, and 125 communities.
+- One bounded depth-2 query found the intended account-deletion impact around `ReauthenticateService`, `InitiateAccountDeletionService`, `AccountsRepository`, `AuthController`, `UserController`, generated client operations, `AccountDeletionForm`, and the account deletion API/database/E2E tests.
+- Source review confirms the slice requires a current session, CSRF, `If-Match`, `Idempotency-Key`, recent same-session reauthentication, and explicit confirmation before revoking every session and creating/finding one durable deletion process.
+- Full primary-data purge, deletion replay worker, Area, Task, Project, collaboration, and social authentication remain outside the BL-015 implementation boundary and are still governed by later backlog slices.
+- Graphify skipped the changed SQL migration because the optional SQL parser is not installed and generated OpenAPI JSON remains structurally empty to Graphify. Migration and contract correctness are instead verified by Prisma validation, successful local PostgreSQL migration deploy, Testcontainers coverage, Redocly, deterministic client generation, API tests, and direct source review.
+
 ## Graphify version
 
 - Package: `graphifyy`
@@ -427,19 +437,19 @@ The recorded version must not be changed without a decision-log entry and revali
 | Field | Value |
 | --- | --- |
 | Status | Successful |
-| Generated at | 2026-07-30T07:13:28Z |
+| Generated at | 2026-07-30T09:20:15Z |
 | Graphify version | 0.9.20 |
-| Source commit at generation | `d2a33b13bd38ad6b7ac2d92c9a4cd784c9f27512` |
-| Working tree at generation | Includes the uncommitted BL-014 current account profile implementation, generated OpenAPI/client artifacts, API and PostgreSQL integration tests, documentation updates, and Graphify outputs; contains no onboarding, Area, Task, Project, collaboration, social authentication, or account-deletion implementation. |
-| Input scope | Incremental local-AST `--code-only` update of 9 changed code-classified files with 165 cached/unchanged files. Fifteen documentation files were intentionally skipped by policy to avoid unnecessary semantic token use; dependencies, generated Prisma output, build/test output, environment files, Graphify outputs/memory, and sensitive paths remain excluded. |
+| Source commit at generation | `2d0cbf84aa39ac42e606656f43b1c72656179216` |
+| Working tree at generation | Includes the uncommitted BL-015 account deletion initiation implementation, Prisma schema/migration, generated OpenAPI/client artifacts, backend/web tests, documentation updates, and Graphify outputs; contains no onboarding, Area, Task, Project, collaboration, social authentication, or full primary-data purge implementation. |
+| Input scope | Incremental local-AST `--code-only` update of 25 changed code-classified files with 160 cached/unchanged files. Fifteen documentation files were intentionally skipped by policy to avoid unnecessary semantic token use; dependencies, generated Prisma output, build/test output, environment files, Graphify outputs/memory, and sensitive paths remain excluded. |
 | Output path | `graphify-out/graph.json` |
-| Nodes | 1,258 |
-| Edges | 1,696 |
+| Nodes | 1,353 |
+| Edges | 1,820 |
 | Hyperedges | Not reported by the incremental CLI summary |
-| Communities | 120 |
-| Graph health | Incremental extraction completed; `cluster-only` refreshed `GRAPH_REPORT.md`; one bounded impact traversal succeeded. Generated `openapi.json` produced zero AST nodes, so OpenAPI correctness was verified through deterministic generation, Redocly lint, generated-client type-check, and contract drift checks. |
-| Recorded semantic tokens | 0 input / 0 output; BL-014 used local AST code extraction and no LLM API key. |
-| Reason | Capture BL-014 across current-session profile lookup, `/users/me` controller/DTOs, repository session ownership lookup, generated client, API/DB tests, and documentation updates, then verify that no later planning feature entered the slice. |
+| Communities | 125 |
+| Graph health | Incremental extraction completed; `cluster-only` refreshed `GRAPH_REPORT.md`; one bounded impact traversal succeeded. Generated `openapi.json` produced zero AST nodes, and the SQL migration was skipped because the optional SQL parser is not installed, so OpenAPI and migration correctness were verified through deterministic generation, Redocly lint, generated-client type-check, Prisma validation/deploy, Testcontainers coverage, and direct source review. |
+| Recorded semantic tokens | 0 input / 0 output; BL-015 used local AST code extraction and no LLM API key. |
+| Reason | Capture BL-015 across recent reauthentication, account-deletion process initiation, all-session revocation, Prisma persistence, generated client, account deletion UX, API/DB/component/E2E tests, and documentation updates, then verify that full purge and planning-domain features stayed outside the slice. |
 
 Update this section after every successful graph generation.
 
@@ -488,11 +498,12 @@ Update this section after every successful graph generation.
 | 2026-07-27 | Phase 3 — BL-011 password recovery planning | Decision-complete handoff prepared | User selected reset link via URL fragment and latest-token-only invalidation; the handoff plan records the next-session start point, expected changes, tests, security checks, and Graphify usage. |
 | 2026-07-28 | Phase 3 — BL-011 password recovery implementation | Completed, accepted, committed, published, and CI-verified | Non-enumerating request, idempotent confirmation, reset challenge persistence, durable reset-link delivery, session revocation, Turkish web flows, generated contract/client, automated tests, secret scan, and bounded Graphify impact review passed; commit `4e33e2f` was published to `develop` and CI run `30519298773` succeeded. |
 | 2026-07-30 | Phase 3 — BL-014 current account profile implementation | Completed, accepted, committed, published, and CI-verified | Authenticated `GET /users/me` returns only approved current account/session-safe profile fields with ETag, keeps arbitrary User lookup absent, updates generated OpenAPI/client artifacts, and passed local quality gates plus CI run `30526911410`; commit `b012e8a` was published to `develop`. |
+| 2026-07-30 | Phase 3 — BL-015 account deletion initiation implementation | Implemented locally; awaiting user acceptance/publication | Recent password reauthentication, explicit confirmation, idempotent deletion-process initiation, all-session revocation, cookie clearing, generated OpenAPI/client artifacts, tests, security scan, and bounded Graphify impact review passed locally. |
 
 ## Current planning stage
 
-Phase 3 Implementation — BL-014 Current Account Profile Complete. EPIC-001 and BL-007 through BL-011 and BL-014 are complete, published, and CI-verified. No onboarding, Area, Task, Project, collaboration, social authentication, or account-deletion implementation has started.
+Phase 3 Implementation — BL-015 Account Deletion Initiation Implemented Locally. EPIC-001 and BL-007 through BL-011 and BL-014 are complete, published, and CI-verified. BL-015 is implemented locally and awaiting user acceptance/publication. No onboarding, Area, Task, Project, collaboration, social authentication, or full primary-data purge implementation has started.
 
 ## Next required action
 
-Prepare the decision-complete implementation plan for BL-015 account deletion initiation unless the User explicitly defers it in favor of BL-121 public product/privacy/terms entry points. Do not start BL-015, BL-121, onboarding, Area, Task, Project, collaboration, social authentication, or account-deletion implementation before explicit User instruction.
+Ask the User to review and accept BL-015. After acceptance and explicit publication instruction, commit/push BL-015 and verify CI. The next backlog candidate remains BL-121 public product/privacy/terms entry points before EPIC-003 onboarding unless the User explicitly chooses a different approved story.

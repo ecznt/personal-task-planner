@@ -5,8 +5,10 @@ import { PostgreSqlContainer, type StartedPostgreSqlContainer } from '@testconta
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
 
 import { CsrfService } from '../../src/modules/accounts/application/csrf.service';
+import { InitiateAccountDeletionService } from '../../src/modules/accounts/application/initiate-account-deletion.service';
 import { LoginService } from '../../src/modules/accounts/application/login.service';
 import { LogoutService } from '../../src/modules/accounts/application/logout.service';
+import { ReauthenticateService } from '../../src/modules/accounts/application/reauthenticate.service';
 import { ReadSessionService } from '../../src/modules/accounts/application/read-session.service';
 import { RegisterAccountService } from '../../src/modules/accounts/application/register-account.service';
 import { RequestEmailVerificationService } from '../../src/modules/accounts/application/request-email-verification.service';
@@ -20,12 +22,14 @@ import { PrismaService } from '../../src/platform/database/prisma.service';
 describe('registration persistence', () => {
   let container: StartedPostgreSqlContainer;
   let csrf: CsrfService;
+  let initiateAccountDeletion: InitiateAccountDeletionService;
   let login: LoginService;
   let logout: LogoutService;
   let prisma: PrismaService;
   let registration: RegisterAccountService;
   let repository: AccountsRepository;
   let readSession: ReadSessionService;
+  let reauthenticate: ReauthenticateService;
   let requestVerification: RequestEmailVerificationService;
   let requestPasswordReset: RequestPasswordResetService;
   let resetPassword: ResetPasswordService;
@@ -52,8 +56,10 @@ describe('registration persistence', () => {
     repository = new AccountsRepository(prisma);
     security = new AuthSecurityService();
     csrf = new CsrfService(repository, security);
+    initiateAccountDeletion = new InitiateAccountDeletionService(repository, security);
     login = new LoginService(repository, security);
     logout = new LogoutService(repository, security);
+    reauthenticate = new ReauthenticateService(repository, security);
     readSession = new ReadSessionService(repository, security);
     registration = new RegisterAccountService(repository, security);
     requestVerification = new RequestEmailVerificationService(repository, security);
@@ -66,6 +72,8 @@ describe('registration persistence', () => {
     await prisma.authAbuseCounter.deleteMany();
     await prisma.anonymousAuthTransaction.deleteMany();
     await prisma.idempotencyRecord.deleteMany();
+    await prisma.accountDeletionProcess.deleteMany();
+    await prisma.reauthenticationProof.deleteMany();
     await prisma.session.deleteMany();
     await prisma.job.deleteMany();
     await prisma.passwordResetChallenge.deleteMany();
@@ -558,5 +566,138 @@ describe('registration persistence', () => {
         },
       }),
     ).toBe(0);
+  });
+
+  it('initiates account deletion after recent reauthentication and revokes all access', async () => {
+    await registration.execute({
+      email: 'user@example.com',
+      networkAddress: '192.0.2.14',
+      password: 'correct horse battery staple',
+    });
+    const emailChallenge = await prisma.emailVerificationChallenge.findFirstOrThrow();
+    await verification.execute({
+      code: security.deriveEmailVerificationCode(emailChallenge.id),
+      email: 'user@example.com',
+      idempotencyKey: '018f9f7c-0000-7000-8000-000000000111',
+      networkAddress: '192.0.2.14',
+    });
+    const loginResult = await login.execute({
+      email: 'user@example.com',
+      networkAddress: '198.51.100.14',
+      password: 'correct horse battery staple',
+      returnTo: '/app/today',
+    });
+
+    expect(loginResult.outcome).toBe('AUTHENTICATED');
+    if (loginResult.outcome !== 'AUTHENTICATED') {
+      throw new Error('Expected authenticated result.');
+    }
+
+    await expect(
+      initiateAccountDeletion.execute({
+        confirmation: 'DELETE_MY_ACCOUNT',
+        etag: '"stale-etag"',
+        idempotencyKey: '018f9f7c-0000-7000-8000-000000000112',
+        sessionToken: loginResult.sessionToken,
+      }),
+    ).resolves.toEqual({
+      outcome: 'PRECONDITION_FAILED',
+    });
+
+    await expect(
+      reauthenticate.execute({
+        action: 'ACCOUNT_DELETION',
+        networkAddress: '198.51.100.14',
+        password: 'wrong horse battery staple',
+        sessionToken: loginResult.sessionToken,
+      }),
+    ).resolves.toEqual({
+      outcome: 'AUTHENTICATION_FAILED',
+    });
+    await expect(
+      reauthenticate.execute({
+        action: 'ACCOUNT_DELETION',
+        networkAddress: '198.51.100.14',
+        password: 'correct horse battery staple',
+        sessionToken: loginResult.sessionToken,
+      }),
+    ).resolves.toMatchObject({
+      action: 'ACCOUNT_DELETION',
+      outcome: 'REAUTHENTICATED',
+    });
+
+    const profile = await repository.findCurrentUserProfileBySession({
+      now: new Date(),
+      refreshAfter: new Date(Date.now() - 5 * 60 * 1_000),
+      refreshedIdleExpiresAt: new Date(Date.now() + 12 * 60 * 60 * 1_000),
+      tokenHash: security.hashSecret(loginResult.sessionToken, 'session-storage'),
+    });
+
+    expect(profile).not.toBeNull();
+    if (profile === null) {
+      throw new Error('Expected current user profile.');
+    }
+
+    const etag = `"${security.hashSecret(`${profile.userId}\0${profile.version}`, 'user-profile-etag')}"`;
+    const accepted = await initiateAccountDeletion.execute({
+      confirmation: 'DELETE_MY_ACCOUNT',
+      etag,
+      idempotencyKey: '018f9f7c-0000-7000-8000-000000000113',
+      sessionToken: loginResult.sessionToken,
+    });
+
+    expect(accepted).toMatchObject({
+      outcome: 'ACCEPTED',
+      process: {
+        state: 'PENDING_PRIMARY_PURGE',
+      },
+    });
+    expect(await prisma.accountDeletionProcess.count()).toBe(1);
+    expect(await prisma.reauthenticationProof.count({ where: { consumedAt: null } })).toBe(0);
+    await expect(prisma.user.findFirstOrThrow()).resolves.toMatchObject({
+      accessRevokedAt: expect.any(Date),
+      accountLifecycleState: 'DELETION_CONFIRMED',
+      deletionConfirmedAt: expect.any(Date),
+      version: profile.version + 1,
+    });
+    expect(await prisma.session.count({ where: { revokedAt: null } })).toBe(0);
+    await expect(readSession.execute(loginResult.sessionToken)).resolves.toEqual({
+      authenticated: false,
+    });
+    await expect(
+      repository.findCurrentUserProfileBySession({
+        now: new Date(),
+        refreshAfter: new Date(Date.now() - 5 * 60 * 1_000),
+        refreshedIdleExpiresAt: new Date(Date.now() + 12 * 60 * 60 * 1_000),
+        tokenHash: security.hashSecret(loginResult.sessionToken, 'session-storage'),
+      }),
+    ).resolves.toBeNull();
+    await expect(
+      login.execute({
+        email: 'user@example.com',
+        networkAddress: '198.51.100.14',
+        password: 'correct horse battery staple',
+        returnTo: '/app/today',
+      }),
+    ).resolves.toEqual({
+      outcome: 'AUTHENTICATION_FAILED',
+    });
+
+    const replayed = await initiateAccountDeletion.execute({
+      confirmation: 'DELETE_MY_ACCOUNT',
+      etag,
+      idempotencyKey: '018f9f7c-0000-7000-8000-000000000113',
+      sessionToken: loginResult.sessionToken,
+    });
+
+    expect(replayed).toMatchObject({
+      outcome: 'REPLAYED',
+      process: {
+        state: 'PENDING_PRIMARY_PURGE',
+      },
+    });
+    expect(JSON.stringify(await prisma.accountDeletionProcess.findFirstOrThrow())).not.toContain(
+      'user@example.com',
+    );
   });
 });

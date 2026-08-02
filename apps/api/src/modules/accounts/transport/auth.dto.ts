@@ -194,3 +194,46 @@ export class ResetPasswordRequestDto {
   })
   passwordConfirmation!: string;
 }
+
+export class ReauthenticationRequestDto {
+  @ApiProperty({
+    enum: ['ACCOUNT_DELETION'],
+    type: String,
+  })
+  action!: 'ACCOUNT_DELETION';
+
+  @ApiProperty({
+    format: 'password',
+    maxLength: 128,
+    type: String,
+    writeOnly: true,
+  })
+  password!: string;
+}
+
+export class ReauthenticationDataDto {
+  @ApiProperty({
+    enum: ['ACCOUNT_DELETION'],
+    type: String,
+  })
+  action!: 'ACCOUNT_DELETION';
+
+  @ApiProperty({
+    enum: ['REAUTHENTICATED'],
+    type: String,
+  })
+  status!: 'REAUTHENTICATED';
+
+  @ApiProperty({
+    format: 'date-time',
+    type: String,
+  })
+  expiresAt!: string;
+}
+
+export class ReauthenticationResponseDto {
+  @ApiProperty({
+    type: () => ReauthenticationDataDto,
+  })
+  data!: ReauthenticationDataDto;
+}

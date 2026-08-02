@@ -6,12 +6,21 @@ import { Test } from '@nestjs/testing';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import request from 'supertest';
 
+import { CsrfService } from '../../src/modules/accounts/application/csrf.service';
+import { InitiateAccountDeletionService } from '../../src/modules/accounts/application/initiate-account-deletion.service';
 import { ReadCurrentUserService } from '../../src/modules/accounts/application/read-current-user.service';
+import { AnonymousCsrfGuard } from '../../src/modules/accounts/transport/anonymous-csrf.guard';
 import { UserController } from '../../src/modules/accounts/transport/user.controller';
 import { ProblemDetailsFilter } from '../../src/platform/http/problem-details.filter';
 
 describe('current user HTTP contract', () => {
   let app: INestApplication;
+  const csrf = {
+    isValid: jest.fn<CsrfService['isValid']>(),
+  };
+  const initiateAccountDeletion = {
+    execute: jest.fn<InitiateAccountDeletionService['execute']>(),
+  };
   const readCurrentUser = {
     execute: jest.fn<ReadCurrentUserService['execute']>(),
   };
@@ -20,6 +29,15 @@ describe('current user HTTP contract', () => {
     const moduleRef = await Test.createTestingModule({
       controllers: [UserController],
       providers: [
+        AnonymousCsrfGuard,
+        {
+          provide: CsrfService,
+          useValue: csrf,
+        },
+        {
+          provide: InitiateAccountDeletionService,
+          useValue: initiateAccountDeletion,
+        },
         {
           provide: ReadCurrentUserService,
           useValue: readCurrentUser,
@@ -35,6 +53,16 @@ describe('current user HTTP contract', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    csrf.isValid.mockResolvedValue(true);
+    initiateAccountDeletion.execute.mockResolvedValue({
+      outcome: 'ACCEPTED',
+      process: {
+        accessRevokedAt: new Date('2026-07-30T09:00:00.000Z'),
+        processId: '018f9f7c-0000-7000-8000-000000000099',
+        requestedAt: new Date('2026-07-30T09:00:00.000Z'),
+        state: 'PENDING_PRIMARY_PURGE',
+      },
+    });
     readCurrentUser.execute.mockResolvedValue({
       authenticated: true,
       etag: '"safe-user-etag"',
@@ -94,5 +122,86 @@ describe('current user HTTP contract', () => {
     await request(app.getHttpServer())
       .get('/api/v1/users/018f9f7c-0000-7000-8000-000000000001')
       .expect(404);
+  });
+
+  it('starts account deletion only from the current session with CSRF, ETag, idempotency and explicit confirmation', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/api/v1/users/me/account-deletions')
+      .set('Cookie', 'planner-session=raw-session-secret; planner-csrf-context=browser-context')
+      .set('Origin', 'http://127.0.0.1:3000')
+      .set('X-CSRF-Token', 'csrf-token')
+      .set('If-Match', '"safe-user-etag"')
+      .set('Idempotency-Key', '018f9f7c-0000-7000-8000-000000000015')
+      .send({
+        acknowledgedPermanentDeletion: true,
+        confirmation: 'DELETE_MY_ACCOUNT',
+      })
+      .expect(202);
+
+    expect(initiateAccountDeletion.execute).toHaveBeenCalledWith({
+      confirmation: 'DELETE_MY_ACCOUNT',
+      etag: '"safe-user-etag"',
+      idempotencyKey: '018f9f7c-0000-7000-8000-000000000015',
+      sessionToken: 'raw-session-secret',
+    });
+    expect(String(response.headers['set-cookie'])).toContain('planner-session=;');
+    expect(response.body).toEqual({
+      data: {
+        accessRevokedAt: '2026-07-30T09:00:00.000Z',
+        primaryPurgePending: true,
+        processId: '018f9f7c-0000-7000-8000-000000000099',
+        requestedAt: '2026-07-30T09:00:00.000Z',
+        state: 'PENDING_PRIMARY_PURGE',
+      },
+    });
+    expect(JSON.stringify(response.body)).not.toContain('raw-session-secret');
+    expect(JSON.stringify(response.body)).not.toContain('password');
+  });
+
+  it('requires recent reauthentication before account deletion', async () => {
+    initiateAccountDeletion.execute.mockResolvedValueOnce({
+      outcome: 'REAUTHENTICATION_REQUIRED',
+    });
+
+    const response = await request(app.getHttpServer())
+      .post('/api/v1/users/me/account-deletions')
+      .set('Cookie', 'planner-session=raw-session-secret; planner-csrf-context=browser-context')
+      .set('Origin', 'http://127.0.0.1:3000')
+      .set('X-CSRF-Token', 'csrf-token')
+      .set('If-Match', '"safe-user-etag"')
+      .set('Idempotency-Key', '018f9f7c-0000-7000-8000-000000000016')
+      .send({
+        acknowledgedPermanentDeletion: true,
+        confirmation: 'DELETE_MY_ACCOUNT',
+      })
+      .expect(401);
+
+    expect(response.body).toMatchObject({
+      code: 'REAUTHENTICATION_REQUIRED',
+      status: 401,
+    });
+  });
+
+  it('requires If-Match for account deletion initiation', async () => {
+    initiateAccountDeletion.execute.mockResolvedValueOnce({
+      outcome: 'PRECONDITION_REQUIRED',
+    });
+
+    const response = await request(app.getHttpServer())
+      .post('/api/v1/users/me/account-deletions')
+      .set('Cookie', 'planner-session=raw-session-secret; planner-csrf-context=browser-context')
+      .set('Origin', 'http://127.0.0.1:3000')
+      .set('X-CSRF-Token', 'csrf-token')
+      .set('Idempotency-Key', '018f9f7c-0000-7000-8000-000000000017')
+      .send({
+        acknowledgedPermanentDeletion: true,
+        confirmation: 'DELETE_MY_ACCOUNT',
+      })
+      .expect(428);
+
+    expect(response.body).toMatchObject({
+      code: 'PRECONDITION_REQUIRED',
+      status: 428,
+    });
   });
 });

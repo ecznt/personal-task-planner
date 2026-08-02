@@ -43,3 +43,55 @@ export class CurrentUserProfileResponseDto {
   })
   data!: CurrentUserProfileDataDto;
 }
+
+export class AccountDeletionRequestDto {
+  @ApiProperty({
+    enum: ['DELETE_MY_ACCOUNT'],
+    type: String,
+  })
+  confirmation!: 'DELETE_MY_ACCOUNT';
+
+  @ApiProperty({
+    enum: [true],
+    type: Boolean,
+  })
+  acknowledgedPermanentDeletion!: true;
+}
+
+export class AccountDeletionProcessDataDto {
+  @ApiProperty({
+    format: 'uuid',
+    type: String,
+  })
+  processId!: string;
+
+  @ApiProperty({
+    enum: ['PENDING_PRIMARY_PURGE'],
+    type: String,
+  })
+  state!: 'PENDING_PRIMARY_PURGE';
+
+  @ApiProperty({
+    format: 'date-time',
+    type: String,
+  })
+  requestedAt!: string;
+
+  @ApiProperty({
+    format: 'date-time',
+    type: String,
+  })
+  accessRevokedAt!: string;
+
+  @ApiProperty({
+    type: Boolean,
+  })
+  primaryPurgePending!: true;
+}
+
+export class AccountDeletionProcessResponseDto {
+  @ApiProperty({
+    type: () => AccountDeletionProcessDataDto,
+  })
+  data!: AccountDeletionProcessDataDto;
+}

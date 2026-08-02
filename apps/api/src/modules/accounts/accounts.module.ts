@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 
 import { CsrfService } from './application/csrf.service';
+import { InitiateAccountDeletionService } from './application/initiate-account-deletion.service';
 import { LoginService } from './application/login.service';
 import { LogoutService } from './application/logout.service';
+import { ReauthenticateService } from './application/reauthenticate.service';
 import { ReadSessionService } from './application/read-session.service';
 import { ReadCurrentUserService } from './application/read-current-user.service';
 import { RegisterAccountService } from './application/register-account.service';
@@ -24,8 +26,10 @@ import { UserController } from './transport/user.controller';
     AnonymousCsrfGuard,
     AuthSecurityService,
     CsrfService,
+    InitiateAccountDeletionService,
     LoginService,
     LogoutService,
+    ReauthenticateService,
     ReadCurrentUserService,
     ReadSessionService,
     RegisterAccountService,

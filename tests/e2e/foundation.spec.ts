@@ -190,3 +190,86 @@ test('signs in and idempotently ends only the current browser session', async ({
   await page.goto('/app/today');
   await expect(page).toHaveURL(/\/login\?returnTo=%2Fapp%2Ftoday$/);
 });
+
+test('reauthenticates and starts account deletion from the danger area', async ({ page }) => {
+  await page.route('**/api/v1/auth/csrf', async (route) => {
+    await route.fulfill({
+      json: {
+        data: {
+          expiresAt: '2099-01-01T00:00:00.000Z',
+          token: 'e2e-csrf-token',
+        },
+      },
+      status: 200,
+    });
+  });
+  await page.route('**/api/v1/users/me', async (route) => {
+    await route.fulfill({
+      headers: {
+        ETag: '"safe-user-etag"',
+      },
+      json: {
+        data: {
+          accountLifecycleState: 'ACTIVE',
+          email: 'user@example.com',
+          id: '018f9f7c-0000-7000-8000-000000000001',
+          inAppReminderNotificationsEnabled: true,
+          onboardingState: 'PENDING',
+          timeZone: 'UTC',
+        },
+      },
+      status: 200,
+    });
+  });
+  await page.route('**/api/v1/auth/reauthentications', async (route) => {
+    expect(await route.request().postDataJSON()).toEqual({
+      action: 'ACCOUNT_DELETION',
+      password: 'correct-password',
+    });
+    expect(route.request().headers()['x-csrf-token']).toBe('e2e-csrf-token');
+    await route.fulfill({
+      json: {
+        data: {
+          action: 'ACCOUNT_DELETION',
+          expiresAt: '2099-01-01T00:15:00.000Z',
+          status: 'REAUTHENTICATED',
+        },
+      },
+      status: 200,
+    });
+  });
+  await page.route('**/api/v1/users/me/account-deletions', async (route) => {
+    expect(await route.request().postDataJSON()).toEqual({
+      acknowledgedPermanentDeletion: true,
+      confirmation: 'DELETE_MY_ACCOUNT',
+    });
+    expect(route.request().headers()['if-match']).toBe('"safe-user-etag"');
+    expect(route.request().headers()['idempotency-key']).toEqual(expect.any(String));
+    expect(route.request().headers()['x-csrf-token']).toBe('e2e-csrf-token');
+    await route.fulfill({
+      json: {
+        data: {
+          accessRevokedAt: '2099-01-01T00:00:00.000Z',
+          primaryPurgePending: true,
+          processId: '018f9f7c-0000-7000-8000-000000000099',
+          requestedAt: '2099-01-01T00:00:00.000Z',
+          state: 'PENDING_PRIMARY_PURGE',
+        },
+      },
+      status: 202,
+    });
+  });
+
+  await page.goto('/app/settings/account');
+  await expect(page.getByRole('heading', { name: 'Hesap' })).toBeVisible();
+  await expect(page.getByText(/user@example.com hesabı için/)).toBeVisible();
+  await page.getByLabel('Parolanız').fill('correct-password');
+  await page.getByLabel('Onay metni: DELETE_MY_ACCOUNT').fill('DELETE_MY_ACCOUNT');
+  await page
+    .getByLabel('Hesap silme işleminin kalıcı olduğunu ve erişimin hemen kapatılacağını anlıyorum.')
+    .click();
+  await page.getByRole('button', { name: 'Hesabımı sil' }).click();
+
+  await expect(page).toHaveURL(/\/account-deletion-started$/);
+  await expect(page.getByRole('heading', { name: 'Hesap silme başlatıldı' })).toBeVisible();
+});

@@ -11,7 +11,8 @@ type AuthCounterInput = {
     | 'EMAIL_VERIFICATION_CONFIRMATION'
     | 'LOGIN'
     | 'PASSWORD_RESET_REQUEST'
-    | 'PASSWORD_RESET_CONFIRMATION';
+    | 'PASSWORD_RESET_CONFIRMATION'
+    | 'REAUTHENTICATION';
   readonly identityKeyHash: string;
   readonly networkKeyHash: string;
   readonly now: Date;
@@ -44,6 +45,19 @@ export type CurrentUserProfile = {
   readonly timeZone: string;
   readonly userId: string;
   readonly version: number;
+};
+
+export type ReauthenticationSession = {
+  readonly passwordHash: string;
+  readonly sessionId: string;
+  readonly userId: string;
+};
+
+export type AccountDeletionProcessState = {
+  readonly accessRevokedAt: Date;
+  readonly processId: string;
+  readonly requestedAt: Date;
+  readonly state: 'PENDING_PRIMARY_PURGE';
 };
 
 type CreateLoginSessionInput = {
@@ -148,6 +162,46 @@ export type ResetPasswordPersistenceResult =
   | {
       readonly outcome: 'IDEMPOTENCY_IN_PROGRESS' | 'IDEMPOTENCY_KEY_REUSED' | 'INVALID_OR_EXPIRED';
     };
+
+export type InitiateAccountDeletionInput = {
+  readonly expectedUserVersion: number;
+  readonly idempotencyId: string;
+  readonly idempotencyKeyHash: string;
+  readonly now: Date;
+  readonly requestFingerprint: string;
+  readonly tokenHash: string;
+};
+
+export type InitiateAccountDeletionPersistenceResult =
+  | {
+      readonly outcome: 'ACCEPTED' | 'REPLAYED';
+      readonly process: AccountDeletionProcessState;
+    }
+  | {
+      readonly outcome:
+        | 'AUTHENTICATION_REQUIRED'
+        | 'IDEMPOTENCY_IN_PROGRESS'
+        | 'IDEMPOTENCY_KEY_REUSED'
+        | 'PRECONDITION_FAILED'
+        | 'REAUTHENTICATION_REQUIRED';
+    };
+
+export type AccountDeletionIdempotencyReplayResult =
+  | {
+      readonly outcome: 'REPLAYED';
+      readonly process: AccountDeletionProcessState;
+    }
+  | Extract<
+      InitiateAccountDeletionPersistenceResult,
+      {
+        outcome:
+          | 'AUTHENTICATION_REQUIRED'
+          | 'IDEMPOTENCY_IN_PROGRESS'
+          | 'IDEMPOTENCY_KEY_REUSED'
+          | 'PRECONDITION_FAILED'
+          | 'REAUTHENTICATION_REQUIRED';
+      }
+    >;
 
 @Injectable()
 export class AccountsRepository {
@@ -537,6 +591,98 @@ export class AccountsRepository {
     };
   }
 
+  async findReauthenticationSessionByToken(input: {
+    readonly now: Date;
+    readonly tokenHash: string;
+  }): Promise<ReauthenticationSession | null> {
+    const session = await this.prisma.session.findUnique({
+      select: {
+        absoluteExpiresAt: true,
+        id: true,
+        idleExpiresAt: true,
+        revokedAt: true,
+        user: {
+          select: {
+            accountLifecycleState: true,
+            authenticationIdentity: {
+              select: {
+                enabled: true,
+                passwordHash: true,
+                verificationState: true,
+              },
+            },
+            id: true,
+          },
+        },
+      },
+      where: {
+        tokenHash: input.tokenHash,
+      },
+    });
+
+    if (
+      session === null ||
+      session.revokedAt !== null ||
+      session.idleExpiresAt <= input.now ||
+      session.absoluteExpiresAt <= input.now ||
+      session.user.accountLifecycleState !== 'ACTIVE' ||
+      session.user.authenticationIdentity?.enabled !== true ||
+      session.user.authenticationIdentity.verificationState !== 'ACTIVE'
+    ) {
+      if (session !== null && session.revokedAt === null) {
+        await this.prisma.session.updateMany({
+          data: {
+            revokedAt: input.now,
+          },
+          where: {
+            id: session.id,
+            revokedAt: null,
+          },
+        });
+      }
+
+      return null;
+    }
+
+    return {
+      passwordHash: session.user.authenticationIdentity.passwordHash,
+      sessionId: session.id,
+      userId: session.user.id,
+    };
+  }
+
+  async createReauthenticationProof(input: {
+    readonly action: 'ACCOUNT_DELETION';
+    readonly expiresAt: Date;
+    readonly now: Date;
+    readonly proofId: string;
+    readonly sessionId: string;
+    readonly userId: string;
+  }): Promise<void> {
+    await this.prisma.$transaction(async (transaction) => {
+      await transaction.reauthenticationProof.updateMany({
+        data: {
+          consumedAt: input.now,
+        },
+        where: {
+          action: input.action,
+          consumedAt: null,
+          sessionId: input.sessionId,
+          userId: input.userId,
+        },
+      });
+      await transaction.reauthenticationProof.create({
+        data: {
+          action: input.action,
+          expiresAt: input.expiresAt,
+          id: input.proofId,
+          sessionId: input.sessionId,
+          userId: input.userId,
+        },
+      });
+    });
+  }
+
   async revokeSession(input: { readonly now: Date; readonly tokenHash: string }): Promise<void> {
     await this.prisma.session.updateMany({
       data: {
@@ -546,6 +692,319 @@ export class AccountsRepository {
         revokedAt: null,
         tokenHash: input.tokenHash,
       },
+    });
+  }
+
+  async findAccountDeletionIdempotencyReplay(input: {
+    readonly idempotencyKeyHash: string;
+    readonly requestFingerprint: string;
+  }): Promise<AccountDeletionIdempotencyReplayResult | null> {
+    const existing = await this.prisma.idempotencyRecord.findUnique({
+      where: {
+        keyHash: input.idempotencyKeyHash,
+      },
+    });
+
+    if (existing === null) {
+      return null;
+    }
+
+    if (existing.requestFingerprint !== input.requestFingerprint) {
+      return {
+        outcome: 'IDEMPOTENCY_KEY_REUSED',
+      };
+    }
+
+    if (existing.state !== 'COMPLETED') {
+      return {
+        outcome: 'IDEMPOTENCY_IN_PROGRESS',
+      };
+    }
+
+    if (isAccountDeletionResponse(existing.responseBody)) {
+      return {
+        outcome: 'REPLAYED',
+        process: {
+          accessRevokedAt: new Date(existing.responseBody.data.accessRevokedAt),
+          processId: existing.responseBody.data.processId,
+          requestedAt: new Date(existing.responseBody.data.requestedAt),
+          state: existing.responseBody.data.state,
+        },
+      };
+    }
+
+    if (isAccountDeletionFailure(existing.responseBody)) {
+      return existing.responseBody;
+    }
+
+    return {
+      outcome: 'IDEMPOTENCY_IN_PROGRESS',
+    };
+  }
+
+  async initiateAccountDeletion(
+    input: InitiateAccountDeletionInput,
+  ): Promise<InitiateAccountDeletionPersistenceResult> {
+    return this.prisma.$transaction(async (transaction) => {
+      const inserted = await transaction.idempotencyRecord.createMany({
+        data: {
+          expiresAt: new Date(input.now.getTime() + 48 * 60 * 60 * 1_000),
+          id: input.idempotencyId,
+          keyHash: input.idempotencyKeyHash,
+          method: 'POST',
+          requestFingerprint: input.requestFingerprint,
+          route: '/api/v1/users/me/account-deletions',
+        },
+        skipDuplicates: true,
+      });
+
+      if (inserted.count === 0) {
+        const existing = await transaction.idempotencyRecord.findUniqueOrThrow({
+          where: {
+            keyHash: input.idempotencyKeyHash,
+          },
+        });
+
+        if (existing.requestFingerprint !== input.requestFingerprint) {
+          return {
+            outcome: 'IDEMPOTENCY_KEY_REUSED',
+          };
+        }
+
+        if (existing.state === 'COMPLETED' && isAccountDeletionResponse(existing.responseBody)) {
+          return {
+            outcome: 'REPLAYED',
+            process: {
+              accessRevokedAt: new Date(existing.responseBody.data.accessRevokedAt),
+              processId: existing.responseBody.data.processId,
+              requestedAt: new Date(existing.responseBody.data.requestedAt),
+              state: existing.responseBody.data.state,
+            },
+          };
+        }
+
+        if (existing.state === 'COMPLETED' && isAccountDeletionFailure(existing.responseBody)) {
+          return existing.responseBody;
+        }
+
+        return {
+          outcome: 'IDEMPOTENCY_IN_PROGRESS',
+        };
+      }
+
+      const session = await transaction.session.findUnique({
+        select: {
+          absoluteExpiresAt: true,
+          id: true,
+          idleExpiresAt: true,
+          revokedAt: true,
+          user: {
+            select: {
+              accountLifecycleState: true,
+              authenticationIdentity: {
+                select: {
+                  enabled: true,
+                  verificationState: true,
+                },
+              },
+              id: true,
+              version: true,
+            },
+          },
+        },
+        where: {
+          tokenHash: input.tokenHash,
+        },
+      });
+
+      if (
+        session === null ||
+        session.revokedAt !== null ||
+        session.idleExpiresAt <= input.now ||
+        session.absoluteExpiresAt <= input.now ||
+        session.user.accountLifecycleState !== 'ACTIVE' ||
+        session.user.authenticationIdentity?.enabled !== true ||
+        session.user.authenticationIdentity.verificationState !== 'ACTIVE'
+      ) {
+        await transaction.idempotencyRecord.update({
+          data: {
+            responseBody: {
+              outcome: 'AUTHENTICATION_REQUIRED',
+            },
+            responseStatus: 401,
+            state: 'COMPLETED',
+          },
+          where: {
+            id: input.idempotencyId,
+          },
+        });
+
+        return {
+          outcome: 'AUTHENTICATION_REQUIRED',
+        };
+      }
+
+      if (session.user.version !== input.expectedUserVersion) {
+        await transaction.idempotencyRecord.update({
+          data: {
+            responseBody: {
+              outcome: 'PRECONDITION_FAILED',
+            },
+            responseStatus: 412,
+            state: 'COMPLETED',
+          },
+          where: {
+            id: input.idempotencyId,
+          },
+        });
+
+        return {
+          outcome: 'PRECONDITION_FAILED',
+        };
+      }
+
+      const proof = await transaction.reauthenticationProof.findFirst({
+        select: {
+          id: true,
+        },
+        where: {
+          action: 'ACCOUNT_DELETION',
+          consumedAt: null,
+          expiresAt: {
+            gt: input.now,
+          },
+          sessionId: session.id,
+          userId: session.user.id,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+      if (proof === null) {
+        await transaction.idempotencyRecord.update({
+          data: {
+            responseBody: {
+              outcome: 'REAUTHENTICATION_REQUIRED',
+            },
+            responseStatus: 401,
+            state: 'COMPLETED',
+          },
+          where: {
+            id: input.idempotencyId,
+          },
+        });
+
+        return {
+          outcome: 'REAUTHENTICATION_REQUIRED',
+        };
+      }
+
+      const updated = await transaction.user.updateMany({
+        data: {
+          accessRevokedAt: input.now,
+          accountLifecycleState: 'DELETION_CONFIRMED',
+          deletionConfirmedAt: input.now,
+          version: {
+            increment: 1,
+          },
+        },
+        where: {
+          accountLifecycleState: 'ACTIVE',
+          id: session.user.id,
+          version: input.expectedUserVersion,
+        },
+      });
+
+      if (updated.count !== 1) {
+        await transaction.idempotencyRecord.update({
+          data: {
+            responseBody: {
+              outcome: 'PRECONDITION_FAILED',
+            },
+            responseStatus: 412,
+            state: 'COMPLETED',
+          },
+          where: {
+            id: input.idempotencyId,
+          },
+        });
+
+        return {
+          outcome: 'PRECONDITION_FAILED',
+        };
+      }
+
+      await transaction.reauthenticationProof.updateMany({
+        data: {
+          consumedAt: input.now,
+        },
+        where: {
+          consumedAt: null,
+          id: proof.id,
+        },
+      });
+      await transaction.session.updateMany({
+        data: {
+          revokedAt: input.now,
+        },
+        where: {
+          revokedAt: null,
+          userId: session.user.id,
+        },
+      });
+      await transaction.accountDeletionProcess.createMany({
+        data: {
+          accessRevokedAt: input.now,
+          id: input.idempotencyId,
+          requestedAt: input.now,
+          state: 'PENDING_PRIMARY_PURGE',
+          userId: session.user.id,
+        },
+        skipDuplicates: true,
+      });
+      const process = await transaction.accountDeletionProcess.findFirstOrThrow({
+        select: {
+          accessRevokedAt: true,
+          id: true,
+          requestedAt: true,
+          state: true,
+        },
+        where: {
+          state: 'PENDING_PRIMARY_PURGE',
+          userId: session.user.id,
+        },
+      });
+      const response = {
+        data: {
+          accessRevokedAt: process.accessRevokedAt.toISOString(),
+          primaryPurgePending: true,
+          processId: process.id,
+          requestedAt: process.requestedAt.toISOString(),
+          state: process.state,
+        },
+      } as const;
+
+      await transaction.idempotencyRecord.update({
+        data: {
+          responseBody: response,
+          responseStatus: 202,
+          state: 'COMPLETED',
+        },
+        where: {
+          id: input.idempotencyId,
+        },
+      });
+
+      return {
+        outcome: 'ACCEPTED',
+        process: {
+          accessRevokedAt: process.accessRevokedAt,
+          processId: process.id,
+          requestedAt: process.requestedAt,
+          state: 'PENDING_PRIMARY_PURGE',
+        },
+      };
     });
   }
 
@@ -1188,6 +1647,50 @@ function isResetPasswordFailure(value: unknown): value is {
   }
 
   return value.outcome === 'INVALID_OR_EXPIRED';
+}
+
+function isAccountDeletionResponse(value: unknown): value is {
+  readonly data: {
+    readonly accessRevokedAt: string;
+    readonly primaryPurgePending: true;
+    readonly processId: string;
+    readonly requestedAt: string;
+    readonly state: 'PENDING_PRIMARY_PURGE';
+  };
+} {
+  if (
+    typeof value !== 'object' ||
+    value === null ||
+    !('data' in value) ||
+    typeof value.data !== 'object' ||
+    value.data === null
+  ) {
+    return false;
+  }
+
+  const data = value.data as Record<string, unknown>;
+
+  return (
+    typeof data.accessRevokedAt === 'string' &&
+    data.primaryPurgePending === true &&
+    typeof data.processId === 'string' &&
+    typeof data.requestedAt === 'string' &&
+    data.state === 'PENDING_PRIMARY_PURGE'
+  );
+}
+
+function isAccountDeletionFailure(value: unknown): value is {
+  readonly outcome: 'AUTHENTICATION_REQUIRED' | 'PRECONDITION_FAILED' | 'REAUTHENTICATION_REQUIRED';
+} {
+  if (typeof value !== 'object' || value === null || !('outcome' in value)) {
+    return false;
+  }
+
+  return (
+    value.outcome === 'AUTHENTICATION_REQUIRED' ||
+    value.outcome === 'PRECONDITION_FAILED' ||
+    value.outcome === 'REAUTHENTICATION_REQUIRED'
+  );
 }
 
 function isUniqueConstraintError(error: unknown): error is { readonly code: 'P2002' } {

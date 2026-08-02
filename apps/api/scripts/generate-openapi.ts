@@ -27,8 +27,10 @@ async function generateOpenApi(): Promise<void> {
   process.env.DATABASE_URL ??= 'postgresql://planner:planner_dev@127.0.0.1:5432/planner';
   process.env.LOG_LEVEL ??= 'silent';
   process.env.NODE_ENV ??= 'test';
+  process.env.PUBLIC_ORIGIN ??= 'http://127.0.0.1:3000';
 
   const app = await NestFactory.create(AppModule, {
+    abortOnError: false,
     logger: false,
   });
 
@@ -63,4 +65,7 @@ async function generateOpenApi(): Promise<void> {
   await app.close();
 }
 
-void generateOpenApi();
+generateOpenApi().catch((error: unknown) => {
+  console.error(error);
+  process.exitCode = 1;
+});

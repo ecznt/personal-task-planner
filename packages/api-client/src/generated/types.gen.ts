@@ -4,6 +4,23 @@ export type ClientOptions = {
     baseUrl: `${string}://${string}` | (string & {});
 };
 
+export type AccountDeletionProcessDataDto = {
+    accessRevokedAt: string;
+    primaryPurgePending: boolean;
+    processId: string;
+    requestedAt: string;
+    state: 'PENDING_PRIMARY_PURGE';
+};
+
+export type AccountDeletionProcessResponseDto = {
+    data: AccountDeletionProcessDataDto;
+};
+
+export type AccountDeletionRequestDto = {
+    acknowledgedPermanentDeletion: true;
+    confirmation: 'DELETE_MY_ACCOUNT';
+};
+
 export type AuthenticatedSessionDataDto = {
     absoluteExpiresAt: string;
     authenticated: boolean;
@@ -70,6 +87,20 @@ export type PasswordResetRequestDto = {
     email: string;
 };
 
+export type ReauthenticationDataDto = {
+    action: 'ACCOUNT_DELETION';
+    expiresAt: string;
+    status: 'REAUTHENTICATED';
+};
+
+export type ReauthenticationRequestDto = {
+    action: 'ACCOUNT_DELETION';
+};
+
+export type ReauthenticationResponseDto = {
+    data: ReauthenticationDataDto;
+};
+
 export type RegisterAccountRequestDto = {
     email: string;
     termsAccepted: true;
@@ -122,6 +153,11 @@ export type LoginRequestDtoWritable = {
     email: string;
     password: string;
     returnTo?: string;
+};
+
+export type ReauthenticationRequestDtoWritable = {
+    action: 'ACCOUNT_DELETION';
+    password: string;
 };
 
 export type RegisterAccountRequestDtoWritable = {
@@ -276,6 +312,33 @@ export type ResetPasswordResponses = {
 
 export type ResetPasswordResponse = ResetPasswordResponses[keyof ResetPasswordResponses];
 
+export type ReauthenticateData = {
+    body: ReauthenticationRequestDtoWritable;
+    headers: {
+        'X-CSRF-Token': string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/reauthentications';
+};
+
+export type ReauthenticateErrors = {
+    /**
+     * Current session or password did not authenticate.
+     */
+    401: unknown;
+    /**
+     * Generic reauthentication rate limit.
+     */
+    429: unknown;
+};
+
+export type ReauthenticateResponses = {
+    200: ReauthenticationResponseDto;
+};
+
+export type ReauthenticateResponse = ReauthenticateResponses[keyof ReauthenticateResponses];
+
 export type RegisterAccountData = {
     body: RegisterAccountRequestDtoWritable;
     headers: {
@@ -392,6 +455,39 @@ export type GetCurrentUserResponses = {
 };
 
 export type GetCurrentUserResponse = GetCurrentUserResponses[keyof GetCurrentUserResponses];
+
+export type InitiateAccountDeletionData = {
+    body: AccountDeletionRequestDto;
+    headers: {
+        'Idempotency-Key': string;
+        'If-Match': string;
+        'X-CSRF-Token': string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/account-deletions';
+};
+
+export type InitiateAccountDeletionErrors = {
+    /**
+     * No valid authenticated session or recent reauthentication is present.
+     */
+    401: unknown;
+    /**
+     * Idempotency request is in progress or incompatible.
+     */
+    409: unknown;
+    /**
+     * The current User ETag is missing or stale.
+     */
+    412: unknown;
+};
+
+export type InitiateAccountDeletionResponses = {
+    202: AccountDeletionProcessResponseDto;
+};
+
+export type InitiateAccountDeletionResponse = InitiateAccountDeletionResponses[keyof InitiateAccountDeletionResponses];
 
 export type GetVersionData = {
     body?: never;

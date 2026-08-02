@@ -17,6 +17,7 @@ import type { Request, Response } from 'express';
 import { parseApiEnvironment } from '../../../platform/config/environment';
 import { ApiProblemException } from '../../../platform/http/api-problem.exception';
 import { CsrfService } from '../application/csrf.service';
+import { ReauthenticateService } from '../application/reauthenticate.service';
 import { RegisterAccountService } from '../application/register-account.service';
 import { RequestEmailVerificationService } from '../application/request-email-verification.service';
 import { RequestPasswordResetService } from '../application/request-password-reset.service';
@@ -30,6 +31,8 @@ import {
   PasswordResetRequestAcceptedResponseDto,
   PasswordResetRequestDto,
   RegisterAccountRequestDto,
+  ReauthenticationRequestDto,
+  ReauthenticationResponseDto,
   RegistrationAcceptedResponseDto,
   ResetPasswordRequestDto,
   VerifyEmailRequestDto,
@@ -41,7 +44,9 @@ import {
   parseVerifyEmail,
 } from './email-verification.schema';
 import { parsePasswordResetRequest, parseResetPassword } from './password-reset.schema';
+import { parseReauthenticationInput } from './reauthentication.schema';
 import { parseRegistrationInput } from './registration.schema';
+import { parseCookieValue, sessionCookieName } from './auth-cookie';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -61,6 +66,8 @@ export class AuthController {
     private readonly requestPasswordReset: RequestPasswordResetService,
     @Inject(ResetPasswordService)
     private readonly resetPassword: ResetPasswordService,
+    @Inject(ReauthenticateService)
+    private readonly reauthenticate: ReauthenticateService,
   ) {}
 
   @Get('csrf')
@@ -93,6 +100,82 @@ export class AuthController {
       data: {
         expiresAt: issued.expiresAt.toISOString(),
         token: issued.csrfToken,
+      },
+    };
+  }
+
+  @Post('reauthentications')
+  @HttpCode(200)
+  @Header('Cache-Control', 'no-store')
+  @UseGuards(AnonymousCsrfGuard)
+  @ApiOperation({
+    operationId: 'reauthenticate',
+    summary: 'Confirm the current password for one short-lived sensitive account action',
+  })
+  @ApiHeader({
+    name: 'X-CSRF-Token',
+    required: true,
+  })
+  @ApiBody({
+    type: ReauthenticationRequestDto,
+  })
+  @ApiResponse({
+    status: 200,
+    type: ReauthenticationResponseDto,
+  })
+  @ApiResponse({
+    description: 'Current session or password did not authenticate.',
+    status: 401,
+  })
+  @ApiResponse({
+    description: 'Generic reauthentication rate limit.',
+    status: 429,
+  })
+  async reauthenticateForSensitiveAction(
+    @Body() body: unknown,
+    @Req() request: Request,
+  ): Promise<ReauthenticationResponseDto> {
+    const input = parseReauthenticationInput(body);
+    const result = await this.reauthenticate.execute({
+      action: input.action,
+      networkAddress: request.ip,
+      password: input.password,
+      sessionToken: parseCookieValue(request.headers.cookie, sessionCookieName()),
+    });
+
+    if (
+      result.outcome === 'AUTHENTICATION_REQUIRED' ||
+      result.outcome === 'AUTHENTICATION_FAILED'
+    ) {
+      throw new ApiProblemException({
+        status: 401,
+        code: 'AUTHENTICATION_FAILED',
+        detail: 'Kimliğiniz doğrulanamadı.',
+      });
+    }
+
+    if (result.outcome === 'RATE_LIMITED') {
+      throw new ApiProblemException({
+        status: 429,
+        code: 'RATE_LIMITED',
+        detail: 'Çok fazla yeniden doğrulama denemesi yapıldı. Lütfen daha sonra tekrar deneyin.',
+        retryAfterSeconds: result.retryAfterSeconds,
+      });
+    }
+
+    if (result.outcome !== 'REAUTHENTICATED') {
+      throw new ApiProblemException({
+        status: 401,
+        code: 'AUTHENTICATION_FAILED',
+        detail: 'Kimliğiniz doğrulanamadı.',
+      });
+    }
+
+    return {
+      data: {
+        action: result.action,
+        expiresAt: result.expiresAt.toISOString(),
+        status: 'REAUTHENTICATED',
       },
     };
   }
