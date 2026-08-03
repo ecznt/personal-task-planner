@@ -1,7 +1,7 @@
 {
   "docs/PROJECT_MASTER.md": {
-    "mtime": 1784810798.0259254,
-    "ast_hash": "6d321c172f6c22455b776616d8cfaa49",
+    "mtime": 1785738635.3233182,
+    "ast_hash": "6b93ff810be7766de5bd1a1bb332a8ed",
     "semantic_hash": ""
   },
   "docs/product/PRD.md": {
@@ -10,9 +10,9 @@
     "semantic_hash": "1d8f4d62c808e5f5fd79ea3fc7e45400"
   },
   "docs/product/UX_FLOWS.md": {
-    "mtime": 1784808864.1227193,
-    "ast_hash": "adf2b301d179238aab28291a352dc1a9",
-    "semantic_hash": "adf2b301d179238aab28291a352dc1a9"
+    "mtime": 1785021941.6819956,
+    "ast_hash": "48522a566e1802020767ceb830fae223",
+    "semantic_hash": ""
   },
   "docs/domain/DOMAIN_MODEL.md": {
     "mtime": 1784808864.1198435,
@@ -25,9 +25,9 @@
     "semantic_hash": "1186bae266176e0b07d59abe602dcf43"
   },
   "docs/api/API_CONTRACT.md": {
-    "mtime": 1784808864.1182559,
-    "ast_hash": "d771ec81f1a0ef0f816da56c1f4d8db4",
-    "semantic_hash": "d771ec81f1a0ef0f816da56c1f4d8db4"
+    "mtime": 1785021941.682936,
+    "ast_hash": "7581fffdd9883adc89fcc42fcc24b58d",
+    "semantic_hash": ""
   },
   "docs/architecture/ARCHITECTURE.md": {
     "mtime": 1784808864.1188304,
@@ -45,14 +45,14 @@
     "semantic_hash": "434f0d82ae8367f1e5b91019a87cd005"
   },
   "docs/architecture/adr/ADR-003-graphify.md": {
-    "mtime": 1784794912.0686042,
-    "ast_hash": "86aed1f10d936c07337d23cfa6de4f24",
-    "semantic_hash": "86aed1f10d936c07337d23cfa6de4f24"
+    "mtime": 1785001136.853413,
+    "ast_hash": "25a6d5654d7eb63baebc8b48fbe1f4e4",
+    "semantic_hash": ""
   },
   "docs/planning/BACKLOG.md": {
-    "mtime": 1784810242.5918553,
-    "ast_hash": "2c4c094e0b58ceb222d32c33f2389227",
-    "semantic_hash": "2c4c094e0b58ceb222d32c33f2389227"
+    "mtime": 1785738635.3220475,
+    "ast_hash": "0fe6793464626f5fe1377cf23847f56c",
+    "semantic_hash": ""
   },
   "docs/planning/READINESS_REPORT.md": {
     "mtime": 1784808864.121806,
@@ -450,9 +450,9 @@
     "semantic_hash": "d03870e9be936c91c896a118f9f4b113"
   },
   "tests/e2e/foundation.spec.ts": {
-    "mtime": 1785657280.0743763,
-    "ast_hash": "0f5b76d4f8a50de0a57801f4d8a2f719",
-    "semantic_hash": "0f5b76d4f8a50de0a57801f4d8a2f719"
+    "mtime": 1785738390.618641,
+    "ast_hash": "b1dcc312ae9d447c37fb31c13d0e60f5",
+    "semantic_hash": ""
   },
   ".github/dependabot.yml": {
     "mtime": 1784809938.8880858,
@@ -460,18 +460,18 @@
     "semantic_hash": "ac307fe655e1a7cf7ab762f9e1d51021"
   },
   ".github/workflows/ci.yml": {
-    "mtime": 1784979423.1919851,
-    "ast_hash": "6ea947fa675ae8351288f170b93f0514",
+    "mtime": 1785394145.1995134,
+    "ast_hash": "33b889b81aa2974407876d45893864ed",
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1784808352.621404,
-    "ast_hash": "c7d3e904e8a6e7afbc8a1ff707b38310",
-    "semantic_hash": "c7d3e904e8a6e7afbc8a1ff707b38310"
+    "mtime": 1784992217.4669037,
+    "ast_hash": "0336f4e09dffd8c6cb659169976d47e0",
+    "semantic_hash": ""
   },
   "compose.yaml": {
-    "mtime": 1784981285.4188647,
-    "ast_hash": "9f023cf872abd07b802871c898091b70",
+    "mtime": 1784990668.291928,
+    "ast_hash": "83aefd7cf2d02d7411fbf424770041bf",
     "semantic_hash": ""
   },
   "pnpm-workspace.yaml": {
@@ -820,9 +820,9 @@
     "semantic_hash": "1b428b06840f78193e02e421fd89dc14"
   },
   "apps/web/src/features/auth/session-boundary.tsx": {
-    "mtime": 1785021689.2102532,
-    "ast_hash": "9fa9ed16f0b1dc39197a301f3705eb3a",
-    "semantic_hash": "9fa9ed16f0b1dc39197a301f3705eb3a"
+    "mtime": 1785738390.6177683,
+    "ast_hash": "29f0f728ba21de166ea58d6ceb447be1",
+    "semantic_hash": ""
   },
   "apps/api/src/modules/accounts/application/logout.service.ts": {
     "mtime": 1785021395.7495217,
@@ -1003,5 +1003,25 @@
     "mtime": 1785657279.8772662,
     "ast_hash": "3fd5008bcf6a364dcc141a81a736e6e3",
     "semantic_hash": "3fd5008bcf6a364dcc141a81a736e6e3"
+  },
+  "apps/web/src/app/app/onboarding/page.tsx": {
+    "mtime": 1785738370.0502124,
+    "ast_hash": "28b1e17a41e25cb7a0eead707e108aa1",
+    "semantic_hash": ""
+  },
+  "apps/web/src/features/onboarding/onboarding-welcome.test.tsx": {
+    "mtime": 1785738461.890806,
+    "ast_hash": "287fa22d0a6f3569516573bb5925aeb9",
+    "semantic_hash": ""
+  },
+  "apps/web/src/features/onboarding/onboarding-welcome.tsx": {
+    "mtime": 1785738571.5333605,
+    "ast_hash": "714ea7441f0b1d5becdf0cfe7ad0f6de",
+    "semantic_hash": ""
+  },
+  "docs/planning/BL-011_PASSWORD_RECOVERY_PLAN.md": {
+    "mtime": 1785133563.2822835,
+    "ast_hash": "fe3423eaf342d529732ad565ee8241ee",
+    "semantic_hash": ""
   }
 }

@@ -2,6 +2,7 @@
 
 import { apiClient, getAuthSession } from '@planner/api-client';
 import { useQuery } from '@tanstack/react-query';
+import type { ReactNode } from 'react';
 import { useEffect } from 'react';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -10,7 +11,12 @@ import { Spinner } from '@/components/ui/spinner';
 
 import { SignOutButton } from './sign-out-button';
 
-export function SessionBoundary() {
+type SessionBoundaryProps = {
+  children?: ReactNode;
+  returnTo?: string;
+};
+
+export function SessionBoundary({ children, returnTo = '/app/today' }: SessionBoundaryProps) {
   const session = useQuery({
     queryKey: ['auth', 'session'],
     queryFn: async () => {
@@ -24,9 +30,9 @@ export function SessionBoundary() {
 
   useEffect(() => {
     if (session.data?.authenticated === false) {
-      window.location.replace('/login?returnTo=%2Fapp%2Ftoday');
+      window.location.replace(`/login?returnTo=${encodeURIComponent(returnTo)}`);
     }
-  }, [session.data?.authenticated]);
+  }, [returnTo, session.data?.authenticated]);
 
   if (session.isPending || session.data?.authenticated === false) {
     return (
@@ -43,6 +49,10 @@ export function SessionBoundary() {
         <AlertDescription>Sayfayı yenileyin veya yeniden oturum açın.</AlertDescription>
       </Alert>
     );
+  }
+
+  if (children !== undefined) {
+    return children;
   }
 
   return (

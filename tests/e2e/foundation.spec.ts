@@ -212,6 +212,64 @@ test('signs in and idempotently ends only the current browser session', async ({
   await expect(page).toHaveURL(/\/login\?returnTo=%2Fapp%2Ftoday$/);
 });
 
+test('serves the authenticated onboarding model explanation without creating planning data', async ({
+  page,
+}) => {
+  await page.route('**/api/v1/auth/session', async (route) => {
+    await route.fulfill({
+      json: {
+        data: {
+          absoluteExpiresAt: '2099-01-07T00:00:00.000Z',
+          authenticated: true,
+          email: 'user@example.com',
+          idleExpiresAt: '2099-01-01T12:00:00.000Z',
+        },
+      },
+      status: 200,
+    });
+  });
+
+  await page.goto('/app/onboarding');
+
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Kişisel planlama alanınızı tanıyın' }),
+  ).toBeVisible();
+  await expect(page.getByText(/Area zorunlu bağlamdır/)).toBeVisible();
+  await expect(page.getByText(/Project opsiyoneldir/)).toBeVisible();
+  await expect(page.getByText(/Task her zaman Area’ya bağlıdır/)).toBeVisible();
+  await expect(page.getByText(/Bu alan yalnızca size aittir/)).toBeVisible();
+  await expect(page.getByText(/Başka kullanıcıların Area, Project veya Task/)).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Bugün’e geç' })).toHaveAttribute(
+    'href',
+    '/app/today',
+  );
+  await expect(page.getByRole('link', { name: 'Şimdilik boş başla' })).toHaveAttribute(
+    'href',
+    '/app/today',
+  );
+  await expect(page.getByText(/Google ile giriş/)).toHaveCount(0);
+  await expect(page.getByText(/ortak çalışma/i)).toHaveCount(0);
+});
+
+test('redirects unauthenticated onboarding visitors to login with onboarding return target', async ({
+  page,
+}) => {
+  await page.route('**/api/v1/auth/session', async (route) => {
+    await route.fulfill({
+      json: {
+        data: {
+          authenticated: false,
+        },
+      },
+      status: 200,
+    });
+  });
+
+  await page.goto('/app/onboarding');
+
+  await expect(page).toHaveURL(/\/login\?returnTo=%2Fapp%2Fonboarding$/);
+});
+
 test('reauthenticates and starts account deletion from the danger area', async ({ page }) => {
   await page.route('**/api/v1/auth/csrf', async (route) => {
     await route.fulfill({

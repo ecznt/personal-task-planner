@@ -2,13 +2,13 @@
 
 | Field | Value |
 | --- | --- |
-| Status | Revised lean execution baseline |
-| Revision date | 2026-08-02 |
+| Status | L-001 implemented locally; awaiting acceptance/publication |
+| Revision date | 2026-08-03 |
 | Product scope | MVP, personal use only |
 | Document language | English |
 | Execution mode | Small vertical slices, but not one micro-story per technical concern |
 | Current completed baseline | EPIC-001; BL-007 through BL-011; BL-014; BL-015; BL-121 |
-| Next slice | L-001 — Onboarding welcome and model explanation |
+| Next slice | L-001 — Onboarding welcome and model explanation remains active until accepted/published |
 
 This document replaces the earlier over-granular execution queue. The approved PRD, UX, Domain, Data, API, Architecture, and ADR documents remain authoritative for product and technical rules. This backlog controls implementation order only.
 
@@ -143,6 +143,8 @@ Before each slice, verify the exact requirement IDs from PRD and API/Domain/Data
 ## 6. Immediate next implementation plan
 
 ### L-001 — Onboarding welcome and model explanation
+
+**Implementation status:** Implemented locally on 2026-08-03; awaiting User acceptance and publication instruction.
 
 **Story goal:** A first-time authenticated user understands the private Area → optional Project → Task model before creating or importing any planning data.
 

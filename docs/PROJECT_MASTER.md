@@ -194,7 +194,8 @@ Every stage requires explicit user approval before the next stage begins.
 | DEC-077 | 2026-07-30 | Implement BL-014 current account profile with authenticated `GET /users/me`, approved profile fields only, ETag support, no arbitrary User lookup route, and session-derived ownership. | Implemented, published, and CI-verified | User instruction; commit `b012e8a`; CI run `30526911410`; BL-014 |
 | DEC-078 | 2026-08-02 | Implement BL-015 account deletion initiation with recent password reauthentication, explicit permanent-deletion confirmation, idempotent process creation/replay, immediate all-session revocation, cookie clearing, and deferred full primary-data purge to EPIC-016. | Implemented, published, and CI-verified | User-approved BL-015 implementation plan; commit `c7907ab`; CI run `30738500840`; BL-015 |
 | DEC-079 | 2026-08-02 | Implement BL-121 as a frontend-only public entry-point slice: `/` explains the private personal-planning product and links Login/Register/Today, `/privacy` and `/terms` are public Turkish pages, registration links to both, and no backend/API/schema, onboarding, planning data, social authentication, collaboration, billing, or native-mobile behavior is introduced. | Implemented, published, and CI-verified | User-approved continuation after BL-121 plan; commit `9135165`; CI run `30738996032`; BL-121 |
-| DEC-080 | 2026-08-02 | Replace the over-granular Stage 8 execution queue with a lean implementation backlog that preserves the approved MVP scope, freezes completed BL/SPIKE work as the baseline, groups remaining work into 23 implementation slices, and makes L-001 onboarding welcome the next slice. | Revised locally; awaiting review/publication | User requested backlog refactor to reduce overengineering and token cost |
+| DEC-080 | 2026-08-02 | Replace the over-granular Stage 8 execution queue with a lean implementation backlog that preserves the approved MVP scope, freezes completed BL/SPIKE work as the baseline, groups remaining work into 23 implementation slices, and makes L-001 onboarding welcome the next slice. | Implemented, published, and CI-verified | User requested backlog refactor to reduce overengineering and token cost; commit `6893a61`; CI run `30740503708` |
+| DEC-081 | 2026-08-03 | Implement L-001 as a frontend-only authenticated onboarding welcome route that explains the private Area → optional Project → Task model in Turkish, reuses the existing session boundary with route-specific return targets, and introduces no API, schema, onboarding completion, timezone persistence, sample data, Area, Project, or Task creation. | Implemented locally; awaiting User acceptance/publication | User-approved L-001 implementation plan; `docs/planning/BACKLOG.md` L-001 |
 
 ## Open questions
 
@@ -415,6 +416,13 @@ Verified BL-121 graph findings:
 - Source review confirms BL-121 is frontend-only: no backend controller/service/repository, Prisma schema, migration, OpenAPI contract, generated API client, Area, Task, Project, collaboration, social authentication, billing, or native-mobile behavior was added.
 - Public pages contain Turkish copy, semantic headings, keyboard-reachable links, and no user/account/resource-specific data.
 
+Verified L-001 graph findings:
+
+- The bounded incremental code refresh produced 1,383 nodes, 2,453 edges, and 117 communities.
+- One bounded impact query found the intended frontend surface around `OnboardingWelcome`, `session-boundary.tsx`, and the authenticated app route.
+- Source review confirms L-001 is frontend-only: no backend controller/service/repository, Prisma schema, migration, OpenAPI contract, generated API client, onboarding completion mutation, timezone persistence, sample data, Area, Project, or Task creation was added.
+- Graphify CLI skipped semantic re-extraction of changed documentation because no LLM backend key is configured. This is accepted under the token-bounded Graphify policy for this implementation; direct source review and automated checks provide the authoritative evidence for the documentation changes.
+
 ## Graphify version
 
 - Package: `graphifyy`
@@ -446,17 +454,17 @@ The recorded version must not be changed without a decision-log entry and revali
 | Field | Value |
 | --- | --- |
 | Status | Successful |
-| Generated at | 2026-08-02T07:57:47Z |
+| Generated at | 2026-08-03T06:31:25Z |
 | Graphify version | 0.9.20 |
-| Source commit at generation | `c7907ab39080d33885eac54f88870337104f158f` |
-| Working tree at generation | Includes the uncommitted BL-121 public entry-points implementation, frontend component/E2E tests, documentation updates, and Graphify outputs; contains no backend/API/schema, onboarding, Area, Task, Project, collaboration, social authentication, billing, native-mobile, or full primary-data purge implementation. |
-| Input scope | Incremental local-AST `--code-only` update of eight changed code-classified files with 179 cached/unchanged files. Fifteen documentation files were intentionally skipped by policy to avoid unnecessary semantic token use; dependencies, generated Prisma output, build/test output, environment files, Graphify outputs/memory, and sensitive paths remain excluded. |
+| Source commit at generation | `6893a6187099f82103f4c2c535091cd7451bc5b7` |
+| Working tree at generation | Includes the uncommitted L-001 onboarding welcome implementation, component/E2E tests, documentation updates, and Graphify outputs; contains no backend/API/schema, onboarding completion mutation, timezone persistence, sample data, Area, Task, Project, collaboration, social authentication, billing, native-mobile, or full primary-data purge implementation. |
+| Input scope | Incremental local-AST `graphify update .` refresh of code-classified files. Documentation semantic re-extraction was skipped because no LLM backend key is configured; this is recorded as a Graphify limitation, not as source-of-truth evidence. Dependencies, generated Prisma output, build/test output, environment files, Graphify outputs/memory, and sensitive paths remain excluded. |
 | Output path | `graphify-out/graph.json` |
-| Nodes | 1,360 |
-| Edges | 1,823 |
+| Nodes | 1,383 |
+| Edges | 2,453 |
 | Hyperedges | Not reported by the incremental CLI summary |
-| Communities | 130 |
-| Graph health | Incremental extraction completed; `cluster-only` refreshed `GRAPH_REPORT.md`; one bounded impact traversal succeeded. Backend contract and migration artifacts were unchanged for BL-121. |
+| Communities | 117 |
+| Graph health | Incremental code extraction completed; `GRAPH_REPORT.md` and graph visualization were refreshed; one bounded impact traversal succeeded. Backend contract, Prisma schema, migration artifacts, and generated client were unchanged for L-001. |
 | Recorded semantic tokens | 0 input / 0 output; BL-121 used local AST code extraction and no LLM API key. |
 | Reason | Capture BL-121 across the public landing page, privacy and terms pages, registration legal links, component tests, E2E route coverage, and documentation updates, then verify that backend/API/schema and planning-domain behavior stayed outside the slice. |
 
@@ -509,12 +517,13 @@ Update this section after every successful graph generation.
 | 2026-07-30 | Phase 3 — BL-014 current account profile implementation | Completed, accepted, committed, published, and CI-verified | Authenticated `GET /users/me` returns only approved current account/session-safe profile fields with ETag, keeps arbitrary User lookup absent, updates generated OpenAPI/client artifacts, and passed local quality gates plus CI run `30526911410`; commit `b012e8a` was published to `develop`. |
 | 2026-08-02 | Phase 3 — BL-015 account deletion initiation implementation | Completed, accepted, committed, published, and CI-verified | Recent password reauthentication, explicit confirmation, idempotent deletion-process initiation, all-session revocation, cookie clearing, generated OpenAPI/client artifacts, tests, security scan, and bounded Graphify impact review passed; commit `c7907ab` was published to `develop` and CI run `30738500840` succeeded. |
 | 2026-08-02 | Phase 3 — BL-121 public entry points implementation | Completed, accepted, committed, published, and CI-verified | Public landing, privacy, terms, registration legal links, tests, build, security checks, and bounded Graphify impact review passed; commit `9135165` was published to `develop` and CI run `30738996032` succeeded. |
-| 2026-08-02 | Phase 3 — Backlog refactor | Revised locally; awaiting review/publication | The execution backlog was simplified from the prior 120-active-story queue into a completed baseline plus 23 lean remaining implementation slices, starting with L-001 onboarding welcome. |
+| 2026-08-02 | Phase 3 — Backlog refactor | Completed, committed, published, and CI-verified | The execution backlog was simplified from the prior 120-active-story queue into a completed baseline plus 23 lean remaining implementation slices, starting with L-001 onboarding welcome; commit `6893a61` and CI run `30740503708` succeeded. |
+| 2026-08-03 | Phase 3 — L-001 onboarding welcome implementation | Implemented locally; awaiting User acceptance/publication | Authenticated onboarding welcome route, Turkish Area → optional Project → Task explanation, private-space framing, component/E2E coverage, and no API/schema/domain persistence changes. |
 
 ## Current planning stage
 
-Phase 3 Implementation — Lean Backlog Revision. EPIC-001 and BL-007 through BL-011, BL-014, BL-015, and BL-121 are complete, published, and CI-verified. The implementation queue is being simplified by DEC-080. No onboarding, Area, Task, Project, collaboration, social authentication, or full primary-data purge implementation has started.
+Phase 3 Implementation — L-001 onboarding welcome. EPIC-001, BL-007 through BL-011, BL-014, BL-015, BL-121, and the lean backlog refactor are complete, published, and CI-verified. L-001 has been implemented locally as a frontend-only onboarding welcome route and is awaiting User acceptance/publication. No onboarding completion, timezone persistence, sample data, Area, Task, Project, collaboration, social authentication, or full primary-data purge implementation has started.
 
 ## Next required action
 
-Ask the User to review and accept the lean backlog revision. After acceptance and explicit publication instruction, commit/push the backlog refactor and verify CI if required. The next implementation slice is L-001 onboarding welcome and model explanation.
+Ask the User to review and accept L-001. After acceptance and explicit publication instruction, commit/push the L-001 implementation and verify CI. Only then plan L-002 onboarding preference and time-zone confirmation.
