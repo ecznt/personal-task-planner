@@ -9,6 +9,7 @@ import request from 'supertest';
 import { CsrfService } from '../../src/modules/accounts/application/csrf.service';
 import { InitiateAccountDeletionService } from '../../src/modules/accounts/application/initiate-account-deletion.service';
 import { ReadCurrentUserService } from '../../src/modules/accounts/application/read-current-user.service';
+import { UpdateCurrentUserService } from '../../src/modules/accounts/application/update-current-user.service';
 import { AnonymousCsrfGuard } from '../../src/modules/accounts/transport/anonymous-csrf.guard';
 import { UserController } from '../../src/modules/accounts/transport/user.controller';
 import { ProblemDetailsFilter } from '../../src/platform/http/problem-details.filter';
@@ -23,6 +24,9 @@ describe('current user HTTP contract', () => {
   };
   const readCurrentUser = {
     execute: jest.fn<ReadCurrentUserService['execute']>(),
+  };
+  const updateCurrentUser = {
+    execute: jest.fn<UpdateCurrentUserService['execute']>(),
   };
 
   beforeAll(async () => {
@@ -41,6 +45,10 @@ describe('current user HTTP contract', () => {
         {
           provide: ReadCurrentUserService,
           useValue: readCurrentUser,
+        },
+        {
+          provide: UpdateCurrentUserService,
+          useValue: updateCurrentUser,
         },
       ],
     }).compile();
@@ -75,6 +83,20 @@ describe('current user HTTP contract', () => {
         timeZone: 'Europe/Istanbul',
         userId: '018f9f7c-0000-7000-8000-000000000001',
         version: 3,
+      },
+    });
+    updateCurrentUser.execute.mockResolvedValue({
+      etag: '"updated-user-etag"',
+      outcome: 'UPDATED',
+      profile: {
+        accountLifecycleState: 'ACTIVE',
+        inAppReminderNotificationsEnabled: true,
+        normalizedPrimaryEmail: 'user@example.com',
+        onboardingState: 'PENDING',
+        primaryEmail: 'User@example.com',
+        timeZone: 'Europe/Istanbul',
+        userId: '018f9f7c-0000-7000-8000-000000000001',
+        version: 4,
       },
     });
   });
@@ -122,6 +144,98 @@ describe('current user HTTP contract', () => {
     await request(app.getHttpServer())
       .get('/api/v1/users/018f9f7c-0000-7000-8000-000000000001')
       .expect(404);
+  });
+
+  it('updates the current user time zone with CSRF and If-Match', async () => {
+    const response = await request(app.getHttpServer())
+      .patch('/api/v1/users/me')
+      .set('Cookie', 'planner-session=raw-session-secret; planner-csrf-context=browser-context')
+      .set('Origin', 'http://127.0.0.1:3000')
+      .set('X-CSRF-Token', 'csrf-token')
+      .set('If-Match', '"safe-user-etag"')
+      .send({
+        timeZone: 'Europe/Istanbul',
+      })
+      .expect(200);
+
+    expect(updateCurrentUser.execute).toHaveBeenCalledWith({
+      etag: '"safe-user-etag"',
+      sessionToken: 'raw-session-secret',
+      timeZone: 'Europe/Istanbul',
+    });
+    expect(response.headers.etag).toBe('"updated-user-etag"');
+    expect(response.body).toEqual({
+      data: {
+        accountLifecycleState: 'ACTIVE',
+        email: 'User@example.com',
+        id: '018f9f7c-0000-7000-8000-000000000001',
+        inAppReminderNotificationsEnabled: true,
+        onboardingState: 'PENDING',
+        timeZone: 'Europe/Istanbul',
+      },
+    });
+  });
+
+  it('rejects unsupported current user time zones before mutation', async () => {
+    const response = await request(app.getHttpServer())
+      .patch('/api/v1/users/me')
+      .set('Cookie', 'planner-session=raw-session-secret; planner-csrf-context=browser-context')
+      .set('Origin', 'http://127.0.0.1:3000')
+      .set('X-CSRF-Token', 'csrf-token')
+      .set('If-Match', '"safe-user-etag"')
+      .send({
+        timeZone: 'Mars/Base',
+      })
+      .expect(422);
+
+    expect(response.body).toMatchObject({
+      code: 'VALIDATION_FAILED',
+      status: 422,
+    });
+    expect(updateCurrentUser.execute).not.toHaveBeenCalled();
+  });
+
+  it('requires If-Match for current user preference updates', async () => {
+    updateCurrentUser.execute.mockResolvedValueOnce({
+      outcome: 'PRECONDITION_REQUIRED',
+    });
+
+    const response = await request(app.getHttpServer())
+      .patch('/api/v1/users/me')
+      .set('Cookie', 'planner-session=raw-session-secret; planner-csrf-context=browser-context')
+      .set('Origin', 'http://127.0.0.1:3000')
+      .set('X-CSRF-Token', 'csrf-token')
+      .send({
+        timeZone: 'Europe/Istanbul',
+      })
+      .expect(428);
+
+    expect(response.body).toMatchObject({
+      code: 'PRECONDITION_REQUIRED',
+      status: 428,
+    });
+  });
+
+  it('rejects stale current user preference updates', async () => {
+    updateCurrentUser.execute.mockResolvedValueOnce({
+      outcome: 'PRECONDITION_FAILED',
+    });
+
+    const response = await request(app.getHttpServer())
+      .patch('/api/v1/users/me')
+      .set('Cookie', 'planner-session=raw-session-secret; planner-csrf-context=browser-context')
+      .set('Origin', 'http://127.0.0.1:3000')
+      .set('X-CSRF-Token', 'csrf-token')
+      .set('If-Match', '"stale-user-etag"')
+      .send({
+        timeZone: 'Europe/Istanbul',
+      })
+      .expect(412);
+
+    expect(response.body).toMatchObject({
+      code: 'PRECONDITION_FAILED',
+      status: 412,
+    });
   });
 
   it('starts account deletion only from the current session with CSRF, ETag, idempotency and explicit confirmation', async () => {

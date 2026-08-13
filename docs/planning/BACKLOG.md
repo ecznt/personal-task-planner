@@ -2,13 +2,13 @@
 
 | Field | Value |
 | --- | --- |
-| Status | L-001 implemented locally; awaiting acceptance/publication |
-| Revision date | 2026-08-03 |
+| Status | L-002 implemented locally; awaiting acceptance/publication |
+| Revision date | 2026-08-13 |
 | Product scope | MVP, personal use only |
 | Document language | English |
 | Execution mode | Small vertical slices, but not one micro-story per technical concern |
-| Current completed baseline | EPIC-001; BL-007 through BL-011; BL-014; BL-015; BL-121 |
-| Next slice | L-001 — Onboarding welcome and model explanation remains active until accepted/published |
+| Current completed baseline | EPIC-001; BL-007 through BL-011; BL-014; BL-015; BL-121; L-001 |
+| Next slice | L-002 — Onboarding preference and time-zone confirmation remains active until accepted/published |
 
 This document replaces the earlier over-granular execution queue. The approved PRD, UX, Domain, Data, API, Architecture, and ADR documents remain authoritative for product and technical rules. This backlog controls implementation order only.
 
@@ -39,6 +39,7 @@ These items are complete, published to `develop`, and CI-verified. Future slices
 | BL-014 | Current user profile `/users/me` with ETag and no arbitrary user lookup. | Commit `b012e8a`, CI `30526911410`. |
 | BL-015 | Account deletion initiation with recent reauth, explicit confirmation, durable process, and all-session revocation. | Commit `c7907ab`, CI `30738500840`. |
 | BL-121 | Public product, privacy, and terms entry points. | Commit `9135165`, CI `30738996032`. |
+| L-001 | Authenticated onboarding welcome and private Area → optional Project → Task model explanation. | Commit `b73836d`, CI `30791344719`. |
 
 Reserved/deferred IDs `BL-012` and `BL-013` remain reserved for removed social-authentication work and must not be reused.
 
@@ -144,7 +145,7 @@ Before each slice, verify the exact requirement IDs from PRD and API/Domain/Data
 
 ### L-001 — Onboarding welcome and model explanation
 
-**Implementation status:** Implemented locally on 2026-08-03; awaiting User acceptance and publication instruction.
+**Implementation status:** Completed, accepted, committed, published, and CI-verified on 2026-08-13.
 
 **Story goal:** A first-time authenticated user understands the private Area → optional Project → Task model before creating or importing any planning data.
 
@@ -177,6 +178,28 @@ Before each slice, verify the exact requirement IDs from PRD and API/Domain/Data
 **Required tests:** Component, E2E, type-check, lint, build, security scan. Full API/DB/contract tests are not required unless implementation unexpectedly touches backend/API/schema.
 
 **Risks:** The main risk is scope creep into L-002/L-004. Do not persist time zone, complete onboarding, or create sample records in L-001.
+
+### L-002 — Onboarding preference and time-zone confirmation
+
+**Implementation status:** Implemented locally on 2026-08-13; awaiting User acceptance and publication instruction.
+
+**Story goal:** A first-time authenticated user confirms whether they want to start empty or later create sample data, and stores a supported IANA time zone on the current account.
+
+**Implemented scope:**
+
+- `PATCH /api/v1/users/me` updates only the current authenticated User time zone.
+- The mutation requires CSRF protection and `If-Match` precondition handling.
+- Unsupported time zones are rejected before mutation.
+- The onboarding UI collects the start-empty/sample-data choice and time zone in Turkish.
+- The transient onboarding choice is intentionally not persisted in L-002; onboarding completion and sample data creation remain L-003/L-004.
+- No Area, Project, Task, Label, Checklist, sample data, onboarding completion, or schema migration was introduced.
+
+**Required acceptance checks:**
+
+- User can confirm a supported time zone from the onboarding page.
+- Stale profile ETags produce a retryable precondition error.
+- Generated OpenAPI/client artifacts expose the current-user update.
+- Tests confirm no onboarding completion/sample-data/planning-data endpoint is called in this slice.
 
 ## 7. Backlog maintenance policy
 

@@ -1,16 +1,16 @@
-# Graph Report - personal-task-planner  (2026-08-03)
+# Graph Report - personal-task-planner  (2026-08-13)
 
 ## Corpus Check
-- 200 files · ~102,496 words
+- 206 files · ~105,199 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1383 nodes · 2453 edges · 117 communities (92 shown, 25 thin omitted)
-- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 37 edges (avg confidence: 0.8)
+- 1424 nodes · 2581 edges · 120 communities (94 shown, 26 thin omitted)
+- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 42 edges (avg confidence: 0.77)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `6893a618`
+- Built from commit: `b73836de`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -65,6 +65,7 @@
 - main.ts
 - auth-security.service.ts
 - register-account.service.ts
+- ReadSessionService
 - reset-password.service.ts
 - registration.schema.ts
 - page.tsx
@@ -77,7 +78,9 @@
 - Graphify repository-local discovery and impact analysis
 - Architecture and Quality Strategy
 - User
+- registration-form.tsx
 - package.json
+- register-account.service.ts
 - layout.tsx
 - Q: Authentication ile user-owned resources bağlantısı
 - Q: API ile karşılığı olmayan domain operasyonları
@@ -89,11 +92,18 @@
 - scan-secrets.mjs
 - package.json
 - next.config.ts
+- eslint
+- jest
 - ARC-013 Backend-owned deterministic OpenAPI and generated-client pipeline
 - Weekly npm GitHub Actions and Docker dependency updates
+- @jest/globals
+- @nestjs/cli
 - prepare-standalone.mjs
+- pino-pretty
+- @planner/eslint-config
 - Domain-Aligned Modular Monolith
 - Notification
+- @planner/typescript-config
 - class-validator
 - helmet
 - @nestjs/common
@@ -101,34 +111,28 @@
 - nestjs-pino
 - @nestjs/platform-express
 - nodemailer
-- @prisma/adapter-pg
-- @prisma/client
-- reflect-metadata
-- rxjs
-- zod
 - next-env.d.ts
 - Personal Task Planner Domain Model and Business Rules
 - eslint
 - @planner/eslint-config
 - verify-forbidden-import.mjs
 - verify-workspace.mjs
-- Module
 - ARGON2ID_OPTIONS
 - LOG_REDACTION_PATHS
 - 178 active accepted MVP requirement IDs
 - forbiddenValue
 
 ## God Nodes (most connected - your core abstractions)
-1. `AccountsRepository` - 58 edges
-2. `AuthSecurityService` - 48 edges
+1. `AccountsRepository` - 62 edges
+2. `AuthSecurityService` - 51 edges
 3. `cn()` - 41 edges
 4. `PrismaService` - 23 edges
 5. `scripts` - 23 edges
-6. `compilerOptions` - 18 edges
-7. `CsrfService` - 17 edges
-8. `apiError()` - 17 edges
-9. `AuthController` - 16 edges
-10. `fetchCsrf()` - 16 edges
+6. `apiError()` - 20 edges
+7. `fetchCsrf()` - 18 edges
+8. `compilerOptions` - 18 edges
+9. `CsrfService` - 17 edges
+10. `AuthController` - 16 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Reviewed generated OpenAPI and API client artifacts` --semantically_similar_to--> `BL-003 Deterministic OpenAPI and generated Fetch transport`  [INFERRED] [semantically similar]
@@ -154,31 +158,31 @@
 - **Architecture decision spike evidence and backlog story participate in the OpenAPI delivery chain** — docs_architecture_architecture_arc_013_openapi_ownership, docs_architecture_adr_adr_002_rest_openapi_rest_openapi_adr, docs_spikes_spike_001_openapi_generator_openapi_generator_compatibility_spike, docs_planning_backlog_bl_003_generated_transport [EXTRACTED 1.00]
 - **Required Area optional Project and Task form the preserved personal-planning core** — docs_domain_domain_model_area, docs_domain_domain_model_project, docs_domain_domain_model_task [EXTRACTED 1.00]
 
-## Communities (117 total, 25 thin omitted)
+## Communities (120 total, 26 thin omitted)
 
 ### Community 0 - "auth.controller.ts"
-Cohesion: 0.05
-Nodes (75): AuthController, ApiBody, ApiHeader, ApiOperation, ApiResponse, ApiTags, Body, Controller (+67 more)
+Cohesion: 0.09
+Nodes (45): ApiBody, ApiHeader, ApiOperation, ApiResponse, Body, Get, Header, Headers (+37 more)
 
 ### Community 1 - "app.module.ts"
-Cohesion: 0.05
-Nodes (25): ApiExcludeController, secondsUntilWindowEnd(), secondsUntilNextUtcHour(), normalizeEmail(), isAccountDeletionFailure(), isAccountDeletionResponse(), isResetPasswordFailure(), isResetPasswordResponse() (+17 more)
+Cohesion: 0.07
+Nodes (15): secondsUntilWindowEnd(), secondsUntilNextUtcHour(), normalizeEmail(), isAccountDeletionFailure(), isAccountDeletionResponse(), isResetPasswordFailure(), isResetPasswordResponse(), isUniqueConstraintError() (+7 more)
 
 ### Community 2 - "cn"
-Cohesion: 0.05
-Nodes (68): metadata, metadata, Alert(), AlertAction(), AlertDescription(), AlertTitle(), alertVariants, Button() (+60 more)
+Cohesion: 0.16
+Nodes (14): metadata, AccountDeletionForm(), createIdempotencyKey(), CurrentUserForDeletion, readCurrentUserForDeletion(), mocks, AccountDeletionFormValues, accountDeletionSchema (+6 more)
 
 ### Community 3 - "dependencies"
 Cohesion: 0.05
 Nodes (42): dependencies, class-variance-authority, clsx, @hookform/resolvers, input-otp, lucide-react, next, @planner/api-client (+34 more)
 
 ### Community 4 - ".initiateDeletion"
-Cohesion: 0.17
-Nodes (13): ApiBody, ApiHeader, ApiOperation, ApiResponse, Body, Get, Header, Headers (+5 more)
+Cohesion: 0.11
+Nodes (28): AccountDeletionInput, accountDeletionSchema, etagSchema, jsonPointer(), parseAccountDeletionInput(), parseIfMatch(), toValidationProblem(), ApiBody (+20 more)
 
 ### Community 5 - "devDependencies"
-Cohesion: 0.05
-Nodes (43): devDependencies, eslint, jest, @jest/globals, @nestjs/cli, @nestjs/testing, pino-pretty, @planner/eslint-config (+35 more)
+Cohesion: 0.13
+Nodes (15): devDependencies, @nestjs/testing, @redocly/cli, @testcontainers/postgresql, tsx, @types/jest, @types/node, @types/pg (+7 more)
 
 ### Community 6 - "EPIC-001 Repository Foundation and Quality Gates"
 Cohesion: 0.22
@@ -190,19 +194,19 @@ Nodes (37): devDependencies, eslint, jsdom, @planner/eslint-config, @planner/typ
 
 ### Community 8 - ".createSession"
 Cohesion: 0.11
-Nodes (26): CsrfService, Injectable, InitiateAccountDeletionCommand, InitiateAccountDeletionResult, InitiateAccountDeletionService, Injectable, LoginService, Injectable (+18 more)
+Nodes (16): InitiateAccountDeletionService, Injectable, CurrentUserState, ReadCurrentUserService, Injectable, Injectable, UpdateCurrentUserService, CurrentUserProfile (+8 more)
 
 ### Community 9 - "Confirmed non-production OpenAPI generator profile"
 Cohesion: 0.20
 Nodes (10): NestJS controllers and DTO schemas own the implemented HTTP contract, Same-origin browser credentials without HttpOnly cookie auth callback, Committed deterministic OpenAPI 3.1 artifact, OpenAPI lint compatibility Supertest ownership and generated-client verification, Pinned generated Fetch client without parallel transport types, ADR-002 REST API with Backend-Owned OpenAPI and Generated Client, Stable operation IDs as generated method names, Deterministic 16-file generation with stable combined SHA-256 (+2 more)
 
 ### Community 10 - "JobQueueService"
-Cohesion: 0.24
-Nodes (7): AccountsWorkerModule, Module, DatabaseModule, Module, JobsModule, Module, Global
+Cohesion: 0.19
+Nodes (10): AccountsWorkerModule, Module, DatabaseModule, Module, JobsModule, Module, createLoggerParameters(), createPinoOptions() (+2 more)
 
 ### Community 11 - "accounts.repository.ts"
-Cohesion: 0.09
-Nodes (21): CurrentUserState, AccountDeletionIdempotencyReplayResult, AccountDeletionProcessState, AnonymousAuthTransactionInput, AuthCounterInput, AuthenticatedSession, CreateLoginSessionInput, CurrentUserProfile (+13 more)
+Cohesion: 0.10
+Nodes (20): InitiateAccountDeletionCommand, InitiateAccountDeletionResult, AccountDeletionIdempotencyReplayResult, AccountDeletionProcessState, AnonymousAuthTransactionInput, AuthCounterInput, AuthenticatedSession, CreateLoginSessionInput (+12 more)
 
 ### Community 12 - "package.json"
 Cohesion: 0.07
@@ -213,12 +217,12 @@ Cohesion: 0.07
 Nodes (26): @hey-api/openapi-ts, devDependencies, eslint, @hey-api/openapi-ts, @planner/eslint-config, @planner/typescript-config, @types/node, typescript (+18 more)
 
 ### Community 14 - "password-reset.spec.ts"
-Cohesion: 0.07
-Nodes (24): EmailVerificationJobHandler, Injectable, PasswordResetEmailDelivery, PasswordResetEmailMessage, RESET_PASSWORD_EMAIL_DELIVERY, PasswordResetJobHandler, Inject, Injectable (+16 more)
+Cohesion: 0.13
+Nodes (9): JobQueueService, LeasedJob, Inject, Injectable, JobRunnerService, parseChallengeId(), safeErrorCategory(), Inject (+1 more)
 
 ### Community 15 - "AuthSecurityService"
-Cohesion: 0.18
-Nodes (14): sessionCookieName(), ApiBody, ApiHeader, ApiOperation, ApiResponse, Body, Get, Header (+6 more)
+Cohesion: 0.09
+Nodes (23): ApiBody, ApiHeader, ApiOperation, ApiResponse, Body, Get, Header, HttpCode (+15 more)
 
 ### Community 16 - "Personal Task Planner Conceptual REST API Authentication and Security Contract"
 Cohesion: 0.09
@@ -237,8 +241,8 @@ Cohesion: 0.09
 Nodes (21): aliases, components, hooks, lib, ui, utils, iconLibrary, menuAccent (+13 more)
 
 ### Community 20 - "AccountsRepository"
-Cohesion: 0.09
-Nodes (18): Inject, Inject, Inject, Inject, Inject, Inject, Inject, Inject (+10 more)
+Cohesion: 0.06
+Nodes (30): Inject, Inject, LoginCommand, LoginResult, LoginService, Inject, Injectable, LogoutService (+22 more)
 
 ### Community 21 - "password-reset-schema.ts"
 Cohesion: 0.12
@@ -249,12 +253,12 @@ Cohesion: 0.10
 Nodes (19): compilerOptions, allowJs, declaration, declarationMap, esModuleInterop, exactOptionalPropertyTypes, forceConsistentCasingInFileNames, isolatedModules (+11 more)
 
 ### Community 23 - "verify-email.service.ts"
-Cohesion: 0.13
-Nodes (27): ReauthenticateService, ReauthenticationCommand, ReauthenticationResult, Injectable, RegisterAccountCommand, RegisterAccountService, RegistrationResult, Injectable (+19 more)
+Cohesion: 0.14
+Nodes (30): CsrfService, Injectable, ReauthenticateService, ReauthenticationCommand, ReauthenticationResult, Injectable, RegisterAccountService, Injectable (+22 more)
 
 ### Community 24 - "environment.ts"
-Cohesion: 0.11
-Nodes (20): ApiEnvironment, apiEnvironmentSchema, databaseUrl, EmailEnvironment, emailEnvironmentSchema, emailEnvironmentShape, logLevel, parseEmailEnvironment() (+12 more)
+Cohesion: 0.09
+Nodes (25): ApiEnvironment, apiEnvironmentSchema, databaseUrl, EmailEnvironment, emailEnvironmentSchema, emailEnvironmentShape, logLevel, parseEmailEnvironment() (+17 more)
 
 ### Community 25 - "devDependencies"
 Cohesion: 0.12
@@ -273,35 +277,35 @@ Cohesion: 0.13
 Nodes (15): scripts, build, dev, dev:worker, lint, openapi:generate, prisma:generate, prisma:migrate:deploy (+7 more)
 
 ### Community 29 - "email-verification-job.handler.ts"
-Cohesion: 0.22
-Nodes (8): ApiOkResponse, ApiOperation, ApiTags, Controller, Get, VersionController, ApiProperty, VersionResponseDto
+Cohesion: 0.06
+Nodes (30): ApiExcludeController, ApiOkResponse, generateOpenApi(), sortRecursively(), AppModule, Module, bootstrapApi(), AccountsModule (+22 more)
 
 ### Community 30 - "compilerOptions"
 Cohesion: 0.13
 Nodes (14): compilerOptions, emitDecoratorMetadata, experimentalDecorators, outDir, rootDir, sourceMap, strictPropertyInitialization, extends (+6 more)
 
 ### Community 31 - "account-deletion-form.tsx"
-Cohesion: 0.32
-Nodes (7): AccountDeletionInput, accountDeletionSchema, etagSchema, jsonPointer(), parseAccountDeletionInput(), parseIfMatch(), toValidationProblem()
+Cohesion: 0.08
+Nodes (31): emailSchema, issueCode(), jsonPointer(), parseBody(), parsePasswordResetRequest(), parseResetPassword(), PasswordResetRequestInput, passwordResetRequestSchema (+23 more)
 
 ### Community 32 - "email-verification-form.tsx"
-Cohesion: 0.48
-Nodes (6): AccountDeletionProcessDataDto, AccountDeletionProcessResponseDto, AccountDeletionRequestDto, CurrentUserProfileDataDto, CurrentUserProfileResponseDto, ApiProperty
+Cohesion: 0.16
+Nodes (8): PasswordResetEmailDelivery, PasswordResetEmailMessage, RESET_PASSWORD_EMAIL_DELIVERY, PasswordResetJobHandler, Inject, Injectable, SmtpPasswordResetEmailAdapter, Injectable
 
 ### Community 33 - "email-verification.schema.ts"
 Cohesion: 0.29
 Nodes (7): BD-001 Foundation First dependency rule, BL-004 Privacy-safe request and worker diagnostics, BL-006 Recoverable synthetic PostgreSQL job lease, EPIC-001 Repository Foundation and Quality Gates, EPIC-002 Authentication depends on EPIC-001 and remains unstarted, SPIKE-001 OpenAPI generator compatibility evidence, Personal Task Planner Vertical-Slice Backlog
 
 ### Community 34 - "dependencies"
-Cohesion: 0.15
-Nodes (13): dependencies, class-transformer, @nestjs/swagger, @node-rs/argon2, pg, pino, @planner/config, class-transformer (+5 more)
+Cohesion: 0.05
+Nodes (39): dependencies, class-transformer, class-validator, dotenv, helmet, @nestjs/common, @nestjs/core, nestjs-pino (+31 more)
 
 ### Community 35 - "password-reset.schema.ts"
 Cohesion: 0.29
 Nodes (7): DEC-069 EPIC-001 repository-foundation implementation plan, Personal Task Planner Project Master, apps and packages workspace discovery, Dependency build-script allowlist and denials, pnpm Workspace Configuration, Reviewed transitive dependency security overrides, Engine-strict exact-save and strict-peer dependency policy
 
 ### Community 36 - "problem-details.filter.ts"
-Cohesion: 0.28
+Cohesion: 0.29
 Nodes (5): ProblemDetails, ProblemDetailsFilter, safeDetail(), statusCodes, Catch
 
 ### Community 37 - "tsconfig.build.json"
@@ -313,12 +317,12 @@ Cohesion: 0.15
 Nodes (12): compilerOptions, baseUrl, paths, exclude, extends, include, next-env.d.ts, .next/types/**/*.ts (+4 more)
 
 ### Community 39 - "anonymous-csrf.guard.ts"
-Cohesion: 0.32
-Nodes (4): safeOrigin(), anonymousCsrfCookieName(), parseCookieValue(), safelyDecodeCookieValue()
+Cohesion: 0.21
+Nodes (11): AnonymousCsrfGuard, safeOrigin(), Inject, Injectable, anonymousCsrfCookieName(), parseCookieValue(), safelyDecodeCookieValue(), sessionCookieName() (+3 more)
 
 ### Community 40 - "page.test.tsx"
-Cohesion: 0.10
-Nodes (23): metadata, metadata, metadata, metadata, HomePage(), metadata, metadata, PrivacyPage() (+15 more)
+Cohesion: 0.11
+Nodes (22): metadata, metadata, metadata, HomePage(), metadata, metadata, PrivacyPage(), metadata (+14 more)
 
 ### Community 41 - "node.mjs"
 Cohesion: 0.31
@@ -345,16 +349,20 @@ Cohesion: 0.18
 Nodes (10): compilerOptions, lib, module, moduleResolution, types, extends, ./base.json, ES2024 (+2 more)
 
 ### Community 47 - "main.ts"
-Cohesion: 0.39
-Nodes (6): generateOpenApi(), sortRecursively(), AppModule, Module, bootstrapApi(), parseApiEnvironment()
+Cohesion: 0.17
+Nodes (11): metadata, Alert(), AlertAction(), AlertDescription(), AlertTitle(), alertVariants, Spinner(), SessionBoundary() (+3 more)
 
 ### Community 48 - "auth-security.service.ts"
-Cohesion: 0.22
-Nodes (6): LoginCommand, LoginResult, LoginInput, loginSchema, parseLoginInput(), safeReturnPath()
+Cohesion: 0.21
+Nodes (8): EmailVerificationJobHandler, Inject, Injectable, VERIFICATION_EMAIL_DELIVERY, VerificationEmailDelivery, VerificationEmailMessage, SmtpVerificationEmailAdapter, Injectable
 
 ### Community 49 - "register-account.service.ts"
 Cohesion: 0.33
 Nodes (6): Loopback-bound configurable PostgreSQL port, Persistent local PostgreSQL volume, PostgreSQL 18.3 Alpine local service, PostgreSQL Docker Compose Configuration, PostgreSQL readiness healthcheck, BL-002 PostgreSQL web API and worker composition roots
+
+### Community 50 - "ReadSessionService"
+Cohesion: 0.17
+Nodes (12): metadata, choiceLabel(), CurrentUserForOnboarding, detectedBrowserTimeZone(), fallbackTimeZones, isSupportedTimeZone(), OnboardingPreferenceForm(), readCurrentUserForOnboarding() (+4 more)
 
 ### Community 51 - "reset-password.service.ts"
 Cohesion: 0.33
@@ -365,8 +373,8 @@ Cohesion: 0.33
 Nodes (6): EPIC-001 local Definition of Done, SPIKE-001 and BL-001 through BL-006 locally verified complete, EPIC-001 Repository Foundation and Quality Gates complete, EPIC-002 requires explicit User instruction after EPIC-001 review, Composition roots infrastructure Prisma job migration OpenAPI client tests and quality gates, No authentication Task domain behavior product persistence model or later feature started
 
 ### Community 53 - "page.tsx"
-Cohesion: 0.50
-Nodes (3): ThrowingController, Controller, Get
+Cohesion: 0.24
+Nodes (13): Checkbox(), Field(), FieldContent(), FieldDescription(), FieldError(), FieldLegend(), FieldSeparator(), FieldSet() (+5 more)
 
 ### Community 54 - "package.json"
 Cohesion: 0.25
@@ -377,16 +385,20 @@ Cohesion: 0.25
 Nodes (7): compilerOptions, outDir, rootDir, extends, include, @planner/typescript-config/node.json, src/**/*.ts
 
 ### Community 56 - "ApiProperty"
-Cohesion: 0.48
-Nodes (6): AuthenticatedSessionDataDto, LoginRequestDto, LoginResponseDto, SessionStateDataDto, SessionStateResponseDto, ApiProperty
+Cohesion: 0.22
+Nodes (10): FieldLabel(), Input(), mocks, passwordResetRequestFormSchema, PasswordResetRequestFormValues, passwordSchema, resetPasswordFormSchema, ResetPasswordFormValues (+2 more)
 
 ### Community 57 - "nest-cli.json"
 Cohesion: 0.29
 Nodes (6): collection, compilerOptions, deleteOutDir, tsConfigPath, $schema, sourceRoot
 
+### Community 58 - "request-password-reset.service.ts"
+Cohesion: 0.21
+Nodes (7): FieldGroup(), AuthApiError, CsrfData, csrfQueryKey, mocks, loginFormSchema, LoginFormValues
+
 ### Community 59 - "parseWorkerEnvironment"
-Cohesion: 0.38
-Nodes (5): parseWorkerEnvironment(), bootstrapWorker(), Module, WorkerModule, sharedEnvironment
+Cohesion: 0.23
+Nodes (7): InputOTP(), InputOTPGroup(), InputOTPSlot(), mocks, EmailVerificationFormValues, emailVerificationSchema, verificationEmailRequestSchema
 
 ### Community 60 - "Graphify repository-local discovery and impact analysis"
 Cohesion: 0.29
@@ -400,9 +412,17 @@ Nodes (6): ARC-001 Web API and Worker runtime topology, ARC-005 Domain-aligned b
 Cohesion: 0.33
 Nodes (6): AccountDeletionProcess durable idempotent purge coordination, AuthenticationIdentity entity with one email/password identity per active User, User entity, Confirmed account deletion and immediate access revocation, AuthenticationIdentity, User
 
+### Community 63 - "registration-form.tsx"
+Cohesion: 0.25
+Nodes (6): Button(), buttonVariants, mocks, passwordSchema, registrationFormSchema, RegistrationFormValues
+
 ### Community 64 - "package.json"
 Cohesion: 0.33
 Nodes (5): files, name, private, version, *.json
+
+### Community 65 - "register-account.service.ts"
+Cohesion: 0.47
+Nodes (3): RegisterAccountCommand, RegistrationResult, toEmailDisplayValue()
 
 ### Community 67 - "Q: Authentication ile user-owned resources bağlantısı"
 Cohesion: 0.40
@@ -460,14 +480,10 @@ Nodes (3): Domain-Aligned Modular Monolith, ADR-001: Modular Monolith with Separ
 Cohesion: 0.67
 Nodes (3): Default-enabled in-app reminder Notification preference and suppression semantics, Notification, TaskReminder
 
-### Community 110 - "Module"
-Cohesion: 0.25
-Nodes (7): AccountsModule, Module, createLoggerParameters(), createPinoOptions(), redactPaths, Module, VersionModule
-
 ## Knowledge Gaps
-- **506 isolated node(s):** `printWidth`, `semi`, `singleQuote`, `trailingComma`, `$schema` (+501 more)
+- **514 isolated node(s):** `printWidth`, `semi`, `singleQuote`, `trailingComma`, `$schema` (+509 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **25 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **26 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Work-memory lessons
 
@@ -477,17 +493,17 @@ Nodes (7): AccountsModule, Module, createLoggerParameters(), createPinoOptions()
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `AccountsRepository` connect `AccountsRepository` to `auth.controller.ts`, `app.module.ts`, `anonymous-csrf.guard.ts`, `.createSession`, `accounts.repository.ts`, `password-reset.spec.ts`, `AuthSecurityService`, `auth-security.service.ts`, `ReadSessionService`, `verify-email.service.ts`?**
+- **Why does `AccountsRepository` connect `AccountsRepository` to `email-verification-form.tsx`, `register-account.service.ts`, `app.module.ts`, `anonymous-csrf.guard.ts`, `.createSession`, `accounts.repository.ts`, `AuthSecurityService`, `auth-security.service.ts`, `verify-email.service.ts`?**
+  _High betweenness centrality (0.021) - this node is a cross-community bridge._
+- **Why does `AuthSecurityService` connect `AccountsRepository` to `email-verification-form.tsx`, `register-account.service.ts`, `app.module.ts`, `.createSession`, `accounts.repository.ts`, `auth-security.service.ts`, `verify-email.service.ts`?**
   _High betweenness centrality (0.017) - this node is a cross-community bridge._
-- **Why does `react` connect `dependencies` to `cn`?**
-  _High betweenness centrality (0.015) - this node is a cross-community bridge._
 - **What connects `printWidth`, `semi`, `singleQuote` to the rest of the system?**
-  _506 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _514 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `auth.controller.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.0526195378631892 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.09224318658280922 - nodes in this community are weakly interconnected._
 - **Should `app.module.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.05413469735720375 - nodes in this community are weakly interconnected._
-- **Should `cn` be split into smaller, more focused modules?**
-  _Cohesion score 0.05308880308880309 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.07256894049346879 - nodes in this community are weakly interconnected._
 - **Should `dependencies` be split into smaller, more focused modules?**
   _Cohesion score 0.046511627906976744 - nodes in this community are weakly interconnected._
+- **Should `.initiateDeletion` be split into smaller, more focused modules?**
+  _Cohesion score 0.10795454545454546 - nodes in this community are weakly interconnected._

@@ -6,6 +6,7 @@ import {
   Headers,
   HttpCode,
   Inject,
+  Patch,
   Post,
   Req,
   Res,
@@ -18,14 +19,17 @@ import { parseApiEnvironment } from '../../../platform/config/environment';
 import { ApiProblemException } from '../../../platform/http/api-problem.exception';
 import { InitiateAccountDeletionService } from '../application/initiate-account-deletion.service';
 import { ReadCurrentUserService } from '../application/read-current-user.service';
+import { UpdateCurrentUserService } from '../application/update-current-user.service';
 import { AnonymousCsrfGuard } from './anonymous-csrf.guard';
 import { parseAccountDeletionInput, parseIfMatch } from './account-deletion.schema';
 import { parseCookieValue, sessionCookieName } from './auth-cookie';
 import { parseIdempotencyKey } from './email-verification.schema';
+import { parseUserProfilePatch } from './user.schema';
 import {
   AccountDeletionProcessResponseDto,
   AccountDeletionRequestDto,
   CurrentUserProfileResponseDto,
+  UpdateCurrentUserRequestDto,
 } from './user.dto';
 
 @ApiTags('Users')
@@ -38,6 +42,8 @@ export class UserController {
     private readonly readCurrentUser: ReadCurrentUserService,
     @Inject(InitiateAccountDeletionService)
     private readonly initiateAccountDeletion: InitiateAccountDeletionService,
+    @Inject(UpdateCurrentUserService)
+    private readonly updateCurrentUser: UpdateCurrentUserService,
   ) {}
 
   @Get('me')
@@ -82,6 +88,99 @@ export class UserController {
         inAppReminderNotificationsEnabled: currentUser.profile.inAppReminderNotificationsEnabled,
         onboardingState: currentUser.profile.onboardingState,
         timeZone: currentUser.profile.timeZone,
+      },
+    };
+  }
+
+  @Patch('me')
+  @HttpCode(200)
+  @Header('Cache-Control', 'no-store')
+  @UseGuards(AnonymousCsrfGuard)
+  @ApiOperation({
+    operationId: 'updateCurrentUser',
+    summary: 'Update current account preferences with a current User ETag',
+  })
+  @ApiHeader({
+    name: 'X-CSRF-Token',
+    required: true,
+  })
+  @ApiHeader({
+    name: 'If-Match',
+    required: true,
+  })
+  @ApiBody({
+    type: UpdateCurrentUserRequestDto,
+  })
+  @ApiResponse({
+    status: 200,
+    type: CurrentUserProfileResponseDto,
+  })
+  @ApiResponse({
+    description: 'No valid authenticated session is present.',
+    status: 401,
+  })
+  @ApiResponse({
+    description: 'The current User ETag is missing or stale.',
+    status: 412,
+  })
+  async patchCurrentUser(
+    @Body() body: unknown,
+    @Headers('if-match') ifMatchHeader: unknown,
+    @Req() request: Request,
+    @Res({
+      passthrough: true,
+    })
+    response: Response,
+  ): Promise<CurrentUserProfileResponseDto> {
+    const input = parseUserProfilePatch(body);
+    const result = await this.updateCurrentUser.execute({
+      etag: parseIfMatch(ifMatchHeader),
+      sessionToken: parseCookieValue(request.headers.cookie, sessionCookieName()),
+      timeZone: input.timeZone,
+    });
+
+    if (result.outcome === 'AUTHENTICATION_REQUIRED') {
+      throw new ApiProblemException({
+        status: 401,
+        code: 'AUTHENTICATION_REQUIRED',
+        detail: 'Oturum açmanız gerekiyor.',
+      });
+    }
+
+    if (result.outcome === 'PRECONDITION_REQUIRED') {
+      throw new ApiProblemException({
+        status: 428,
+        code: 'PRECONDITION_REQUIRED',
+        detail: 'Güncel hesap sürümü gereklidir.',
+      });
+    }
+
+    if (result.outcome === 'PRECONDITION_FAILED') {
+      throw new ApiProblemException({
+        status: 412,
+        code: 'PRECONDITION_FAILED',
+        detail: 'Hesap bilgisi değişmiş. Lütfen sayfayı yenileyip tekrar deneyin.',
+      });
+    }
+
+    if (result.outcome !== 'UPDATED') {
+      throw new ApiProblemException({
+        status: 503,
+        code: 'CURRENT_USER_UPDATE_UNAVAILABLE',
+        detail: 'Hesap tercihleri şu anda güncellenemedi. Lütfen daha sonra tekrar deneyin.',
+      });
+    }
+
+    response.setHeader('ETag', result.etag);
+
+    return {
+      data: {
+        accountLifecycleState: result.profile.accountLifecycleState,
+        email: result.profile.primaryEmail,
+        id: result.profile.userId,
+        inAppReminderNotificationsEnabled: result.profile.inAppReminderNotificationsEnabled,
+        onboardingState: result.profile.onboardingState,
+        timeZone: result.profile.timeZone,
       },
     };
   }

@@ -9,12 +9,16 @@ strictPeerDependencies: true
 
 overrides:
   '@angular-devkit/core>ajv': 8.20.0
-  brace-expansion: 5.0.8
+  brace-expansion: 5.0.9
+  fast-uri: 3.1.5
   find-my-way: 9.7.0
-  js-yaml: 4.3.0
+  js-yaml: 4.3.1
+  nanoid: 3.3.17
   picomatch: 4.0.5
   postcss: 8.5.22
   sharp: 0.35.3
+  'undici@7': 7.29.0
+  'undici@8': 8.9.0
   valibot: 1.4.2
 
 allowBuilds:
@@ -28,4 +32,4 @@ allowBuilds:
   ssh2: false
 
 patchedDependencies:
-  brace-expansion@5.0.8: patches/brace-expansion@5.0.8.patch
+  brace-expansion@5.0.9: patches/brace-expansion@5.0.9.patch

@@ -132,6 +132,10 @@ export type SessionStateResponseDto = {
     data: SessionStateDataDto;
 };
 
+export type UpdateCurrentUserRequestDto = {
+    timeZone: string;
+};
+
 export type VerifyEmailDataDto = {
     next: string;
     status: 'VERIFIED';
@@ -455,6 +459,34 @@ export type GetCurrentUserResponses = {
 };
 
 export type GetCurrentUserResponse = GetCurrentUserResponses[keyof GetCurrentUserResponses];
+
+export type UpdateCurrentUserData = {
+    body: UpdateCurrentUserRequestDto;
+    headers: {
+        'If-Match': string;
+        'X-CSRF-Token': string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me';
+};
+
+export type UpdateCurrentUserErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * The current User ETag is missing or stale.
+     */
+    412: unknown;
+};
+
+export type UpdateCurrentUserResponses = {
+    200: CurrentUserProfileResponseDto;
+};
+
+export type UpdateCurrentUserResponse = UpdateCurrentUserResponses[keyof UpdateCurrentUserResponses];
 
 export type InitiateAccountDeletionData = {
     body: AccountDeletionRequestDto;

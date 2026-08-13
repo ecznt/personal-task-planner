@@ -195,7 +195,8 @@ Every stage requires explicit user approval before the next stage begins.
 | DEC-078 | 2026-08-02 | Implement BL-015 account deletion initiation with recent password reauthentication, explicit permanent-deletion confirmation, idempotent process creation/replay, immediate all-session revocation, cookie clearing, and deferred full primary-data purge to EPIC-016. | Implemented, published, and CI-verified | User-approved BL-015 implementation plan; commit `c7907ab`; CI run `30738500840`; BL-015 |
 | DEC-079 | 2026-08-02 | Implement BL-121 as a frontend-only public entry-point slice: `/` explains the private personal-planning product and links Login/Register/Today, `/privacy` and `/terms` are public Turkish pages, registration links to both, and no backend/API/schema, onboarding, planning data, social authentication, collaboration, billing, or native-mobile behavior is introduced. | Implemented, published, and CI-verified | User-approved continuation after BL-121 plan; commit `9135165`; CI run `30738996032`; BL-121 |
 | DEC-080 | 2026-08-02 | Replace the over-granular Stage 8 execution queue with a lean implementation backlog that preserves the approved MVP scope, freezes completed BL/SPIKE work as the baseline, groups remaining work into 23 implementation slices, and makes L-001 onboarding welcome the next slice. | Implemented, published, and CI-verified | User requested backlog refactor to reduce overengineering and token cost; commit `6893a61`; CI run `30740503708` |
-| DEC-081 | 2026-08-03 | Implement L-001 as a frontend-only authenticated onboarding welcome route that explains the private Area → optional Project → Task model in Turkish, reuses the existing session boundary with route-specific return targets, and introduces no API, schema, onboarding completion, timezone persistence, sample data, Area, Project, or Task creation. | Implemented locally; awaiting User acceptance/publication | User-approved L-001 implementation plan; `docs/planning/BACKLOG.md` L-001 |
+| DEC-081 | 2026-08-03 | Implement L-001 as a frontend-only authenticated onboarding welcome route that explains the private Area → optional Project → Task model in Turkish, reuses the existing session boundary with route-specific return targets, and introduces no API, schema, onboarding completion, timezone persistence, sample data, Area, Project, or Task creation. | Implemented, published, and CI-verified | User-approved L-001 implementation plan; commit `b73836d`; CI run `30791344719`; `docs/planning/BACKLOG.md` L-001 |
+| DEC-082 | 2026-08-13 | Implement L-002 as current-user time-zone preference confirmation: add `PATCH /api/v1/users/me` for authenticated User time-zone updates with CSRF and `If-Match`, expose the generated OpenAPI/client operation, and add a Turkish onboarding preference form that captures start-empty/sample-data intent without persisting that transient choice yet. Keep onboarding completion, sample data, Area, Project, Task, Label, Checklist, and schema changes deferred to L-003/L-004. | Implemented locally; awaiting User acceptance/publication | User-approved L-002 implementation plan; `docs/planning/BACKLOG.md` L-002 |
 
 ## Open questions
 
@@ -454,19 +455,19 @@ The recorded version must not be changed without a decision-log entry and revali
 | Field | Value |
 | --- | --- |
 | Status | Successful |
-| Generated at | 2026-08-03T06:31:25Z |
+| Generated at | 2026-08-13T06:48:52Z |
 | Graphify version | 0.9.20 |
-| Source commit at generation | `6893a6187099f82103f4c2c535091cd7451bc5b7` |
-| Working tree at generation | Includes the uncommitted L-001 onboarding welcome implementation, component/E2E tests, documentation updates, and Graphify outputs; contains no backend/API/schema, onboarding completion mutation, timezone persistence, sample data, Area, Task, Project, collaboration, social authentication, billing, native-mobile, or full primary-data purge implementation. |
+| Source commit at generation | `b73836ded99d7fdf048388429f230c68cb89fb45` |
+| Working tree at generation | Includes the uncommitted L-002 current-user time-zone update API, generated OpenAPI/client artifacts, onboarding preference UI, tests, dependency security overrides, documentation updates, and Graphify outputs; contains no onboarding completion mutation, sample data, Area, Task, Project, Label, Checklist, collaboration, social authentication, billing, native-mobile, or full primary-data purge implementation. |
 | Input scope | Incremental local-AST `graphify update .` refresh of code-classified files. Documentation semantic re-extraction was skipped because no LLM backend key is configured; this is recorded as a Graphify limitation, not as source-of-truth evidence. Dependencies, generated Prisma output, build/test output, environment files, Graphify outputs/memory, and sensitive paths remain excluded. |
 | Output path | `graphify-out/graph.json` |
-| Nodes | 1,383 |
-| Edges | 2,453 |
+| Nodes | 1,424 |
+| Edges | 2,581 |
 | Hyperedges | Not reported by the incremental CLI summary |
-| Communities | 117 |
-| Graph health | Incremental code extraction completed; `GRAPH_REPORT.md` and graph visualization were refreshed; one bounded impact traversal succeeded. Backend contract, Prisma schema, migration artifacts, and generated client were unchanged for L-001. |
-| Recorded semantic tokens | 0 input / 0 output; BL-121 used local AST code extraction and no LLM API key. |
-| Reason | Capture BL-121 across the public landing page, privacy and terms pages, registration legal links, component tests, E2E route coverage, and documentation updates, then verify that backend/API/schema and planning-domain behavior stayed outside the slice. |
+| Communities | 120 |
+| Graph health | Incremental code extraction completed; `GRAPH_REPORT.md`, `graph.json`, and graph visualization were refreshed; one bounded impact traversal succeeded. Findings concentrated on accounts backend, onboarding frontend, OpenAPI/client generation, and tests. |
+| Recorded semantic tokens | 0 input / 0 output; L-002 used local AST code extraction and no LLM API key. |
+| Reason | Capture L-002 across `PATCH /users/me` time-zone update behavior, onboarding preference UI, generated OpenAPI/client artifacts, tests, and documentation updates, then verify that onboarding completion, sample data, and planning-domain records stayed outside the slice. |
 
 Update this section after every successful graph generation.
 
@@ -518,12 +519,13 @@ Update this section after every successful graph generation.
 | 2026-08-02 | Phase 3 — BL-015 account deletion initiation implementation | Completed, accepted, committed, published, and CI-verified | Recent password reauthentication, explicit confirmation, idempotent deletion-process initiation, all-session revocation, cookie clearing, generated OpenAPI/client artifacts, tests, security scan, and bounded Graphify impact review passed; commit `c7907ab` was published to `develop` and CI run `30738500840` succeeded. |
 | 2026-08-02 | Phase 3 — BL-121 public entry points implementation | Completed, accepted, committed, published, and CI-verified | Public landing, privacy, terms, registration legal links, tests, build, security checks, and bounded Graphify impact review passed; commit `9135165` was published to `develop` and CI run `30738996032` succeeded. |
 | 2026-08-02 | Phase 3 — Backlog refactor | Completed, committed, published, and CI-verified | The execution backlog was simplified from the prior 120-active-story queue into a completed baseline plus 23 lean remaining implementation slices, starting with L-001 onboarding welcome; commit `6893a61` and CI run `30740503708` succeeded. |
-| 2026-08-03 | Phase 3 — L-001 onboarding welcome implementation | Implemented locally; awaiting User acceptance/publication | Authenticated onboarding welcome route, Turkish Area → optional Project → Task explanation, private-space framing, component/E2E coverage, and no API/schema/domain persistence changes. |
+| 2026-08-03 | Phase 3 — L-001 onboarding welcome implementation | Completed, accepted, committed, published, and CI-verified | Authenticated onboarding welcome route, Turkish Area → optional Project → Task explanation, private-space framing, component/E2E coverage, no API/schema/domain persistence changes, commit `b73836d`, and CI run `30791344719`. |
+| 2026-08-13 | Phase 3 — L-002 onboarding preference and time-zone confirmation | Implemented locally; awaiting User acceptance/publication | Current-user time-zone update API with CSRF and `If-Match`, generated OpenAPI/client artifacts, Turkish onboarding preference form, targeted automated tests, bounded Graphify update, no onboarding completion/sample/planning data creation. |
 
 ## Current planning stage
 
-Phase 3 Implementation — L-001 onboarding welcome. EPIC-001, BL-007 through BL-011, BL-014, BL-015, BL-121, and the lean backlog refactor are complete, published, and CI-verified. L-001 has been implemented locally as a frontend-only onboarding welcome route and is awaiting User acceptance/publication. No onboarding completion, timezone persistence, sample data, Area, Task, Project, collaboration, social authentication, or full primary-data purge implementation has started.
+Phase 3 Implementation — L-002 onboarding preference and time-zone confirmation. EPIC-001, BL-007 through BL-011, BL-014, BL-015, BL-121, the lean backlog refactor, and L-001 are complete, published, and CI-verified. L-002 has been implemented locally and is awaiting User acceptance/publication. No onboarding completion, sample data, Area, Task, Project, Label, Checklist, collaboration, social authentication, billing, native-mobile, or full primary-data purge implementation has started.
 
 ## Next required action
 
-Ask the User to review and accept L-001. After acceptance and explicit publication instruction, commit/push the L-001 implementation and verify CI. Only then plan L-002 onboarding preference and time-zone confirmation.
+Ask the User to review and accept L-002. After acceptance and explicit publication instruction, commit/push the L-002 implementation and verify CI. Only then plan L-003 start-empty onboarding completion and Today handoff.

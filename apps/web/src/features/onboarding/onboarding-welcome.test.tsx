@@ -16,11 +16,7 @@ describe('OnboardingWelcome', () => {
     expect(screen.getByText(/Task her zaman Area’ya bağlıdır/i)).toBeVisible();
     expect(screen.getByText(/yalnızca size aittir/i)).toBeVisible();
     expect(screen.getByText(/Başka kullanıcıların Area, Project veya Task/i)).toBeVisible();
-    expect(screen.getByRole('link', { name: 'Bugün’e geç' })).toHaveAttribute('href', '/app/today');
-    expect(screen.getByRole('link', { name: 'Şimdilik boş başla' })).toHaveAttribute(
-      'href',
-      '/app/today',
-    );
+    expect(screen.getByText(/başlangıç tercihinizi ve saat diliminizi/i)).toBeVisible();
   });
 
   it('does not introduce out-of-scope product concepts', () => {

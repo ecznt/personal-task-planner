@@ -1,5 +1,3 @@
-import Link from 'next/link';
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const modelItems = [
@@ -59,20 +57,9 @@ export function OnboardingWelcome() {
             </p>
           </section>
 
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Link
-              className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/80 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-              href="/app/today"
-            >
-              Bugün’e geç
-            </Link>
-            <Link
-              className="inline-flex h-9 items-center justify-center rounded-lg border border-border bg-background px-3 text-sm font-medium transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-              href="/app/today"
-            >
-              Şimdilik boş başla
-            </Link>
-          </div>
+          <p className="text-sm leading-6 text-muted-foreground">
+            Devam etmek için başlangıç tercihinizi ve saat diliminizi aşağıdaki adımda onaylayın.
+          </p>
         </CardContent>
       </Card>
     </div>

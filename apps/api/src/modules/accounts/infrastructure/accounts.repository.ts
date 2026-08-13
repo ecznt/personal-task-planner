@@ -591,6 +591,56 @@ export class AccountsRepository {
     };
   }
 
+  async updateCurrentUserProfile(input: {
+    readonly expectedUserVersion: number;
+    readonly timeZone: string;
+    readonly userId: string;
+  }): Promise<CurrentUserProfile | null> {
+    const updated = await this.prisma.user.updateMany({
+      data: {
+        timeZone: input.timeZone,
+        version: {
+          increment: 1,
+        },
+      },
+      where: {
+        accountLifecycleState: 'ACTIVE',
+        id: input.userId,
+        version: input.expectedUserVersion,
+      },
+    });
+
+    if (updated.count !== 1) {
+      return null;
+    }
+
+    const user = await this.prisma.user.findUniqueOrThrow({
+      select: {
+        accountLifecycleState: true,
+        inAppReminderNotificationsEnabled: true,
+        normalizedPrimaryEmail: true,
+        onboardingState: true,
+        primaryEmail: true,
+        timeZone: true,
+        version: true,
+      },
+      where: {
+        id: input.userId,
+      },
+    });
+
+    return {
+      accountLifecycleState: user.accountLifecycleState,
+      inAppReminderNotificationsEnabled: user.inAppReminderNotificationsEnabled,
+      normalizedPrimaryEmail: user.normalizedPrimaryEmail,
+      onboardingState: user.onboardingState,
+      primaryEmail: user.primaryEmail,
+      timeZone: user.timeZone,
+      userId: input.userId,
+      version: user.version,
+    };
+  }
+
   async findReauthenticationSessionByToken(input: {
     readonly now: Date;
     readonly tokenHash: string;

@@ -44,6 +44,14 @@ export class CurrentUserProfileResponseDto {
   data!: CurrentUserProfileDataDto;
 }
 
+export class UpdateCurrentUserRequestDto {
+  @ApiProperty({
+    example: 'Europe/Istanbul',
+    type: String,
+  })
+  timeZone!: string;
+}
+
 export class AccountDeletionRequestDto {
   @ApiProperty({
     enum: ['DELETE_MY_ACCOUNT'],

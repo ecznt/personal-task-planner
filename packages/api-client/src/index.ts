@@ -12,6 +12,7 @@ export {
   requestEmailVerification,
   requestPasswordReset,
   resetPassword,
+  updateCurrentUser,
   verifyEmail,
 } from './generated/sdk.gen';
 export type {

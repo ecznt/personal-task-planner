@@ -215,6 +215,19 @@ test('signs in and idempotently ends only the current browser session', async ({
 test('serves the authenticated onboarding model explanation without creating planning data', async ({
   page,
 }) => {
+  let patchedTimeZone: string | undefined;
+
+  await page.route('**/api/v1/auth/csrf', async (route) => {
+    await route.fulfill({
+      json: {
+        data: {
+          expiresAt: '2099-01-01T00:00:00.000Z',
+          token: 'e2e-csrf-token',
+        },
+      },
+      status: 200,
+    });
+  });
   await page.route('**/api/v1/auth/session', async (route) => {
     await route.fulfill({
       json: {
@@ -228,6 +241,56 @@ test('serves the authenticated onboarding model explanation without creating pla
       status: 200,
     });
   });
+  await page.route('**/api/v1/users/me', async (route) => {
+    if (route.request().method() === 'PATCH') {
+      expect(await route.request().postDataJSON()).toEqual({
+        timeZone: 'Europe/Istanbul',
+      });
+      expect(route.request().headers()['if-match']).toBe('"safe-user-etag"');
+      expect(route.request().headers()['x-csrf-token']).toBe('e2e-csrf-token');
+      patchedTimeZone = 'Europe/Istanbul';
+      await route.fulfill({
+        headers: {
+          ETag: '"updated-user-etag"',
+        },
+        json: {
+          data: {
+            accountLifecycleState: 'ACTIVE',
+            email: 'user@example.com',
+            id: '018f9f7c-0000-7000-8000-000000000001',
+            inAppReminderNotificationsEnabled: true,
+            onboardingState: 'PENDING',
+            timeZone: 'Europe/Istanbul',
+          },
+        },
+        status: 200,
+      });
+      return;
+    }
+
+    await route.fulfill({
+      headers: {
+        ETag: '"safe-user-etag"',
+      },
+      json: {
+        data: {
+          accountLifecycleState: 'ACTIVE',
+          email: 'user@example.com',
+          id: '018f9f7c-0000-7000-8000-000000000001',
+          inAppReminderNotificationsEnabled: true,
+          onboardingState: 'PENDING',
+          timeZone: 'UTC',
+        },
+      },
+      status: 200,
+    });
+  });
+  await page.route('**/api/v1/users/me/onboarding-completions', async (route) => {
+    throw new Error(`L-002 must not complete onboarding: ${route.request().method()}`);
+  });
+  await page.route('**/api/v1/areas**', async (route) => {
+    throw new Error(`L-002 must not create planning data: ${route.request().method()}`);
+  });
 
   await page.goto('/app/onboarding');
 
@@ -239,14 +302,15 @@ test('serves the authenticated onboarding model explanation without creating pla
   await expect(page.getByText(/Task her zaman Area’ya bağlıdır/)).toBeVisible();
   await expect(page.getByText(/Bu alan yalnızca size aittir/)).toBeVisible();
   await expect(page.getByText(/Başka kullanıcıların Area, Project veya Task/)).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Bugün’e geç' })).toHaveAttribute(
-    'href',
-    '/app/today',
-  );
-  await expect(page.getByRole('link', { name: 'Şimdilik boş başla' })).toHaveAttribute(
-    'href',
-    '/app/today',
-  );
+  await expect(page.getByText(/başlangıç tercihinizi ve saat diliminizi/)).toBeVisible();
+  await expect(
+    page.getByRole('heading', { level: 2, name: 'Başlangıç tercihinizi onaylayın' }),
+  ).toBeVisible();
+  await page.getByLabel('Başlangıç tercihi').selectOption('CREATE_SAMPLE_DATA');
+  await page.getByLabel('Saat dilimi').selectOption('Europe/Istanbul');
+  await page.getByRole('button', { name: 'Tercihi ve saat dilimini onayla' }).click();
+  await expect(page.getByText('Tercih ve saat dilimi onaylandı')).toBeVisible();
+  expect(patchedTimeZone).toBe('Europe/Istanbul');
   await expect(page.getByText(/Google ile giriş/)).toHaveCount(0);
   await expect(page.getByText(/ortak çalışma/i)).toHaveCount(0);
 });

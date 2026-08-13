@@ -483,6 +483,18 @@
         ],
         "type": "object"
       },
+      "UpdateCurrentUserRequestDto": {
+        "properties": {
+          "timeZone": {
+            "example": "Europe/Istanbul",
+            "type": "string"
+          }
+        },
+        "required": [
+          "timeZone"
+        ],
+        "type": "object"
+      },
       "VerifyEmailDataDto": {
         "properties": {
           "next": {
@@ -996,6 +1008,59 @@
           }
         },
         "summary": "Read the current account profile resolved only from the active session",
+        "tags": [
+          "Users"
+        ]
+      },
+      "patch": {
+        "operationId": "updateCurrentUser",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "If-Match",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCurrentUserRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrentUserProfileResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "412": {
+            "description": "The current User ETag is missing or stale."
+          }
+        },
+        "summary": "Update current account preferences with a current User ETag",
         "tags": [
           "Users"
         ]
