@@ -319,7 +319,9 @@ test('serves onboarding and completes start-empty handoff without creating plann
     });
   });
   await page.route('**/api/v1/areas**', async (route) => {
-    throw new Error(`L-002 must not create planning data: ${route.request().method()}`);
+    throw new Error(
+      `Start-empty onboarding must not create planning data: ${route.request().method()}`,
+    );
   });
 
   await page.goto('/app/onboarding');
@@ -344,6 +346,115 @@ test('serves onboarding and completes start-empty handoff without creating plann
   expect(completedOnboarding).toBe(true);
   await expect(page.getByText(/Google ile giriş/)).toHaveCount(0);
   await expect(page.getByText(/ortak çalışma/i)).toHaveCount(0);
+});
+
+test('serves onboarding and completes private sample-data handoff', async ({ page }) => {
+  let completedChoice: string | undefined;
+
+  await page.route('**/api/v1/auth/csrf', async (route) => {
+    await route.fulfill({
+      json: {
+        data: {
+          expiresAt: '2099-01-01T00:00:00.000Z',
+          token: 'e2e-csrf-token',
+        },
+      },
+      status: 200,
+    });
+  });
+  await page.route('**/api/v1/auth/session', async (route) => {
+    await route.fulfill({
+      json: {
+        data: {
+          absoluteExpiresAt: '2099-01-07T00:00:00.000Z',
+          authenticated: true,
+          email: 'user@example.com',
+          idleExpiresAt: '2099-01-01T12:00:00.000Z',
+        },
+      },
+      status: 200,
+    });
+  });
+  await page.route('**/api/v1/users/me', async (route) => {
+    if (route.request().method() === 'PATCH') {
+      expect(await route.request().postDataJSON()).toEqual({
+        timeZone: 'Europe/Istanbul',
+      });
+      await route.fulfill({
+        headers: {
+          ETag: '"updated-user-etag"',
+        },
+        json: {
+          data: {
+            accountLifecycleState: 'ACTIVE',
+            email: 'user@example.com',
+            id: '018f9f7c-0000-7000-8000-000000000001',
+            inAppReminderNotificationsEnabled: true,
+            onboardingState: 'PENDING',
+            timeZone: 'Europe/Istanbul',
+          },
+        },
+        status: 200,
+      });
+      return;
+    }
+
+    await route.fulfill({
+      headers: {
+        ETag: '"safe-user-etag"',
+      },
+      json: {
+        data: {
+          accountLifecycleState: 'ACTIVE',
+          email: 'user@example.com',
+          id: '018f9f7c-0000-7000-8000-000000000001',
+          inAppReminderNotificationsEnabled: true,
+          onboardingState: 'PENDING',
+          timeZone: 'UTC',
+        },
+      },
+      status: 200,
+    });
+  });
+  await page.route('**/api/v1/users/me/onboarding-completions', async (route) => {
+    const body = await route.request().postDataJSON();
+    expect(body).toEqual({
+      choice: 'CREATE_SAMPLE_DATA',
+    });
+    expect(route.request().headers()['if-match']).toBe('"updated-user-etag"');
+    expect(route.request().headers()['idempotency-key']).toEqual(expect.any(String));
+    completedChoice = body.choice;
+    await route.fulfill({
+      headers: {
+        ETag: '"completed-user-etag"',
+      },
+      json: {
+        data: {
+          choice: 'CREATE_SAMPLE_DATA',
+          completedAt: '2026-08-17T09:00:00.000Z',
+          next: '/app/today',
+          status: 'COMPLETED',
+          user: {
+            accountLifecycleState: 'ACTIVE',
+            email: 'user@example.com',
+            id: '018f9f7c-0000-7000-8000-000000000001',
+            inAppReminderNotificationsEnabled: true,
+            onboardingState: 'COMPLETED',
+            timeZone: 'Europe/Istanbul',
+          },
+        },
+      },
+      status: 200,
+    });
+  });
+
+  await page.goto('/app/onboarding');
+
+  await page.getByLabel('Başlangıç tercihi').selectOption('CREATE_SAMPLE_DATA');
+  await page.getByLabel('Saat dilimi').selectOption('Europe/Istanbul');
+  await page.getByRole('button', { name: 'Örnek veri oluştur ve Today’e geç' }).click();
+  await expect(page).toHaveURL(/\/app\/today$/);
+  expect(completedChoice).toBe('CREATE_SAMPLE_DATA');
 });
 
 test('redirects unauthenticated onboarding visitors to login with onboarding return target', async ({

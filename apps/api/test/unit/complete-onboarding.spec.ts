@@ -76,7 +76,7 @@ describe('complete onboarding', () => {
         sessionToken: undefined,
       }),
     ).resolves.toEqual(replay);
-    expect(accounts.completeStartEmptyOnboarding).not.toHaveBeenCalled();
+    expect(accounts.completeOnboarding).not.toHaveBeenCalled();
   });
 
   it('rejects stale ETags without completing onboarding', async () => {
@@ -97,29 +97,27 @@ describe('complete onboarding', () => {
     ).resolves.toEqual({
       outcome: 'PRECONDITION_FAILED',
     });
-    expect(accounts.completeStartEmptyOnboarding).not.toHaveBeenCalled();
+    expect(accounts.completeOnboarding).not.toHaveBeenCalled();
   });
 
   it('completes start-empty onboarding and returns a fresh ETag source profile', async () => {
     const completedAt = new Date('2026-08-17T09:00:00.000Z');
     const accounts = repositoryMock({
-      completeStartEmptyOnboarding: jest
-        .fn<AccountsRepository['completeStartEmptyOnboarding']>()
-        .mockResolvedValue({
-          completion: {
-            choice: 'START_EMPTY',
-            completedAt,
-            next: '/app/today',
-            profile: {
-              ...profile,
-              onboardingCompletedAt: completedAt,
-              onboardingState: 'COMPLETED',
-              version: 5,
-            },
-            status: 'COMPLETED',
+      completeOnboarding: jest.fn<AccountsRepository['completeOnboarding']>().mockResolvedValue({
+        completion: {
+          choice: 'START_EMPTY',
+          completedAt,
+          next: '/app/today',
+          profile: {
+            ...profile,
+            onboardingCompletedAt: completedAt,
+            onboardingState: 'COMPLETED',
+            version: 5,
           },
-          outcome: 'COMPLETED',
-        }),
+          status: 'COMPLETED',
+        },
+        outcome: 'COMPLETED',
+      }),
       findCurrentUserProfileBySession: jest
         .fn<AccountsRepository['findCurrentUserProfileBySession']>()
         .mockResolvedValue(profile),
@@ -143,8 +141,55 @@ describe('complete onboarding', () => {
       },
       outcome: 'COMPLETED',
     });
-    expect(accounts.completeStartEmptyOnboarding).toHaveBeenCalledWith(
+    expect(accounts.completeOnboarding).toHaveBeenCalledWith(
       expect.objectContaining({
+        choice: 'START_EMPTY',
+        expectedUserVersion: 4,
+      }),
+    );
+  });
+
+  it('passes sample-data completion choice to the persistence boundary', async () => {
+    const completedAt = new Date('2026-08-17T09:00:00.000Z');
+    const accounts = repositoryMock({
+      completeOnboarding: jest.fn<AccountsRepository['completeOnboarding']>().mockResolvedValue({
+        completion: {
+          choice: 'CREATE_SAMPLE_DATA',
+          completedAt,
+          next: '/app/today',
+          profile: {
+            ...profile,
+            onboardingCompletedAt: completedAt,
+            onboardingState: 'COMPLETED',
+            version: 5,
+          },
+          status: 'COMPLETED',
+        },
+        outcome: 'COMPLETED',
+      }),
+      findCurrentUserProfileBySession: jest
+        .fn<AccountsRepository['findCurrentUserProfileBySession']>()
+        .mockResolvedValue(profile),
+    });
+    const service = new CompleteOnboardingService(accounts, securityMock());
+
+    await expect(
+      service.execute({
+        choice: 'CREATE_SAMPLE_DATA',
+        etag: etagForVersion(4),
+        idempotencyKey: 'idem-key',
+        sessionToken: 'raw-session-token',
+      }),
+    ).resolves.toMatchObject({
+      completion: {
+        choice: 'CREATE_SAMPLE_DATA',
+        next: '/app/today',
+      },
+      outcome: 'COMPLETED',
+    });
+    expect(accounts.completeOnboarding).toHaveBeenCalledWith(
+      expect.objectContaining({
+        choice: 'CREATE_SAMPLE_DATA',
         expectedUserVersion: 4,
       }),
     );
@@ -157,7 +202,7 @@ function etagForVersion(version: number): string {
 
 function repositoryMock(overrides: Partial<AccountsRepository> = {}): AccountsRepository {
   return {
-    completeStartEmptyOnboarding: jest.fn<AccountsRepository['completeStartEmptyOnboarding']>(),
+    completeOnboarding: jest.fn<AccountsRepository['completeOnboarding']>(),
     findCurrentUserProfileBySession: jest
       .fn<AccountsRepository['findCurrentUserProfileBySession']>()
       .mockResolvedValue(null),

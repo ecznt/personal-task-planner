@@ -25,6 +25,24 @@ enum OnboardingState {
   COMPLETED
 }
 
+enum CanonicalStatus {
+  TO_DO
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum PlanningLifecycleState {
+  ACTIVE
+  ARCHIVED
+  TRASHED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
 enum IdentityVerificationState {
   PENDING
   ACTIVE
@@ -73,43 +91,50 @@ model Job {
 }
 
 model User {
-  id                                String                  @id @default(uuid()) @db.Uuid
+  id                                String                   @id @default(uuid()) @db.Uuid
   primaryEmail                      String
-  normalizedPrimaryEmail            String                  @unique(map: "user_normalized_primary_email_key")
-  timeZone                          String                  @default("UTC")
-  inAppReminderNotificationsEnabled Boolean                 @default(true)
-  onboardingState                   OnboardingState         @default(PENDING)
-  onboardingCompletedAt             DateTime?               @db.Timestamptz(3)
-  accountLifecycleState             AccountLifecycleState   @default(ACTIVE)
-  deletionConfirmedAt               DateTime?               @db.Timestamptz(3)
-  accessRevokedAt                   DateTime?               @db.Timestamptz(3)
-  version                           Int                     @default(1)
-  createdAt                         DateTime                @default(now()) @db.Timestamptz(3)
-  updatedAt                         DateTime                @updatedAt @db.Timestamptz(3)
+  normalizedPrimaryEmail            String                   @unique(map: "user_normalized_primary_email_key")
+  timeZone                          String                   @default("UTC")
+  inAppReminderNotificationsEnabled Boolean                  @default(true)
+  onboardingState                   OnboardingState          @default(PENDING)
+  onboardingCompletedAt             DateTime?                @db.Timestamptz(3)
+  accountLifecycleState             AccountLifecycleState    @default(ACTIVE)
+  deletionConfirmedAt               DateTime?                @db.Timestamptz(3)
+  accessRevokedAt                   DateTime?                @db.Timestamptz(3)
+  version                           Int                      @default(1)
+  createdAt                         DateTime                 @default(now()) @db.Timestamptz(3)
+  updatedAt                         DateTime                 @updatedAt @db.Timestamptz(3)
   authenticationIdentity            AuthenticationIdentity?
   sessions                          Session[]
-  reauthenticationProofs             ReauthenticationProof[]
-  accountDeletionProcesses           AccountDeletionProcess[]
+  reauthenticationProofs            ReauthenticationProof[]
+  accountDeletionProcesses          AccountDeletionProcess[]
+  areas                             Area[]
+  areaStatuses                      AreaStatus[]
+  projects                          Project[]
+  tasks                             Task[]
+  labels                            Label[]
+  taskLabels                        TaskLabel[]
+  checklistItems                    ChecklistItem[]
 
   @@map("users")
 }
 
 model AuthenticationIdentity {
-  id                     String                       @id @default(uuid()) @db.Uuid
-  userId                 String                       @unique(map: "authentication_identity_user_id_key") @db.Uuid
-  normalizedEmail        String                       @unique(map: "authentication_identity_normalized_email_key")
-  verificationState      IdentityVerificationState    @default(PENDING)
-  enabled                Boolean                      @default(true)
-  passwordHash           String
-  verifiedAt             DateTime?                    @db.Timestamptz(3)
-  lastAuthenticatedAt    DateTime?                    @db.Timestamptz(3)
-  disabledAt             DateTime?                    @db.Timestamptz(3)
-  disabledReason         String?
-  version                Int                          @default(1)
-  createdAt              DateTime                     @default(now()) @db.Timestamptz(3)
-  updatedAt              DateTime                     @updatedAt @db.Timestamptz(3)
-  user                   User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  verificationChallenges EmailVerificationChallenge[]
+  id                      String                       @id @default(uuid()) @db.Uuid
+  userId                  String                       @unique(map: "authentication_identity_user_id_key") @db.Uuid
+  normalizedEmail         String                       @unique(map: "authentication_identity_normalized_email_key")
+  verificationState       IdentityVerificationState    @default(PENDING)
+  enabled                 Boolean                      @default(true)
+  passwordHash            String
+  verifiedAt              DateTime?                    @db.Timestamptz(3)
+  lastAuthenticatedAt     DateTime?                    @db.Timestamptz(3)
+  disabledAt              DateTime?                    @db.Timestamptz(3)
+  disabledReason          String?
+  version                 Int                          @default(1)
+  createdAt               DateTime                     @default(now()) @db.Timestamptz(3)
+  updatedAt               DateTime                     @updatedAt @db.Timestamptz(3)
+  user                    User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verificationChallenges  EmailVerificationChallenge[]
   passwordResetChallenges PasswordResetChallenge[]
 
   @@map("authentication_identities")
@@ -171,16 +196,16 @@ model AnonymousAuthTransaction {
 }
 
 model Session {
-  id                String    @id @default(uuid()) @db.Uuid
-  userId            String    @db.Uuid
-  tokenHash         String    @unique(map: "session_token_hash_key")
-  idleExpiresAt     DateTime  @db.Timestamptz(3)
-  absoluteExpiresAt DateTime  @db.Timestamptz(3)
-  lastSeenAt        DateTime  @db.Timestamptz(3)
-  revokedAt         DateTime? @db.Timestamptz(3)
-  createdAt         DateTime  @default(now()) @db.Timestamptz(3)
-  updatedAt         DateTime  @updatedAt @db.Timestamptz(3)
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                     String                  @id @default(uuid()) @db.Uuid
+  userId                 String                  @db.Uuid
+  tokenHash              String                  @unique(map: "session_token_hash_key")
+  idleExpiresAt          DateTime                @db.Timestamptz(3)
+  absoluteExpiresAt      DateTime                @db.Timestamptz(3)
+  lastSeenAt             DateTime                @db.Timestamptz(3)
+  revokedAt              DateTime?               @db.Timestamptz(3)
+  createdAt              DateTime                @default(now()) @db.Timestamptz(3)
+  updatedAt              DateTime                @updatedAt @db.Timestamptz(3)
+  user                   User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   reauthenticationProofs ReauthenticationProof[]
 
   @@index([userId, revokedAt, lastSeenAt, id], map: "session_user_active_lru_idx")
@@ -234,4 +259,143 @@ model IdempotencyRecord {
 
   @@index([expiresAt], map: "idempotency_record_expiry_idx")
   @@map("idempotency_records")
+}
+
+model Area {
+  id             String                 @id @default(uuid()) @db.Uuid
+  userId         String                 @db.Uuid
+  name           String
+  normalizedName String
+  lifecycleState PlanningLifecycleState @default(ACTIVE)
+  version        Int                    @default(1)
+  createdAt      DateTime               @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime               @updatedAt @db.Timestamptz(3)
+  user           User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  statuses       AreaStatus[]
+  projects       Project[]
+  tasks          Task[]
+
+  @@unique([userId, normalizedName], map: "area_user_normalized_name_key")
+  @@index([userId, lifecycleState, updatedAt, id], map: "area_user_lifecycle_idx")
+  @@map("areas")
+}
+
+model AreaStatus {
+  id              String          @id @default(uuid()) @db.Uuid
+  userId          String          @db.Uuid
+  areaId          String          @db.Uuid
+  name            String
+  normalizedName  String
+  canonicalStatus CanonicalStatus
+  position        Int
+  isDefault       Boolean         @default(false)
+  active          Boolean         @default(true)
+  createdAt       DateTime        @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime        @updatedAt @db.Timestamptz(3)
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  area            Area            @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  tasks           Task[]
+
+  @@unique([areaId, normalizedName], map: "area_status_area_normalized_name_key")
+  @@unique([areaId, position], map: "area_status_area_position_key")
+  @@index([userId, areaId, canonicalStatus, isDefault], map: "area_status_default_lookup_idx")
+  @@map("area_statuses")
+}
+
+model Project {
+  id             String                 @id @default(uuid()) @db.Uuid
+  userId         String                 @db.Uuid
+  areaId         String                 @db.Uuid
+  name           String
+  normalizedName String
+  lifecycleState PlanningLifecycleState @default(ACTIVE)
+  version        Int                    @default(1)
+  createdAt      DateTime               @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime               @updatedAt @db.Timestamptz(3)
+  user           User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  area           Area                   @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  tasks          Task[]
+
+  @@unique([areaId, normalizedName], map: "project_area_normalized_name_key")
+  @@index([userId, lifecycleState, updatedAt, id], map: "project_user_lifecycle_idx")
+  @@map("projects")
+}
+
+model Task {
+  id             String                 @id @default(uuid()) @db.Uuid
+  userId         String                 @db.Uuid
+  areaId         String                 @db.Uuid
+  projectId      String?                @db.Uuid
+  areaStatusId   String                 @db.Uuid
+  title          String
+  description    String?
+  plannedAt      DateTime?              @db.Timestamptz(3)
+  dueAt          DateTime?              @db.Timestamptz(3)
+  priority       TaskPriority           @default(MEDIUM)
+  completedAt    DateTime?              @db.Timestamptz(3)
+  lifecycleState PlanningLifecycleState @default(ACTIVE)
+  globalRank     String
+  areaRank       String
+  version        Int                    @default(1)
+  createdAt      DateTime               @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime               @updatedAt @db.Timestamptz(3)
+  user           User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  area           Area                   @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  project        Project?               @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  areaStatus     AreaStatus             @relation(fields: [areaStatusId], references: [id], onDelete: Restrict)
+  labels         TaskLabel[]
+  checklistItems ChecklistItem[]
+
+  @@index([userId, lifecycleState, updatedAt, id], map: "task_user_lifecycle_idx")
+  @@index([userId, areaId, lifecycleState, areaRank, id], map: "task_area_rank_idx")
+  @@index([userId, lifecycleState, globalRank, id], map: "task_global_rank_idx")
+  @@index([userId, dueAt, id], map: "task_user_due_idx")
+  @@map("tasks")
+}
+
+model Label {
+  id             String      @id @default(uuid()) @db.Uuid
+  userId         String      @db.Uuid
+  name           String
+  normalizedName String
+  color          String?
+  createdAt      DateTime    @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime    @updatedAt @db.Timestamptz(3)
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskLabels     TaskLabel[]
+
+  @@unique([userId, normalizedName], map: "label_user_normalized_name_key")
+  @@map("labels")
+}
+
+model TaskLabel {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  taskId    String   @db.Uuid
+  labelId   String   @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  label     Label    @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, taskId, labelId], map: "task_label_user_task_label_key")
+  @@index([userId, labelId, taskId], map: "task_label_user_label_idx")
+  @@map("task_labels")
+}
+
+model ChecklistItem {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @db.Uuid
+  taskId      String    @db.Uuid
+  text        String
+  position    Int
+  completedAt DateTime? @db.Timestamptz(3)
+  createdAt   DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(3)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task        Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, position], map: "checklist_item_task_position_key")
+  @@index([userId, taskId, position], map: "checklist_item_user_task_position_idx")
+  @@map("checklist_items")
 }

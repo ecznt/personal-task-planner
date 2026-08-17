@@ -54,10 +54,10 @@ export class UpdateCurrentUserRequestDto {
 
 export class OnboardingCompletionRequestDto {
   @ApiProperty({
-    enum: ['START_EMPTY'],
+    enum: ['CREATE_SAMPLE_DATA', 'START_EMPTY'],
     type: String,
   })
-  choice!: 'START_EMPTY';
+  choice!: 'CREATE_SAMPLE_DATA' | 'START_EMPTY';
 }
 
 export class OnboardingCompletionDataDto {
@@ -68,10 +68,10 @@ export class OnboardingCompletionDataDto {
   status!: 'COMPLETED';
 
   @ApiProperty({
-    enum: ['START_EMPTY'],
+    enum: ['CREATE_SAMPLE_DATA', 'START_EMPTY'],
     type: String,
   })
-  choice!: 'START_EMPTY';
+  choice!: 'CREATE_SAMPLE_DATA' | 'START_EMPTY';
 
   @ApiProperty({
     format: 'date-time',

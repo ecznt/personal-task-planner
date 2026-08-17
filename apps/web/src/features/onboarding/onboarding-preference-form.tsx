@@ -97,18 +97,9 @@ export function OnboardingPreferenceForm() {
         throw new Error('Tercihler kaydedilemedi.');
       }
 
-      if (values.choice === 'CREATE_SAMPLE_DATA') {
-        return {
-          choice: values.choice,
-          etag,
-          next: null,
-          profile: result.data.data,
-        };
-      }
-
       const completion = await completeCurrentUserOnboarding({
         body: {
-          choice: 'START_EMPTY',
+          choice: values.choice,
         },
         client: apiClient,
         headers: {
@@ -128,7 +119,7 @@ export function OnboardingPreferenceForm() {
         completedEtag === null ||
         completedEtag === undefined
       ) {
-        throw new Error('Boş başlangıç tamamlanamadı.');
+        throw new Error('Onboarding tamamlanamadı.');
       }
 
       return {
@@ -146,9 +137,7 @@ export function OnboardingPreferenceForm() {
         timeZone: result.profile.timeZone,
       } satisfies CurrentUserForOnboarding);
 
-      if (result.next !== null) {
-        router.push(result.next);
-      }
+      router.push(result.next);
     },
   });
 
@@ -176,8 +165,8 @@ export function OnboardingPreferenceForm() {
           Başlangıç tercihinizi onaylayın
         </CardTitle>
         <CardDescription>
-          {currentUser.data.email} hesabı için saat dilimini kaydedin. Boş başlangıcı şimdi
-          tamamlayabilirsiniz; örnek veri oluşturma sonraki dikey dilimde uygulanacak.
+          {currentUser.data.email} hesabı için saat dilimini kaydedin. Boş başlayabilir veya size
+          ait düzenlenebilir örnek veriyi oluşturabilirsiniz.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -233,7 +222,7 @@ export function OnboardingPreferenceForm() {
                 <AlertDescription>
                   {confirmation.data.choice === 'START_EMPTY'
                     ? 'Boş başlangıç tamamlandı. Today ekranına yönlendiriliyorsunuz.'
-                    : 'Saat dilimi kaydedildi. Örnek veri oluşturma sonraki adımda uygulanacak.'}
+                    : 'Örnek veriniz oluşturuldu. Today ekranına yönlendiriliyorsunuz.'}
                 </AlertDescription>
               </Alert>
             ) : null}
@@ -310,5 +299,7 @@ function uniqueValues(values: ReadonlyArray<string | undefined>): string[] {
 }
 
 function submitLabel(choice: OnboardingPreferenceFormValues['choice']): string {
-  return choice === 'START_EMPTY' ? 'Boş başla ve Today’e geç' : 'Saat dilimini kaydet';
+  return choice === 'START_EMPTY'
+    ? 'Boş başla ve Today’e geç'
+    : 'Örnek veri oluştur ve Today’e geç';
 }

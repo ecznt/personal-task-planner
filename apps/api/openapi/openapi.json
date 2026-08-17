@@ -259,6 +259,7 @@
         "properties": {
           "choice": {
             "enum": [
+              "CREATE_SAMPLE_DATA",
               "START_EMPTY"
             ],
             "type": "string"
@@ -296,6 +297,7 @@
         "properties": {
           "choice": {
             "enum": [
+              "CREATE_SAMPLE_DATA",
               "START_EMPTY"
             ],
             "type": "string"
@@ -1254,7 +1256,7 @@
             "description": "The current User ETag is missing or stale."
           }
         },
-        "summary": "Complete current account onboarding with an empty private space",
+        "summary": "Complete current account onboarding with an empty or sample private space",
         "tags": [
           "Users"
         ]

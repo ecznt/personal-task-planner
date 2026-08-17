@@ -4,6 +4,8 @@ import { PrismaService } from '../../../platform/database/prisma.service';
 import { PASSWORD_RESET_JOB_TYPE } from '../application/password-reset-email-delivery.port';
 import { EMAIL_VERIFICATION_JOB_TYPE } from '../application/verification-email-delivery.port';
 
+type PrismaTransaction = Parameters<Parameters<PrismaService['$transaction']>[0]>[0];
+
 type AuthCounterInput = {
   readonly action:
     | 'REGISTRATION'
@@ -187,7 +189,10 @@ export type InitiateAccountDeletionPersistenceResult =
         | 'REAUTHENTICATION_REQUIRED';
     };
 
-export type CompleteStartEmptyOnboardingInput = {
+export type OnboardingCompletionChoice = 'CREATE_SAMPLE_DATA' | 'START_EMPTY';
+
+export type CompleteOnboardingInput = {
+  readonly choice: OnboardingCompletionChoice;
   readonly expectedUserVersion: number;
   readonly idempotencyId: string;
   readonly idempotencyKeyHash: string;
@@ -197,14 +202,14 @@ export type CompleteStartEmptyOnboardingInput = {
 };
 
 export type OnboardingCompletionState = {
-  readonly choice: 'START_EMPTY';
+  readonly choice: OnboardingCompletionChoice;
   readonly completedAt: Date;
   readonly next: '/app/today';
   readonly profile: CurrentUserProfile;
   readonly status: 'COMPLETED';
 };
 
-export type CompleteStartEmptyOnboardingPersistenceResult =
+export type CompleteOnboardingPersistenceResult =
   | {
       readonly completion: OnboardingCompletionState;
       readonly outcome: 'COMPLETED' | 'REPLAYED';
@@ -223,7 +228,7 @@ export type OnboardingCompletionIdempotencyReplayResult =
       readonly outcome: 'REPLAYED';
     }
   | Extract<
-      CompleteStartEmptyOnboardingPersistenceResult,
+      CompleteOnboardingPersistenceResult,
       {
         outcome:
           | 'AUTHENTICATION_REQUIRED'
@@ -885,9 +890,9 @@ export class AccountsRepository {
     };
   }
 
-  async completeStartEmptyOnboarding(
-    input: CompleteStartEmptyOnboardingInput,
-  ): Promise<CompleteStartEmptyOnboardingPersistenceResult> {
+  async completeOnboarding(
+    input: CompleteOnboardingInput,
+  ): Promise<CompleteOnboardingPersistenceResult> {
     return this.prisma.$transaction(async (transaction) => {
       const inserted = await transaction.idempotencyRecord.createMany({
         data: {
@@ -951,6 +956,7 @@ export class AccountsRepository {
                 },
               },
               id: true,
+              onboardingState: true,
               version: true,
             },
           },
@@ -987,7 +993,10 @@ export class AccountsRepository {
         };
       }
 
-      if (session.user.version !== input.expectedUserVersion) {
+      if (
+        session.user.version !== input.expectedUserVersion ||
+        session.user.onboardingState !== 'PENDING'
+      ) {
         await transaction.idempotencyRecord.update({
           data: {
             responseBody: {
@@ -1004,6 +1013,13 @@ export class AccountsRepository {
         return {
           outcome: 'PRECONDITION_FAILED',
         };
+      }
+
+      if (input.choice === 'CREATE_SAMPLE_DATA') {
+        await createPrivateSampleData(transaction, {
+          now: input.now,
+          userId: session.user.id,
+        });
       }
 
       await transaction.user.updateMany({
@@ -1039,7 +1055,7 @@ export class AccountsRepository {
       });
       const completedAt = user.onboardingCompletedAt ?? input.now;
       const response = onboardingCompletionResponse({
-        choice: 'START_EMPTY',
+        choice: input.choice,
         completedAt,
         next: '/app/today',
         profile: {
@@ -2025,9 +2041,191 @@ function isAccountDeletionFailure(value: unknown): value is {
   );
 }
 
+async function createPrivateSampleData(
+  transaction: PrismaTransaction,
+  input: {
+    readonly now: Date;
+    readonly userId: string;
+  },
+): Promise<void> {
+  const area = await transaction.area.create({
+    data: {
+      name: 'Kişisel Planlama',
+      normalizedName: normalizeSampleName('Kişisel Planlama'),
+      userId: input.userId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  const todoStatus = await transaction.areaStatus.create({
+    data: {
+      areaId: area.id,
+      canonicalStatus: 'TO_DO',
+      isDefault: true,
+      name: 'Yapılacak',
+      normalizedName: normalizeSampleName('Yapılacak'),
+      position: 100,
+      userId: input.userId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  const inProgressStatus = await transaction.areaStatus.create({
+    data: {
+      areaId: area.id,
+      canonicalStatus: 'IN_PROGRESS',
+      isDefault: true,
+      name: 'Devam Ediyor',
+      normalizedName: normalizeSampleName('Devam Ediyor'),
+      position: 200,
+      userId: input.userId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  const completedStatus = await transaction.areaStatus.create({
+    data: {
+      areaId: area.id,
+      canonicalStatus: 'COMPLETED',
+      isDefault: true,
+      name: 'Tamamlandı',
+      normalizedName: normalizeSampleName('Tamamlandı'),
+      position: 300,
+      userId: input.userId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  const project = await transaction.project.create({
+    data: {
+      areaId: area.id,
+      name: 'Haftalık Plan',
+      normalizedName: normalizeSampleName('Haftalık Plan'),
+      userId: input.userId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  const label = await transaction.label.create({
+    data: {
+      color: '#2563eb',
+      name: 'Örnek',
+      normalizedName: normalizeSampleName('Örnek'),
+      userId: input.userId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  const directTask = await transaction.task.create({
+    data: {
+      areaId: area.id,
+      areaRank: '000100',
+      areaStatusId: todoStatus.id,
+      description: 'Bu görev doğrudan Area altında durur; Project kullanmak zorunda değilsiniz.',
+      globalRank: '000100',
+      priority: 'MEDIUM',
+      title: 'İlk kişisel görevini düzenle',
+      userId: input.userId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  const projectTask = await transaction.task.create({
+    data: {
+      areaId: area.id,
+      areaRank: '000200',
+      areaStatusId: inProgressStatus.id,
+      description: 'Bu görev aynı Area içindeki örnek Project altında gruplanır.',
+      globalRank: '000200',
+      priority: 'HIGH',
+      projectId: project.id,
+      title: 'Haftalık planını gözden geçir',
+      userId: input.userId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  const completedTask = await transaction.task.create({
+    data: {
+      areaId: area.id,
+      areaRank: '000300',
+      areaStatusId: completedStatus.id,
+      completedAt: input.now,
+      description: 'Tamamlanmış örnek görev, Completed durumunun nasıl görüneceğini gösterir.',
+      globalRank: '000300',
+      priority: 'LOW',
+      projectId: project.id,
+      title: 'Örnek akışı incele',
+      userId: input.userId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  await transaction.taskLabel.createMany({
+    data: [
+      {
+        labelId: label.id,
+        taskId: directTask.id,
+        userId: input.userId,
+      },
+      {
+        labelId: label.id,
+        taskId: projectTask.id,
+        userId: input.userId,
+      },
+    ],
+  });
+
+  await transaction.checklistItem.createMany({
+    data: [
+      {
+        position: 100,
+        taskId: projectTask.id,
+        text: 'Bugünkü önceliği seç',
+        userId: input.userId,
+      },
+      {
+        position: 200,
+        taskId: projectTask.id,
+        text: 'Gereksiz işleri ertele',
+        userId: input.userId,
+      },
+      {
+        completedAt: input.now,
+        position: 100,
+        taskId: completedTask.id,
+        text: 'Örnek veriyi gözden geçir',
+        userId: input.userId,
+      },
+    ],
+  });
+}
+
+function normalizeSampleName(value: string): string {
+  return value.trim().normalize('NFKC').toLocaleLowerCase('tr-TR');
+}
+
 function onboardingCompletionResponse(completion: OnboardingCompletionState): {
   readonly data: {
-    readonly choice: 'START_EMPTY';
+    readonly choice: OnboardingCompletionChoice;
     readonly completedAt: string;
     readonly next: '/app/today';
     readonly status: 'COMPLETED';
@@ -2081,7 +2279,7 @@ function isOnboardingCompletionResponse(
   const data = value.data as Record<string, unknown>;
 
   return (
-    data.choice === 'START_EMPTY' &&
+    (data.choice === 'START_EMPTY' || data.choice === 'CREATE_SAMPLE_DATA') &&
     typeof data.completedAt === 'string' &&
     data.next === '/app/today' &&
     data.status === 'COMPLETED' &&

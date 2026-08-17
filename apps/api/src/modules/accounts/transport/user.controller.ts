@@ -196,7 +196,7 @@ export class UserController {
   @UseGuards(AnonymousCsrfGuard)
   @ApiOperation({
     operationId: 'completeCurrentUserOnboarding',
-    summary: 'Complete current account onboarding with an empty private space',
+    summary: 'Complete current account onboarding with an empty or sample private space',
   })
   @ApiHeader({
     name: 'X-CSRF-Token',

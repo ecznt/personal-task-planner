@@ -92,14 +92,14 @@ describe('OnboardingPreferenceForm', () => {
     });
   });
 
-  it('saves time zone only when sample data is selected for a future slice', async () => {
+  it('creates sample data and hands off to Today when sample data is selected', async () => {
     const user = userEvent.setup();
     const { container } = renderOnboardingPreferenceForm();
 
     expect(await screen.findByText(/user@example.com hesabı için/)).toBeVisible();
     await user.selectOptions(screen.getByLabelText('Başlangıç tercihi'), 'CREATE_SAMPLE_DATA');
     await user.selectOptions(screen.getByLabelText('Saat dilimi'), 'Europe/Istanbul');
-    await user.click(screen.getByRole('button', { name: 'Saat dilimini kaydet' }));
+    await user.click(screen.getByRole('button', { name: 'Örnek veri oluştur ve Today’e geç' }));
 
     await waitFor(() =>
       expect(mocks.updateCurrentUser).toHaveBeenCalledWith({
@@ -113,10 +113,20 @@ describe('OnboardingPreferenceForm', () => {
         },
       }),
     );
-    expect(await screen.findByText('Tercih ve saat dilimi onaylandı')).toBeVisible();
-    expect(screen.getByText(/Örnek veri oluşturma sonraki adımda uygulanacak/)).toBeVisible();
-    expect(mocks.completeCurrentUserOnboarding).not.toHaveBeenCalled();
-    expect(mocks.push).not.toHaveBeenCalled();
+    await waitFor(() =>
+      expect(mocks.completeCurrentUserOnboarding).toHaveBeenCalledWith({
+        body: {
+          choice: 'CREATE_SAMPLE_DATA',
+        },
+        client: {},
+        headers: {
+          'Idempotency-Key': expect.any(String),
+          'If-Match': '"updated-user-etag"',
+          'X-CSRF-Token': 'csrf-token',
+        },
+      }),
+    );
+    expect(mocks.push).toHaveBeenCalledWith('/app/today');
     expect((await axe(container)).violations).toHaveLength(0);
   });
 

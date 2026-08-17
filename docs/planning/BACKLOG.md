@@ -2,13 +2,13 @@
 
 | Field | Value |
 | --- | --- |
-| Status | L-003 implemented and locally verified; awaiting acceptance/publication |
+| Status | L-004 accepted; publication requested |
 | Revision date | 2026-08-17 |
 | Product scope | MVP, personal use only |
 | Document language | English |
 | Execution mode | Small vertical slices, but not one micro-story per technical concern |
-| Current completed baseline | EPIC-001; BL-007 through BL-011; BL-014; BL-015; BL-121; L-001; L-002 |
-| Next slice | L-003 — Start-empty onboarding completion remains active until accepted/published |
+| Current completed baseline | EPIC-001; BL-007 through BL-011; BL-014; BL-015; BL-121; L-001; L-002; L-003 |
+| Next slice | L-004 — Private sample data creation remains active until accepted/published |
 
 This document replaces the earlier over-granular execution queue. The approved PRD, UX, Domain, Data, API, Architecture, and ADR documents remain authoritative for product and technical rules. This backlog controls implementation order only.
 
@@ -41,6 +41,7 @@ These items are complete, published to `develop`, and CI-verified. Future slices
 | BL-121 | Public product, privacy, and terms entry points. | Commit `9135165`, CI `30738996032`. |
 | L-001 | Authenticated onboarding welcome and private Area → optional Project → Task model explanation. | Commit `b73836d`, CI `30791344719`. |
 | L-002 | Onboarding preference and current-user time-zone confirmation. | Commit `5580a48`, CI `31682908571`. |
+| L-003 | Start-empty onboarding completion and Today handoff. | Commit `1c66322`, CI `32012029837`. |
 
 Reserved/deferred IDs `BL-012` and `BL-013` remain reserved for removed social-authentication work and must not be reused.
 
@@ -204,7 +205,7 @@ Before each slice, verify the exact requirement IDs from PRD and API/Domain/Data
 
 ### L-003 — Start-empty onboarding completion and Today handoff
 
-**Implementation status:** Implemented and locally verified on 2026-08-17; awaiting User acceptance and publication instruction.
+**Implementation status:** Completed, published, and CI-verified on 2026-08-17.
 
 **Story goal:** A first-time authenticated user can explicitly start with an empty private space, complete onboarding idempotently, and continue to Today without creating sample planning data.
 
@@ -231,6 +232,34 @@ Before each slice, verify the exact requirement IDs from PRD and API/Domain/Data
 - `docker-compose config`
 - `pnpm test:security`
 - `graphify update .`
+
+### L-004 — Private sample data creation
+
+**Implementation status:** Implemented, locally verified, accepted, and queued for publication on 2026-08-17.
+
+**Story goal:** A first-time authenticated user can create a complete private editable sample set, complete onboarding idempotently, and continue to Today.
+
+**Implemented scope:**
+
+- `POST /api/v1/users/me/onboarding-completions` now accepts `CREATE_SAMPLE_DATA` and `START_EMPTY`.
+- `CREATE_SAMPLE_DATA` creates one owned Area, three default AreaStatuses, one Project, three representative Tasks, one Label, TaskLabel links, and ChecklistItems in one transaction.
+- Sample data is ordinary user-owned planning data and has no privileged/shared status.
+- The mutation keeps session, CSRF, `If-Match`, and `Idempotency-Key` requirements.
+- Replaying the same sample-data request returns the same completion result without duplicate planning records.
+- The onboarding UI updates time zone first, completes the selected onboarding choice, and redirects to `/app/today`.
+- General Area, Project, Task, Label, Checklist, List, Kanban, Today data UI, Archive, Trash, recurrence, reminders, collaboration, and social authentication remain deferred.
+
+**Local verification evidence:**
+
+- `pnpm format:check`
+- `pnpm typecheck`
+- `pnpm lint`
+- `pnpm test`
+- `pnpm build`
+- `pnpm test:e2e -- tests/e2e/foundation.spec.ts`
+- `pnpm prisma:validate`
+- `pnpm prisma:migrate:deploy`
+- `pnpm test:security`
 
 ## 7. Backlog maintenance policy
 

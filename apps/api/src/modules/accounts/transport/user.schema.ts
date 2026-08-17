@@ -52,7 +52,7 @@ function toValidationProblem(issue: z.core.$ZodIssue): ValidationProblemItem {
 
 const onboardingCompletionSchema = z
   .object({
-    choice: z.literal('START_EMPTY'),
+    choice: z.enum(['CREATE_SAMPLE_DATA', 'START_EMPTY']),
   })
   .strict();
 
@@ -69,7 +69,7 @@ export function parseOnboardingCompletion(value: unknown): OnboardingCompletionI
       errors: [
         {
           code: 'INVALID_ONBOARDING_CHOICE',
-          message: 'Bu adımda yalnızca boş başlangıç tamamlanabilir.',
+          message: 'Başlangıç tercihi START_EMPTY veya CREATE_SAMPLE_DATA olmalıdır.',
           path: '/body/choice',
         },
       ],

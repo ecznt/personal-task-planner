@@ -7,5 +7,11 @@
     }
   },
   "include": ["next-env.d.ts", ".next/types/**/*.ts", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    ".next/types/**/* 2.ts",
+    ".next/types/**/* 3.ts",
+    ".next/types/**/* 4.ts",
+    ".next/types/**/* 5.ts"
+  ]
 }

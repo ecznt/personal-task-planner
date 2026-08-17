@@ -311,7 +311,28 @@ describe('current user HTTP contract', () => {
     expect(JSON.stringify(response.body)).not.toContain('version');
   });
 
-  it('does not accept sample-data onboarding completion in the start-empty slice', async () => {
+  it('accepts sample-data onboarding completion with the same security contract', async () => {
+    completeOnboarding.execute.mockResolvedValueOnce({
+      completion: {
+        choice: 'CREATE_SAMPLE_DATA',
+        completedAt: new Date('2026-08-17T09:00:00.000Z'),
+        next: '/app/today',
+        profile: {
+          accountLifecycleState: 'ACTIVE',
+          inAppReminderNotificationsEnabled: true,
+          normalizedPrimaryEmail: 'user@example.com',
+          onboardingCompletedAt: new Date('2026-08-17T09:00:00.000Z'),
+          onboardingState: 'COMPLETED',
+          primaryEmail: 'User@example.com',
+          timeZone: 'Europe/Istanbul',
+          userId: '018f9f7c-0000-7000-8000-000000000001',
+          version: 5,
+        },
+        status: 'COMPLETED',
+      },
+      outcome: 'COMPLETED',
+    });
+
     const response = await request(app.getHttpServer())
       .post('/api/v1/users/me/onboarding-completions')
       .set('Cookie', 'planner-session=raw-session-secret; planner-csrf-context=browser-context')
@@ -322,13 +343,21 @@ describe('current user HTTP contract', () => {
       .send({
         choice: 'CREATE_SAMPLE_DATA',
       })
-      .expect(422);
+      .expect(200);
 
-    expect(response.body).toMatchObject({
-      code: 'VALIDATION_FAILED',
-      status: 422,
+    expect(completeOnboarding.execute).toHaveBeenCalledWith({
+      choice: 'CREATE_SAMPLE_DATA',
+      etag: '"updated-user-etag"',
+      idempotencyKey: '018f9f7c-0000-7000-8000-000000000019',
+      sessionToken: 'raw-session-secret',
     });
-    expect(completeOnboarding.execute).not.toHaveBeenCalled();
+    expect(response.body).toMatchObject({
+      data: {
+        choice: 'CREATE_SAMPLE_DATA',
+        next: '/app/today',
+        status: 'COMPLETED',
+      },
+    });
   });
 
   it('requires If-Match for onboarding completion', async () => {

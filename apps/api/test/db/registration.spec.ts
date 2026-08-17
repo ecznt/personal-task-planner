@@ -79,6 +79,13 @@ describe('registration persistence', () => {
     await prisma.reauthenticationProof.deleteMany();
     await prisma.session.deleteMany();
     await prisma.job.deleteMany();
+    await prisma.checklistItem.deleteMany();
+    await prisma.taskLabel.deleteMany();
+    await prisma.task.deleteMany();
+    await prisma.label.deleteMany();
+    await prisma.project.deleteMany();
+    await prisma.areaStatus.deleteMany();
+    await prisma.area.deleteMany();
     await prisma.passwordResetChallenge.deleteMany();
     await prisma.emailVerificationChallenge.deleteMany();
     await prisma.authenticationIdentity.deleteMany();
@@ -417,8 +424,112 @@ describe('registration persistence', () => {
       onboardingCompletedAt: expect.any(Date),
       onboardingState: 'COMPLETED',
     });
+    expect(await prisma.area.count()).toBe(0);
+    expect(await prisma.task.count()).toBe(0);
     expect(await prisma.idempotencyRecord.count()).toBe(2);
     expect(await prisma.job.count()).toBe(1);
+  });
+
+  it('creates private sample onboarding data atomically and idempotently', async () => {
+    await registration.execute({
+      email: 'user@example.com',
+      networkAddress: '192.0.2.14',
+      password: 'correct horse battery staple',
+    });
+    const challenge = await prisma.emailVerificationChallenge.findFirstOrThrow();
+    await verification.execute({
+      code: security.deriveEmailVerificationCode(challenge.id),
+      email: 'user@example.com',
+      idempotencyKey: '018f9f7c-0000-7000-8000-000000000106',
+      networkAddress: '192.0.2.14',
+    });
+    const loginResult = await login.execute({
+      email: 'user@example.com',
+      networkAddress: '192.0.2.14',
+      password: 'correct horse battery staple',
+      returnTo: '/app/onboarding',
+    });
+
+    expect(loginResult.outcome).toBe('AUTHENTICATED');
+    if (loginResult.outcome !== 'AUTHENTICATED') {
+      throw new Error('Expected authenticated result.');
+    }
+
+    const current = await repository.findCurrentUserProfileBySession({
+      now: new Date(),
+      refreshAfter: new Date(Date.now() - 5 * 60 * 1_000),
+      refreshedIdleExpiresAt: new Date(Date.now() + 12 * 60 * 60 * 1_000),
+      tokenHash: security.hashSecret(loginResult.sessionToken, 'session-storage'),
+    });
+
+    expect(current).not.toBeNull();
+    if (current === null) {
+      throw new Error('Expected current profile.');
+    }
+
+    const command = {
+      choice: 'CREATE_SAMPLE_DATA' as const,
+      etag: completeOnboarding.etagFor(current),
+      idempotencyKey: '018f9f7c-0000-7000-8000-000000000107',
+      sessionToken: loginResult.sessionToken,
+    };
+
+    await expect(completeOnboarding.execute(command)).resolves.toMatchObject({
+      completion: {
+        choice: 'CREATE_SAMPLE_DATA',
+        next: '/app/today',
+        profile: {
+          onboardingState: 'COMPLETED',
+        },
+      },
+      outcome: 'COMPLETED',
+    });
+    await expect(completeOnboarding.execute(command)).resolves.toMatchObject({
+      completion: {
+        choice: 'CREATE_SAMPLE_DATA',
+        next: '/app/today',
+      },
+      outcome: 'REPLAYED',
+    });
+
+    const user = await prisma.user.findFirstOrThrow();
+    const area = await prisma.area.findFirstOrThrow({
+      include: {
+        statuses: true,
+      },
+    });
+    const project = await prisma.project.findFirstOrThrow();
+    const tasks = await prisma.task.findMany({
+      orderBy: {
+        globalRank: 'asc',
+      },
+    });
+
+    expect(user).toMatchObject({
+      onboardingCompletedAt: expect.any(Date),
+      onboardingState: 'COMPLETED',
+    });
+    expect(area).toMatchObject({
+      name: 'Kişisel Planlama',
+      userId: user.id,
+    });
+    expect(area.statuses).toHaveLength(3);
+    expect(area.statuses.map((status) => status.canonicalStatus).sort()).toEqual([
+      'COMPLETED',
+      'IN_PROGRESS',
+      'TO_DO',
+    ]);
+    expect(project).toMatchObject({
+      areaId: area.id,
+      userId: user.id,
+    });
+    expect(tasks).toHaveLength(3);
+    expect(tasks.every((task) => task.userId === user.id && task.areaId === area.id)).toBe(true);
+    expect(tasks.filter((task) => task.projectId === project.id)).toHaveLength(2);
+    expect(await prisma.label.count()).toBe(1);
+    expect(await prisma.taskLabel.count()).toBe(2);
+    expect(await prisma.checklistItem.count()).toBe(3);
+    expect(await prisma.idempotencyRecord.count()).toBe(2);
   });
 
   it('rotates an existing token and keeps at most five active sessions', async () => {

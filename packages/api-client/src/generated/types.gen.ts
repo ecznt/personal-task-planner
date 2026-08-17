@@ -76,7 +76,7 @@ export type LoginResponseDto = {
 };
 
 export type OnboardingCompletionDataDto = {
-    choice: 'START_EMPTY';
+    choice: 'CREATE_SAMPLE_DATA' | 'START_EMPTY';
     completedAt: string;
     next: '/app/today';
     status: 'COMPLETED';
@@ -84,7 +84,7 @@ export type OnboardingCompletionDataDto = {
 };
 
 export type OnboardingCompletionRequestDto = {
-    choice: 'START_EMPTY';
+    choice: 'CREATE_SAMPLE_DATA' | 'START_EMPTY';
 };
 
 export type OnboardingCompletionResponseDto = {

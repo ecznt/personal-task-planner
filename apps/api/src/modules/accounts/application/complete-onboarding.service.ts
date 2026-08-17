@@ -2,20 +2,21 @@ import { Inject, Injectable } from '@nestjs/common';
 
 import {
   AccountsRepository,
-  type CompleteStartEmptyOnboardingPersistenceResult,
+  type CompleteOnboardingPersistenceResult,
+  type OnboardingCompletionChoice,
 } from '../infrastructure/accounts.repository';
 import { AuthSecurityService } from '../security/auth-security.service';
 import { SESSION_IDLE_MILLISECONDS } from './login.service';
 
 export type CompleteOnboardingCommand = {
-  readonly choice: 'START_EMPTY';
+  readonly choice: OnboardingCompletionChoice;
   readonly etag: string | undefined;
   readonly idempotencyKey: string;
   readonly sessionToken: string | undefined;
 };
 
 export type CompleteOnboardingResult =
-  | CompleteStartEmptyOnboardingPersistenceResult
+  | CompleteOnboardingPersistenceResult
   | {
       readonly outcome: 'AUTHENTICATION_REQUIRED' | 'PRECONDITION_REQUIRED' | 'PRECONDITION_FAILED';
     };
@@ -80,7 +81,8 @@ export class CompleteOnboardingService {
       };
     }
 
-    return this.accounts.completeStartEmptyOnboarding({
+    return this.accounts.completeOnboarding({
+      choice: command.choice,
       expectedUserVersion: profile.version,
       idempotencyId: this.security.createIdentifier(),
       idempotencyKeyHash,

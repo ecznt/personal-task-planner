@@ -147,7 +147,7 @@ export const initiateAccountDeletion = <ThrowOnError extends boolean = false>(op
 });
 
 /**
- * Complete current account onboarding with an empty private space
+ * Complete current account onboarding with an empty or sample private space
  */
 export const completeCurrentUserOnboarding = <ThrowOnError extends boolean = false>(options: Options<CompleteCurrentUserOnboardingData, ThrowOnError>): RequestResult<CompleteCurrentUserOnboardingResponses, CompleteCurrentUserOnboardingErrors, ThrowOnError> => (options.client ?? client).post<CompleteCurrentUserOnboardingResponses, CompleteCurrentUserOnboardingErrors, ThrowOnError>({
     url: '/api/v1/users/me/onboarding-completions',
