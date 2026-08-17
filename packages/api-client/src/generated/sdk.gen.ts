@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateAuthSessionData, CreateAuthSessionErrors, CreateAuthSessionResponses, DeleteAuthSessionData, DeleteAuthSessionErrors, DeleteAuthSessionResponses, GetAuthCsrfData, GetAuthCsrfResponses, GetAuthSessionData, GetAuthSessionResponses, GetCurrentUserData, GetCurrentUserErrors, GetCurrentUserResponses, GetVersionData, GetVersionResponses, InitiateAccountDeletionData, InitiateAccountDeletionErrors, InitiateAccountDeletionResponses, ReauthenticateData, ReauthenticateErrors, ReauthenticateResponses, RegisterAccountData, RegisterAccountErrors, RegisterAccountResponses, RequestEmailVerificationData, RequestEmailVerificationErrors, RequestEmailVerificationResponses, RequestPasswordResetData, RequestPasswordResetErrors, RequestPasswordResetResponses, ResetPasswordData, ResetPasswordErrors, ResetPasswordResponses, UpdateCurrentUserData, UpdateCurrentUserErrors, UpdateCurrentUserResponses, VerifyEmailData, VerifyEmailErrors, VerifyEmailResponses } from './types.gen';
+import type { CompleteCurrentUserOnboardingData, CompleteCurrentUserOnboardingErrors, CompleteCurrentUserOnboardingResponses, CreateAuthSessionData, CreateAuthSessionErrors, CreateAuthSessionResponses, DeleteAuthSessionData, DeleteAuthSessionErrors, DeleteAuthSessionResponses, GetAuthCsrfData, GetAuthCsrfResponses, GetAuthSessionData, GetAuthSessionResponses, GetCurrentUserData, GetCurrentUserErrors, GetCurrentUserResponses, GetVersionData, GetVersionResponses, InitiateAccountDeletionData, InitiateAccountDeletionErrors, InitiateAccountDeletionResponses, ReauthenticateData, ReauthenticateErrors, ReauthenticateResponses, RegisterAccountData, RegisterAccountErrors, RegisterAccountResponses, RequestEmailVerificationData, RequestEmailVerificationErrors, RequestEmailVerificationResponses, RequestPasswordResetData, RequestPasswordResetErrors, RequestPasswordResetResponses, ResetPasswordData, ResetPasswordErrors, ResetPasswordResponses, UpdateCurrentUserData, UpdateCurrentUserErrors, UpdateCurrentUserResponses, VerifyEmailData, VerifyEmailErrors, VerifyEmailResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -139,6 +139,18 @@ export const updateCurrentUser = <ThrowOnError extends boolean = false>(options:
  */
 export const initiateAccountDeletion = <ThrowOnError extends boolean = false>(options: Options<InitiateAccountDeletionData, ThrowOnError>): RequestResult<InitiateAccountDeletionResponses, InitiateAccountDeletionErrors, ThrowOnError> => (options.client ?? client).post<InitiateAccountDeletionResponses, InitiateAccountDeletionErrors, ThrowOnError>({
     url: '/api/v1/users/me/account-deletions',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Complete current account onboarding with an empty private space
+ */
+export const completeCurrentUserOnboarding = <ThrowOnError extends boolean = false>(options: Options<CompleteCurrentUserOnboardingData, ThrowOnError>): RequestResult<CompleteCurrentUserOnboardingResponses, CompleteCurrentUserOnboardingErrors, ThrowOnError> => (options.client ?? client).post<CompleteCurrentUserOnboardingResponses, CompleteCurrentUserOnboardingErrors, ThrowOnError>({
+    url: '/api/v1/users/me/onboarding-completions',
     ...options,
     headers: {
         'Content-Type': 'application/json',

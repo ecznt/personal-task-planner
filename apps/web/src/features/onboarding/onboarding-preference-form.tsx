@@ -1,10 +1,16 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { apiClient, getCurrentUser, updateCurrentUser } from '@planner/api-client';
+import {
+  apiClient,
+  completeCurrentUserOnboarding,
+  getCurrentUser,
+  updateCurrentUser,
+} from '@planner/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -29,6 +35,7 @@ const fallbackTimeZones = ['Europe/Istanbul', 'UTC', 'Europe/London', 'America/N
 
 export function OnboardingPreferenceForm() {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const currentUser = useQuery({
     queryKey: ['users', 'me', 'onboarding'],
     queryFn: readCurrentUserForOnboarding,
@@ -56,6 +63,10 @@ export function OnboardingPreferenceForm() {
       choice: 'START_EMPTY',
       timeZone: currentUser.data?.timeZone ?? browserTimeZone,
     },
+  });
+  const selectedChoice = useWatch({
+    control: form.control,
+    name: 'choice',
   });
   const confirmation = useMutation({
     mutationFn: async (values: OnboardingPreferenceFormValues) => {
@@ -86,10 +97,45 @@ export function OnboardingPreferenceForm() {
         throw new Error('Tercihler kaydedilemedi.');
       }
 
+      if (values.choice === 'CREATE_SAMPLE_DATA') {
+        return {
+          choice: values.choice,
+          etag,
+          next: null,
+          profile: result.data.data,
+        };
+      }
+
+      const completion = await completeCurrentUserOnboarding({
+        body: {
+          choice: 'START_EMPTY',
+        },
+        client: apiClient,
+        headers: {
+          'Idempotency-Key': crypto.randomUUID(),
+          'If-Match': etag,
+          'X-CSRF-Token': csrf.token,
+        },
+      });
+
+      if (completion.error !== undefined) {
+        throw apiError(completion.error);
+      }
+
+      const completedEtag = completion.response?.headers.get('etag');
+      if (
+        completion.data?.data === undefined ||
+        completedEtag === null ||
+        completedEtag === undefined
+      ) {
+        throw new Error('Boş başlangıç tamamlanamadı.');
+      }
+
       return {
         choice: values.choice,
-        profile: result.data.data,
-        etag,
+        etag: completedEtag,
+        next: completion.data.data.next,
+        profile: completion.data.data.user,
       };
     },
     onSuccess: (result) => {
@@ -99,6 +145,10 @@ export function OnboardingPreferenceForm() {
         onboardingState: result.profile.onboardingState,
         timeZone: result.profile.timeZone,
       } satisfies CurrentUserForOnboarding);
+
+      if (result.next !== null) {
+        router.push(result.next);
+      }
     },
   });
 
@@ -126,8 +176,8 @@ export function OnboardingPreferenceForm() {
           Başlangıç tercihinizi onaylayın
         </CardTitle>
         <CardDescription>
-          {currentUser.data.email} hesabı için saat dilimini kaydedin. Örnek veri oluşturma veya boş
-          başlangıcı tamamlama sonraki dikey dilimlerde uygulanacak.
+          {currentUser.data.email} hesabı için saat dilimini kaydedin. Boş başlangıcı şimdi
+          tamamlayabilirsiniz; örnek veri oluşturma sonraki dikey dilimde uygulanacak.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -181,9 +231,9 @@ export function OnboardingPreferenceForm() {
               <Alert aria-live="polite">
                 <AlertTitle>Tercih ve saat dilimi onaylandı</AlertTitle>
                 <AlertDescription>
-                  Seçiminiz “{choiceLabel(confirmation.data.choice)}”. Bu adım yalnızca saat
-                  dilimini kaydeder; başlangıç verisi oluşturma veya boş başlangıcı tamamlama
-                  sonraki adımda yapılır.
+                  {confirmation.data.choice === 'START_EMPTY'
+                    ? 'Boş başlangıç tamamlandı. Today ekranına yönlendiriliyorsunuz.'
+                    : 'Saat dilimi kaydedildi. Örnek veri oluşturma sonraki adımda uygulanacak.'}
                 </AlertDescription>
               </Alert>
             ) : null}
@@ -208,7 +258,9 @@ export function OnboardingPreferenceForm() {
 
             <Button type="submit" disabled={confirmation.isPending || csrfQuery.isError}>
               {confirmation.isPending ? <Spinner data-icon="inline-start" /> : null}
-              {confirmation.isPending ? 'Kaydediliyor…' : 'Tercihi ve saat dilimini onayla'}
+              {confirmation.isPending
+                ? 'Kaydediliyor…'
+                : submitLabel(selectedChoice ?? 'START_EMPTY')}
             </Button>
           </FieldGroup>
         </form>
@@ -257,6 +309,6 @@ function uniqueValues(values: ReadonlyArray<string | undefined>): string[] {
   return [...new Set(values.filter((value): value is string => value !== undefined))];
 }
 
-function choiceLabel(choice: OnboardingPreferenceFormValues['choice']): string {
-  return choice === 'START_EMPTY' ? 'Boş başla' : 'Örnek veri oluştur';
+function submitLabel(choice: OnboardingPreferenceFormValues['choice']): string {
+  return choice === 'START_EMPTY' ? 'Boş başla ve Today’e geç' : 'Saat dilimini kaydet';
 }

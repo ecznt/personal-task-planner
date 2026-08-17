@@ -7,16 +7,24 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { OnboardingPreferenceForm } from './onboarding-preference-form';
 
 const mocks = vi.hoisted(() => ({
+  completeCurrentUserOnboarding: vi.fn(),
   getAuthCsrf: vi.fn(),
   getCurrentUser: vi.fn(),
+  push: vi.fn(),
   updateCurrentUser: vi.fn(),
 }));
 
 vi.mock('@planner/api-client', () => ({
   apiClient: {},
+  completeCurrentUserOnboarding: mocks.completeCurrentUserOnboarding,
   getAuthCsrf: mocks.getAuthCsrf,
   getCurrentUser: mocks.getCurrentUser,
   updateCurrentUser: mocks.updateCurrentUser,
+}));
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: mocks.push,
+  }),
 }));
 
 describe('OnboardingPreferenceForm', () => {
@@ -59,16 +67,39 @@ describe('OnboardingPreferenceForm', () => {
         }),
       },
     });
+    mocks.completeCurrentUserOnboarding.mockResolvedValue({
+      data: {
+        data: {
+          choice: 'START_EMPTY',
+          completedAt: '2026-08-17T09:00:00.000Z',
+          next: '/app/today',
+          status: 'COMPLETED',
+          user: {
+            accountLifecycleState: 'ACTIVE',
+            email: 'user@example.com',
+            id: '018f9f7c-0000-7000-8000-000000000001',
+            inAppReminderNotificationsEnabled: true,
+            onboardingState: 'COMPLETED',
+            timeZone: 'Europe/Istanbul',
+          },
+        },
+      },
+      response: {
+        headers: new Headers({
+          etag: '"completed-user-etag"',
+        }),
+      },
+    });
   });
 
-  it('confirms onboarding preference and persists only the current user time zone', async () => {
+  it('saves time zone only when sample data is selected for a future slice', async () => {
     const user = userEvent.setup();
     const { container } = renderOnboardingPreferenceForm();
 
     expect(await screen.findByText(/user@example.com hesabı için/)).toBeVisible();
     await user.selectOptions(screen.getByLabelText('Başlangıç tercihi'), 'CREATE_SAMPLE_DATA');
     await user.selectOptions(screen.getByLabelText('Saat dilimi'), 'Europe/Istanbul');
-    await user.click(screen.getByRole('button', { name: 'Tercihi ve saat dilimini onayla' }));
+    await user.click(screen.getByRole('button', { name: 'Saat dilimini kaydet' }));
 
     await waitFor(() =>
       expect(mocks.updateCurrentUser).toHaveBeenCalledWith({
@@ -83,23 +114,35 @@ describe('OnboardingPreferenceForm', () => {
       }),
     );
     expect(await screen.findByText('Tercih ve saat dilimi onaylandı')).toBeVisible();
-    expect(screen.getByText(/Seçiminiz “Örnek veri oluştur”/)).toBeVisible();
-    expect(screen.getByText(/sonraki adımda yapılır/)).toBeVisible();
+    expect(screen.getByText(/Örnek veri oluşturma sonraki adımda uygulanacak/)).toBeVisible();
+    expect(mocks.completeCurrentUserOnboarding).not.toHaveBeenCalled();
+    expect(mocks.push).not.toHaveBeenCalled();
     expect((await axe(container)).violations).toHaveLength(0);
   });
 
-  it('does not create sample data or complete onboarding from this form', async () => {
+  it('completes start-empty onboarding and hands off to Today', async () => {
     const user = userEvent.setup();
     renderOnboardingPreferenceForm();
 
     await screen.findByText(/user@example.com hesabı için/);
     await user.selectOptions(screen.getByLabelText('Başlangıç tercihi'), 'START_EMPTY');
-    await user.click(screen.getByRole('button', { name: 'Tercihi ve saat dilimini onayla' }));
+    await user.click(screen.getByRole('button', { name: 'Boş başla ve Today’e geç' }));
 
     await waitFor(() => expect(mocks.updateCurrentUser).toHaveBeenCalled());
-    expect(JSON.stringify(mocks.updateCurrentUser.mock.calls)).not.toContain('START_EMPTY');
-    expect(JSON.stringify(mocks.updateCurrentUser.mock.calls)).not.toContain('CREATE_SAMPLE_DATA');
-    expect(JSON.stringify(mocks.updateCurrentUser.mock.calls)).not.toContain('COMPLETED');
+    await waitFor(() =>
+      expect(mocks.completeCurrentUserOnboarding).toHaveBeenCalledWith({
+        body: {
+          choice: 'START_EMPTY',
+        },
+        client: {},
+        headers: {
+          'Idempotency-Key': expect.any(String),
+          'If-Match': '"updated-user-etag"',
+          'X-CSRF-Token': 'csrf-token',
+        },
+      }),
+    );
+    expect(mocks.push).toHaveBeenCalledWith('/app/today');
   });
 
   it('shows a retryable error when the current User ETag is stale', async () => {
@@ -112,7 +155,7 @@ describe('OnboardingPreferenceForm', () => {
     renderOnboardingPreferenceForm();
 
     await screen.findByText(/user@example.com hesabı için/);
-    await user.click(screen.getByRole('button', { name: 'Tercihi ve saat dilimini onayla' }));
+    await user.click(screen.getByRole('button', { name: 'Boş başla ve Today’e geç' }));
 
     expect(await screen.findByText('Tercihler kaydedilemedi')).toBeVisible();
     expect(screen.getByText(/Hesap bilgisi değişmiş/)).toBeVisible();

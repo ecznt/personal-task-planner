@@ -6,6 +6,7 @@ import { Test } from '@nestjs/testing';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import request from 'supertest';
 
+import { CompleteOnboardingService } from '../../src/modules/accounts/application/complete-onboarding.service';
 import { CsrfService } from '../../src/modules/accounts/application/csrf.service';
 import { InitiateAccountDeletionService } from '../../src/modules/accounts/application/initiate-account-deletion.service';
 import { ReadCurrentUserService } from '../../src/modules/accounts/application/read-current-user.service';
@@ -18,6 +19,10 @@ describe('current user HTTP contract', () => {
   let app: INestApplication;
   const csrf = {
     isValid: jest.fn<CsrfService['isValid']>(),
+  };
+  const completeOnboarding = {
+    execute: jest.fn<CompleteOnboardingService['execute']>(),
+    etagFor: jest.fn<CompleteOnboardingService['etagFor']>(),
   };
   const initiateAccountDeletion = {
     execute: jest.fn<InitiateAccountDeletionService['execute']>(),
@@ -34,6 +39,10 @@ describe('current user HTTP contract', () => {
       controllers: [UserController],
       providers: [
         AnonymousCsrfGuard,
+        {
+          provide: CompleteOnboardingService,
+          useValue: completeOnboarding,
+        },
         {
           provide: CsrfService,
           useValue: csrf,
@@ -62,6 +71,27 @@ describe('current user HTTP contract', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     csrf.isValid.mockResolvedValue(true);
+    completeOnboarding.etagFor.mockReturnValue('"completed-user-etag"');
+    completeOnboarding.execute.mockResolvedValue({
+      completion: {
+        choice: 'START_EMPTY',
+        completedAt: new Date('2026-08-17T09:00:00.000Z'),
+        next: '/app/today',
+        profile: {
+          accountLifecycleState: 'ACTIVE',
+          inAppReminderNotificationsEnabled: true,
+          normalizedPrimaryEmail: 'user@example.com',
+          onboardingCompletedAt: new Date('2026-08-17T09:00:00.000Z'),
+          onboardingState: 'COMPLETED',
+          primaryEmail: 'User@example.com',
+          timeZone: 'Europe/Istanbul',
+          userId: '018f9f7c-0000-7000-8000-000000000001',
+          version: 5,
+        },
+        status: 'COMPLETED',
+      },
+      outcome: 'COMPLETED',
+    });
     initiateAccountDeletion.execute.mockResolvedValue({
       outcome: 'ACCEPTED',
       process: {
@@ -78,6 +108,7 @@ describe('current user HTTP contract', () => {
         accountLifecycleState: 'ACTIVE',
         inAppReminderNotificationsEnabled: true,
         normalizedPrimaryEmail: 'user@example.com',
+        onboardingCompletedAt: null,
         onboardingState: 'PENDING',
         primaryEmail: 'User@example.com',
         timeZone: 'Europe/Istanbul',
@@ -92,6 +123,7 @@ describe('current user HTTP contract', () => {
         accountLifecycleState: 'ACTIVE',
         inAppReminderNotificationsEnabled: true,
         normalizedPrimaryEmail: 'user@example.com',
+        onboardingCompletedAt: null,
         onboardingState: 'PENDING',
         primaryEmail: 'User@example.com',
         timeZone: 'Europe/Istanbul',
@@ -235,6 +267,89 @@ describe('current user HTTP contract', () => {
     expect(response.body).toMatchObject({
       code: 'PRECONDITION_FAILED',
       status: 412,
+    });
+  });
+
+  it('completes start-empty onboarding with CSRF, If-Match and idempotency', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/api/v1/users/me/onboarding-completions')
+      .set('Cookie', 'planner-session=raw-session-secret; planner-csrf-context=browser-context')
+      .set('Origin', 'http://127.0.0.1:3000')
+      .set('X-CSRF-Token', 'csrf-token')
+      .set('If-Match', '"updated-user-etag"')
+      .set('Idempotency-Key', '018f9f7c-0000-7000-8000-000000000018')
+      .send({
+        choice: 'START_EMPTY',
+      })
+      .expect(200);
+
+    expect(completeOnboarding.execute).toHaveBeenCalledWith({
+      choice: 'START_EMPTY',
+      etag: '"updated-user-etag"',
+      idempotencyKey: '018f9f7c-0000-7000-8000-000000000018',
+      sessionToken: 'raw-session-secret',
+    });
+    expect(response.headers.etag).toBe('"completed-user-etag"');
+    expect(response.body).toEqual({
+      data: {
+        choice: 'START_EMPTY',
+        completedAt: '2026-08-17T09:00:00.000Z',
+        next: '/app/today',
+        status: 'COMPLETED',
+        user: {
+          accountLifecycleState: 'ACTIVE',
+          email: 'User@example.com',
+          id: '018f9f7c-0000-7000-8000-000000000001',
+          inAppReminderNotificationsEnabled: true,
+          onboardingState: 'COMPLETED',
+          timeZone: 'Europe/Istanbul',
+        },
+      },
+    });
+    expect(JSON.stringify(response.body)).not.toContain('password');
+    expect(JSON.stringify(response.body)).not.toContain('normalizedPrimaryEmail');
+    expect(JSON.stringify(response.body)).not.toContain('version');
+  });
+
+  it('does not accept sample-data onboarding completion in the start-empty slice', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/api/v1/users/me/onboarding-completions')
+      .set('Cookie', 'planner-session=raw-session-secret; planner-csrf-context=browser-context')
+      .set('Origin', 'http://127.0.0.1:3000')
+      .set('X-CSRF-Token', 'csrf-token')
+      .set('If-Match', '"updated-user-etag"')
+      .set('Idempotency-Key', '018f9f7c-0000-7000-8000-000000000019')
+      .send({
+        choice: 'CREATE_SAMPLE_DATA',
+      })
+      .expect(422);
+
+    expect(response.body).toMatchObject({
+      code: 'VALIDATION_FAILED',
+      status: 422,
+    });
+    expect(completeOnboarding.execute).not.toHaveBeenCalled();
+  });
+
+  it('requires If-Match for onboarding completion', async () => {
+    completeOnboarding.execute.mockResolvedValueOnce({
+      outcome: 'PRECONDITION_REQUIRED',
+    });
+
+    const response = await request(app.getHttpServer())
+      .post('/api/v1/users/me/onboarding-completions')
+      .set('Cookie', 'planner-session=raw-session-secret; planner-csrf-context=browser-context')
+      .set('Origin', 'http://127.0.0.1:3000')
+      .set('X-CSRF-Token', 'csrf-token')
+      .set('Idempotency-Key', '018f9f7c-0000-7000-8000-000000000020')
+      .send({
+        choice: 'START_EMPTY',
+      })
+      .expect(428);
+
+    expect(response.body).toMatchObject({
+      code: 'PRECONDITION_REQUIRED',
+      status: 428,
     });
   });
 

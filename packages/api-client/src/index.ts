@@ -1,5 +1,6 @@
 export { apiClient } from './client';
 export {
+  completeCurrentUserOnboarding,
   createAuthSession,
   deleteAuthSession,
   getAuthCsrf,
@@ -19,6 +20,7 @@ export type {
   AccountDeletionProcessResponseDto,
   AccountDeletionRequestDto,
   AuthenticatedSessionDataDto,
+  CompleteCurrentUserOnboardingResponse,
   CsrfTokenResponseDto,
   CurrentUserProfileResponseDto,
   EmailVerificationRequestAcceptedResponseDto,

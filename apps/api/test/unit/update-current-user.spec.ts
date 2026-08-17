@@ -11,6 +11,7 @@ const profile: CurrentUserProfile = {
   accountLifecycleState: 'ACTIVE',
   inAppReminderNotificationsEnabled: true,
   normalizedPrimaryEmail: 'user@example.com',
+  onboardingCompletedAt: null,
   onboardingState: 'PENDING',
   primaryEmail: 'user@example.com',
   timeZone: 'UTC',

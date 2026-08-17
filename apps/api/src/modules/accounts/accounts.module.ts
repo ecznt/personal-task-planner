@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 
+import { CompleteOnboardingService } from './application/complete-onboarding.service';
 import { CsrfService } from './application/csrf.service';
 import { InitiateAccountDeletionService } from './application/initiate-account-deletion.service';
 import { LoginService } from './application/login.service';
@@ -26,6 +27,7 @@ import { UserController } from './transport/user.controller';
     AccountsRepository,
     AnonymousCsrfGuard,
     AuthSecurityService,
+    CompleteOnboardingService,
     CsrfService,
     InitiateAccountDeletionService,
     LoginService,

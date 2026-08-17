@@ -75,6 +75,22 @@ export type LoginResponseDto = {
     data: AuthenticatedSessionDataDto;
 };
 
+export type OnboardingCompletionDataDto = {
+    choice: 'START_EMPTY';
+    completedAt: string;
+    next: '/app/today';
+    status: 'COMPLETED';
+    user: CurrentUserProfileDataDto;
+};
+
+export type OnboardingCompletionRequestDto = {
+    choice: 'START_EMPTY';
+};
+
+export type OnboardingCompletionResponseDto = {
+    data: OnboardingCompletionDataDto;
+};
+
 export type PasswordResetRequestAcceptedDataDto = {
     status: 'PASSWORD_RESET_EMAIL_SENT_IF_ELIGIBLE';
 };
@@ -520,6 +536,39 @@ export type InitiateAccountDeletionResponses = {
 };
 
 export type InitiateAccountDeletionResponse = InitiateAccountDeletionResponses[keyof InitiateAccountDeletionResponses];
+
+export type CompleteCurrentUserOnboardingData = {
+    body: OnboardingCompletionRequestDto;
+    headers: {
+        'Idempotency-Key': string;
+        'If-Match': string;
+        'X-CSRF-Token': string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/v1/users/me/onboarding-completions';
+};
+
+export type CompleteCurrentUserOnboardingErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Idempotency request is in progress or incompatible.
+     */
+    409: unknown;
+    /**
+     * The current User ETag is missing or stale.
+     */
+    412: unknown;
+};
+
+export type CompleteCurrentUserOnboardingResponses = {
+    200: OnboardingCompletionResponseDto;
+};
+
+export type CompleteCurrentUserOnboardingResponse = CompleteCurrentUserOnboardingResponses[keyof CompleteCurrentUserOnboardingResponses];
 
 export type GetVersionData = {
     body?: never;

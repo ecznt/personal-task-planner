@@ -212,10 +212,11 @@ test('signs in and idempotently ends only the current browser session', async ({
   await expect(page).toHaveURL(/\/login\?returnTo=%2Fapp%2Ftoday$/);
 });
 
-test('serves the authenticated onboarding model explanation without creating planning data', async ({
+test('serves onboarding and completes start-empty handoff without creating planning data', async ({
   page,
 }) => {
   let patchedTimeZone: string | undefined;
+  let completedOnboarding = false;
 
   await page.route('**/api/v1/auth/csrf', async (route) => {
     await route.fulfill({
@@ -286,7 +287,36 @@ test('serves the authenticated onboarding model explanation without creating pla
     });
   });
   await page.route('**/api/v1/users/me/onboarding-completions', async (route) => {
-    throw new Error(`L-002 must not complete onboarding: ${route.request().method()}`);
+    expect(route.request().method()).toBe('POST');
+    expect(await route.request().postDataJSON()).toEqual({
+      choice: 'START_EMPTY',
+    });
+    expect(route.request().headers()['if-match']).toBe('"updated-user-etag"');
+    expect(route.request().headers()['idempotency-key']).toEqual(expect.any(String));
+    expect(route.request().headers()['x-csrf-token']).toBe('e2e-csrf-token');
+    completedOnboarding = true;
+    await route.fulfill({
+      headers: {
+        ETag: '"completed-user-etag"',
+      },
+      json: {
+        data: {
+          choice: 'START_EMPTY',
+          completedAt: '2026-08-17T09:00:00.000Z',
+          next: '/app/today',
+          status: 'COMPLETED',
+          user: {
+            accountLifecycleState: 'ACTIVE',
+            email: 'user@example.com',
+            id: '018f9f7c-0000-7000-8000-000000000001',
+            inAppReminderNotificationsEnabled: true,
+            onboardingState: 'COMPLETED',
+            timeZone: 'Europe/Istanbul',
+          },
+        },
+      },
+      status: 200,
+    });
   });
   await page.route('**/api/v1/areas**', async (route) => {
     throw new Error(`L-002 must not create planning data: ${route.request().method()}`);
@@ -306,11 +336,12 @@ test('serves the authenticated onboarding model explanation without creating pla
   await expect(
     page.getByRole('heading', { level: 2, name: 'Başlangıç tercihinizi onaylayın' }),
   ).toBeVisible();
-  await page.getByLabel('Başlangıç tercihi').selectOption('CREATE_SAMPLE_DATA');
+  await page.getByLabel('Başlangıç tercihi').selectOption('START_EMPTY');
   await page.getByLabel('Saat dilimi').selectOption('Europe/Istanbul');
-  await page.getByRole('button', { name: 'Tercihi ve saat dilimini onayla' }).click();
-  await expect(page.getByText('Tercih ve saat dilimi onaylandı')).toBeVisible();
+  await page.getByRole('button', { name: 'Boş başla ve Today’e geç' }).click();
+  await expect(page).toHaveURL(/\/app\/today$/);
   expect(patchedTimeZone).toBe('Europe/Istanbul');
+  expect(completedOnboarding).toBe(true);
   await expect(page.getByText(/Google ile giriş/)).toHaveCount(0);
   await expect(page.getByText(/ortak çalışma/i)).toHaveCount(0);
 });

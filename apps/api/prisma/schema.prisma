@@ -79,6 +79,7 @@ model User {
   timeZone                          String                  @default("UTC")
   inAppReminderNotificationsEnabled Boolean                 @default(true)
   onboardingState                   OnboardingState         @default(PENDING)
+  onboardingCompletedAt             DateTime?               @db.Timestamptz(3)
   accountLifecycleState             AccountLifecycleState   @default(ACTIVE)
   deletionConfirmedAt               DateTime?               @db.Timestamptz(3)
   accessRevokedAt                   DateTime?               @db.Timestamptz(3)

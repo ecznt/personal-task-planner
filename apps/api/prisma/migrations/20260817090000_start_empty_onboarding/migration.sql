@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "onboardingCompletedAt" TIMESTAMP(3) WITH TIME ZONE;

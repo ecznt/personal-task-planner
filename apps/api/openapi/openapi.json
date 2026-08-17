@@ -255,6 +255,68 @@
         ],
         "type": "object"
       },
+      "OnboardingCompletionDataDto": {
+        "properties": {
+          "choice": {
+            "enum": [
+              "START_EMPTY"
+            ],
+            "type": "string"
+          },
+          "completedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "next": {
+            "enum": [
+              "/app/today"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "COMPLETED"
+            ],
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/CurrentUserProfileDataDto"
+          }
+        },
+        "required": [
+          "status",
+          "choice",
+          "completedAt",
+          "next",
+          "user"
+        ],
+        "type": "object"
+      },
+      "OnboardingCompletionRequestDto": {
+        "properties": {
+          "choice": {
+            "enum": [
+              "START_EMPTY"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "choice"
+        ],
+        "type": "object"
+      },
+      "OnboardingCompletionResponseDto": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/OnboardingCompletionDataDto"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
       "PasswordResetRequestAcceptedDataDto": {
         "properties": {
           "status": {
@@ -1127,6 +1189,72 @@
           }
         },
         "summary": "Start confirmed account deletion, revoke access immediately, and enqueue purge",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/v1/users/me/onboarding-completions": {
+      "post": {
+        "operationId": "completeCurrentUserOnboarding",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "If-Match",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OnboardingCompletionRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingCompletionResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "409": {
+            "description": "Idempotency request is in progress or incompatible."
+          },
+          "412": {
+            "description": "The current User ETag is missing or stale."
+          }
+        },
+        "summary": "Complete current account onboarding with an empty private space",
         "tags": [
           "Users"
         ]

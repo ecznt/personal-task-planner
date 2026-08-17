@@ -39,6 +39,7 @@ export type AuthenticatedSession = {
 export type CurrentUserProfile = {
   readonly accountLifecycleState: 'ACTIVE' | 'DELETION_CONFIRMED';
   readonly inAppReminderNotificationsEnabled: boolean;
+  readonly onboardingCompletedAt: Date | null;
   readonly normalizedPrimaryEmail: string;
   readonly onboardingState: 'PENDING' | 'COMPLETED';
   readonly primaryEmail: string;
@@ -185,6 +186,52 @@ export type InitiateAccountDeletionPersistenceResult =
         | 'PRECONDITION_FAILED'
         | 'REAUTHENTICATION_REQUIRED';
     };
+
+export type CompleteStartEmptyOnboardingInput = {
+  readonly expectedUserVersion: number;
+  readonly idempotencyId: string;
+  readonly idempotencyKeyHash: string;
+  readonly now: Date;
+  readonly requestFingerprint: string;
+  readonly tokenHash: string;
+};
+
+export type OnboardingCompletionState = {
+  readonly choice: 'START_EMPTY';
+  readonly completedAt: Date;
+  readonly next: '/app/today';
+  readonly profile: CurrentUserProfile;
+  readonly status: 'COMPLETED';
+};
+
+export type CompleteStartEmptyOnboardingPersistenceResult =
+  | {
+      readonly completion: OnboardingCompletionState;
+      readonly outcome: 'COMPLETED' | 'REPLAYED';
+    }
+  | {
+      readonly outcome:
+        | 'AUTHENTICATION_REQUIRED'
+        | 'IDEMPOTENCY_IN_PROGRESS'
+        | 'IDEMPOTENCY_KEY_REUSED'
+        | 'PRECONDITION_FAILED';
+    };
+
+export type OnboardingCompletionIdempotencyReplayResult =
+  | {
+      readonly completion: OnboardingCompletionState;
+      readonly outcome: 'REPLAYED';
+    }
+  | Extract<
+      CompleteStartEmptyOnboardingPersistenceResult,
+      {
+        outcome:
+          | 'AUTHENTICATION_REQUIRED'
+          | 'IDEMPOTENCY_IN_PROGRESS'
+          | 'IDEMPOTENCY_KEY_REUSED'
+          | 'PRECONDITION_FAILED';
+      }
+    >;
 
 export type AccountDeletionIdempotencyReplayResult =
   | {
@@ -526,6 +573,7 @@ export class AccountsRepository {
             id: true,
             inAppReminderNotificationsEnabled: true,
             normalizedPrimaryEmail: true,
+            onboardingCompletedAt: true,
             onboardingState: true,
             primaryEmail: true,
             timeZone: true,
@@ -583,6 +631,7 @@ export class AccountsRepository {
       accountLifecycleState: session.user.accountLifecycleState,
       inAppReminderNotificationsEnabled: session.user.inAppReminderNotificationsEnabled,
       normalizedPrimaryEmail: session.user.normalizedPrimaryEmail,
+      onboardingCompletedAt: session.user.onboardingCompletedAt,
       onboardingState: session.user.onboardingState,
       primaryEmail: session.user.primaryEmail,
       timeZone: session.user.timeZone,
@@ -619,6 +668,7 @@ export class AccountsRepository {
         accountLifecycleState: true,
         inAppReminderNotificationsEnabled: true,
         normalizedPrimaryEmail: true,
+        onboardingCompletedAt: true,
         onboardingState: true,
         primaryEmail: true,
         timeZone: true,
@@ -633,6 +683,7 @@ export class AccountsRepository {
       accountLifecycleState: user.accountLifecycleState,
       inAppReminderNotificationsEnabled: user.inAppReminderNotificationsEnabled,
       normalizedPrimaryEmail: user.normalizedPrimaryEmail,
+      onboardingCompletedAt: user.onboardingCompletedAt,
       onboardingState: user.onboardingState,
       primaryEmail: user.primaryEmail,
       timeZone: user.timeZone,
@@ -790,6 +841,237 @@ export class AccountsRepository {
     return {
       outcome: 'IDEMPOTENCY_IN_PROGRESS',
     };
+  }
+
+  async findOnboardingCompletionIdempotencyReplay(input: {
+    readonly idempotencyKeyHash: string;
+    readonly requestFingerprint: string;
+  }): Promise<OnboardingCompletionIdempotencyReplayResult | null> {
+    const existing = await this.prisma.idempotencyRecord.findUnique({
+      where: {
+        keyHash: input.idempotencyKeyHash,
+      },
+    });
+
+    if (existing === null) {
+      return null;
+    }
+
+    if (existing.requestFingerprint !== input.requestFingerprint) {
+      return {
+        outcome: 'IDEMPOTENCY_KEY_REUSED',
+      };
+    }
+
+    if (existing.state !== 'COMPLETED') {
+      return {
+        outcome: 'IDEMPOTENCY_IN_PROGRESS',
+      };
+    }
+
+    if (isOnboardingCompletionResponse(existing.responseBody)) {
+      return {
+        completion: onboardingCompletionFromResponse(existing.responseBody),
+        outcome: 'REPLAYED',
+      };
+    }
+
+    if (isOnboardingCompletionFailure(existing.responseBody)) {
+      return existing.responseBody;
+    }
+
+    return {
+      outcome: 'IDEMPOTENCY_IN_PROGRESS',
+    };
+  }
+
+  async completeStartEmptyOnboarding(
+    input: CompleteStartEmptyOnboardingInput,
+  ): Promise<CompleteStartEmptyOnboardingPersistenceResult> {
+    return this.prisma.$transaction(async (transaction) => {
+      const inserted = await transaction.idempotencyRecord.createMany({
+        data: {
+          expiresAt: new Date(input.now.getTime() + 48 * 60 * 60 * 1_000),
+          id: input.idempotencyId,
+          keyHash: input.idempotencyKeyHash,
+          method: 'POST',
+          requestFingerprint: input.requestFingerprint,
+          route: '/api/v1/users/me/onboarding-completions',
+        },
+        skipDuplicates: true,
+      });
+
+      if (inserted.count === 0) {
+        const existing = await transaction.idempotencyRecord.findUniqueOrThrow({
+          where: {
+            keyHash: input.idempotencyKeyHash,
+          },
+        });
+
+        if (existing.requestFingerprint !== input.requestFingerprint) {
+          return {
+            outcome: 'IDEMPOTENCY_KEY_REUSED',
+          };
+        }
+
+        if (
+          existing.state === 'COMPLETED' &&
+          isOnboardingCompletionResponse(existing.responseBody)
+        ) {
+          return {
+            completion: onboardingCompletionFromResponse(existing.responseBody),
+            outcome: 'REPLAYED',
+          };
+        }
+
+        if (
+          existing.state === 'COMPLETED' &&
+          isOnboardingCompletionFailure(existing.responseBody)
+        ) {
+          return existing.responseBody;
+        }
+
+        return {
+          outcome: 'IDEMPOTENCY_IN_PROGRESS',
+        };
+      }
+
+      const session = await transaction.session.findUnique({
+        select: {
+          absoluteExpiresAt: true,
+          idleExpiresAt: true,
+          revokedAt: true,
+          user: {
+            select: {
+              accountLifecycleState: true,
+              authenticationIdentity: {
+                select: {
+                  enabled: true,
+                  verificationState: true,
+                },
+              },
+              id: true,
+              version: true,
+            },
+          },
+        },
+        where: {
+          tokenHash: input.tokenHash,
+        },
+      });
+
+      if (
+        session === null ||
+        session.revokedAt !== null ||
+        session.idleExpiresAt <= input.now ||
+        session.absoluteExpiresAt <= input.now ||
+        session.user.accountLifecycleState !== 'ACTIVE' ||
+        session.user.authenticationIdentity?.enabled !== true ||
+        session.user.authenticationIdentity.verificationState !== 'ACTIVE'
+      ) {
+        await transaction.idempotencyRecord.update({
+          data: {
+            responseBody: {
+              outcome: 'AUTHENTICATION_REQUIRED',
+            },
+            responseStatus: 401,
+            state: 'COMPLETED',
+          },
+          where: {
+            id: input.idempotencyId,
+          },
+        });
+
+        return {
+          outcome: 'AUTHENTICATION_REQUIRED',
+        };
+      }
+
+      if (session.user.version !== input.expectedUserVersion) {
+        await transaction.idempotencyRecord.update({
+          data: {
+            responseBody: {
+              outcome: 'PRECONDITION_FAILED',
+            },
+            responseStatus: 412,
+            state: 'COMPLETED',
+          },
+          where: {
+            id: input.idempotencyId,
+          },
+        });
+
+        return {
+          outcome: 'PRECONDITION_FAILED',
+        };
+      }
+
+      await transaction.user.updateMany({
+        data: {
+          onboardingCompletedAt: input.now,
+          onboardingState: 'COMPLETED',
+          version: {
+            increment: 1,
+          },
+        },
+        where: {
+          accountLifecycleState: 'ACTIVE',
+          id: session.user.id,
+          onboardingState: 'PENDING',
+          version: input.expectedUserVersion,
+        },
+      });
+
+      const user = await transaction.user.findUniqueOrThrow({
+        select: {
+          accountLifecycleState: true,
+          inAppReminderNotificationsEnabled: true,
+          normalizedPrimaryEmail: true,
+          onboardingCompletedAt: true,
+          onboardingState: true,
+          primaryEmail: true,
+          timeZone: true,
+          version: true,
+        },
+        where: {
+          id: session.user.id,
+        },
+      });
+      const completedAt = user.onboardingCompletedAt ?? input.now;
+      const response = onboardingCompletionResponse({
+        choice: 'START_EMPTY',
+        completedAt,
+        next: '/app/today',
+        profile: {
+          accountLifecycleState: user.accountLifecycleState,
+          inAppReminderNotificationsEnabled: user.inAppReminderNotificationsEnabled,
+          normalizedPrimaryEmail: user.normalizedPrimaryEmail,
+          onboardingCompletedAt: user.onboardingCompletedAt,
+          onboardingState: user.onboardingState,
+          primaryEmail: user.primaryEmail,
+          timeZone: user.timeZone,
+          userId: session.user.id,
+          version: user.version,
+        },
+        status: 'COMPLETED',
+      });
+
+      await transaction.idempotencyRecord.update({
+        data: {
+          responseBody: response,
+          responseStatus: 200,
+          state: 'COMPLETED',
+        },
+        where: {
+          id: input.idempotencyId,
+        },
+      });
+
+      return {
+        completion: onboardingCompletionFromResponse(response),
+        outcome: 'COMPLETED',
+      };
+    });
   }
 
   async initiateAccountDeletion(
@@ -1741,6 +2023,106 @@ function isAccountDeletionFailure(value: unknown): value is {
     value.outcome === 'PRECONDITION_FAILED' ||
     value.outcome === 'REAUTHENTICATION_REQUIRED'
   );
+}
+
+function onboardingCompletionResponse(completion: OnboardingCompletionState): {
+  readonly data: {
+    readonly choice: 'START_EMPTY';
+    readonly completedAt: string;
+    readonly next: '/app/today';
+    readonly status: 'COMPLETED';
+    readonly user: {
+      readonly accountLifecycleState: 'ACTIVE' | 'DELETION_CONFIRMED';
+      readonly email: string;
+      readonly id: string;
+      readonly inAppReminderNotificationsEnabled: boolean;
+      readonly normalizedPrimaryEmail: string;
+      readonly onboardingCompletedAt: string | null;
+      readonly onboardingState: 'PENDING' | 'COMPLETED';
+      readonly timeZone: string;
+      readonly version: number;
+    };
+  };
+} {
+  return {
+    data: {
+      choice: completion.choice,
+      completedAt: completion.completedAt.toISOString(),
+      next: completion.next,
+      status: completion.status,
+      user: {
+        accountLifecycleState: completion.profile.accountLifecycleState,
+        email: completion.profile.primaryEmail,
+        id: completion.profile.userId,
+        inAppReminderNotificationsEnabled: completion.profile.inAppReminderNotificationsEnabled,
+        normalizedPrimaryEmail: completion.profile.normalizedPrimaryEmail,
+        onboardingCompletedAt: completion.profile.onboardingCompletedAt?.toISOString() ?? null,
+        onboardingState: completion.profile.onboardingState,
+        timeZone: completion.profile.timeZone,
+        version: completion.profile.version,
+      },
+    },
+  };
+}
+
+function isOnboardingCompletionResponse(
+  value: unknown,
+): value is ReturnType<typeof onboardingCompletionResponse> {
+  if (
+    typeof value !== 'object' ||
+    value === null ||
+    !('data' in value) ||
+    typeof value.data !== 'object' ||
+    value.data === null
+  ) {
+    return false;
+  }
+
+  const data = value.data as Record<string, unknown>;
+
+  return (
+    data.choice === 'START_EMPTY' &&
+    typeof data.completedAt === 'string' &&
+    data.next === '/app/today' &&
+    data.status === 'COMPLETED' &&
+    typeof data.user === 'object' &&
+    data.user !== null
+  );
+}
+
+function onboardingCompletionFromResponse(
+  response: ReturnType<typeof onboardingCompletionResponse>,
+): OnboardingCompletionState {
+  return {
+    choice: response.data.choice,
+    completedAt: new Date(response.data.completedAt),
+    next: response.data.next,
+    profile: {
+      accountLifecycleState: response.data.user.accountLifecycleState,
+      inAppReminderNotificationsEnabled: response.data.user.inAppReminderNotificationsEnabled,
+      normalizedPrimaryEmail: response.data.user.normalizedPrimaryEmail,
+      onboardingCompletedAt:
+        response.data.user.onboardingCompletedAt === null
+          ? null
+          : new Date(response.data.user.onboardingCompletedAt),
+      onboardingState: response.data.user.onboardingState,
+      primaryEmail: response.data.user.email,
+      timeZone: response.data.user.timeZone,
+      userId: response.data.user.id,
+      version: response.data.user.version,
+    },
+    status: response.data.status,
+  };
+}
+
+function isOnboardingCompletionFailure(value: unknown): value is {
+  readonly outcome: 'AUTHENTICATION_REQUIRED' | 'PRECONDITION_FAILED';
+} {
+  if (typeof value !== 'object' || value === null || !('outcome' in value)) {
+    return false;
+  }
+
+  return value.outcome === 'AUTHENTICATION_REQUIRED' || value.outcome === 'PRECONDITION_FAILED';
 }
 
 function isUniqueConstraintError(error: unknown): error is { readonly code: 'P2002' } {

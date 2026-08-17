@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import { PostgreSqlContainer, type StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
 
+import { CompleteOnboardingService } from '../../src/modules/accounts/application/complete-onboarding.service';
 import { CsrfService } from '../../src/modules/accounts/application/csrf.service';
 import { InitiateAccountDeletionService } from '../../src/modules/accounts/application/initiate-account-deletion.service';
 import { LoginService } from '../../src/modules/accounts/application/login.service';
@@ -21,6 +22,7 @@ import { PrismaService } from '../../src/platform/database/prisma.service';
 
 describe('registration persistence', () => {
   let container: StartedPostgreSqlContainer;
+  let completeOnboarding: CompleteOnboardingService;
   let csrf: CsrfService;
   let initiateAccountDeletion: InitiateAccountDeletionService;
   let login: LoginService;
@@ -55,6 +57,7 @@ describe('registration persistence', () => {
     await prisma.$connect();
     repository = new AccountsRepository(prisma);
     security = new AuthSecurityService();
+    completeOnboarding = new CompleteOnboardingService(repository, security);
     csrf = new CsrfService(repository, security);
     initiateAccountDeletion = new InitiateAccountDeletionService(repository, security);
     login = new LoginService(repository, security);
@@ -331,6 +334,7 @@ describe('registration persistence', () => {
       accountLifecycleState: 'ACTIVE',
       inAppReminderNotificationsEnabled: true,
       normalizedPrimaryEmail: 'user@example.com',
+      onboardingCompletedAt: null,
       onboardingState: 'PENDING',
       primaryEmail: 'user@example.com',
       timeZone: 'UTC',
@@ -347,6 +351,74 @@ describe('registration persistence', () => {
         tokenHash: security.hashSecret(result.sessionToken, 'session-storage'),
       }),
     ).resolves.toBeNull();
+  });
+
+  it('completes start-empty onboarding idempotently without creating planning data', async () => {
+    await registration.execute({
+      email: 'user@example.com',
+      networkAddress: '192.0.2.14',
+      password: 'correct horse battery staple',
+    });
+    const challenge = await prisma.emailVerificationChallenge.findFirstOrThrow();
+    await verification.execute({
+      code: security.deriveEmailVerificationCode(challenge.id),
+      email: 'user@example.com',
+      idempotencyKey: '018f9f7c-0000-7000-8000-000000000104',
+      networkAddress: '192.0.2.14',
+    });
+    const loginResult = await login.execute({
+      email: 'user@example.com',
+      networkAddress: '192.0.2.14',
+      password: 'correct horse battery staple',
+      returnTo: '/app/onboarding',
+    });
+
+    expect(loginResult.outcome).toBe('AUTHENTICATED');
+    if (loginResult.outcome !== 'AUTHENTICATED') {
+      throw new Error('Expected authenticated result.');
+    }
+
+    const current = await repository.findCurrentUserProfileBySession({
+      now: new Date(),
+      refreshAfter: new Date(Date.now() - 5 * 60 * 1_000),
+      refreshedIdleExpiresAt: new Date(Date.now() + 12 * 60 * 60 * 1_000),
+      tokenHash: security.hashSecret(loginResult.sessionToken, 'session-storage'),
+    });
+
+    expect(current).not.toBeNull();
+    if (current === null) {
+      throw new Error('Expected current profile.');
+    }
+
+    const command = {
+      choice: 'START_EMPTY' as const,
+      etag: completeOnboarding.etagFor(current),
+      idempotencyKey: '018f9f7c-0000-7000-8000-000000000105',
+      sessionToken: loginResult.sessionToken,
+    };
+
+    await expect(completeOnboarding.execute(command)).resolves.toMatchObject({
+      completion: {
+        next: '/app/today',
+        profile: {
+          onboardingState: 'COMPLETED',
+        },
+      },
+      outcome: 'COMPLETED',
+    });
+    await expect(completeOnboarding.execute(command)).resolves.toMatchObject({
+      completion: {
+        next: '/app/today',
+      },
+      outcome: 'REPLAYED',
+    });
+
+    await expect(prisma.user.findFirstOrThrow()).resolves.toMatchObject({
+      onboardingCompletedAt: expect.any(Date),
+      onboardingState: 'COMPLETED',
+    });
+    expect(await prisma.idempotencyRecord.count()).toBe(2);
+    expect(await prisma.job.count()).toBe(1);
   });
 
   it('rotates an existing token and keeps at most five active sessions', async () => {

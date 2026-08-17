@@ -52,6 +52,52 @@ export class UpdateCurrentUserRequestDto {
   timeZone!: string;
 }
 
+export class OnboardingCompletionRequestDto {
+  @ApiProperty({
+    enum: ['START_EMPTY'],
+    type: String,
+  })
+  choice!: 'START_EMPTY';
+}
+
+export class OnboardingCompletionDataDto {
+  @ApiProperty({
+    enum: ['COMPLETED'],
+    type: String,
+  })
+  status!: 'COMPLETED';
+
+  @ApiProperty({
+    enum: ['START_EMPTY'],
+    type: String,
+  })
+  choice!: 'START_EMPTY';
+
+  @ApiProperty({
+    format: 'date-time',
+    type: String,
+  })
+  completedAt!: string;
+
+  @ApiProperty({
+    enum: ['/app/today'],
+    type: String,
+  })
+  next!: '/app/today';
+
+  @ApiProperty({
+    type: () => CurrentUserProfileDataDto,
+  })
+  user!: CurrentUserProfileDataDto;
+}
+
+export class OnboardingCompletionResponseDto {
+  @ApiProperty({
+    type: () => OnboardingCompletionDataDto,
+  })
+  data!: OnboardingCompletionDataDto;
+}
+
 export class AccountDeletionRequestDto {
   @ApiProperty({
     enum: ['DELETE_MY_ACCOUNT'],

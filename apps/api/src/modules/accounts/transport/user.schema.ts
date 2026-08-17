@@ -50,6 +50,35 @@ function toValidationProblem(issue: z.core.$ZodIssue): ValidationProblemItem {
   };
 }
 
+const onboardingCompletionSchema = z
+  .object({
+    choice: z.literal('START_EMPTY'),
+  })
+  .strict();
+
+export type OnboardingCompletionInput = z.infer<typeof onboardingCompletionSchema>;
+
+export function parseOnboardingCompletion(value: unknown): OnboardingCompletionInput {
+  const result = onboardingCompletionSchema.safeParse(value);
+
+  if (!result.success) {
+    throw new ApiProblemException({
+      status: 422,
+      code: 'VALIDATION_FAILED',
+      detail: 'Onboarding tamamlama bilgisini kontrol edin.',
+      errors: [
+        {
+          code: 'INVALID_ONBOARDING_CHOICE',
+          message: 'Bu adımda yalnızca boş başlangıç tamamlanabilir.',
+          path: '/body/choice',
+        },
+      ],
+    });
+  }
+
+  return result.data;
+}
+
 function zodIssueCode(issue: z.core.$ZodIssue): string {
   if (issue.code === 'too_small') {
     return 'TOO_SHORT';

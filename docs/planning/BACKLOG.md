@@ -2,13 +2,13 @@
 
 | Field | Value |
 | --- | --- |
-| Status | L-002 implemented locally; awaiting acceptance/publication |
-| Revision date | 2026-08-13 |
+| Status | L-003 implemented and locally verified; awaiting acceptance/publication |
+| Revision date | 2026-08-17 |
 | Product scope | MVP, personal use only |
 | Document language | English |
 | Execution mode | Small vertical slices, but not one micro-story per technical concern |
-| Current completed baseline | EPIC-001; BL-007 through BL-011; BL-014; BL-015; BL-121; L-001 |
-| Next slice | L-002 — Onboarding preference and time-zone confirmation remains active until accepted/published |
+| Current completed baseline | EPIC-001; BL-007 through BL-011; BL-014; BL-015; BL-121; L-001; L-002 |
+| Next slice | L-003 — Start-empty onboarding completion remains active until accepted/published |
 
 This document replaces the earlier over-granular execution queue. The approved PRD, UX, Domain, Data, API, Architecture, and ADR documents remain authoritative for product and technical rules. This backlog controls implementation order only.
 
@@ -40,6 +40,7 @@ These items are complete, published to `develop`, and CI-verified. Future slices
 | BL-015 | Account deletion initiation with recent reauth, explicit confirmation, durable process, and all-session revocation. | Commit `c7907ab`, CI `30738500840`. |
 | BL-121 | Public product, privacy, and terms entry points. | Commit `9135165`, CI `30738996032`. |
 | L-001 | Authenticated onboarding welcome and private Area → optional Project → Task model explanation. | Commit `b73836d`, CI `30791344719`. |
+| L-002 | Onboarding preference and current-user time-zone confirmation. | Commit `5580a48`, CI `31682908571`. |
 
 Reserved/deferred IDs `BL-012` and `BL-013` remain reserved for removed social-authentication work and must not be reused.
 
@@ -181,7 +182,7 @@ Before each slice, verify the exact requirement IDs from PRD and API/Domain/Data
 
 ### L-002 — Onboarding preference and time-zone confirmation
 
-**Implementation status:** Implemented locally on 2026-08-13; awaiting User acceptance and publication instruction.
+**Implementation status:** Completed, accepted, committed, published, and CI-verified on 2026-08-13.
 
 **Story goal:** A first-time authenticated user confirms whether they want to start empty or later create sample data, and stores a supported IANA time zone on the current account.
 
@@ -200,6 +201,36 @@ Before each slice, verify the exact requirement IDs from PRD and API/Domain/Data
 - Stale profile ETags produce a retryable precondition error.
 - Generated OpenAPI/client artifacts expose the current-user update.
 - Tests confirm no onboarding completion/sample-data/planning-data endpoint is called in this slice.
+
+### L-003 — Start-empty onboarding completion and Today handoff
+
+**Implementation status:** Implemented and locally verified on 2026-08-17; awaiting User acceptance and publication instruction.
+
+**Story goal:** A first-time authenticated user can explicitly start with an empty private space, complete onboarding idempotently, and continue to Today without creating sample planning data.
+
+**Implemented scope:**
+
+- `POST /api/v1/users/me/onboarding-completions` accepts only `START_EMPTY` in this slice.
+- The mutation requires an authenticated session, CSRF, `If-Match`, and `Idempotency-Key`.
+- The User onboarding state is set to `COMPLETED` with `onboardingCompletedAt`.
+- Replaying the same idempotent request returns the same completion result.
+- The onboarding UI updates the time zone first, completes `START_EMPTY`, and redirects to `/app/today`.
+- Selecting `CREATE_SAMPLE_DATA` still saves only the time zone and keeps sample creation deferred to L-004.
+- No Area, Project, Task, Label, Checklist, or sample data is created.
+
+**Local verification evidence:**
+
+- `pnpm install`
+- `pnpm format:check`
+- `pnpm typecheck`
+- `pnpm lint`
+- `pnpm test`
+- `pnpm build`
+- `pnpm test:e2e -- tests/e2e/foundation.spec.ts`
+- `pnpm prisma:validate`
+- `docker-compose config`
+- `pnpm test:security`
+- `graphify update .`
 
 ## 7. Backlog maintenance policy
 

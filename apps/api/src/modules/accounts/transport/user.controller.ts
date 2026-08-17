@@ -17,6 +17,7 @@ import type { Request, Response } from 'express';
 
 import { parseApiEnvironment } from '../../../platform/config/environment';
 import { ApiProblemException } from '../../../platform/http/api-problem.exception';
+import { CompleteOnboardingService } from '../application/complete-onboarding.service';
 import { InitiateAccountDeletionService } from '../application/initiate-account-deletion.service';
 import { ReadCurrentUserService } from '../application/read-current-user.service';
 import { UpdateCurrentUserService } from '../application/update-current-user.service';
@@ -24,11 +25,13 @@ import { AnonymousCsrfGuard } from './anonymous-csrf.guard';
 import { parseAccountDeletionInput, parseIfMatch } from './account-deletion.schema';
 import { parseCookieValue, sessionCookieName } from './auth-cookie';
 import { parseIdempotencyKey } from './email-verification.schema';
-import { parseUserProfilePatch } from './user.schema';
+import { parseOnboardingCompletion, parseUserProfilePatch } from './user.schema';
 import {
   AccountDeletionProcessResponseDto,
   AccountDeletionRequestDto,
   CurrentUserProfileResponseDto,
+  OnboardingCompletionRequestDto,
+  OnboardingCompletionResponseDto,
   UpdateCurrentUserRequestDto,
 } from './user.dto';
 
@@ -40,6 +43,8 @@ export class UserController {
   constructor(
     @Inject(ReadCurrentUserService)
     private readonly readCurrentUser: ReadCurrentUserService,
+    @Inject(CompleteOnboardingService)
+    private readonly completeOnboarding: CompleteOnboardingService,
     @Inject(InitiateAccountDeletionService)
     private readonly initiateAccountDeletion: InitiateAccountDeletionService,
     @Inject(UpdateCurrentUserService)
@@ -181,6 +186,132 @@ export class UserController {
         inAppReminderNotificationsEnabled: result.profile.inAppReminderNotificationsEnabled,
         onboardingState: result.profile.onboardingState,
         timeZone: result.profile.timeZone,
+      },
+    };
+  }
+
+  @Post('me/onboarding-completions')
+  @HttpCode(200)
+  @Header('Cache-Control', 'no-store')
+  @UseGuards(AnonymousCsrfGuard)
+  @ApiOperation({
+    operationId: 'completeCurrentUserOnboarding',
+    summary: 'Complete current account onboarding with an empty private space',
+  })
+  @ApiHeader({
+    name: 'X-CSRF-Token',
+    required: true,
+  })
+  @ApiHeader({
+    name: 'If-Match',
+    required: true,
+  })
+  @ApiHeader({
+    name: 'Idempotency-Key',
+    required: true,
+  })
+  @ApiBody({
+    type: OnboardingCompletionRequestDto,
+  })
+  @ApiResponse({
+    status: 200,
+    type: OnboardingCompletionResponseDto,
+  })
+  @ApiResponse({
+    description: 'No valid authenticated session is present.',
+    status: 401,
+  })
+  @ApiResponse({
+    description: 'The current User ETag is missing or stale.',
+    status: 412,
+  })
+  @ApiResponse({
+    description: 'Idempotency request is in progress or incompatible.',
+    status: 409,
+  })
+  async completeCurrentUserOnboarding(
+    @Body() body: unknown,
+    @Headers('if-match') ifMatchHeader: unknown,
+    @Headers('idempotency-key') idempotencyKeyHeader: unknown,
+    @Req() request: Request,
+    @Res({
+      passthrough: true,
+    })
+    response: Response,
+  ): Promise<OnboardingCompletionResponseDto> {
+    const input = parseOnboardingCompletion(body);
+    const result = await this.completeOnboarding.execute({
+      choice: input.choice,
+      etag: parseIfMatch(ifMatchHeader),
+      idempotencyKey: parseIdempotencyKey(idempotencyKeyHeader),
+      sessionToken: parseCookieValue(request.headers.cookie, sessionCookieName()),
+    });
+
+    if (result.outcome === 'AUTHENTICATION_REQUIRED') {
+      throw new ApiProblemException({
+        status: 401,
+        code: 'AUTHENTICATION_REQUIRED',
+        detail: 'Oturum açmanız gerekiyor.',
+      });
+    }
+
+    if (result.outcome === 'PRECONDITION_REQUIRED') {
+      throw new ApiProblemException({
+        status: 428,
+        code: 'PRECONDITION_REQUIRED',
+        detail: 'Güncel hesap sürümü gereklidir.',
+      });
+    }
+
+    if (result.outcome === 'PRECONDITION_FAILED') {
+      throw new ApiProblemException({
+        status: 412,
+        code: 'PRECONDITION_FAILED',
+        detail: 'Hesap bilgisi değişmiş. Lütfen sayfayı yenileyip tekrar deneyin.',
+      });
+    }
+
+    if (result.outcome === 'IDEMPOTENCY_KEY_REUSED') {
+      throw new ApiProblemException({
+        status: 422,
+        code: 'IDEMPOTENCY_KEY_REUSED',
+        detail: 'Idempotency-Key farklı bir istek için daha önce kullanılmış.',
+      });
+    }
+
+    if (result.outcome === 'IDEMPOTENCY_IN_PROGRESS') {
+      throw new ApiProblemException({
+        status: 409,
+        code: 'IDEMPOTENCY_IN_PROGRESS',
+        detail: 'Bu istek hâlâ işleniyor. Lütfen tekrar deneyin.',
+      });
+    }
+
+    if (result.outcome !== 'COMPLETED' && result.outcome !== 'REPLAYED') {
+      throw new ApiProblemException({
+        status: 503,
+        code: 'ONBOARDING_COMPLETION_UNAVAILABLE',
+        detail: 'Onboarding şu anda tamamlanamadı. Lütfen daha sonra tekrar deneyin.',
+      });
+    }
+
+    response.setHeader('ETag', this.completeOnboarding.etagFor(result.completion.profile));
+
+    return {
+      data: {
+        choice: result.completion.choice,
+        completedAt: result.completion.completedAt.toISOString(),
+        next: result.completion.next,
+        status: result.completion.status,
+        user: {
+          accountLifecycleState: result.completion.profile.accountLifecycleState,
+          email: result.completion.profile.primaryEmail,
+          id: result.completion.profile.userId,
+          inAppReminderNotificationsEnabled:
+            result.completion.profile.inAppReminderNotificationsEnabled,
+          onboardingState: result.completion.profile.onboardingState,
+          timeZone: result.completion.profile.timeZone,
+        },
       },
     };
   }
