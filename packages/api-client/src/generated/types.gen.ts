@@ -85,6 +85,14 @@ export type CreateAreaRequestDto = {
     name: string;
 };
 
+export type CreateTaskRequestDto = {
+    description?: string;
+    dueAt?: string;
+    plannedAt?: string;
+    priority?: 'LOW' | 'MEDIUM' | 'HIGH';
+    title: string;
+};
+
 export type CsrfTokenDataDto = {
     expiresAt: string;
     /**
@@ -108,6 +116,15 @@ export type CurrentUserProfileDataDto = {
 
 export type CurrentUserProfileResponseDto = {
     data: CurrentUserProfileDataDto;
+};
+
+export type EditTaskRequestDto = {
+    areaStatusId?: string;
+    description?: string;
+    dueAt?: string;
+    plannedAt?: string;
+    priority?: 'LOW' | 'MEDIUM' | 'HIGH';
+    title?: string;
 };
 
 export type EmailVerificationRequestAcceptedDataDto = {
@@ -206,6 +223,43 @@ export type SessionStateDataDto = {
 
 export type SessionStateResponseDto = {
     data: SessionStateDataDto;
+};
+
+export type TaskDataDto = {
+    areaId: string;
+    areaStatusId: string;
+    canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+    description?: string;
+    dueAt?: string;
+    id: string;
+    lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+    plannedAt?: string;
+    priority: 'LOW' | 'MEDIUM' | 'HIGH';
+    title: string;
+    version: number;
+};
+
+export type TaskListMetaDto = {
+    nextCursor?: string;
+};
+
+export type TaskListResponseDto = {
+    data: Array<TaskSummaryDto>;
+    meta: TaskListMetaDto;
+};
+
+export type TaskResponseDto = {
+    data: TaskDataDto;
+};
+
+export type TaskSummaryDto = {
+    canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+    dueAt?: string;
+    id: string;
+    lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+    plannedAt?: string;
+    priority: 'LOW' | 'MEDIUM' | 'HIGH';
+    title: string;
 };
 
 export type UpdateCurrentUserRequestDto = {
@@ -355,6 +409,58 @@ export type RenameAreaResponses = {
 };
 
 export type RenameAreaResponse = RenameAreaResponses[keyof RenameAreaResponses];
+
+export type ListTasksData = {
+    body?: never;
+    path: {
+        areaId: string;
+    };
+    query?: never;
+    url: '/api/v1/areas/{areaId}/tasks';
+};
+
+export type ListTasksErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+};
+
+export type ListTasksResponses = {
+    200: TaskListResponseDto;
+};
+
+export type ListTasksResponse = ListTasksResponses[keyof ListTasksResponses];
+
+export type CreateTaskData = {
+    body: CreateTaskRequestDto;
+    path: {
+        areaId: string;
+    };
+    query?: never;
+    url: '/api/v1/areas/{areaId}/tasks';
+};
+
+export type CreateTaskErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Area not found.
+     */
+    404: unknown;
+    /**
+     * Validation failed.
+     */
+    422: unknown;
+};
+
+export type CreateTaskResponses = {
+    201: TaskResponseDto;
+};
+
+export type CreateTaskResponse = CreateTaskResponses[keyof CreateTaskResponses];
 
 export type GetAuthCsrfData = {
     body?: never;
@@ -619,6 +725,66 @@ export type CreateAuthSessionResponses = {
 };
 
 export type CreateAuthSessionResponse = CreateAuthSessionResponses[keyof CreateAuthSessionResponses];
+
+export type GetTaskData = {
+    body?: never;
+    path: {
+        taskId: string;
+    };
+    query?: never;
+    url: '/api/v1/tasks/{taskId}';
+};
+
+export type GetTaskErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Task not found.
+     */
+    404: unknown;
+};
+
+export type GetTaskResponses = {
+    200: TaskResponseDto;
+};
+
+export type GetTaskResponse = GetTaskResponses[keyof GetTaskResponses];
+
+export type EditTaskData = {
+    body: EditTaskRequestDto;
+    path: {
+        taskId: string;
+    };
+    query?: never;
+    url: '/api/v1/tasks/{taskId}';
+};
+
+export type EditTaskErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Task not found.
+     */
+    404: unknown;
+    /**
+     * Version conflict.
+     */
+    409: unknown;
+    /**
+     * Validation failed.
+     */
+    422: unknown;
+};
+
+export type EditTaskResponses = {
+    200: TaskResponseDto;
+};
+
+export type EditTaskResponse = EditTaskResponses[keyof EditTaskResponses];
 
 export type GetCurrentUserData = {
     body?: never;

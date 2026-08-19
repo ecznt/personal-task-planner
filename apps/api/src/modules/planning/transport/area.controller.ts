@@ -27,6 +27,8 @@ import type {
   ListAreasResult,
   RenameAreaResult,
 } from '../application/area.service';
+import { TaskService } from '../application/task.service';
+import type { CreateTaskResult, ListTasksResult } from '../application/task.service';
 import { parseCreateAreaInput, parseListAreasQuery, parseRenameAreaInput } from './area.schema';
 import {
   AreaDetailResponseDto,
@@ -35,12 +37,15 @@ import {
   CreateAreaRequestDto,
   RenameAreaRequestDto,
 } from './area.dto';
+import { parseCreateTaskInput, parseListTasksQuery } from './task.schema';
+import { CreateTaskRequestDto, TaskListResponseDto, TaskResponseDto } from './task.dto';
 
-@ApiTags('Areas')
+@ApiTags('Areas', 'Tasks')
 @Controller('areas')
 export class AreaController {
   constructor(
     @Inject(AreaService) private readonly areaService: AreaService,
+    @Inject(TaskService) private readonly taskService: TaskService,
     @Inject(AccountsRepository) private readonly accounts: AccountsRepository,
     @Inject(AuthSecurityService) private readonly security: AuthSecurityService,
   ) {}
@@ -209,6 +214,95 @@ export class AreaController {
     return this.handleRenameResult(result, response);
   }
 
+  @Post(':areaId/tasks')
+  @HttpCode(201)
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    operationId: 'createTask',
+    summary: 'Create a new Task under an Area',
+  })
+  @ApiParam({ name: 'areaId', type: String, format: 'uuid' })
+  @ApiBody({ type: CreateTaskRequestDto })
+  @ApiResponse({
+    status: 201,
+    type: TaskResponseDto,
+  })
+  @ApiResponse({
+    description: 'No valid authenticated session is present.',
+    status: 401,
+  })
+  @ApiResponse({
+    description: 'Area not found.',
+    status: 404,
+  })
+  @ApiResponse({
+    description: 'Validation failed.',
+    status: 422,
+  })
+  async createTask(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+    @Param('areaId') areaId: string,
+    @Body() body: unknown,
+    @Headers('idempotency-key') idempotencyKey?: string,
+  ): Promise<TaskResponseDto> {
+    const userId = await this.resolveUserId(request);
+
+    const input = parseCreateTaskInput(body);
+
+    if (!idempotencyKey) {
+      throw new ApiProblemException({
+        status: 422,
+        code: 'VALIDATION_FAILED',
+        detail: 'Idempotency-Key başlığı gereklidir.',
+      });
+    }
+
+    const result = await this.taskService.createTask(userId, {
+      areaId,
+      title: input.title,
+      description: input.description ?? null,
+      plannedAt: input.plannedAt ?? null,
+      dueAt: input.dueAt ?? null,
+      priority: input.priority,
+    });
+
+    return this.handleCreateTaskResult(result, response);
+  }
+
+  @Get(':areaId/tasks')
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    operationId: 'listTasks',
+    summary: 'List Tasks within an Area',
+  })
+  @ApiParam({ name: 'areaId', type: String, format: 'uuid' })
+  @ApiResponse({
+    status: 200,
+    type: TaskListResponseDto,
+  })
+  @ApiResponse({
+    description: 'No valid authenticated session is present.',
+    status: 401,
+  })
+  async listTasks(
+    @Req() request: Request,
+    @Param('areaId') areaId: string,
+    @Query() query: unknown,
+  ): Promise<TaskListResponseDto> {
+    const userId = await this.resolveUserId(request);
+
+    const input = parseListTasksQuery(query);
+
+    const result = await this.taskService.listTasks(userId, {
+      areaId,
+      cursor: input.cursor,
+      limit: input.limit,
+    });
+
+    return this.handleListTasksResult(result);
+  }
+
   private async resolveUserId(request: Request): Promise<string> {
     const token = parseCookieValue(request.headers.cookie, sessionCookieName());
 
@@ -368,6 +462,79 @@ export class AreaController {
           status: 422,
           code: 'VALIDATION_FAILED',
           detail: result.detail,
+        });
+      case 'UNAUTHENTICATED':
+        throw new ApiProblemException({
+          status: 401,
+          code: 'AUTHENTICATION_REQUIRED',
+          detail: 'Oturum açmanız gerekiyor.',
+        });
+    }
+  }
+
+  private handleCreateTaskResult(result: CreateTaskResult, response: Response): TaskResponseDto {
+    switch (result.outcome) {
+      case 'SUCCESS':
+        response.setHeader('ETag', String(result.etag));
+        response.setHeader('Location', `/api/v1/tasks/${result.task.id}`);
+        return {
+          data: {
+            id: result.task.id,
+            areaId: result.task.areaId,
+            title: result.task.title,
+            description: result.task.description,
+            plannedAt: result.task.plannedAt?.toISOString() ?? null,
+            dueAt: result.task.dueAt?.toISOString() ?? null,
+            priority: result.task.priority,
+            areaStatusId: result.task.areaStatusId,
+            canonicalStatus: 'TO_DO',
+            lifecycleState: result.task.lifecycleState,
+            version: result.task.version,
+          },
+        };
+      case 'NOT_FOUND':
+        throw new ApiProblemException({
+          status: 404,
+          code: 'RESOURCE_NOT_FOUND',
+          detail: 'Kaynak bulunamadı.',
+        });
+      case 'VALIDATION_ERROR':
+        throw new ApiProblemException({
+          status: 422,
+          code: 'VALIDATION_FAILED',
+          detail: result.detail,
+        });
+      case 'UNAUTHENTICATED':
+        throw new ApiProblemException({
+          status: 401,
+          code: 'AUTHENTICATION_REQUIRED',
+          detail: 'Oturum açmanız gerekiyor.',
+        });
+    }
+  }
+
+  private handleListTasksResult(result: ListTasksResult): TaskListResponseDto {
+    switch (result.outcome) {
+      case 'SUCCESS':
+        return {
+          data: result.tasks.map((task) => ({
+            id: task.id,
+            title: task.title,
+            priority: task.priority,
+            canonicalStatus: task.canonicalStatus,
+            dueAt: task.dueAt?.toISOString() ?? null,
+            plannedAt: task.plannedAt?.toISOString() ?? null,
+            lifecycleState: task.lifecycleState,
+          })),
+          meta: {
+            ...(result.nextCursor !== undefined && { nextCursor: result.nextCursor }),
+          },
+        };
+      case 'NOT_FOUND':
+        throw new ApiProblemException({
+          status: 404,
+          code: 'RESOURCE_NOT_FOUND',
+          detail: 'Kaynak bulunamadı.',
         });
       case 'UNAUTHENTICATED':
         throw new ApiProblemException({

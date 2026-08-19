@@ -305,6 +305,38 @@
         ],
         "type": "object"
       },
+      "CreateTaskRequestDto": {
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "dueAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "plannedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "priority": {
+            "default": "MEDIUM",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "example": "Marketten süt al",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "type": "object"
+      },
       "CsrfTokenDataDto": {
         "properties": {
           "expiresAt": {
@@ -384,6 +416,38 @@
         "required": [
           "data"
         ],
+        "type": "object"
+      },
+      "EditTaskRequestDto": {
+        "properties": {
+          "areaStatusId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "dueAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "plannedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "priority": {
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "example": "Marketten zeytinyagi al",
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "EmailVerificationRequestAcceptedDataDto": {
@@ -767,6 +831,163 @@
         ],
         "type": "object"
       },
+      "TaskDataDto": {
+        "properties": {
+          "areaId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "areaStatusId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "canonicalStatus": {
+            "enum": [
+              "TO_DO",
+              "IN_PROGRESS",
+              "COMPLETED"
+            ],
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "dueAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "lifecycleState": {
+            "enum": [
+              "ACTIVE",
+              "ARCHIVED",
+              "TRASHED"
+            ],
+            "type": "string"
+          },
+          "plannedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "priority": {
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "version": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "areaId",
+          "title",
+          "priority",
+          "areaStatusId",
+          "canonicalStatus",
+          "lifecycleState",
+          "version"
+        ],
+        "type": "object"
+      },
+      "TaskListMetaDto": {
+        "properties": {
+          "nextCursor": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "TaskListResponseDto": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/TaskSummaryDto"
+            },
+            "type": "array"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/TaskListMetaDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "type": "object"
+      },
+      "TaskResponseDto": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/TaskDataDto"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "TaskSummaryDto": {
+        "properties": {
+          "canonicalStatus": {
+            "enum": [
+              "TO_DO",
+              "IN_PROGRESS",
+              "COMPLETED"
+            ],
+            "type": "string"
+          },
+          "dueAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "lifecycleState": {
+            "enum": [
+              "ACTIVE",
+              "ARCHIVED",
+              "TRASHED"
+            ],
+            "type": "string"
+          },
+          "plannedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "priority": {
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "priority",
+          "canonicalStatus",
+          "lifecycleState"
+        ],
+        "type": "object"
+      },
       "UpdateCurrentUserRequestDto": {
         "properties": {
           "timeZone": {
@@ -875,7 +1096,8 @@
         },
         "summary": "List active Areas for the current user",
         "tags": [
-          "Areas"
+          "Areas",
+          "Tasks"
         ]
       },
       "post": {
@@ -911,7 +1133,8 @@
         },
         "summary": "Create a new Area with default workflow statuses",
         "tags": [
-          "Areas"
+          "Areas",
+          "Tasks"
         ]
       }
     },
@@ -949,7 +1172,8 @@
         },
         "summary": "Get Area detail with statuses and counts",
         "tags": [
-          "Areas"
+          "Areas",
+          "Tasks"
         ]
       },
       "patch": {
@@ -1001,7 +1225,94 @@
         },
         "summary": "Rename an Area",
         "tags": [
-          "Areas"
+          "Areas",
+          "Tasks"
+        ]
+      }
+    },
+    "/api/v1/areas/{areaId}/tasks": {
+      "get": {
+        "operationId": "listTasks",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "areaId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskListResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          }
+        },
+        "summary": "List Tasks within an Area",
+        "tags": [
+          "Areas",
+          "Tasks"
+        ]
+      },
+      "post": {
+        "operationId": "createTask",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "areaId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTaskRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "404": {
+            "description": "Area not found."
+          },
+          "422": {
+            "description": "Validation failed."
+          }
+        },
+        "summary": "Create a new Task under an Area",
+        "tags": [
+          "Areas",
+          "Tasks"
         ]
       }
     },
@@ -1420,6 +1731,96 @@
         "summary": "Create a rotated opaque session with verified email/password credentials",
         "tags": [
           "Authentication"
+        ]
+      }
+    },
+    "/api/v1/tasks/{taskId}": {
+      "get": {
+        "operationId": "getTask",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "taskId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "404": {
+            "description": "Task not found."
+          }
+        },
+        "summary": "Get Task detail",
+        "tags": [
+          "Tasks"
+        ]
+      },
+      "patch": {
+        "operationId": "editTask",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "taskId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditTaskRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "404": {
+            "description": "Task not found."
+          },
+          "409": {
+            "description": "Version conflict."
+          },
+          "422": {
+            "description": "Validation failed."
+          }
+        },
+        "summary": "Edit Task fields",
+        "tags": [
+          "Tasks"
         ]
       }
     },

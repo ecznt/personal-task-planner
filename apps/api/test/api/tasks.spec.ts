@@ -9,11 +9,12 @@ import request from 'supertest';
 import { AreaService } from '../../src/modules/planning/application/area.service';
 import { TaskService } from '../../src/modules/planning/application/task.service';
 import { AreaController } from '../../src/modules/planning/transport/area.controller';
+import { TaskController } from '../../src/modules/planning/transport/task.controller';
 import { AccountsRepository } from '../../src/modules/accounts/infrastructure/accounts.repository';
 import { AuthSecurityService } from '../../src/modules/accounts/security/auth-security.service';
 import { ProblemDetailsFilter } from '../../src/platform/http/problem-details.filter';
 
-describe('area HTTP contract', () => {
+describe('task HTTP contract', () => {
   let app: INestApplication;
   const areaService = {
     createArea: jest.fn<AreaService['createArea']>(),
@@ -38,7 +39,7 @@ describe('area HTTP contract', () => {
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
-      controllers: [AreaController],
+      controllers: [AreaController, TaskController],
       providers: [
         { provide: AreaService, useValue: areaService },
         { provide: TaskService, useValue: taskService },
@@ -62,185 +63,230 @@ describe('area HTTP contract', () => {
     authSecurityService.hashSecret.mockReturnValue('hashed-token');
   });
 
-  describe('POST /areas', () => {
-    it('creates an area with valid input', async () => {
-      areaService.createArea.mockResolvedValue({
+  describe('POST /areas/:areaId/tasks', () => {
+    it('creates a task with valid input', async () => {
+      taskService.createTask.mockResolvedValue({
         outcome: 'SUCCESS',
-        area: {
-          id: 'area-id',
+        task: {
+          id: 'task-id',
           userId: 'user-id',
-          name: 'Test Area',
-          normalizedName: 'test area',
+          areaId: 'area-id',
+          projectId: null,
+          areaStatusId: 'status-id',
+          title: 'Test Task',
+          description: null,
+          plannedAt: null,
+          dueAt: null,
+          priority: 'MEDIUM',
+          completedAt: null,
           lifecycleState: 'ACTIVE',
+          globalRank: '000000000000000000000001',
+          areaRank: '000000000000000000000001',
           version: 1,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
-        statuses: [
-          {
-            id: 'status-1',
-            userId: 'user-id',
-            areaId: 'area-id',
-            name: 'Yapılacak',
-            normalizedName: 'yapilacak',
-            canonicalStatus: 'TO_DO',
-            position: 1,
-            isDefault: true,
-            active: true,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-        ],
+        etag: 1,
       });
 
       const response = await request(app.getHttpServer())
-        .post('/areas')
-        .send({ name: 'Test Area' })
+        .post('/areas/area-id/tasks')
+        .send({ title: 'Test Task', priority: 'MEDIUM' })
         .set('Cookie', 'planner-session=token')
         .set('Idempotency-Key', 'idem-key')
         .expect(201);
 
       expect(response.body.data).toMatchObject({
-        id: 'area-id',
-        name: 'Test Area',
+        id: 'task-id',
+        title: 'Test Task',
       });
+      expect(response.headers.etag).toBe('1');
     });
 
-    it('returns 422 for invalid input', async () => {
-      areaService.createArea.mockResolvedValue({
+    it('returns 404 for non-existent area', async () => {
+      taskService.createTask.mockResolvedValue({ outcome: 'NOT_FOUND' });
+
+      await request(app.getHttpServer())
+        .post('/areas/non-existent/tasks')
+        .send({ title: 'Test Task' })
+        .set('Cookie', 'planner-session=token')
+        .set('Idempotency-Key', 'idem-key')
+        .expect(404);
+    });
+
+    it('returns 422 for blank title', async () => {
+      taskService.createTask.mockResolvedValue({
         outcome: 'VALIDATION_ERROR',
-        detail: 'Alan adı boş olamaz.',
+        detail: 'Görev başlığı boş olamaz.',
       });
 
       await request(app.getHttpServer())
-        .post('/areas')
-        .send({ name: '' })
+        .post('/areas/area-id/tasks')
+        .send({ title: '' })
         .set('Cookie', 'planner-session=token')
         .set('Idempotency-Key', 'idem-key')
         .expect(422);
     });
   });
 
-  describe('GET /areas', () => {
-    it('lists areas for authenticated user', async () => {
-      areaService.listAreas.mockResolvedValue({
+  describe('GET /areas/:areaId/tasks', () => {
+    it('lists tasks for an area', async () => {
+      taskService.listTasks.mockResolvedValue({
         outcome: 'SUCCESS',
-        areas: [
+        tasks: [
           {
-            id: 'area-id',
-            name: 'Test Area',
+            id: 'task-id',
+            title: 'Test Task',
+            priority: 'MEDIUM',
+            canonicalStatus: 'TO_DO',
+            dueAt: null,
+            plannedAt: null,
             lifecycleState: 'ACTIVE',
-            taskCount: 5,
-            projectCount: 1,
-            overdueTaskCount: 0,
           },
         ],
       });
 
       const response = await request(app.getHttpServer())
-        .get('/areas')
+        .get('/areas/area-id/tasks')
         .set('Cookie', 'planner-session=token')
         .expect(200);
 
       expect(response.body.data).toHaveLength(1);
-      expect(response.body.data[0]).toMatchObject({ name: 'Test Area' });
-    });
-  });
-
-  describe('GET /areas/:areaId', () => {
-    it('returns area detail for existing area', async () => {
-      areaService.getArea.mockResolvedValue({
-        outcome: 'SUCCESS',
-        data: {
-          area: {
-            id: 'area-id',
-            userId: 'user-id',
-            name: 'Test Area',
-            normalizedName: 'test area',
-            lifecycleState: 'ACTIVE',
-            version: 1,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-          statuses: [],
-          taskCount: 5,
-          projectCount: 2,
-        },
-      });
-
-      const response = await request(app.getHttpServer())
-        .get('/areas/area-id')
-        .set('Cookie', 'planner-session=token')
-        .expect(200);
-
-      expect(response.body.data).toMatchObject({
-        id: 'area-id',
-        name: 'Test Area',
-        taskCount: 5,
-        projectCount: 2,
-      });
+      expect(response.body.data[0]).toMatchObject({ title: 'Test Task' });
     });
 
     it('returns 404 for non-existent area', async () => {
-      areaService.getArea.mockResolvedValue({ outcome: 'NOT_FOUND' });
+      taskService.listTasks.mockResolvedValue({ outcome: 'NOT_FOUND' });
 
       await request(app.getHttpServer())
-        .get('/areas/non-existent')
+        .get('/areas/non-existent/tasks')
         .set('Cookie', 'planner-session=token')
         .expect(404);
     });
   });
 
-  describe('PATCH /areas/:areaId', () => {
-    it('renames area with valid input', async () => {
-      areaService.renameArea.mockResolvedValue({
+  describe('GET /tasks/:taskId', () => {
+    it('returns task detail', async () => {
+      taskService.getTask.mockResolvedValue({
         outcome: 'SUCCESS',
-        area: {
-          id: 'area-id',
+        data: {
+          task: {
+            id: 'task-id',
+            userId: 'user-id',
+            areaId: 'area-id',
+            projectId: null,
+            areaStatusId: 'status-id',
+            title: 'Test Task',
+            description: 'Description',
+            plannedAt: null,
+            dueAt: null,
+            priority: 'HIGH',
+            completedAt: null,
+            lifecycleState: 'ACTIVE',
+            globalRank: '000000000000000000000001',
+            areaRank: '000000000000000000000001',
+            version: 1,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+          canonicalStatus: 'TO_DO',
+          areaName: 'Test Area',
+        },
+        etag: 1,
+      });
+
+      const response = await request(app.getHttpServer())
+        .get('/tasks/task-id')
+        .set('Cookie', 'planner-session=token')
+        .expect(200);
+
+      expect(response.body.data).toMatchObject({
+        id: 'task-id',
+        title: 'Test Task',
+        canonicalStatus: 'TO_DO',
+      });
+      expect(response.headers.etag).toBe('1');
+    });
+
+    it('returns 404 for non-existent task', async () => {
+      taskService.getTask.mockResolvedValue({ outcome: 'NOT_FOUND' });
+
+      await request(app.getHttpServer())
+        .get('/tasks/non-existent')
+        .set('Cookie', 'planner-session=token')
+        .expect(404);
+    });
+  });
+
+  describe('PATCH /tasks/:taskId', () => {
+    it('edits task with valid input', async () => {
+      taskService.editTask.mockResolvedValue({
+        outcome: 'SUCCESS',
+        task: {
+          id: 'task-id',
           userId: 'user-id',
-          name: 'New Name',
-          normalizedName: 'new name',
+          areaId: 'area-id',
+          projectId: null,
+          areaStatusId: 'status-id',
+          title: 'Updated Title',
+          description: null,
+          plannedAt: null,
+          dueAt: null,
+          priority: 'HIGH',
+          completedAt: null,
           lifecycleState: 'ACTIVE',
+          globalRank: '000000000000000000000001',
+          areaRank: '000000000000000000000001',
           version: 2,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
+        etag: 2,
       });
 
       const response = await request(app.getHttpServer())
-        .patch('/areas/area-id')
-        .send({ name: 'New Name' })
+        .patch('/tasks/task-id')
+        .send({ title: 'Updated Title', priority: 'HIGH' })
         .set('Cookie', 'planner-session=token')
         .set('If-Match', '1')
         .expect(200);
 
       expect(response.body.data).toMatchObject({
-        id: 'area-id',
-        name: 'New Name',
+        id: 'task-id',
+        title: 'Updated Title',
         version: 2,
       });
+      expect(response.headers.etag).toBe('2');
     });
 
     it('returns 409 for stale version', async () => {
-      areaService.renameArea.mockResolvedValue({ outcome: 'STALE_VERSION' });
+      taskService.editTask.mockResolvedValue({ outcome: 'STALE_VERSION' });
 
       await request(app.getHttpServer())
-        .patch('/areas/area-id')
-        .send({ name: 'New Name' })
+        .patch('/tasks/task-id')
+        .send({ title: 'Updated Title' })
         .set('Cookie', 'planner-session=token')
         .set('If-Match', '1')
         .expect(409);
     });
 
-    it('returns 404 for non-existent area', async () => {
-      areaService.renameArea.mockResolvedValue({ outcome: 'NOT_FOUND' });
+    it('returns 404 for non-existent task', async () => {
+      taskService.editTask.mockResolvedValue({ outcome: 'NOT_FOUND' });
 
       await request(app.getHttpServer())
-        .patch('/areas/non-existent')
-        .send({ name: 'New Name' })
+        .patch('/tasks/non-existent')
+        .send({ title: 'Updated Title' })
         .set('Cookie', 'planner-session=token')
         .set('If-Match', '1')
         .expect(404);
+    });
+
+    it('returns 422 when If-Match header is missing', async () => {
+      await request(app.getHttpServer())
+        .patch('/tasks/task-id')
+        .send({ title: 'Updated Title' })
+        .set('Cookie', 'planner-session=token')
+        .expect(422);
     });
   });
 });

@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CompleteCurrentUserOnboardingData, CompleteCurrentUserOnboardingErrors, CompleteCurrentUserOnboardingResponses, CreateAreaData, CreateAreaErrors, CreateAreaResponses, CreateAuthSessionData, CreateAuthSessionErrors, CreateAuthSessionResponses, DeleteAuthSessionData, DeleteAuthSessionErrors, DeleteAuthSessionResponses, GetAreaData, GetAreaErrors, GetAreaResponses, GetAuthCsrfData, GetAuthCsrfResponses, GetAuthSessionData, GetAuthSessionResponses, GetCurrentUserData, GetCurrentUserErrors, GetCurrentUserResponses, GetVersionData, GetVersionResponses, InitiateAccountDeletionData, InitiateAccountDeletionErrors, InitiateAccountDeletionResponses, ListAreasData, ListAreasErrors, ListAreasResponses, ReauthenticateData, ReauthenticateErrors, ReauthenticateResponses, RegisterAccountData, RegisterAccountErrors, RegisterAccountResponses, RenameAreaData, RenameAreaErrors, RenameAreaResponses, RequestEmailVerificationData, RequestEmailVerificationErrors, RequestEmailVerificationResponses, RequestPasswordResetData, RequestPasswordResetErrors, RequestPasswordResetResponses, ResetPasswordData, ResetPasswordErrors, ResetPasswordResponses, UpdateCurrentUserData, UpdateCurrentUserErrors, UpdateCurrentUserResponses, VerifyEmailData, VerifyEmailErrors, VerifyEmailResponses } from './types.gen';
+import type { CompleteCurrentUserOnboardingData, CompleteCurrentUserOnboardingErrors, CompleteCurrentUserOnboardingResponses, CreateAreaData, CreateAreaErrors, CreateAreaResponses, CreateAuthSessionData, CreateAuthSessionErrors, CreateAuthSessionResponses, CreateTaskData, CreateTaskErrors, CreateTaskResponses, DeleteAuthSessionData, DeleteAuthSessionErrors, DeleteAuthSessionResponses, EditTaskData, EditTaskErrors, EditTaskResponses, GetAreaData, GetAreaErrors, GetAreaResponses, GetAuthCsrfData, GetAuthCsrfResponses, GetAuthSessionData, GetAuthSessionResponses, GetCurrentUserData, GetCurrentUserErrors, GetCurrentUserResponses, GetTaskData, GetTaskErrors, GetTaskResponses, GetVersionData, GetVersionResponses, InitiateAccountDeletionData, InitiateAccountDeletionErrors, InitiateAccountDeletionResponses, ListAreasData, ListAreasErrors, ListAreasResponses, ListTasksData, ListTasksErrors, ListTasksResponses, ReauthenticateData, ReauthenticateErrors, ReauthenticateResponses, RegisterAccountData, RegisterAccountErrors, RegisterAccountResponses, RenameAreaData, RenameAreaErrors, RenameAreaResponses, RequestEmailVerificationData, RequestEmailVerificationErrors, RequestEmailVerificationResponses, RequestPasswordResetData, RequestPasswordResetErrors, RequestPasswordResetResponses, ResetPasswordData, ResetPasswordErrors, ResetPasswordResponses, UpdateCurrentUserData, UpdateCurrentUserErrors, UpdateCurrentUserResponses, VerifyEmailData, VerifyEmailErrors, VerifyEmailResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -45,6 +45,23 @@ export const getArea = <ThrowOnError extends boolean = false>(options: Options<G
  */
 export const renameArea = <ThrowOnError extends boolean = false>(options: Options<RenameAreaData, ThrowOnError>): RequestResult<RenameAreaResponses, RenameAreaErrors, ThrowOnError> => (options.client ?? client).patch<RenameAreaResponses, RenameAreaErrors, ThrowOnError>({
     url: '/api/v1/areas/{areaId}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List Tasks within an Area
+ */
+export const listTasks = <ThrowOnError extends boolean = false>(options: Options<ListTasksData, ThrowOnError>): RequestResult<ListTasksResponses, ListTasksErrors, ThrowOnError> => (options.client ?? client).get<ListTasksResponses, ListTasksErrors, ThrowOnError>({ url: '/api/v1/areas/{areaId}/tasks', ...options });
+
+/**
+ * Create a new Task under an Area
+ */
+export const createTask = <ThrowOnError extends boolean = false>(options: Options<CreateTaskData, ThrowOnError>): RequestResult<CreateTaskResponses, CreateTaskErrors, ThrowOnError> => (options.client ?? client).post<CreateTaskResponses, CreateTaskErrors, ThrowOnError>({
+    url: '/api/v1/areas/{areaId}/tasks',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -144,6 +161,23 @@ export const getAuthSession = <ThrowOnError extends boolean = false>(options?: O
  */
 export const createAuthSession = <ThrowOnError extends boolean = false>(options: Options<CreateAuthSessionData, ThrowOnError>): RequestResult<CreateAuthSessionResponses, CreateAuthSessionErrors, ThrowOnError> => (options.client ?? client).post<CreateAuthSessionResponses, CreateAuthSessionErrors, ThrowOnError>({
     url: '/api/v1/auth/sessions',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Get Task detail
+ */
+export const getTask = <ThrowOnError extends boolean = false>(options: Options<GetTaskData, ThrowOnError>): RequestResult<GetTaskResponses, GetTaskErrors, ThrowOnError> => (options.client ?? client).get<GetTaskResponses, GetTaskErrors, ThrowOnError>({ url: '/api/v1/tasks/{taskId}', ...options });
+
+/**
+ * Edit Task fields
+ */
+export const editTask = <ThrowOnError extends boolean = false>(options: Options<EditTaskData, ThrowOnError>): RequestResult<EditTaskResponses, EditTaskErrors, ThrowOnError> => (options.client ?? client).patch<EditTaskResponses, EditTaskErrors, ThrowOnError>({
+    url: '/api/v1/tasks/{taskId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',

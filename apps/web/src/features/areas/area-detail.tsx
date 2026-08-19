@@ -5,8 +5,10 @@ import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/spinner';
+import { TaskList } from '@/features/tasks/task-list';
 
 import { RenameAreaForm } from './rename-area-form';
 
@@ -118,6 +120,16 @@ export function AreaDetail({ areaId }: AreaDetailProps) {
           </CardContent>
         </Card>
       )}
+
+      <div>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Görevler</h2>
+          <Link href={`/app/areas/${areaId}/tasks/new`}>
+            <Button size="sm">Yeni Görev</Button>
+          </Link>
+        </div>
+        <TaskList areaId={areaId} />
+      </div>
     </div>
   );
 }

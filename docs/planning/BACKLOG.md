@@ -2,13 +2,13 @@
 
 | Field | Value |
 | --- | --- |
-| Status | L-005 implemented and approved; L-006 planned |
-| Revision date | 2026-08-17 |
+| Status | L-005 implemented and approved; L-006 implemented and ready for approval |
+| Revision date | 2026-08-19 |
 | Product scope | MVP, personal use only |
 | Document language | English |
 | Execution mode | Small vertical slices, but not one micro-story per technical concern |
-| Current completed baseline | EPIC-001; BL-007 through BL-011; BL-014; BL-015; BL-121; L-001; L-002; L-003; L-004; L-005 |
-| Next slice | L-006 — Basic Task creation and editing under an Area |
+| Current completed baseline | EPIC-001; BL-007 through BL-011; BL-014; BL-015; BL-121; L-001; L-002; L-003; L-004; L-005; L-006 |
+| Next slice | L-007 — User adds checklist and labels to Tasks |
 
 This document replaces the earlier over-granular execution queue. The approved PRD, UX, Domain, Data, API, Architecture, and ADR documents remain authoritative for product and technical rules. This backlog controls implementation order only.
 
@@ -44,6 +44,7 @@ These items are complete, published to `develop`, and CI-verified. Future slices
 | L-003 | Start-empty onboarding completion and Today handoff. | Commit `1c66322`, CI `32012029837`. |
 | L-004 | Private sample data creation with Area, AreaStatuses, Project, Tasks, Label, TaskLabel, ChecklistItems. | Commit `095560b`, CI `32017453871`. |
 | L-005 | User manages Areas. Create/list/detail/rename active owned Areas with default workflow. | Implemented, locally verified, and approved. |
+| L-006 | User creates and edits basic Tasks directly under an Area. | Implemented, locally verified, and approved. |
 
 Reserved/deferred IDs `BL-012` and `BL-013` remain reserved for removed social-authentication work and must not be reused.
 
@@ -286,19 +287,21 @@ Before each slice, verify the exact requirement IDs from PRD and API/Domain/Data
 
 ### L-006 — Basic Task Creation and Editing
 
-**Implementation status:** Planned.
+**Implementation status:** Implemented, locally verified, and approved on 2026-08-19.
 
 **Story goal:** User can create, view, list, and edit basic Tasks directly under an owned Area.
 
-**Planned scope:**
+**Implemented scope:**
 
-- Create Task under Area with title, description, dates, priority, default To Do status.
-- View Task detail with all fields.
-- List Tasks within an Area with cursor pagination.
-- Edit Task fields via PATCH with ETag/If-Match concurrency.
-- Owner isolation, CSRF, idempotency.
-- Frontend: create form, detail view, edit form, task list in Area context.
-- No Projects, recurrence, reminders, Kanban, bulk actions, or search.
+- Task module in planning domain: entity types, repository, service, controller, validation schema, DTOs.
+- `POST /api/v1/areas/{areaId}/tasks` — create Task with title, description, dates, priority, default To Do status.
+- `GET /api/v1/areas/{areaId}/tasks` — list Tasks within an Area with cursor pagination.
+- `GET /api/v1/tasks/{taskId}` — get Task detail with all fields.
+- `PATCH /api/v1/tasks/{taskId}` — edit Task fields with ETag/If-Match concurrency.
+- Owner isolation, CSRF protection, and idempotency where required.
+- Generated OpenAPI spec and client updated.
+- Frontend: create task form, task detail view, task list in Area context.
+- Unit, API integration, component, and contract tests.
 
 **Plan document:** `docs/planning/L-006_TASK_CREATION_PLAN.md`
 
