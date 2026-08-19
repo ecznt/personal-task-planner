@@ -2,13 +2,13 @@
 
 | Field | Value |
 | --- | --- |
-| Status | L-004 accepted; publication requested |
+| Status | L-005 implemented and approved; L-006 planned |
 | Revision date | 2026-08-17 |
 | Product scope | MVP, personal use only |
 | Document language | English |
 | Execution mode | Small vertical slices, but not one micro-story per technical concern |
-| Current completed baseline | EPIC-001; BL-007 through BL-011; BL-014; BL-015; BL-121; L-001; L-002; L-003 |
-| Next slice | L-004 — Private sample data creation remains active until accepted/published |
+| Current completed baseline | EPIC-001; BL-007 through BL-011; BL-014; BL-015; BL-121; L-001; L-002; L-003; L-004; L-005 |
+| Next slice | L-006 — Basic Task creation and editing under an Area |
 
 This document replaces the earlier over-granular execution queue. The approved PRD, UX, Domain, Data, API, Architecture, and ADR documents remain authoritative for product and technical rules. This backlog controls implementation order only.
 
@@ -42,6 +42,8 @@ These items are complete, published to `develop`, and CI-verified. Future slices
 | L-001 | Authenticated onboarding welcome and private Area → optional Project → Task model explanation. | Commit `b73836d`, CI `30791344719`. |
 | L-002 | Onboarding preference and current-user time-zone confirmation. | Commit `5580a48`, CI `31682908571`. |
 | L-003 | Start-empty onboarding completion and Today handoff. | Commit `1c66322`, CI `32012029837`. |
+| L-004 | Private sample data creation with Area, AreaStatuses, Project, Tasks, Label, TaskLabel, ChecklistItems. | Commit `095560b`, CI `32017453871`. |
+| L-005 | User manages Areas. Create/list/detail/rename active owned Areas with default workflow. | Implemented, locally verified, and approved. |
 
 Reserved/deferred IDs `BL-012` and `BL-013` remain reserved for removed social-authentication work and must not be reused.
 
@@ -235,7 +237,7 @@ Before each slice, verify the exact requirement IDs from PRD and API/Domain/Data
 
 ### L-004 — Private sample data creation
 
-**Implementation status:** Implemented, locally verified, accepted, and queued for publication on 2026-08-17.
+**Implementation status:** Completed, accepted, published, and CI-verified on 2026-08-17.
 
 **Story goal:** A first-time authenticated user can create a complete private editable sample set, complete onboarding idempotently, and continue to Today.
 
@@ -260,6 +262,45 @@ Before each slice, verify the exact requirement IDs from PRD and API/Domain/Data
 - `pnpm prisma:validate`
 - `pnpm prisma:migrate:deploy`
 - `pnpm test:security`
+
+**CI evidence:** Commit `095560b`, CI run `32017453871` succeeded.
+
+### L-005 — Area Management
+
+**Implementation status:** Completed, locally verified, and approved on 2026-08-19.
+
+**Story goal:** User can create, list, view details, and rename active owned Areas with default workflow.
+
+**Implemented scope:**
+
+- Planning module (`apps/api/src/modules/planning/`) with clean architecture: domain, application, infrastructure, transport layers.
+- `GET /api/v1/areas` — list active Areas with cursor pagination and task/project/overdue counts.
+- `POST /api/v1/areas` — create Area with three default AreaStatuses (To Do, In Progress, Completed).
+- `GET /api/v1/areas/{areaId}` — get Area detail with statuses and counts.
+- `PATCH /api/v1/areas/{areaId}` — rename Area with ETag/If-Match concurrency.
+- All endpoints use session-derived owner isolation, CSRF protection, and idempotency where required.
+- Generated OpenAPI spec and client updated.
+- Frontend routes: `/app/areas` (list), `/app/areas/[areaId]` (detail).
+- Frontend components: AreaList, AreaDetail, CreateAreaForm, RenameAreaForm.
+- Unit, API integration, and component tests.
+
+### L-006 — Basic Task Creation and Editing
+
+**Implementation status:** Planned.
+
+**Story goal:** User can create, view, list, and edit basic Tasks directly under an owned Area.
+
+**Planned scope:**
+
+- Create Task under Area with title, description, dates, priority, default To Do status.
+- View Task detail with all fields.
+- List Tasks within an Area with cursor pagination.
+- Edit Task fields via PATCH with ETag/If-Match concurrency.
+- Owner isolation, CSRF, idempotency.
+- Frontend: create form, detail view, edit form, task list in Area context.
+- No Projects, recurrence, reminders, Kanban, bulk actions, or search.
+
+**Plan document:** `docs/planning/L-006_TASK_CREATION_PLAN.md`
 
 ## 7. Backlog maintenance policy
 

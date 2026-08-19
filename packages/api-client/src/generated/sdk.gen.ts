@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CompleteCurrentUserOnboardingData, CompleteCurrentUserOnboardingErrors, CompleteCurrentUserOnboardingResponses, CreateAuthSessionData, CreateAuthSessionErrors, CreateAuthSessionResponses, DeleteAuthSessionData, DeleteAuthSessionErrors, DeleteAuthSessionResponses, GetAuthCsrfData, GetAuthCsrfResponses, GetAuthSessionData, GetAuthSessionResponses, GetCurrentUserData, GetCurrentUserErrors, GetCurrentUserResponses, GetVersionData, GetVersionResponses, InitiateAccountDeletionData, InitiateAccountDeletionErrors, InitiateAccountDeletionResponses, ReauthenticateData, ReauthenticateErrors, ReauthenticateResponses, RegisterAccountData, RegisterAccountErrors, RegisterAccountResponses, RequestEmailVerificationData, RequestEmailVerificationErrors, RequestEmailVerificationResponses, RequestPasswordResetData, RequestPasswordResetErrors, RequestPasswordResetResponses, ResetPasswordData, ResetPasswordErrors, ResetPasswordResponses, UpdateCurrentUserData, UpdateCurrentUserErrors, UpdateCurrentUserResponses, VerifyEmailData, VerifyEmailErrors, VerifyEmailResponses } from './types.gen';
+import type { CompleteCurrentUserOnboardingData, CompleteCurrentUserOnboardingErrors, CompleteCurrentUserOnboardingResponses, CreateAreaData, CreateAreaErrors, CreateAreaResponses, CreateAuthSessionData, CreateAuthSessionErrors, CreateAuthSessionResponses, DeleteAuthSessionData, DeleteAuthSessionErrors, DeleteAuthSessionResponses, GetAreaData, GetAreaErrors, GetAreaResponses, GetAuthCsrfData, GetAuthCsrfResponses, GetAuthSessionData, GetAuthSessionResponses, GetCurrentUserData, GetCurrentUserErrors, GetCurrentUserResponses, GetVersionData, GetVersionResponses, InitiateAccountDeletionData, InitiateAccountDeletionErrors, InitiateAccountDeletionResponses, ListAreasData, ListAreasErrors, ListAreasResponses, ReauthenticateData, ReauthenticateErrors, ReauthenticateResponses, RegisterAccountData, RegisterAccountErrors, RegisterAccountResponses, RenameAreaData, RenameAreaErrors, RenameAreaResponses, RequestEmailVerificationData, RequestEmailVerificationErrors, RequestEmailVerificationResponses, RequestPasswordResetData, RequestPasswordResetErrors, RequestPasswordResetResponses, ResetPasswordData, ResetPasswordErrors, ResetPasswordResponses, UpdateCurrentUserData, UpdateCurrentUserErrors, UpdateCurrentUserResponses, VerifyEmailData, VerifyEmailErrors, VerifyEmailResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -17,6 +17,40 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
      */
     meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;
 };
+
+/**
+ * List active Areas for the current user
+ */
+export const listAreas = <ThrowOnError extends boolean = false>(options?: Options<ListAreasData, ThrowOnError>): RequestResult<ListAreasResponses, ListAreasErrors, ThrowOnError> => (options?.client ?? client).get<ListAreasResponses, ListAreasErrors, ThrowOnError>({ url: '/api/v1/areas', ...options });
+
+/**
+ * Create a new Area with default workflow statuses
+ */
+export const createArea = <ThrowOnError extends boolean = false>(options: Options<CreateAreaData, ThrowOnError>): RequestResult<CreateAreaResponses, CreateAreaErrors, ThrowOnError> => (options.client ?? client).post<CreateAreaResponses, CreateAreaErrors, ThrowOnError>({
+    url: '/api/v1/areas',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Get Area detail with statuses and counts
+ */
+export const getArea = <ThrowOnError extends boolean = false>(options: Options<GetAreaData, ThrowOnError>): RequestResult<GetAreaResponses, GetAreaErrors, ThrowOnError> => (options.client ?? client).get<GetAreaResponses, GetAreaErrors, ThrowOnError>({ url: '/api/v1/areas/{areaId}', ...options });
+
+/**
+ * Rename an Area
+ */
+export const renameArea = <ThrowOnError extends boolean = false>(options: Options<RenameAreaData, ThrowOnError>): RequestResult<RenameAreaResponses, RenameAreaErrors, ThrowOnError> => (options.client ?? client).patch<RenameAreaResponses, RenameAreaErrors, ThrowOnError>({
+    url: '/api/v1/areas/{areaId}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
 /**
  * Issue a CSRF token for an anonymous authentication transaction

@@ -42,5 +42,6 @@ import { UserController } from './transport/user.controller';
     UpdateCurrentUserService,
     VerifyEmailService,
   ],
+  exports: [AccountsRepository, AuthSecurityService],
 })
 export class AccountsModule {}

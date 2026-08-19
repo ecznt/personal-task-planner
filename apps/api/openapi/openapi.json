@@ -66,6 +66,202 @@
         ],
         "type": "object"
       },
+      "AreaDataDto": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "lifecycleState": {
+            "enum": [
+              "ACTIVE",
+              "ARCHIVED",
+              "TRASHED"
+            ],
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "lifecycleState",
+          "version"
+        ],
+        "type": "object"
+      },
+      "AreaDetailDataDto": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "lifecycleState": {
+            "enum": [
+              "ACTIVE",
+              "ARCHIVED",
+              "TRASHED"
+            ],
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "projectCount": {
+            "type": "number"
+          },
+          "statuses": {
+            "items": {
+              "$ref": "#/components/schemas/AreaStatusDto"
+            },
+            "type": "array"
+          },
+          "taskCount": {
+            "type": "number"
+          },
+          "version": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "lifecycleState",
+          "version",
+          "taskCount",
+          "projectCount",
+          "statuses"
+        ],
+        "type": "object"
+      },
+      "AreaDetailResponseDto": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AreaDetailDataDto"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "AreaListMetaDto": {
+        "properties": {
+          "nextCursor": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "AreaListResponseDto": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/AreaSummaryDto"
+            },
+            "type": "array"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/AreaListMetaDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "type": "object"
+      },
+      "AreaResponseDto": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AreaDataDto"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "AreaStatusDto": {
+        "properties": {
+          "active": {
+            "type": "boolean"
+          },
+          "canonicalStatus": {
+            "enum": [
+              "TO_DO",
+              "IN_PROGRESS",
+              "COMPLETED"
+            ],
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "position": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "canonicalStatus",
+          "position",
+          "isDefault",
+          "active"
+        ],
+        "type": "object"
+      },
+      "AreaSummaryDto": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "lifecycleState": {
+            "enum": [
+              "ACTIVE",
+              "ARCHIVED",
+              "TRASHED"
+            ],
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "overdueTaskCount": {
+            "type": "number"
+          },
+          "projectCount": {
+            "type": "number"
+          },
+          "taskCount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "lifecycleState",
+          "taskCount",
+          "projectCount",
+          "overdueTaskCount"
+        ],
+        "type": "object"
+      },
       "AuthenticatedSessionDataDto": {
         "properties": {
           "absoluteExpiresAt": {
@@ -94,6 +290,18 @@
           "idleExpiresAt",
           "absoluteExpiresAt",
           "next"
+        ],
+        "type": "object"
+      },
+      "CreateAreaRequestDto": {
+        "properties": {
+          "name": {
+            "example": "Kişisel Planlama",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
         ],
         "type": "object"
       },
@@ -483,6 +691,18 @@
         ],
         "type": "object"
       },
+      "RenameAreaRequestDto": {
+        "properties": {
+          "name": {
+            "example": "Yeni Alan Adı",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
       "ResetPasswordRequestDto": {
         "properties": {
           "password": {
@@ -634,6 +854,157 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/areas": {
+      "get": {
+        "operationId": "listAreas",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AreaListResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          }
+        },
+        "summary": "List active Areas for the current user",
+        "tags": [
+          "Areas"
+        ]
+      },
+      "post": {
+        "operationId": "createArea",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAreaRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AreaDetailResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "422": {
+            "description": "Validation failed."
+          }
+        },
+        "summary": "Create a new Area with default workflow statuses",
+        "tags": [
+          "Areas"
+        ]
+      }
+    },
+    "/api/v1/areas/{areaId}": {
+      "get": {
+        "operationId": "getArea",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "areaId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AreaDetailResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "404": {
+            "description": "Area not found."
+          }
+        },
+        "summary": "Get Area detail with statuses and counts",
+        "tags": [
+          "Areas"
+        ]
+      },
+      "patch": {
+        "operationId": "renameArea",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "areaId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenameAreaRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AreaResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "404": {
+            "description": "Area not found."
+          },
+          "409": {
+            "description": "Version conflict."
+          },
+          "422": {
+            "description": "Validation failed."
+          }
+        },
+        "summary": "Rename an Area",
+        "tags": [
+          "Areas"
+        ]
+      }
+    },
     "/api/v1/auth/csrf": {
       "get": {
         "operationId": "getAuthCsrf",

@@ -21,12 +21,68 @@ export type AccountDeletionRequestDto = {
     confirmation: 'DELETE_MY_ACCOUNT';
 };
 
+export type AreaDataDto = {
+    id: string;
+    lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+    name: string;
+    version: number;
+};
+
+export type AreaDetailDataDto = {
+    id: string;
+    lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+    name: string;
+    projectCount: number;
+    statuses: Array<AreaStatusDto>;
+    taskCount: number;
+    version: number;
+};
+
+export type AreaDetailResponseDto = {
+    data: AreaDetailDataDto;
+};
+
+export type AreaListMetaDto = {
+    nextCursor?: string;
+};
+
+export type AreaListResponseDto = {
+    data: Array<AreaSummaryDto>;
+    meta: AreaListMetaDto;
+};
+
+export type AreaResponseDto = {
+    data: AreaDataDto;
+};
+
+export type AreaStatusDto = {
+    active: boolean;
+    canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+    id: string;
+    isDefault: boolean;
+    name: string;
+    position: number;
+};
+
+export type AreaSummaryDto = {
+    id: string;
+    lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+    name: string;
+    overdueTaskCount: number;
+    projectCount: number;
+    taskCount: number;
+};
+
 export type AuthenticatedSessionDataDto = {
     absoluteExpiresAt: string;
     authenticated: boolean;
     email: string;
     idleExpiresAt: string;
     next: string;
+};
+
+export type CreateAreaRequestDto = {
+    name: string;
 };
 
 export type CsrfTokenDataDto = {
@@ -131,6 +187,10 @@ export type RegistrationAcceptedResponseDto = {
     data: RegistrationAcceptedDataDto;
 };
 
+export type RenameAreaRequestDto = {
+    name: string;
+};
+
 export type ResetPasswordRequestDto = {
     password: string;
     passwordConfirmation: string;
@@ -191,6 +251,110 @@ export type VerifyEmailRequestDtoWritable = {
     code: string;
     email: string;
 };
+
+export type ListAreasData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/areas';
+};
+
+export type ListAreasErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+};
+
+export type ListAreasResponses = {
+    200: AreaListResponseDto;
+};
+
+export type ListAreasResponse = ListAreasResponses[keyof ListAreasResponses];
+
+export type CreateAreaData = {
+    body: CreateAreaRequestDto;
+    path?: never;
+    query?: never;
+    url: '/api/v1/areas';
+};
+
+export type CreateAreaErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Validation failed.
+     */
+    422: unknown;
+};
+
+export type CreateAreaResponses = {
+    201: AreaDetailResponseDto;
+};
+
+export type CreateAreaResponse = CreateAreaResponses[keyof CreateAreaResponses];
+
+export type GetAreaData = {
+    body?: never;
+    path: {
+        areaId: string;
+    };
+    query?: never;
+    url: '/api/v1/areas/{areaId}';
+};
+
+export type GetAreaErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Area not found.
+     */
+    404: unknown;
+};
+
+export type GetAreaResponses = {
+    200: AreaDetailResponseDto;
+};
+
+export type GetAreaResponse = GetAreaResponses[keyof GetAreaResponses];
+
+export type RenameAreaData = {
+    body: RenameAreaRequestDto;
+    path: {
+        areaId: string;
+    };
+    query?: never;
+    url: '/api/v1/areas/{areaId}';
+};
+
+export type RenameAreaErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Area not found.
+     */
+    404: unknown;
+    /**
+     * Version conflict.
+     */
+    409: unknown;
+    /**
+     * Validation failed.
+     */
+    422: unknown;
+};
+
+export type RenameAreaResponses = {
+    200: AreaResponseDto;
+};
+
+export type RenameAreaResponse = RenameAreaResponses[keyof RenameAreaResponses];
 
 export type GetAuthCsrfData = {
     body?: never;
