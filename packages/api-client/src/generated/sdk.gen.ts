@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CompleteCurrentUserOnboardingData, CompleteCurrentUserOnboardingErrors, CompleteCurrentUserOnboardingResponses, CreateAreaData, CreateAreaErrors, CreateAreaResponses, CreateAuthSessionData, CreateAuthSessionErrors, CreateAuthSessionResponses, CreateTaskData, CreateTaskErrors, CreateTaskResponses, DeleteAuthSessionData, DeleteAuthSessionErrors, DeleteAuthSessionResponses, EditTaskData, EditTaskErrors, EditTaskResponses, GetAreaData, GetAreaErrors, GetAreaResponses, GetAuthCsrfData, GetAuthCsrfResponses, GetAuthSessionData, GetAuthSessionResponses, GetCurrentUserData, GetCurrentUserErrors, GetCurrentUserResponses, GetTaskData, GetTaskErrors, GetTaskResponses, GetVersionData, GetVersionResponses, InitiateAccountDeletionData, InitiateAccountDeletionErrors, InitiateAccountDeletionResponses, ListAreasData, ListAreasErrors, ListAreasResponses, ListTasksData, ListTasksErrors, ListTasksResponses, ReauthenticateData, ReauthenticateErrors, ReauthenticateResponses, RegisterAccountData, RegisterAccountErrors, RegisterAccountResponses, RenameAreaData, RenameAreaErrors, RenameAreaResponses, RequestEmailVerificationData, RequestEmailVerificationErrors, RequestEmailVerificationResponses, RequestPasswordResetData, RequestPasswordResetErrors, RequestPasswordResetResponses, ResetPasswordData, ResetPasswordErrors, ResetPasswordResponses, UpdateCurrentUserData, UpdateCurrentUserErrors, UpdateCurrentUserResponses, VerifyEmailData, VerifyEmailErrors, VerifyEmailResponses } from './types.gen';
+import type { AddChecklistItemData, AddChecklistItemErrors, AddChecklistItemResponses, CompleteChecklistItemData, CompleteChecklistItemErrors, CompleteChecklistItemResponses, CompleteCurrentUserOnboardingData, CompleteCurrentUserOnboardingErrors, CompleteCurrentUserOnboardingResponses, CreateAreaData, CreateAreaErrors, CreateAreaResponses, CreateAuthSessionData, CreateAuthSessionErrors, CreateAuthSessionResponses, CreateLabelData, CreateLabelErrors, CreateLabelResponses, CreateTaskData, CreateTaskErrors, CreateTaskResponses, DeleteAuthSessionData, DeleteAuthSessionErrors, DeleteAuthSessionResponses, DeleteChecklistItemData, DeleteChecklistItemErrors, DeleteChecklistItemResponses, DeleteLabelData, DeleteLabelErrors, DeleteLabelResponses, EditChecklistItemData, EditChecklistItemErrors, EditChecklistItemResponses, EditTaskData, EditTaskErrors, EditTaskResponses, GetAreaData, GetAreaErrors, GetAreaResponses, GetAuthCsrfData, GetAuthCsrfResponses, GetAuthSessionData, GetAuthSessionResponses, GetCurrentUserData, GetCurrentUserErrors, GetCurrentUserResponses, GetLabelData, GetLabelErrors, GetLabelResponses, GetTaskData, GetTaskErrors, GetTaskResponses, GetVersionData, GetVersionResponses, InitiateAccountDeletionData, InitiateAccountDeletionErrors, InitiateAccountDeletionResponses, ListAreasData, ListAreasErrors, ListAreasResponses, ListChecklistItemsData, ListChecklistItemsErrors, ListChecklistItemsResponses, ListLabelsData, ListLabelsErrors, ListLabelsResponses, ListTasksData, ListTasksErrors, ListTasksResponses, ReauthenticateData, ReauthenticateErrors, ReauthenticateResponses, RegisterAccountData, RegisterAccountErrors, RegisterAccountResponses, RenameAreaData, RenameAreaErrors, RenameAreaResponses, RenameLabelData, RenameLabelErrors, RenameLabelResponses, ReopenChecklistItemData, ReopenChecklistItemErrors, ReopenChecklistItemResponses, ReorderChecklistData, ReorderChecklistErrors, ReorderChecklistResponses, RequestEmailVerificationData, RequestEmailVerificationErrors, RequestEmailVerificationResponses, RequestPasswordResetData, RequestPasswordResetErrors, RequestPasswordResetResponses, ResetPasswordData, ResetPasswordErrors, ResetPasswordResponses, UpdateCurrentUserData, UpdateCurrentUserErrors, UpdateCurrentUserResponses, VerifyEmailData, VerifyEmailErrors, VerifyEmailResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -169,6 +169,45 @@ export const createAuthSession = <ThrowOnError extends boolean = false>(options:
 });
 
 /**
+ * List User Labels
+ */
+export const listLabels = <ThrowOnError extends boolean = false>(options?: Options<ListLabelsData, ThrowOnError>): RequestResult<ListLabelsResponses, ListLabelsErrors, ThrowOnError> => (options?.client ?? client).get<ListLabelsResponses, ListLabelsErrors, ThrowOnError>({ url: '/api/v1/labels', ...options });
+
+/**
+ * Create Label
+ */
+export const createLabel = <ThrowOnError extends boolean = false>(options: Options<CreateLabelData, ThrowOnError>): RequestResult<CreateLabelResponses, CreateLabelErrors, ThrowOnError> => (options.client ?? client).post<CreateLabelResponses, CreateLabelErrors, ThrowOnError>({
+    url: '/api/v1/labels',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete Label
+ */
+export const deleteLabel = <ThrowOnError extends boolean = false>(options: Options<DeleteLabelData, ThrowOnError>): RequestResult<DeleteLabelResponses, DeleteLabelErrors, ThrowOnError> => (options.client ?? client).delete<DeleteLabelResponses, DeleteLabelErrors, ThrowOnError>({ url: '/api/v1/labels/{labelId}', ...options });
+
+/**
+ * Get Label detail
+ */
+export const getLabel = <ThrowOnError extends boolean = false>(options: Options<GetLabelData, ThrowOnError>): RequestResult<GetLabelResponses, GetLabelErrors, ThrowOnError> => (options.client ?? client).get<GetLabelResponses, GetLabelErrors, ThrowOnError>({ url: '/api/v1/labels/{labelId}', ...options });
+
+/**
+ * Rename Label
+ */
+export const renameLabel = <ThrowOnError extends boolean = false>(options: Options<RenameLabelData, ThrowOnError>): RequestResult<RenameLabelResponses, RenameLabelErrors, ThrowOnError> => (options.client ?? client).patch<RenameLabelResponses, RenameLabelErrors, ThrowOnError>({
+    url: '/api/v1/labels/{labelId}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
  * Get Task detail
  */
 export const getTask = <ThrowOnError extends boolean = false>(options: Options<GetTaskData, ThrowOnError>): RequestResult<GetTaskResponses, GetTaskErrors, ThrowOnError> => (options.client ?? client).get<GetTaskResponses, GetTaskErrors, ThrowOnError>({ url: '/api/v1/tasks/{taskId}', ...options });
@@ -178,6 +217,62 @@ export const getTask = <ThrowOnError extends boolean = false>(options: Options<G
  */
 export const editTask = <ThrowOnError extends boolean = false>(options: Options<EditTaskData, ThrowOnError>): RequestResult<EditTaskResponses, EditTaskErrors, ThrowOnError> => (options.client ?? client).patch<EditTaskResponses, EditTaskErrors, ThrowOnError>({
     url: '/api/v1/tasks/{taskId}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List checklist items for a Task
+ */
+export const listChecklistItems = <ThrowOnError extends boolean = false>(options: Options<ListChecklistItemsData, ThrowOnError>): RequestResult<ListChecklistItemsResponses, ListChecklistItemsErrors, ThrowOnError> => (options.client ?? client).get<ListChecklistItemsResponses, ListChecklistItemsErrors, ThrowOnError>({ url: '/api/v1/tasks/{taskId}/checklist-items', ...options });
+
+/**
+ * Add checklist item to Task
+ */
+export const addChecklistItem = <ThrowOnError extends boolean = false>(options: Options<AddChecklistItemData, ThrowOnError>): RequestResult<AddChecklistItemResponses, AddChecklistItemErrors, ThrowOnError> => (options.client ?? client).post<AddChecklistItemResponses, AddChecklistItemErrors, ThrowOnError>({
+    url: '/api/v1/tasks/{taskId}/checklist-items',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete checklist item
+ */
+export const deleteChecklistItem = <ThrowOnError extends boolean = false>(options: Options<DeleteChecklistItemData, ThrowOnError>): RequestResult<DeleteChecklistItemResponses, DeleteChecklistItemErrors, ThrowOnError> => (options.client ?? client).delete<DeleteChecklistItemResponses, DeleteChecklistItemErrors, ThrowOnError>({ url: '/api/v1/tasks/{taskId}/checklist-items/{checklistItemId}', ...options });
+
+/**
+ * Edit checklist item text
+ */
+export const editChecklistItem = <ThrowOnError extends boolean = false>(options: Options<EditChecklistItemData, ThrowOnError>): RequestResult<EditChecklistItemResponses, EditChecklistItemErrors, ThrowOnError> => (options.client ?? client).patch<EditChecklistItemResponses, EditChecklistItemErrors, ThrowOnError>({
+    url: '/api/v1/tasks/{taskId}/checklist-items/{checklistItemId}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Complete checklist item
+ */
+export const completeChecklistItem = <ThrowOnError extends boolean = false>(options: Options<CompleteChecklistItemData, ThrowOnError>): RequestResult<CompleteChecklistItemResponses, CompleteChecklistItemErrors, ThrowOnError> => (options.client ?? client).patch<CompleteChecklistItemResponses, CompleteChecklistItemErrors, ThrowOnError>({ url: '/api/v1/tasks/{taskId}/checklist-items/{checklistItemId}/complete', ...options });
+
+/**
+ * Reopen checklist item
+ */
+export const reopenChecklistItem = <ThrowOnError extends boolean = false>(options: Options<ReopenChecklistItemData, ThrowOnError>): RequestResult<ReopenChecklistItemResponses, ReopenChecklistItemErrors, ThrowOnError> => (options.client ?? client).patch<ReopenChecklistItemResponses, ReopenChecklistItemErrors, ThrowOnError>({ url: '/api/v1/tasks/{taskId}/checklist-items/{checklistItemId}/reopen', ...options });
+
+/**
+ * Reorder checklist items
+ */
+export const reorderChecklist = <ThrowOnError extends boolean = false>(options: Options<ReorderChecklistData, ThrowOnError>): RequestResult<ReorderChecklistResponses, ReorderChecklistErrors, ThrowOnError> => (options.client ?? client).put<ReorderChecklistResponses, ReorderChecklistErrors, ThrowOnError>({
+    url: '/api/v1/tasks/{taskId}/checklist-order',
     ...options,
     headers: {
         'Content-Type': 'application/json',

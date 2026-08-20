@@ -12,8 +12,22 @@ import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
+import { Checklist } from '@/features/checklist/checklist';
+import { LabelManager } from '@/features/labels/label-manager';
 
 import { editTaskSchema, type EditTaskFormValues } from './task-schema';
+
+type LabelSummary = {
+  readonly id: string;
+  readonly name: string;
+};
+
+type ChecklistItem = {
+  readonly id: string;
+  readonly text: string;
+  readonly position: number;
+  readonly completed: boolean;
+};
 
 type TaskData = {
   readonly id: string;
@@ -27,6 +41,8 @@ type TaskData = {
   readonly canonicalStatus: string;
   readonly lifecycleState: string;
   readonly version: number;
+  readonly labels: readonly LabelSummary[];
+  readonly checklistItems: readonly ChecklistItem[];
 };
 
 type TaskDetailProps = {
@@ -60,6 +76,7 @@ function toLocalDatetime(iso: string | null): string {
 
 export function TaskDetail({ taskId }: TaskDetailProps) {
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedLabelIds, setSelectedLabelIds] = useState<readonly string[]>([]);
   const queryClient = useQueryClient();
 
   const task = useQuery({
@@ -74,6 +91,8 @@ export function TaskDetail({ taskId }: TaskDetailProps) {
         throw new Error('Görev yüklenemedi.');
       }
 
+      const data = (result.data as { data: TaskData }).data;
+      setSelectedLabelIds(data.labels.map((l) => l.id));
       return result.data as { data: TaskData };
     },
   });
@@ -102,6 +121,7 @@ export function TaskDetail({ taskId }: TaskDetailProps) {
       if (values.plannedAt !== undefined) body.plannedAt = values.plannedAt || null;
       if (values.dueAt !== undefined) body.dueAt = values.dueAt || null;
       if (values.priority !== undefined) body.priority = values.priority;
+      body.labelIds = [...selectedLabelIds];
 
       if (Object.keys(body).length === 0) {
         setIsEditing(false);
@@ -217,6 +237,14 @@ export function TaskDetail({ taskId }: TaskDetailProps) {
               <option value="HIGH">Yüksek</option>
             </select>
           </Field>
+          <LabelManager
+            selectedLabelIds={selectedLabelIds}
+            onToggleLabel={(id) => {
+              setSelectedLabelIds((prev) =>
+                prev.includes(id) ? prev.filter((l) => l !== id) : [...prev, id],
+              );
+            }}
+          />
           <div className="flex gap-2">
             <Button
               type="button"
@@ -279,6 +307,21 @@ export function TaskDetail({ taskId }: TaskDetailProps) {
           <div className="mt-1 whitespace-pre-wrap text-sm">{taskData.description}</div>
         </div>
       )}
+
+      <div className="rounded-lg border bg-card p-4">
+        <LabelManager
+          selectedLabelIds={selectedLabelIds}
+          onToggleLabel={(id) => {
+            setSelectedLabelIds((prev) =>
+              prev.includes(id) ? prev.filter((l) => l !== id) : [...prev, id],
+            );
+          }}
+        />
+      </div>
+
+      <div className="rounded-lg border bg-card p-4">
+        <Checklist taskId={taskId} />
+      </div>
     </div>
   );
 }

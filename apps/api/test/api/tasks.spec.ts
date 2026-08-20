@@ -191,6 +191,8 @@ describe('task HTTP contract', () => {
           },
           canonicalStatus: 'TO_DO',
           areaName: 'Test Area',
+          labels: [],
+          checklistItems: [],
         },
         etag: 1,
       });

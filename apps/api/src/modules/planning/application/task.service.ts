@@ -50,6 +50,7 @@ export type EditTaskCommand = {
   readonly dueAt?: Date | null;
   readonly priority?: 'LOW' | 'MEDIUM' | 'HIGH';
   readonly areaStatusId?: string;
+  readonly labelIds?: string[];
   readonly version: number;
 };
 
@@ -242,6 +243,10 @@ export class TaskService {
       }
 
       return { outcome: 'STALE_VERSION' };
+    }
+
+    if (command.labelIds !== undefined) {
+      await this.taskRepository.setTaskLabels(userId, command.taskId, command.labelIds);
     }
 
     return { outcome: 'SUCCESS', task, etag: task.version };

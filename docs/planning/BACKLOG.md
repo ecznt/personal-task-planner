@@ -45,6 +45,7 @@ These items are complete, published to `develop`, and CI-verified. Future slices
 | L-004 | Private sample data creation with Area, AreaStatuses, Project, Tasks, Label, TaskLabel, ChecklistItems. | Commit `095560b`, CI `32017453871`. |
 | L-005 | User manages Areas. Create/list/detail/rename active owned Areas with default workflow. | Implemented, locally verified, and approved. |
 | L-006 | User creates and edits basic Tasks directly under an Area. | Implemented, locally verified, and approved. |
+| L-007 | Checklist and Labels for Tasks. | Implemented, locally verified, and approved. |
 
 Reserved/deferred IDs `BL-012` and `BL-013` remain reserved for removed social-authentication work and must not be reused.
 

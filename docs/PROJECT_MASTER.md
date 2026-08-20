@@ -529,11 +529,12 @@ Update this section after every successful graph generation.
 | 2026-08-13 | Phase 3 — L-002 onboarding preference and time-zone confirmation | Completed, accepted, committed, published, and CI-verified | Current-user time-zone update API with CSRF and `If-Match`, generated OpenAPI/client artifacts, Turkish onboarding preference form, targeted automated tests, bounded Graphify update, no onboarding completion/sample/planning data creation, commit `5580a48`, and CI run `31682908571`. |
 | 2026-08-17 | Phase 3 — L-003 start-empty onboarding completion | Completed, accepted, committed, published, and CI-verified | Start-empty onboarding completion endpoint, `onboardingCompletedAt` migration, CSRF/ETag/idempotency enforcement, Today handoff, generated OpenAPI/client artifacts, full local verification, Graphify impact review, commit `1c66322`, and CI run `32012029837`. |
 | 2026-08-17 | Phase 3 — L-004 private sample data creation | Completed, accepted, committed, published, and CI-verified | `CREATE_SAMPLE_DATA` onboarding completion, first planning persistence tables, atomic owner-scoped sample Area/AreaStatus/Project/Task/Label/TaskLabel/ChecklistItem creation, generated OpenAPI/client artifacts, full local verification, commit `095560b`, CI run `32017453871`, and no general planning CRUD/work-view implementation. |
+| 2026-08-20 | Phase 3 — L-007 Checklist and Labels for Tasks | Implemented, locally verified, and approved | Label CRUD, ChecklistItem CRUD, task integration, generated OpenAPI/client artifacts, full local verification, and no Projects, recurrence, reminders, or Kanban. |
 
 ## Current planning stage
 
-Phase 3 Implementation — L-005 Area management. EPIC-001, BL-007 through BL-011, BL-014, BL-015, BL-121, the lean backlog refactor, L-001, L-002, L-003, L-004, and L-005 are implemented. L-005 is locally verified and queued for publication. Task, Project, Label, Checklist management UI/API, List, Kanban, Today data integration, Archive, Trash, recurrence, reminders, collaboration, social authentication, billing, native-mobile, and full primary-data purge implementation have not started.
+Phase 3 Implementation — L-007 Checklist and Labels. EPIC-001, BL-007 through BL-011, BL-014, BL-015, BL-121, the lean backlog refactor, L-001, L-002, L-003, L-004, L-005, L-006, and L-007 are implemented. L-007 is locally verified and queued for publication. Project management, List, Kanban, Today data integration, Archive, Trash, recurrence, reminders, collaboration, social authentication, billing, native-mobile, and full primary-data purge implementation have not started.
 
 ## Next required action
 
-Run quality gates, verify CI, and publish L-005. Then plan L-006 basic Task creation.
+Run quality gates, verify CI, and publish L-007. Then plan next slice (Project management, List view, or Kanban).

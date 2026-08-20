@@ -1,5 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+import { ChecklistItemDataDto } from './checklist.dto';
+import { LabelSummaryDto } from './label.dto';
+
 export class TaskDataDto {
   @ApiProperty({ format: 'uuid', type: String })
   id!: string;
@@ -33,6 +36,12 @@ export class TaskDataDto {
 
   @ApiProperty({ type: Number })
   version!: number;
+
+  @ApiProperty({ type: () => [LabelSummaryDto] })
+  labels!: LabelSummaryDto[];
+
+  @ApiProperty({ type: () => [ChecklistItemDataDto] })
+  checklistItems!: ChecklistItemDataDto[];
 }
 
 export class TaskSummaryDto {
@@ -120,4 +129,7 @@ export class EditTaskRequestDto {
 
   @ApiProperty({ format: 'uuid', type: String, required: false })
   areaStatusId?: string | null;
+
+  @ApiProperty({ type: [String], format: 'uuid', required: false })
+  labelIds?: string[];
 }

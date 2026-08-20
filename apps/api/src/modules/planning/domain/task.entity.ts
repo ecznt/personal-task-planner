@@ -1,3 +1,6 @@
+import type { ChecklistItem } from './checklist-item.entity';
+import type { LabelSummary } from './label.entity';
+
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH';
 
 export type Task = {
@@ -34,4 +37,6 @@ export type TaskDetail = {
   readonly task: Task;
   readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
   readonly areaName: string;
+  readonly labels: readonly LabelSummary[];
+  readonly checklistItems: readonly ChecklistItem[];
 };

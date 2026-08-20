@@ -54,6 +54,7 @@ const editTaskSchema = z.strictObject({
   dueAt: z.coerce.date().nullable().optional(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).nullable().optional(),
   areaStatusId: z.string().uuid().nullable().optional(),
+  labelIds: z.array(z.string().uuid()).optional(),
 });
 
 export type EditTaskInput = z.infer<typeof editTaskSchema>;

@@ -66,6 +66,18 @@
         ],
         "type": "object"
       },
+      "AddChecklistItemRequestDto": {
+        "properties": {
+          "text": {
+            "example": "Süt al",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "type": "object"
+      },
       "AreaDataDto": {
         "properties": {
           "id": {
@@ -293,10 +305,93 @@
         ],
         "type": "object"
       },
+      "ChecklistItemDataDto": {
+        "properties": {
+          "completedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "position": {
+            "type": "number"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "text",
+          "position"
+        ],
+        "type": "object"
+      },
+      "ChecklistItemListResponseDto": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/ChecklistItemDataDto"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "ChecklistItemResponseDto": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ChecklistItemDataDto"
+          },
+          "taskVersion": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "data",
+          "taskVersion"
+        ],
+        "type": "object"
+      },
+      "ChecklistOrderResponseDto": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/ChecklistItemDataDto"
+            },
+            "type": "array"
+          },
+          "taskVersion": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "data",
+          "taskVersion"
+        ],
+        "type": "object"
+      },
       "CreateAreaRequestDto": {
         "properties": {
           "name": {
             "example": "Kişisel Planlama",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "CreateLabelRequestDto": {
+        "properties": {
+          "name": {
+            "example": "Alisveris",
             "type": "string"
           }
         },
@@ -418,6 +513,18 @@
         ],
         "type": "object"
       },
+      "EditChecklistItemRequestDto": {
+        "properties": {
+          "text": {
+            "example": "Tam yagli süt al",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "type": "object"
+      },
       "EditTaskRequestDto": {
         "properties": {
           "areaStatusId": {
@@ -430,6 +537,13 @@
           "dueAt": {
             "format": "date-time",
             "type": "string"
+          },
+          "labelIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
           },
           "plannedAt": {
             "format": "date-time",
@@ -486,6 +600,80 @@
         },
         "required": [
           "email"
+        ],
+        "type": "object"
+      },
+      "LabelDataDto": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "version"
+        ],
+        "type": "object"
+      },
+      "LabelListMetaDto": {
+        "properties": {
+          "nextCursor": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "LabelListResponseDto": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/LabelSummaryDto"
+            },
+            "type": "array"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/LabelListMetaDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "type": "object"
+      },
+      "LabelResponseDto": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LabelDataDto"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "LabelSummaryDto": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
         ],
         "type": "object"
       },
@@ -767,6 +955,33 @@
         ],
         "type": "object"
       },
+      "RenameLabelRequestDto": {
+        "properties": {
+          "name": {
+            "example": "Alisveris Listesi",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "ReorderChecklistRequestDto": {
+        "properties": {
+          "orderedIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "orderedIds"
+        ],
+        "type": "object"
+      },
       "ResetPasswordRequestDto": {
         "properties": {
           "password": {
@@ -849,6 +1064,12 @@
             ],
             "type": "string"
           },
+          "checklistItems": {
+            "items": {
+              "$ref": "#/components/schemas/ChecklistItemDataDto"
+            },
+            "type": "array"
+          },
           "description": {
             "type": "string"
           },
@@ -859,6 +1080,12 @@
           "id": {
             "format": "uuid",
             "type": "string"
+          },
+          "labels": {
+            "items": {
+              "$ref": "#/components/schemas/LabelSummaryDto"
+            },
+            "type": "array"
           },
           "lifecycleState": {
             "enum": [
@@ -895,7 +1122,9 @@
           "areaStatusId",
           "canonicalStatus",
           "lifecycleState",
-          "version"
+          "version",
+          "labels",
+          "checklistItems"
         ],
         "type": "object"
       },
@@ -1734,6 +1963,192 @@
         ]
       }
     },
+    "/api/v1/labels": {
+      "get": {
+        "operationId": "listLabels",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LabelListResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          }
+        },
+        "summary": "List User Labels",
+        "tags": [
+          "Labels"
+        ]
+      },
+      "post": {
+        "operationId": "createLabel",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLabelRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LabelResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "409": {
+            "description": "Label name already exists."
+          },
+          "422": {
+            "description": "Validation failed."
+          }
+        },
+        "summary": "Create Label",
+        "tags": [
+          "Labels"
+        ]
+      }
+    },
+    "/api/v1/labels/{labelId}": {
+      "delete": {
+        "operationId": "deleteLabel",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "labelId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Label deleted successfully."
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "404": {
+            "description": "Label not found."
+          },
+          "409": {
+            "description": "Version conflict."
+          }
+        },
+        "summary": "Delete Label",
+        "tags": [
+          "Labels"
+        ]
+      },
+      "get": {
+        "operationId": "getLabel",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "labelId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LabelResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "404": {
+            "description": "Label not found."
+          }
+        },
+        "summary": "Get Label detail",
+        "tags": [
+          "Labels"
+        ]
+      },
+      "patch": {
+        "operationId": "renameLabel",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "labelId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenameLabelRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LabelResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "404": {
+            "description": "Label not found."
+          },
+          "409": {
+            "description": "Version conflict."
+          },
+          "422": {
+            "description": "Validation failed."
+          }
+        },
+        "summary": "Rename Label",
+        "tags": [
+          "Labels"
+        ]
+      }
+    },
     "/api/v1/tasks/{taskId}": {
       "get": {
         "operationId": "getTask",
@@ -1821,6 +2236,354 @@
         "summary": "Edit Task fields",
         "tags": [
           "Tasks"
+        ]
+      }
+    },
+    "/api/v1/tasks/{taskId}/checklist-items": {
+      "get": {
+        "operationId": "listChecklistItems",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "taskId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChecklistItemListResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "404": {
+            "description": "Task not found."
+          }
+        },
+        "summary": "List checklist items for a Task",
+        "tags": [
+          "Checklist"
+        ]
+      },
+      "post": {
+        "operationId": "addChecklistItem",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "taskId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddChecklistItemRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChecklistItemResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "404": {
+            "description": "Task not found."
+          },
+          "409": {
+            "description": "Version conflict."
+          },
+          "422": {
+            "description": "Validation failed."
+          }
+        },
+        "summary": "Add checklist item to Task",
+        "tags": [
+          "Checklist"
+        ]
+      }
+    },
+    "/api/v1/tasks/{taskId}/checklist-items/{checklistItemId}": {
+      "delete": {
+        "operationId": "deleteChecklistItem",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "checklistItemId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "taskId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Item deleted successfully."
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "404": {
+            "description": "Item not found."
+          },
+          "409": {
+            "description": "Version conflict."
+          }
+        },
+        "summary": "Delete checklist item",
+        "tags": [
+          "Checklist"
+        ]
+      },
+      "patch": {
+        "operationId": "editChecklistItem",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "checklistItemId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "taskId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditChecklistItemRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChecklistItemResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "404": {
+            "description": "Item not found."
+          },
+          "409": {
+            "description": "Version conflict."
+          },
+          "422": {
+            "description": "Validation failed."
+          }
+        },
+        "summary": "Edit checklist item text",
+        "tags": [
+          "Checklist"
+        ]
+      }
+    },
+    "/api/v1/tasks/{taskId}/checklist-items/{checklistItemId}/complete": {
+      "patch": {
+        "operationId": "completeChecklistItem",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "checklistItemId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "taskId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChecklistItemResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "404": {
+            "description": "Item not found."
+          },
+          "409": {
+            "description": "Version conflict."
+          }
+        },
+        "summary": "Complete checklist item",
+        "tags": [
+          "Checklist"
+        ]
+      }
+    },
+    "/api/v1/tasks/{taskId}/checklist-items/{checklistItemId}/reopen": {
+      "patch": {
+        "operationId": "reopenChecklistItem",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "checklistItemId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "taskId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChecklistItemResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "404": {
+            "description": "Item not found."
+          },
+          "409": {
+            "description": "Version conflict."
+          }
+        },
+        "summary": "Reopen checklist item",
+        "tags": [
+          "Checklist"
+        ]
+      }
+    },
+    "/api/v1/tasks/{taskId}/checklist-order": {
+      "put": {
+        "operationId": "reorderChecklist",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "taskId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderChecklistRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChecklistOrderResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "404": {
+            "description": "Task not found."
+          },
+          "409": {
+            "description": "Version conflict."
+          },
+          "422": {
+            "description": "Validation failed."
+          }
+        },
+        "summary": "Reorder checklist items",
+        "tags": [
+          "Checklist"
         ]
       }
     },

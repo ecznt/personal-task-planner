@@ -83,10 +83,22 @@ export class TaskRepository {
       select: { name: true },
     });
 
+    const taskLabels = await this.prisma.taskLabel.findMany({
+      where: { taskId, userId },
+      include: { label: { select: { id: true, name: true } } },
+    });
+
+    const checklistItems = await this.prisma.checklistItem.findMany({
+      where: { taskId, userId },
+      orderBy: { position: 'asc' },
+    });
+
     return {
       task,
       canonicalStatus: areaStatus?.canonicalStatus ?? 'TO_DO',
       areaName: area?.name ?? '',
+      labels: taskLabels.map((tl) => ({ id: tl.label.id, name: tl.label.name })),
+      checklistItems,
     };
   }
 
@@ -192,6 +204,48 @@ export class TaskRepository {
       select: { id: true },
     });
     return status !== null;
+  }
+
+  async incrementVersion(userId: string, taskId: string): Promise<Task | null> {
+    const result = await this.prisma.task.updateMany({
+      where: { id: taskId, userId, lifecycleState: 'ACTIVE' },
+      data: { version: { increment: 1 } },
+    });
+
+    if (result.count === 0) {
+      return null;
+    }
+
+    return this.prisma.task.findUnique({ where: { id: taskId } });
+  }
+
+  async setTaskLabels(userId: string, taskId: string, labelIds: readonly string[]): Promise<void> {
+    await this.prisma.$transaction(async (transaction) => {
+      await transaction.taskLabel.deleteMany({
+        where: { taskId, userId },
+      });
+
+      if (labelIds.length > 0) {
+        const labels = await transaction.label.findMany({
+          where: { id: { in: [...labelIds] }, userId },
+          select: { id: true },
+        });
+
+        const validLabelIds = new Set(labels.map((l) => l.id));
+
+        const validIds = labelIds.filter((id) => validLabelIds.has(id));
+
+        if (validIds.length > 0) {
+          await transaction.taskLabel.createMany({
+            data: validIds.map((labelId) => ({
+              userId,
+              taskId,
+              labelId,
+            })),
+          });
+        }
+      }
+    });
   }
 }
 

@@ -131,6 +131,7 @@ export class TaskController {
         input.areaStatusId !== null && {
           areaStatusId: input.areaStatusId,
         }),
+      ...(input.labelIds !== undefined && { labelIds: input.labelIds }),
     });
 
     return this.handleEditResult(result, response);
@@ -183,6 +184,16 @@ export class TaskController {
             canonicalStatus: result.data.canonicalStatus,
             lifecycleState: result.data.task.lifecycleState,
             version: result.data.task.version,
+            labels: result.data.labels.map((label) => ({
+              id: label.id,
+              name: label.name,
+            })),
+            checklistItems: result.data.checklistItems.map((item) => ({
+              id: item.id,
+              text: item.text,
+              position: item.position,
+              completedAt: item.completedAt?.toISOString() ?? null,
+            })),
           },
         };
       case 'NOT_FOUND':
@@ -217,6 +228,8 @@ export class TaskController {
             canonicalStatus: 'TO_DO',
             lifecycleState: result.task.lifecycleState,
             version: result.task.version,
+            labels: [],
+            checklistItems: [],
           },
         };
       case 'NOT_FOUND':

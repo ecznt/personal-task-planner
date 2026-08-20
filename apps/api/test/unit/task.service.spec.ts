@@ -195,6 +195,8 @@ describe('task service', () => {
       },
       canonicalStatus: 'TO_DO',
       areaName: 'Test Area',
+      labels: [],
+      checklistItems: [],
     });
 
     const service = new TaskService(repository);
@@ -322,6 +324,8 @@ describe('task service', () => {
       },
       canonicalStatus: 'TO_DO',
       areaName: 'Test Area',
+      labels: [],
+      checklistItems: [],
     });
 
     const service = new TaskService(repository);
@@ -381,5 +385,7 @@ function repositoryMock(): jest.Mocked<TaskRepository> {
     updateTask: jest.fn(),
     areaExists: jest.fn(),
     areaStatusBelongsToArea: jest.fn(),
+    incrementVersion: jest.fn(),
+    setTaskLabels: jest.fn(),
   } as unknown as jest.Mocked<TaskRepository>;
 }

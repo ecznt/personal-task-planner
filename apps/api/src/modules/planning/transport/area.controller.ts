@@ -490,6 +490,8 @@ export class AreaController {
             canonicalStatus: 'TO_DO',
             lifecycleState: result.task.lifecycleState,
             version: result.task.version,
+            labels: [],
+            checklistItems: [],
           },
         };
       case 'NOT_FOUND':

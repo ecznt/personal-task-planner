@@ -21,6 +21,10 @@ export type AccountDeletionRequestDto = {
     confirmation: 'DELETE_MY_ACCOUNT';
 };
 
+export type AddChecklistItemRequestDto = {
+    text: string;
+};
+
 export type AreaDataDto = {
     id: string;
     lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
@@ -81,7 +85,32 @@ export type AuthenticatedSessionDataDto = {
     next: string;
 };
 
+export type ChecklistItemDataDto = {
+    completedAt?: string;
+    id: string;
+    position: number;
+    text: string;
+};
+
+export type ChecklistItemListResponseDto = {
+    data: Array<ChecklistItemDataDto>;
+};
+
+export type ChecklistItemResponseDto = {
+    data: ChecklistItemDataDto;
+    taskVersion: number;
+};
+
+export type ChecklistOrderResponseDto = {
+    data: Array<ChecklistItemDataDto>;
+    taskVersion: number;
+};
+
 export type CreateAreaRequestDto = {
+    name: string;
+};
+
+export type CreateLabelRequestDto = {
     name: string;
 };
 
@@ -118,10 +147,15 @@ export type CurrentUserProfileResponseDto = {
     data: CurrentUserProfileDataDto;
 };
 
+export type EditChecklistItemRequestDto = {
+    text: string;
+};
+
 export type EditTaskRequestDto = {
     areaStatusId?: string;
     description?: string;
     dueAt?: string;
+    labelIds?: Array<string>;
     plannedAt?: string;
     priority?: 'LOW' | 'MEDIUM' | 'HIGH';
     title?: string;
@@ -137,6 +171,30 @@ export type EmailVerificationRequestAcceptedResponseDto = {
 
 export type EmailVerificationRequestDto = {
     email: string;
+};
+
+export type LabelDataDto = {
+    id: string;
+    name: string;
+    version: number;
+};
+
+export type LabelListMetaDto = {
+    nextCursor?: string;
+};
+
+export type LabelListResponseDto = {
+    data: Array<LabelSummaryDto>;
+    meta: LabelListMetaDto;
+};
+
+export type LabelResponseDto = {
+    data: LabelDataDto;
+};
+
+export type LabelSummaryDto = {
+    id: string;
+    name: string;
 };
 
 export type LoginRequestDto = {
@@ -208,6 +266,14 @@ export type RenameAreaRequestDto = {
     name: string;
 };
 
+export type RenameLabelRequestDto = {
+    name: string;
+};
+
+export type ReorderChecklistRequestDto = {
+    orderedIds: Array<string>;
+};
+
 export type ResetPasswordRequestDto = {
     password: string;
     passwordConfirmation: string;
@@ -229,9 +295,11 @@ export type TaskDataDto = {
     areaId: string;
     areaStatusId: string;
     canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+    checklistItems: Array<ChecklistItemDataDto>;
     description?: string;
     dueAt?: string;
     id: string;
+    labels: Array<LabelSummaryDto>;
     lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
     plannedAt?: string;
     priority: 'LOW' | 'MEDIUM' | 'HIGH';
@@ -726,6 +794,147 @@ export type CreateAuthSessionResponses = {
 
 export type CreateAuthSessionResponse = CreateAuthSessionResponses[keyof CreateAuthSessionResponses];
 
+export type ListLabelsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/labels';
+};
+
+export type ListLabelsErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+};
+
+export type ListLabelsResponses = {
+    200: LabelListResponseDto;
+};
+
+export type ListLabelsResponse = ListLabelsResponses[keyof ListLabelsResponses];
+
+export type CreateLabelData = {
+    body: CreateLabelRequestDto;
+    path?: never;
+    query?: never;
+    url: '/api/v1/labels';
+};
+
+export type CreateLabelErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Label name already exists.
+     */
+    409: unknown;
+    /**
+     * Validation failed.
+     */
+    422: unknown;
+};
+
+export type CreateLabelResponses = {
+    201: LabelResponseDto;
+};
+
+export type CreateLabelResponse = CreateLabelResponses[keyof CreateLabelResponses];
+
+export type DeleteLabelData = {
+    body?: never;
+    path: {
+        labelId: string;
+    };
+    query?: never;
+    url: '/api/v1/labels/{labelId}';
+};
+
+export type DeleteLabelErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Label not found.
+     */
+    404: unknown;
+    /**
+     * Version conflict.
+     */
+    409: unknown;
+};
+
+export type DeleteLabelResponses = {
+    /**
+     * Label deleted successfully.
+     */
+    204: void;
+};
+
+export type DeleteLabelResponse = DeleteLabelResponses[keyof DeleteLabelResponses];
+
+export type GetLabelData = {
+    body?: never;
+    path: {
+        labelId: string;
+    };
+    query?: never;
+    url: '/api/v1/labels/{labelId}';
+};
+
+export type GetLabelErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Label not found.
+     */
+    404: unknown;
+};
+
+export type GetLabelResponses = {
+    200: LabelResponseDto;
+};
+
+export type GetLabelResponse = GetLabelResponses[keyof GetLabelResponses];
+
+export type RenameLabelData = {
+    body: RenameLabelRequestDto;
+    path: {
+        labelId: string;
+    };
+    query?: never;
+    url: '/api/v1/labels/{labelId}';
+};
+
+export type RenameLabelErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Label not found.
+     */
+    404: unknown;
+    /**
+     * Version conflict.
+     */
+    409: unknown;
+    /**
+     * Validation failed.
+     */
+    422: unknown;
+};
+
+export type RenameLabelResponses = {
+    200: LabelResponseDto;
+};
+
+export type RenameLabelResponse = RenameLabelResponses[keyof RenameLabelResponses];
+
 export type GetTaskData = {
     body?: never;
     path: {
@@ -785,6 +994,231 @@ export type EditTaskResponses = {
 };
 
 export type EditTaskResponse = EditTaskResponses[keyof EditTaskResponses];
+
+export type ListChecklistItemsData = {
+    body?: never;
+    path: {
+        taskId: string;
+    };
+    query?: never;
+    url: '/api/v1/tasks/{taskId}/checklist-items';
+};
+
+export type ListChecklistItemsErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Task not found.
+     */
+    404: unknown;
+};
+
+export type ListChecklistItemsResponses = {
+    200: ChecklistItemListResponseDto;
+};
+
+export type ListChecklistItemsResponse = ListChecklistItemsResponses[keyof ListChecklistItemsResponses];
+
+export type AddChecklistItemData = {
+    body: AddChecklistItemRequestDto;
+    path: {
+        taskId: string;
+    };
+    query?: never;
+    url: '/api/v1/tasks/{taskId}/checklist-items';
+};
+
+export type AddChecklistItemErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Task not found.
+     */
+    404: unknown;
+    /**
+     * Version conflict.
+     */
+    409: unknown;
+    /**
+     * Validation failed.
+     */
+    422: unknown;
+};
+
+export type AddChecklistItemResponses = {
+    201: ChecklistItemResponseDto;
+};
+
+export type AddChecklistItemResponse = AddChecklistItemResponses[keyof AddChecklistItemResponses];
+
+export type DeleteChecklistItemData = {
+    body?: never;
+    path: {
+        checklistItemId: string;
+        taskId: string;
+    };
+    query?: never;
+    url: '/api/v1/tasks/{taskId}/checklist-items/{checklistItemId}';
+};
+
+export type DeleteChecklistItemErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Item not found.
+     */
+    404: unknown;
+    /**
+     * Version conflict.
+     */
+    409: unknown;
+};
+
+export type DeleteChecklistItemResponses = {
+    /**
+     * Item deleted successfully.
+     */
+    204: void;
+};
+
+export type DeleteChecklistItemResponse = DeleteChecklistItemResponses[keyof DeleteChecklistItemResponses];
+
+export type EditChecklistItemData = {
+    body: EditChecklistItemRequestDto;
+    path: {
+        checklistItemId: string;
+        taskId: string;
+    };
+    query?: never;
+    url: '/api/v1/tasks/{taskId}/checklist-items/{checklistItemId}';
+};
+
+export type EditChecklistItemErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Item not found.
+     */
+    404: unknown;
+    /**
+     * Version conflict.
+     */
+    409: unknown;
+    /**
+     * Validation failed.
+     */
+    422: unknown;
+};
+
+export type EditChecklistItemResponses = {
+    200: ChecklistItemResponseDto;
+};
+
+export type EditChecklistItemResponse = EditChecklistItemResponses[keyof EditChecklistItemResponses];
+
+export type CompleteChecklistItemData = {
+    body?: never;
+    path: {
+        checklistItemId: string;
+        taskId: string;
+    };
+    query?: never;
+    url: '/api/v1/tasks/{taskId}/checklist-items/{checklistItemId}/complete';
+};
+
+export type CompleteChecklistItemErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Item not found.
+     */
+    404: unknown;
+    /**
+     * Version conflict.
+     */
+    409: unknown;
+};
+
+export type CompleteChecklistItemResponses = {
+    200: ChecklistItemResponseDto;
+};
+
+export type CompleteChecklistItemResponse = CompleteChecklistItemResponses[keyof CompleteChecklistItemResponses];
+
+export type ReopenChecklistItemData = {
+    body?: never;
+    path: {
+        checklistItemId: string;
+        taskId: string;
+    };
+    query?: never;
+    url: '/api/v1/tasks/{taskId}/checklist-items/{checklistItemId}/reopen';
+};
+
+export type ReopenChecklistItemErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Item not found.
+     */
+    404: unknown;
+    /**
+     * Version conflict.
+     */
+    409: unknown;
+};
+
+export type ReopenChecklistItemResponses = {
+    200: ChecklistItemResponseDto;
+};
+
+export type ReopenChecklistItemResponse = ReopenChecklistItemResponses[keyof ReopenChecklistItemResponses];
+
+export type ReorderChecklistData = {
+    body: ReorderChecklistRequestDto;
+    path: {
+        taskId: string;
+    };
+    query?: never;
+    url: '/api/v1/tasks/{taskId}/checklist-order';
+};
+
+export type ReorderChecklistErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Task not found.
+     */
+    404: unknown;
+    /**
+     * Version conflict.
+     */
+    409: unknown;
+    /**
+     * Validation failed.
+     */
+    422: unknown;
+};
+
+export type ReorderChecklistResponses = {
+    200: ChecklistOrderResponseDto;
+};
+
+export type ReorderChecklistResponse = ReorderChecklistResponses[keyof ReorderChecklistResponses];
 
 export type GetCurrentUserData = {
     body?: never;
