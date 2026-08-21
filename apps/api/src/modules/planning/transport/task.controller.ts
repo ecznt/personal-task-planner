@@ -132,6 +132,7 @@ export class TaskController {
           areaStatusId: input.areaStatusId,
         }),
       ...(input.labelIds !== undefined && { labelIds: input.labelIds }),
+      ...(input.projectId !== undefined && { projectId: input.projectId }),
     });
 
     return this.handleEditResult(result, response);
@@ -194,6 +195,7 @@ export class TaskController {
               position: item.position,
               completedAt: item.completedAt?.toISOString() ?? null,
             })),
+            projectId: result.data.task.projectId,
           },
         };
       case 'NOT_FOUND':
@@ -230,6 +232,7 @@ export class TaskController {
             version: result.task.version,
             labels: [],
             checklistItems: [],
+            projectId: result.task.projectId,
           },
         };
       case 'NOT_FOUND':

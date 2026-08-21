@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AddChecklistItemData, AddChecklistItemErrors, AddChecklistItemResponses, CompleteChecklistItemData, CompleteChecklistItemErrors, CompleteChecklistItemResponses, CompleteCurrentUserOnboardingData, CompleteCurrentUserOnboardingErrors, CompleteCurrentUserOnboardingResponses, CreateAreaData, CreateAreaErrors, CreateAreaResponses, CreateAuthSessionData, CreateAuthSessionErrors, CreateAuthSessionResponses, CreateLabelData, CreateLabelErrors, CreateLabelResponses, CreateTaskData, CreateTaskErrors, CreateTaskResponses, DeleteAuthSessionData, DeleteAuthSessionErrors, DeleteAuthSessionResponses, DeleteChecklistItemData, DeleteChecklistItemErrors, DeleteChecklistItemResponses, DeleteLabelData, DeleteLabelErrors, DeleteLabelResponses, EditChecklistItemData, EditChecklistItemErrors, EditChecklistItemResponses, EditTaskData, EditTaskErrors, EditTaskResponses, GetAreaData, GetAreaErrors, GetAreaResponses, GetAuthCsrfData, GetAuthCsrfResponses, GetAuthSessionData, GetAuthSessionResponses, GetCurrentUserData, GetCurrentUserErrors, GetCurrentUserResponses, GetLabelData, GetLabelErrors, GetLabelResponses, GetTaskData, GetTaskErrors, GetTaskResponses, GetVersionData, GetVersionResponses, InitiateAccountDeletionData, InitiateAccountDeletionErrors, InitiateAccountDeletionResponses, ListAreasData, ListAreasErrors, ListAreasResponses, ListChecklistItemsData, ListChecklistItemsErrors, ListChecklistItemsResponses, ListLabelsData, ListLabelsErrors, ListLabelsResponses, ListTasksData, ListTasksErrors, ListTasksResponses, ReauthenticateData, ReauthenticateErrors, ReauthenticateResponses, RegisterAccountData, RegisterAccountErrors, RegisterAccountResponses, RenameAreaData, RenameAreaErrors, RenameAreaResponses, RenameLabelData, RenameLabelErrors, RenameLabelResponses, ReopenChecklistItemData, ReopenChecklistItemErrors, ReopenChecklistItemResponses, ReorderChecklistData, ReorderChecklistErrors, ReorderChecklistResponses, RequestEmailVerificationData, RequestEmailVerificationErrors, RequestEmailVerificationResponses, RequestPasswordResetData, RequestPasswordResetErrors, RequestPasswordResetResponses, ResetPasswordData, ResetPasswordErrors, ResetPasswordResponses, UpdateCurrentUserData, UpdateCurrentUserErrors, UpdateCurrentUserResponses, VerifyEmailData, VerifyEmailErrors, VerifyEmailResponses } from './types.gen';
+import type { AddChecklistItemData, AddChecklistItemErrors, AddChecklistItemResponses, CompleteChecklistItemData, CompleteChecklistItemErrors, CompleteChecklistItemResponses, CompleteCurrentUserOnboardingData, CompleteCurrentUserOnboardingErrors, CompleteCurrentUserOnboardingResponses, CreateAreaData, CreateAreaErrors, CreateAreaResponses, CreateAuthSessionData, CreateAuthSessionErrors, CreateAuthSessionResponses, CreateLabelData, CreateLabelErrors, CreateLabelResponses, CreateProjectData, CreateProjectErrors, CreateProjectResponses, CreateTaskData, CreateTaskErrors, CreateTaskResponses, DeleteAuthSessionData, DeleteAuthSessionErrors, DeleteAuthSessionResponses, DeleteChecklistItemData, DeleteChecklistItemErrors, DeleteChecklistItemResponses, DeleteLabelData, DeleteLabelErrors, DeleteLabelResponses, EditChecklistItemData, EditChecklistItemErrors, EditChecklistItemResponses, EditTaskData, EditTaskErrors, EditTaskResponses, GetAreaData, GetAreaErrors, GetAreaResponses, GetAuthCsrfData, GetAuthCsrfResponses, GetAuthSessionData, GetAuthSessionResponses, GetCurrentUserData, GetCurrentUserErrors, GetCurrentUserResponses, GetLabelData, GetLabelErrors, GetLabelResponses, GetProjectData, GetProjectErrors, GetProjectResponses, GetTaskData, GetTaskErrors, GetTaskResponses, GetVersionData, GetVersionResponses, InitiateAccountDeletionData, InitiateAccountDeletionErrors, InitiateAccountDeletionResponses, ListAreasData, ListAreasErrors, ListAreasResponses, ListChecklistItemsData, ListChecklistItemsErrors, ListChecklistItemsResponses, ListLabelsData, ListLabelsErrors, ListLabelsResponses, ListProjectsData, ListProjectsErrors, ListProjectsResponses, ListTasksData, ListTasksErrors, ListTasksResponses, ReauthenticateData, ReauthenticateErrors, ReauthenticateResponses, RegisterAccountData, RegisterAccountErrors, RegisterAccountResponses, RenameAreaData, RenameAreaErrors, RenameAreaResponses, RenameLabelData, RenameLabelErrors, RenameLabelResponses, RenameProjectData, RenameProjectErrors, RenameProjectResponses, ReopenChecklistItemData, ReopenChecklistItemErrors, ReopenChecklistItemResponses, ReorderChecklistData, ReorderChecklistErrors, ReorderChecklistResponses, RequestEmailVerificationData, RequestEmailVerificationErrors, RequestEmailVerificationResponses, RequestPasswordResetData, RequestPasswordResetErrors, RequestPasswordResetResponses, ResetPasswordData, ResetPasswordErrors, ResetPasswordResponses, UpdateCurrentUserData, UpdateCurrentUserErrors, UpdateCurrentUserResponses, VerifyEmailData, VerifyEmailErrors, VerifyEmailResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -200,6 +200,40 @@ export const getLabel = <ThrowOnError extends boolean = false>(options: Options<
  */
 export const renameLabel = <ThrowOnError extends boolean = false>(options: Options<RenameLabelData, ThrowOnError>): RequestResult<RenameLabelResponses, RenameLabelErrors, ThrowOnError> => (options.client ?? client).patch<RenameLabelResponses, RenameLabelErrors, ThrowOnError>({
     url: '/api/v1/labels/{labelId}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List active Projects in an Area
+ */
+export const listProjects = <ThrowOnError extends boolean = false>(options: Options<ListProjectsData, ThrowOnError>): RequestResult<ListProjectsResponses, ListProjectsErrors, ThrowOnError> => (options.client ?? client).get<ListProjectsResponses, ListProjectsErrors, ThrowOnError>({ url: '/api/v1/projects', ...options });
+
+/**
+ * Create a new Project in an Area
+ */
+export const createProject = <ThrowOnError extends boolean = false>(options: Options<CreateProjectData, ThrowOnError>): RequestResult<CreateProjectResponses, CreateProjectErrors, ThrowOnError> => (options.client ?? client).post<CreateProjectResponses, CreateProjectErrors, ThrowOnError>({
+    url: '/api/v1/projects',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Get Project detail
+ */
+export const getProject = <ThrowOnError extends boolean = false>(options: Options<GetProjectData, ThrowOnError>): RequestResult<GetProjectResponses, GetProjectErrors, ThrowOnError> => (options.client ?? client).get<GetProjectResponses, GetProjectErrors, ThrowOnError>({ url: '/api/v1/projects/{projectId}', ...options });
+
+/**
+ * Rename a Project
+ */
+export const renameProject = <ThrowOnError extends boolean = false>(options: Options<RenameProjectData, ThrowOnError>): RequestResult<RenameProjectResponses, RenameProjectErrors, ThrowOnError> => (options.client ?? client).patch<RenameProjectResponses, RenameProjectErrors, ThrowOnError>({
+    url: '/api/v1/projects/{projectId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',

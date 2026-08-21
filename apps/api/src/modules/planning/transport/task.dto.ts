@@ -42,6 +42,9 @@ export class TaskDataDto {
 
   @ApiProperty({ type: () => [ChecklistItemDataDto] })
   checklistItems!: ChecklistItemDataDto[];
+
+  @ApiProperty({ format: 'uuid', type: String, required: false })
+  projectId!: string | null;
 }
 
 export class TaskSummaryDto {
@@ -132,4 +135,7 @@ export class EditTaskRequestDto {
 
   @ApiProperty({ type: [String], format: 'uuid', required: false })
   labelIds?: string[];
+
+  @ApiProperty({ format: 'uuid', type: String, required: false })
+  projectId?: string | null;
 }

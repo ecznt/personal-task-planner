@@ -2,13 +2,13 @@
 
 | Field | Value |
 | --- | --- |
-| Status | L-005 implemented and approved; L-006 implemented and ready for approval |
-| Revision date | 2026-08-19 |
+| Status | L-007 and L-008 implemented and approved |
+| Revision date | 2026-08-20 |
 | Product scope | MVP, personal use only |
 | Document language | English |
 | Execution mode | Small vertical slices, but not one micro-story per technical concern |
-| Current completed baseline | EPIC-001; BL-007 through BL-011; BL-014; BL-015; BL-121; L-001; L-002; L-003; L-004; L-005; L-006 |
-| Next slice | L-007 — User adds checklist and labels to Tasks |
+| Current completed baseline | EPIC-001; BL-007 through BL-011; BL-014; BL-015; BL-121; L-001; L-002; L-003; L-004; L-005; L-006; L-007; L-008 |
+| Next slice | L-009 — Global active List view |
 
 This document replaces the earlier over-granular execution queue. The approved PRD, UX, Domain, Data, API, Architecture, and ADR documents remain authoritative for product and technical rules. This backlog controls implementation order only.
 
@@ -46,6 +46,7 @@ These items are complete, published to `develop`, and CI-verified. Future slices
 | L-005 | User manages Areas. Create/list/detail/rename active owned Areas with default workflow. | Implemented, locally verified, and approved. |
 | L-006 | User creates and edits basic Tasks directly under an Area. | Implemented, locally verified, and approved. |
 | L-007 | Checklist and Labels for Tasks. | Implemented, locally verified, and approved. |
+| L-008 | User manages Projects inside Areas. | Implemented, locally verified, and approved. |
 
 Reserved/deferred IDs `BL-012` and `BL-013` remain reserved for removed social-authentication work and must not be reused.
 
@@ -305,6 +306,46 @@ Before each slice, verify the exact requirement IDs from PRD and API/Domain/Data
 - Unit, API integration, component, and contract tests.
 
 **Plan document:** `docs/planning/L-006_TASK_CREATION_PLAN.md`
+
+### L-007 — Checklist and Labels for Tasks
+
+**Implementation status:** Implemented, locally verified, and approved on 2026-08-19.
+
+**Story goal:** User can add ordered checklist items and owner-scoped labels to Tasks.
+
+**Implemented scope:**
+
+- ChecklistItem and Label/TaskLabel modules: entity types, repository, service, controller, validation schema, DTOs.
+- `POST /api/v1/tasks/{taskId}/checklist-items` — create ordered checklist items.
+- `PATCH /api/v1/tasks/{taskId}/checklist-items/{itemId}` — toggle/rename checklist items.
+- `DELETE /api/v1/tasks/{taskId}/checklist-items/{itemId}` — delete checklist items.
+- `POST /api/v1/labels` — create owner-scoped labels with uniqueness.
+- `GET /api/v1/labels` — list labels for authenticated user.
+- `PATCH /api/v1/tasks/{taskId}/labels` — assign/remove labels on tasks.
+- Owner isolation, CSRF protection, idempotency, and cursor pagination.
+- Generated OpenAPI spec and client updated.
+- Frontend: LabelManager component, Checklist component, task detail integration.
+- Unit, API integration, component, and contract tests.
+
+### L-008 — Project Management inside Areas
+
+**Implementation status:** Implemented, locally verified, and approved on 2026-08-20.
+
+**Story goal:** User can create, list, view, and rename Projects inside Areas, and assign Tasks to Projects.
+
+**Implemented scope:**
+
+- Project module: domain entity, repository, service, controller, validation schema, DTOs.
+- `POST /api/v1/projects` — create Project in an Area with name uniqueness per Area.
+- `GET /api/v1/projects?areaId=` — list active Projects with task count and cursor pagination.
+- `GET /api/v1/projects/{projectId}` — get Project detail with task count.
+- `PATCH /api/v1/projects/{projectId}` — rename Project with ETag/If-Match concurrency.
+- Task extended with optional `projectId` for assignment; same-Area invariant enforced.
+- Owner isolation, CSRF protection, idempotency, and non-disclosing 404s.
+- Generated OpenAPI spec and client updated.
+- Frontend: ProjectManager component (list, create, inline rename), integrated into AreaDetail.
+- Task detail view shows assigned project; edit form includes project selector dropdown.
+- Unit (12 tests), API integration (73 tests), component (32 tests), and contract tests.
 
 ## 7. Backlog maintenance policy
 

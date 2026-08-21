@@ -25,6 +25,7 @@ export const editTaskSchema = z.object({
   plannedAt: z.string().optional(),
   dueAt: z.string().optional(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
+  projectId: z.string().optional(),
 });
 
 export type EditTaskFormValues = z.infer<typeof editTaskSchema>;

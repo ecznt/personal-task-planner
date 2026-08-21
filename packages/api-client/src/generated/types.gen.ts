@@ -114,6 +114,11 @@ export type CreateLabelRequestDto = {
     name: string;
 };
 
+export type CreateProjectRequestDto = {
+    areaId: string;
+    name: string;
+};
+
 export type CreateTaskRequestDto = {
     description?: string;
     dueAt?: string;
@@ -158,6 +163,7 @@ export type EditTaskRequestDto = {
     labelIds?: Array<string>;
     plannedAt?: string;
     priority?: 'LOW' | 'MEDIUM' | 'HIGH';
+    projectId?: string;
     title?: string;
 };
 
@@ -234,6 +240,30 @@ export type PasswordResetRequestDto = {
     email: string;
 };
 
+export type ProjectListMetaDto = {
+    nextCursor?: string;
+};
+
+export type ProjectListResponseDto = {
+    data: Array<ProjectSummaryDataDto>;
+    meta: ProjectListMetaDto;
+};
+
+export type ProjectResponseDto = {
+    data: ProjectSummaryDataDto;
+};
+
+export type ProjectSummaryDataDto = {
+    areaId: string;
+    createdAt: string;
+    id: string;
+    lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+    name: string;
+    taskCount: number;
+    updatedAt: string;
+    version: number;
+};
+
 export type ReauthenticationDataDto = {
     action: 'ACCOUNT_DELETION';
     expiresAt: string;
@@ -270,6 +300,10 @@ export type RenameLabelRequestDto = {
     name: string;
 };
 
+export type RenameProjectRequestDto = {
+    name: string;
+};
+
 export type ReorderChecklistRequestDto = {
     orderedIds: Array<string>;
 };
@@ -303,6 +337,7 @@ export type TaskDataDto = {
     lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
     plannedAt?: string;
     priority: 'LOW' | 'MEDIUM' | 'HIGH';
+    projectId?: string;
     title: string;
     version: number;
 };
@@ -934,6 +969,122 @@ export type RenameLabelResponses = {
 };
 
 export type RenameLabelResponse = RenameLabelResponses[keyof RenameLabelResponses];
+
+export type ListProjectsData = {
+    body?: never;
+    path?: never;
+    query: {
+        limit?: number;
+        cursor?: string;
+        areaId: string;
+    };
+    url: '/api/v1/projects';
+};
+
+export type ListProjectsErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+};
+
+export type ListProjectsResponses = {
+    200: ProjectListResponseDto;
+};
+
+export type ListProjectsResponse = ListProjectsResponses[keyof ListProjectsResponses];
+
+export type CreateProjectData = {
+    body: CreateProjectRequestDto;
+    path?: never;
+    query?: never;
+    url: '/api/v1/projects';
+};
+
+export type CreateProjectErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Area not found.
+     */
+    404: unknown;
+    /**
+     * Validation failed or duplicate name.
+     */
+    422: unknown;
+};
+
+export type CreateProjectResponses = {
+    201: ProjectResponseDto;
+};
+
+export type CreateProjectResponse = CreateProjectResponses[keyof CreateProjectResponses];
+
+export type GetProjectData = {
+    body?: never;
+    path: {
+        projectId: string;
+    };
+    query?: never;
+    url: '/api/v1/projects/{projectId}';
+};
+
+export type GetProjectErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Project not found.
+     */
+    404: unknown;
+};
+
+export type GetProjectResponses = {
+    200: ProjectResponseDto;
+};
+
+export type GetProjectResponse = GetProjectResponses[keyof GetProjectResponses];
+
+export type RenameProjectData = {
+    body: RenameProjectRequestDto;
+    path: {
+        projectId: string;
+    };
+    query?: never;
+    url: '/api/v1/projects/{projectId}';
+};
+
+export type RenameProjectErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Project not found.
+     */
+    404: unknown;
+    /**
+     * Version conflict.
+     */
+    409: unknown;
+    /**
+     * Validation failed.
+     */
+    422: unknown;
+    /**
+     * If-Match header required.
+     */
+    428: unknown;
+};
+
+export type RenameProjectResponses = {
+    200: ProjectResponseDto;
+};
+
+export type RenameProjectResponse = RenameProjectResponses[keyof RenameProjectResponses];
 
 export type GetTaskData = {
     body?: never;

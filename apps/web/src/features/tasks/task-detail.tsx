@@ -43,6 +43,7 @@ type TaskData = {
   readonly version: number;
   readonly labels: readonly LabelSummary[];
   readonly checklistItems: readonly ChecklistItem[];
+  readonly projectId: string | null;
 };
 
 type TaskDetailProps = {
@@ -103,6 +104,27 @@ export function TaskDetail({ taskId }: TaskDetailProps) {
     staleTime: 20 * 60 * 1_000,
   });
 
+  const taskDataForQuery = task.data?.data;
+  const areaId = taskDataForQuery?.areaId;
+
+  const projects = useQuery({
+    queryKey: ['projects', areaId],
+    queryFn: async () => {
+      if (!areaId) return [];
+      const result = await apiClient.get({
+        url: '/api/v1/projects',
+        query: { areaId },
+      });
+
+      if (result.error !== undefined) {
+        return [];
+      }
+
+      return (result.data as { data: readonly { id: string; name: string }[] }).data ?? [];
+    },
+    enabled: !!areaId,
+  });
+
   const form = useForm<EditTaskFormValues>({
     resolver: zodResolver(editTaskSchema),
   });
@@ -122,6 +144,9 @@ export function TaskDetail({ taskId }: TaskDetailProps) {
       if (values.dueAt !== undefined) body.dueAt = values.dueAt || null;
       if (values.priority !== undefined) body.priority = values.priority;
       body.labelIds = [...selectedLabelIds];
+      if (values.projectId !== undefined) {
+        body.projectId = values.projectId || null;
+      }
 
       if (Object.keys(body).length === 0) {
         setIsEditing(false);
@@ -245,6 +270,22 @@ export function TaskDetail({ taskId }: TaskDetailProps) {
               );
             }}
           />
+          <Field>
+            <FieldLabel htmlFor="projectId">Proje</FieldLabel>
+            <select
+              id="projectId"
+              defaultValue={taskData.projectId ?? ''}
+              className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm"
+              {...form.register('projectId')}
+            >
+              <option value="">Proje yok</option>
+              {(projects.data ?? []).map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.name}
+                </option>
+              ))}
+            </select>
+          </Field>
           <div className="flex gap-2">
             <Button
               type="button"
@@ -290,6 +331,14 @@ export function TaskDetail({ taskId }: TaskDetailProps) {
         <div className="rounded-lg border bg-card p-4">
           <div className="text-sm text-muted-foreground">Öncelik</div>
           <div className="mt-1 font-medium">{PRIORITY_LABELS[taskData.priority]}</div>
+        </div>
+        <div className="rounded-lg border bg-card p-4">
+          <div className="text-sm text-muted-foreground">Proje</div>
+          <div className="mt-1 font-medium">
+            {taskData.projectId
+              ? ((projects.data ?? []).find((p) => p.id === taskData.projectId)?.name ?? '-')
+              : '-'}
+          </div>
         </div>
         <div className="rounded-lg border bg-card p-4">
           <div className="text-sm text-muted-foreground">Başlangıç</div>

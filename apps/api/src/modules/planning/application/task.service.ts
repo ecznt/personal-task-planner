@@ -51,6 +51,7 @@ export type EditTaskCommand = {
   readonly priority?: 'LOW' | 'MEDIUM' | 'HIGH';
   readonly areaStatusId?: string;
   readonly labelIds?: string[];
+  readonly projectId?: string | null;
   readonly version: number;
 };
 
@@ -221,6 +222,27 @@ export class TaskService {
       }
     }
 
+    if (command.projectId !== undefined && command.projectId !== null) {
+      const existing = await this.taskRepository.findById(userId, command.taskId);
+
+      if (!existing) {
+        return { outcome: 'NOT_FOUND' };
+      }
+
+      const projectBelongs = await this.taskRepository.projectBelongsToArea(
+        userId,
+        command.projectId,
+        existing.task.areaId,
+      );
+
+      if (!projectBelongs) {
+        return {
+          outcome: 'VALIDATION_ERROR',
+          detail: 'Proje aynı alanda bulunamadı.',
+        };
+      }
+    }
+
     const task = await this.taskRepository.updateTask(
       userId,
       command.taskId,
@@ -231,6 +253,7 @@ export class TaskService {
         dueAt: command.dueAt,
         priority: command.priority,
         areaStatusId: command.areaStatusId,
+        projectId: command.projectId,
       },
       command.version,
     );

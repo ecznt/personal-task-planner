@@ -5,7 +5,7 @@
 | Repository | `ecznt/personal-task-planner` |
 | Document role | Authoritative planning index and decision record |
 | Document language | English |
-| Last updated | 2026-08-19 |
+| Last updated | 2026-08-20 |
 
 ## Product vision
 
@@ -201,6 +201,8 @@ Every stage requires explicit user approval before the next stage begins.
 | DEC-084 | 2026-08-17 | Implement L-004 as private sample data creation: extend onboarding completion to accept `CREATE_SAMPLE_DATA`, create one owned Area with three default AreaStatuses, one Project, representative Tasks, one Label, TaskLabel links, and ChecklistItems atomically and idempotently, complete onboarding, and hand off to `/app/today`. Keep general planning CRUD, work views, lifecycle operations, recurrence, reminders, collaboration, social authentication, billing, and native mobile deferred. | Implemented, published, and CI-verified | User-approved L-004 continuation; bounded Graphify query; commit `095560b`; CI run `32017453871`; `docs/planning/BACKLOG.md` L-004 |
 | DEC-085 | 2026-08-17 | Implement L-005 as Area management: create a planning module with Area CRUD operations, default workflow creation, owner isolation, CSRF/ETag security, generated OpenAPI/client artifacts, frontend routes and components, and no Archive/Trash, custom status management, or sharing. | Implemented, locally verified, and publication requested | User-approved L-005 plan; `docs/planning/L-005_AREA_MANAGEMENT_PLAN.md`; `docs/planning/BACKLOG.md` L-005 |
 | DEC-086 | 2026-08-19 | Implement L-006 as basic Task creation and editing under an Area: title, description, dates, priority, default status, owner isolation, optimistic concurrency, area-scoped listing, and no Projects, recurrence, reminders, or Kanban. | Implemented, locally verified, and approved | User-approved continuation; `docs/planning/L-006_TASK_CREATION_PLAN.md`; `docs/planning/BACKLOG.md` L-006 |
+| DEC-087 | 2026-08-19 | Implement L-007 as Checklist and Labels for Tasks: ordered checklist items with CRUD, owner-scoped labels with uniqueness, task-label assignment/removal, task detail integration with LabelManager and Checklist components, and no search, bulk labels, or advanced filtering. | Implemented, locally verified, and approved | User-approved continuation; commit `b89482f`; `docs/planning/BACKLOG.md` L-007 |
+| DEC-088 | 2026-08-20 | Implement L-008 as Project Management inside Areas: create/list/detail/rename Projects with name uniqueness per Area, assign Tasks to Projects with same-Area invariant, ProjectManager component with inline create/rename, task detail project selector, and no cross-Area moves or deletion. | Implemented, locally verified, and approved | User-approved continuation; `docs/planning/BACKLOG.md` L-008 |
 
 ## Open questions
 
@@ -265,7 +267,7 @@ The product boundary is defined in the approved PRD, and UX decisions are record
 | `docs/architecture/adr/ADR-001-modular-monolith.md` | Decision record for the modular monolith and separate API/worker runtime entry points. | Accepted |
 | `docs/architecture/adr/ADR-002-rest-openapi.md` | Decision record for REST, backend-owned OpenAPI, and generated frontend client. | Accepted |
 | `docs/architecture/adr/ADR-003-graphify.md` | Decision record for Graphify use, source authority, token-efficient query/update workflow, staleness, versioning, and secret controls. | Accepted; DEC-067 operating-policy amendment applied |
-| `docs/planning/BACKLOG.md` | Lean implementation backlog, completed baseline, reduced execution rules, 23 remaining MVP implementation slices, and immediate L-007 plan. | Revised by DEC-080; L-006 completed; preserves approved MVP scope and completed work |
+| `docs/planning/BACKLOG.md` | Lean implementation backlog, completed baseline, reduced execution rules, 23 remaining MVP implementation slices, and immediate L-009 plan. | Revised by DEC-080; L-008 completed; preserves approved MVP scope and completed work |
 | `docs/planning/BL-011_PASSWORD_RECOVERY_PLAN.md` | Decision-complete handoff for the password recovery vertical slice, including approved reset-link and token-invalidation decisions, expected files, tests, risks, and next-session start point. | Implemented locally; retained as historical handoff |
 | `docs/planning/L-005_AREA_MANAGEMENT_PLAN.md` | Implementation plan for L-005 Area management: create, list, detail, rename active owned Areas with default workflow. | Implemented; DEC-085 |
 | `docs/planning/L-006_TASK_CREATION_PLAN.md` | Implementation plan for L-006 Task creation and editing: create, view, list, edit basic Tasks under an Area with title, description, dates, priority, default status. | Implemented; DEC-086 |

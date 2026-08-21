@@ -8,6 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/spinner';
+import { ProjectManager } from '@/features/projects/project-manager';
 import { TaskList } from '@/features/tasks/task-list';
 
 import { RenameAreaForm } from './rename-area-form';
@@ -120,6 +121,10 @@ export function AreaDetail({ areaId }: AreaDetailProps) {
           </CardContent>
         </Card>
       )}
+
+      <div className="rounded-lg border bg-card p-4">
+        <ProjectManager areaId={areaId} />
+      </div>
 
       <div>
         <div className="mb-3 flex items-center justify-between">

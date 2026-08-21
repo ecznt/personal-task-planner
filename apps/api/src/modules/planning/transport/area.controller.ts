@@ -492,6 +492,7 @@ export class AreaController {
             version: result.task.version,
             labels: [],
             checklistItems: [],
+            projectId: result.task.projectId,
           },
         };
       case 'NOT_FOUND':

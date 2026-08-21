@@ -144,6 +144,7 @@ export class TaskRepository {
       readonly dueAt: Date | null | undefined;
       readonly priority: 'LOW' | 'MEDIUM' | 'HIGH' | undefined;
       readonly areaStatusId: string | undefined;
+      readonly projectId: string | null | undefined;
     },
     version: number,
   ): Promise<Task | null> {
@@ -171,6 +172,10 @@ export class TaskRepository {
 
     if (input.areaStatusId !== undefined) {
       data.areaStatusId = input.areaStatusId;
+    }
+
+    if (input.projectId !== undefined) {
+      data.projectId = input.projectId;
     }
 
     const result = await this.prisma.task.updateMany({
@@ -204,6 +209,14 @@ export class TaskRepository {
       select: { id: true },
     });
     return status !== null;
+  }
+
+  async projectBelongsToArea(userId: string, projectId: string, areaId: string): Promise<boolean> {
+    const project = await this.prisma.project.findFirst({
+      where: { id: projectId, userId, areaId, lifecycleState: 'ACTIVE' },
+      select: { id: true },
+    });
+    return project !== null;
   }
 
   async incrementVersion(userId: string, taskId: string): Promise<Task | null> {
