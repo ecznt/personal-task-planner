@@ -7,10 +7,11 @@ import {
   Inject,
   Param,
   Patch,
+  Query,
   Req,
   Res,
 } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 
 import { ApiProblemException } from '../../../platform/http/api-problem.exception';
@@ -18,9 +19,13 @@ import { AccountsRepository } from '../../accounts/infrastructure/accounts.repos
 import { AuthSecurityService } from '../../accounts/security/auth-security.service';
 import { parseCookieValue, sessionCookieName } from '../../accounts/transport/auth-cookie';
 import { TaskService } from '../application/task.service';
-import type { EditTaskResult, GetTaskResult } from '../application/task.service';
-import { parseEditTaskInput } from './task.schema';
-import { EditTaskRequestDto, TaskResponseDto } from './task.dto';
+import type {
+  EditTaskResult,
+  GetTaskResult,
+  ListGlobalTasksResult,
+} from '../application/task.service';
+import { parseEditTaskInput, parseListGlobalTasksQuery } from './task.schema';
+import { EditTaskRequestDto, TaskListResponseDto, TaskResponseDto } from './task.dto';
 
 @ApiTags('Tasks')
 @Controller('tasks')
@@ -30,6 +35,52 @@ export class TaskController {
     @Inject(AccountsRepository) private readonly accounts: AccountsRepository,
     @Inject(AuthSecurityService) private readonly security: AuthSecurityService,
   ) {}
+
+  @Get()
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    operationId: 'listGlobalTasks',
+    summary: 'List active Tasks across all Areas',
+  })
+  @ApiQuery({ name: 'cursor', type: String, format: 'uuid', required: false })
+  @ApiQuery({ name: 'limit', type: Number, required: false })
+  @ApiQuery({ name: 'sort', type: String, required: false })
+  @ApiQuery({ name: 'order', type: String, required: false })
+  @ApiQuery({ name: 'areaId', type: String, format: 'uuid', required: false })
+  @ApiQuery({ name: 'projectId', type: String, format: 'uuid', required: false })
+  @ApiQuery({ name: 'priority', type: String, required: false })
+  @ApiQuery({ name: 'canonicalStatus', type: String, required: false })
+  @ApiQuery({ name: 'labelId', type: String, format: 'uuid', required: false })
+  @ApiResponse({
+    status: 200,
+    type: TaskListResponseDto,
+  })
+  @ApiResponse({
+    description: 'No valid authenticated session is present.',
+    status: 401,
+  })
+  async listGlobalTasks(
+    @Req() request: Request,
+    @Query() query: unknown,
+  ): Promise<TaskListResponseDto> {
+    const userId = await this.resolveUserId(request);
+
+    const input = parseListGlobalTasksQuery(query);
+
+    const result = await this.taskService.listGlobalTasks(userId, {
+      ...(input.cursor !== undefined && { cursor: input.cursor }),
+      limit: input.limit,
+      sort: input.sort,
+      order: input.order,
+      ...(input.areaId !== undefined && { areaId: input.areaId }),
+      ...(input.projectId !== undefined && { projectId: input.projectId }),
+      ...(input.priority !== undefined && { priority: input.priority }),
+      ...(input.canonicalStatus !== undefined && { canonicalStatus: input.canonicalStatus }),
+      ...(input.labelId !== undefined && { labelId: input.labelId }),
+    });
+
+    return this.handleListGlobalTasksResult(result);
+  }
 
   @Get(':taskId')
   @Header('Cache-Control', 'no-store')
@@ -259,6 +310,26 @@ export class TaskController {
           code: 'AUTHENTICATION_REQUIRED',
           detail: 'Oturum açmanız gerekiyor.',
         });
+    }
+  }
+
+  private handleListGlobalTasksResult(result: ListGlobalTasksResult): TaskListResponseDto {
+    switch (result.outcome) {
+      case 'SUCCESS':
+        return {
+          data: result.tasks.map((task) => ({
+            id: task.id,
+            title: task.title,
+            priority: task.priority,
+            canonicalStatus: task.canonicalStatus,
+            dueAt: task.dueAt?.toISOString() ?? null,
+            plannedAt: task.plannedAt?.toISOString() ?? null,
+            lifecycleState: task.lifecycleState,
+          })),
+          meta: {
+            ...(result.nextCursor !== undefined && { nextCursor: result.nextCursor }),
+          },
+        };
     }
   }
 }

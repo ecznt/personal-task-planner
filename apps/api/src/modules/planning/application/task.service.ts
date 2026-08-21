@@ -62,6 +62,24 @@ export type EditTaskResult =
   | { readonly outcome: 'VALIDATION_ERROR'; readonly detail: string }
   | { readonly outcome: 'UNAUTHENTICATED' };
 
+export type ListGlobalTasksQuery = {
+  readonly cursor?: string;
+  readonly limit?: number;
+  readonly sort?: string;
+  readonly order?: 'asc' | 'desc';
+  readonly areaId?: string;
+  readonly projectId?: string;
+  readonly priority?: string;
+  readonly canonicalStatus?: string;
+  readonly labelId?: string;
+};
+
+export type ListGlobalTasksResult = {
+  readonly outcome: 'SUCCESS';
+  readonly tasks: readonly TaskSummary[];
+  readonly nextCursor?: string;
+};
+
 @Injectable()
 export class TaskService {
   constructor(@Inject(TaskRepository) private readonly taskRepository: TaskRepository) {}
@@ -154,6 +172,33 @@ export class TaskService {
       query.cursor,
       query.limit,
     );
+
+    return {
+      outcome: 'SUCCESS',
+      tasks,
+      ...(nextCursor !== undefined && { nextCursor }),
+    };
+  }
+
+  async listGlobalTasks(
+    userId: string,
+    query: ListGlobalTasksQuery,
+  ): Promise<ListGlobalTasksResult> {
+    const sort = query.sort ?? 'plannedDate';
+    const order = query.order ?? 'asc';
+    const limit = query.limit ?? 20;
+
+    const { tasks, nextCursor } = await this.taskRepository.listGlobal(userId, {
+      ...(query.cursor !== undefined && { cursor: query.cursor }),
+      limit,
+      sort,
+      order,
+      ...(query.areaId !== undefined && { areaId: query.areaId }),
+      ...(query.projectId !== undefined && { projectId: query.projectId }),
+      ...(query.priority !== undefined && { priority: query.priority }),
+      ...(query.canonicalStatus !== undefined && { canonicalStatus: query.canonicalStatus }),
+      ...(query.labelId !== undefined && { labelId: query.labelId }),
+    });
 
     return {
       outcome: 'SUCCESS',

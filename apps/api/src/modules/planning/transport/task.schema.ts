@@ -97,6 +97,45 @@ export function parseListTasksQuery(value: unknown): ListTasksQueryInput {
   });
 }
 
+const listGlobalTasksQuerySchema = z.object({
+  cursor: z.string().uuid().optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  sort: z
+    .enum([
+      'plannedDate',
+      'dueDate',
+      'priority',
+      'title',
+      'createdAt',
+      'updatedAt',
+      'canonicalStatus',
+    ])
+    .default('plannedDate'),
+  order: z.enum(['asc', 'desc']).default('asc'),
+  areaId: z.string().uuid().optional(),
+  projectId: z.string().uuid().optional(),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
+  canonicalStatus: z.enum(['TO_DO', 'IN_PROGRESS', 'COMPLETED']).optional(),
+  labelId: z.string().uuid().optional(),
+});
+
+export type ListGlobalTasksQueryInput = z.infer<typeof listGlobalTasksQuerySchema>;
+
+export function parseListGlobalTasksQuery(value: unknown): ListGlobalTasksQueryInput {
+  const result = listGlobalTasksQuerySchema.safeParse(value);
+
+  if (result.success) {
+    return result.data;
+  }
+
+  throw new ApiProblemException({
+    status: 422,
+    code: 'VALIDATION_FAILED',
+    detail: 'Sorgu parametrelerini kontrol edin.',
+    errors: result.error.issues.map(toValidationProblem),
+  });
+}
+
 function toValidationProblem(issue: z.core.$ZodIssue): ValidationProblemItem {
   return {
     code: zodIssueCode(issue),

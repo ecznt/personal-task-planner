@@ -2454,6 +2454,108 @@
         ]
       }
     },
+    "/api/v1/tasks": {
+      "get": {
+        "operationId": "listGlobalTasks",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "labelId",
+            "required": false,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "canonicalStatus",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "priority",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "projectId",
+            "required": false,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "areaId",
+            "required": false,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "order",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskListResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          }
+        },
+        "summary": "List active Tasks across all Areas",
+        "tags": [
+          "Tasks"
+        ]
+      }
+    },
     "/api/v1/tasks/{taskId}": {
       "get": {
         "operationId": "getTask",

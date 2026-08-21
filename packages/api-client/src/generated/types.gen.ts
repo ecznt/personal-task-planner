@@ -1086,6 +1086,36 @@ export type RenameProjectResponses = {
 
 export type RenameProjectResponse = RenameProjectResponses[keyof RenameProjectResponses];
 
+export type ListGlobalTasksData = {
+    body?: never;
+    path?: never;
+    query?: {
+        labelId?: string;
+        canonicalStatus?: string;
+        priority?: string;
+        projectId?: string;
+        areaId?: string;
+        order?: string;
+        sort?: string;
+        limit?: number;
+        cursor?: string;
+    };
+    url: '/api/v1/tasks';
+};
+
+export type ListGlobalTasksErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+};
+
+export type ListGlobalTasksResponses = {
+    200: TaskListResponseDto;
+};
+
+export type ListGlobalTasksResponse = ListGlobalTasksResponses[keyof ListGlobalTasksResponses];
+
 export type GetTaskData = {
     body?: never;
     path: {

@@ -232,6 +232,73 @@ export class TaskRepository {
     return this.prisma.task.findUnique({ where: { id: taskId } });
   }
 
+  async listGlobal(
+    userId: string,
+    options: {
+      readonly cursor?: string;
+      readonly limit: number;
+      readonly sort: string;
+      readonly order: 'asc' | 'desc';
+      readonly areaId?: string;
+      readonly projectId?: string;
+      readonly priority?: string;
+      readonly canonicalStatus?: string;
+      readonly labelId?: string;
+    },
+  ): Promise<{ tasks: readonly TaskSummary[]; nextCursor?: string }> {
+    const orderBy = buildGlobalSort(options.sort, options.order);
+
+    const where: Record<string, unknown> = {
+      userId,
+      lifecycleState: 'ACTIVE',
+    };
+
+    if (options.areaId !== undefined) {
+      where.areaId = options.areaId;
+    }
+
+    if (options.projectId !== undefined) {
+      where.projectId = options.projectId;
+    }
+
+    if (options.priority !== undefined) {
+      where.priority = options.priority;
+    }
+
+    if (options.canonicalStatus !== undefined) {
+      where.areaStatus = { canonicalStatus: options.canonicalStatus };
+    }
+
+    if (options.labelId !== undefined) {
+      where.taskLabels = { some: { labelId: options.labelId } };
+    }
+
+    const tasks = await this.prisma.task.findMany({
+      where,
+      orderBy,
+      take: options.limit + 1,
+      ...(options.cursor !== undefined && { cursor: { id: options.cursor } }),
+      include: { areaStatus: { select: { canonicalStatus: true } } },
+    });
+
+    const hasMore = tasks.length > options.limit;
+    const lastFetched = hasMore ? tasks.at(options.limit) : undefined;
+    const nextCursor = lastFetched?.id;
+    const slicedTasks = tasks.slice(0, options.limit);
+
+    const summaries: TaskSummary[] = slicedTasks.map((task) => ({
+      id: task.id,
+      title: task.title,
+      priority: task.priority,
+      canonicalStatus: task.areaStatus.canonicalStatus,
+      dueAt: task.dueAt,
+      plannedAt: task.plannedAt,
+      lifecycleState: task.lifecycleState,
+    }));
+
+    return { tasks: summaries, ...(nextCursor !== undefined && { nextCursor }) };
+  }
+
   async setTaskLabels(userId: string, taskId: string, labelIds: readonly string[]): Promise<void> {
     await this.prisma.$transaction(async (transaction) => {
       await transaction.taskLabel.deleteMany({
@@ -265,4 +332,23 @@ export class TaskRepository {
 function incrementRank(rank: string): string {
   const num = BigInt(rank) + 1000n;
   return num.toString().padStart(24, '0');
+}
+
+const SORT_FIELDS: Record<string, string> = {
+  plannedDate: 'plannedAt',
+  dueDate: 'dueAt',
+  priority: 'priority',
+  title: 'title',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  canonicalStatus: 'areaStatusId',
+};
+
+function buildGlobalSort(
+  sort: string,
+  order: 'asc' | 'desc',
+): Array<{ readonly [key: string]: 'asc' | 'desc' }> {
+  const field = SORT_FIELDS[sort] ?? 'plannedAt';
+
+  return [{ [field]: order }, { id: 'asc' }];
 }
