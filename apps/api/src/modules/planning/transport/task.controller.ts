@@ -23,9 +23,19 @@ import type {
   EditTaskResult,
   GetTaskResult,
   ListGlobalTasksResult,
+  ListTodayTasksResult,
 } from '../application/task.service';
-import { parseEditTaskInput, parseListGlobalTasksQuery } from './task.schema';
-import { EditTaskRequestDto, TaskListResponseDto, TaskResponseDto } from './task.dto';
+import {
+  parseEditTaskInput,
+  parseListGlobalTasksQuery,
+  parseListTodayTasksQuery,
+} from './task.schema';
+import {
+  EditTaskRequestDto,
+  TaskListResponseDto,
+  TaskResponseDto,
+  TodayResponseDto,
+} from './task.dto';
 
 @ApiTags('Tasks')
 @Controller('tasks')
@@ -80,6 +90,36 @@ export class TaskController {
     });
 
     return this.handleListGlobalTasksResult(result);
+  }
+
+  @Get('today')
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    operationId: 'listTodayTasks',
+    summary: 'Get Today planning view',
+  })
+  @ApiQuery({ name: 'timezone', type: String, required: false })
+  @ApiResponse({
+    status: 200,
+    type: TodayResponseDto,
+  })
+  @ApiResponse({
+    description: 'No valid authenticated session is present.',
+    status: 401,
+  })
+  async listTodayTasks(
+    @Req() request: Request,
+    @Query() query: unknown,
+  ): Promise<TodayResponseDto> {
+    const userId = await this.resolveUserId(request);
+
+    const input = parseListTodayTasksQuery(query);
+
+    const result = await this.taskService.listTodayTasks(userId, {
+      timezone: input.timezone,
+    });
+
+    return this.handleListTodayTasksResult(result);
   }
 
   @Get(':taskId')
@@ -331,5 +371,64 @@ export class TaskController {
           },
         };
     }
+  }
+
+  private handleListTodayTasksResult(result: ListTodayTasksResult): TodayResponseDto {
+    return {
+      today: result.today,
+      timezone: result.timezone,
+      overdue: {
+        count: result.overdue.length,
+        tasks: result.overdue.map((task) => ({
+          id: task.id,
+          title: task.title,
+          priority: task.priority,
+          canonicalStatus: task.canonicalStatus,
+          dueAt: task.dueAt?.toISOString() ?? null,
+          plannedAt: task.plannedAt?.toISOString() ?? null,
+          lifecycleState: task.lifecycleState,
+          reasons: [...task.reasons],
+        })),
+      },
+      plannedToday: {
+        count: result.plannedToday.length,
+        tasks: result.plannedToday.map((task) => ({
+          id: task.id,
+          title: task.title,
+          priority: task.priority,
+          canonicalStatus: task.canonicalStatus,
+          dueAt: task.dueAt?.toISOString() ?? null,
+          plannedAt: task.plannedAt?.toISOString() ?? null,
+          lifecycleState: task.lifecycleState,
+          reasons: [...task.reasons],
+        })),
+      },
+      dueToday: {
+        count: result.dueToday.length,
+        tasks: result.dueToday.map((task) => ({
+          id: task.id,
+          title: task.title,
+          priority: task.priority,
+          canonicalStatus: task.canonicalStatus,
+          dueAt: task.dueAt?.toISOString() ?? null,
+          plannedAt: task.plannedAt?.toISOString() ?? null,
+          lifecycleState: task.lifecycleState,
+          reasons: [...task.reasons],
+        })),
+      },
+      completedToday: {
+        count: result.completedToday.length,
+        tasks: result.completedToday.map((task) => ({
+          id: task.id,
+          title: task.title,
+          priority: task.priority,
+          canonicalStatus: task.canonicalStatus,
+          dueAt: task.dueAt?.toISOString() ?? null,
+          plannedAt: task.plannedAt?.toISOString() ?? null,
+          lifecycleState: task.lifecycleState,
+          reasons: [...task.reasons],
+        })),
+      },
+    };
   }
 }

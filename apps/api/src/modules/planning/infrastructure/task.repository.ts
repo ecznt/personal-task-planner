@@ -299,6 +299,67 @@ export class TaskRepository {
     return { tasks: summaries, ...(nextCursor !== undefined && { nextCursor }) };
   }
 
+  async findTodayTasks(
+    userId: string,
+    todayStart: Date,
+    todayEnd: Date,
+  ): Promise<readonly (TaskSummary & { readonly reasons: readonly string[] })[]> {
+    const tasks = await this.prisma.task.findMany({
+      where: {
+        userId,
+        lifecycleState: 'ACTIVE',
+        OR: [
+          { dueAt: { lt: todayStart } },
+          { plannedAt: { gte: todayStart, lt: todayEnd } },
+          { dueAt: { gte: todayStart, lt: todayEnd } },
+        ],
+      },
+      orderBy: [{ dueAt: 'asc' }, { plannedAt: 'asc' }, { priority: 'asc' }, { title: 'asc' }],
+      include: { areaStatus: { select: { canonicalStatus: true } } },
+    });
+
+    const result: (TaskSummary & { readonly reasons: readonly string[] })[] = [];
+
+    for (const task of tasks) {
+      const reasons: string[] = [];
+      const canonicalStatus = task.areaStatus.canonicalStatus;
+      const isCompleted = canonicalStatus === 'COMPLETED';
+
+      if (isCompleted) {
+        if (task.updatedAt >= todayStart && task.updatedAt < todayEnd) {
+          reasons.push('completedToday');
+        }
+      } else {
+        if (task.dueAt !== null && task.dueAt < todayStart) {
+          reasons.push('overdue');
+        }
+
+        if (task.plannedAt !== null && task.plannedAt >= todayStart && task.plannedAt < todayEnd) {
+          reasons.push('plannedToday');
+        }
+
+        if (task.dueAt !== null && task.dueAt >= todayStart && task.dueAt < todayEnd) {
+          reasons.push('dueToday');
+        }
+      }
+
+      if (reasons.length > 0) {
+        result.push({
+          id: task.id,
+          title: task.title,
+          priority: task.priority,
+          canonicalStatus,
+          dueAt: task.dueAt,
+          plannedAt: task.plannedAt,
+          lifecycleState: task.lifecycleState,
+          reasons,
+        });
+      }
+    }
+
+    return result;
+  }
+
   async setTaskLabels(userId: string, taskId: string, labelIds: readonly string[]): Promise<void> {
     await this.prisma.$transaction(async (transaction) => {
       await transaction.taskLabel.deleteMany({

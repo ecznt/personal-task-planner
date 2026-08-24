@@ -365,6 +365,31 @@ export type TaskSummaryDto = {
     title: string;
 };
 
+export type TodayResponseDto = {
+    completedToday: TodaySectionDto;
+    dueToday: TodaySectionDto;
+    overdue: TodaySectionDto;
+    plannedToday: TodaySectionDto;
+    timezone: string;
+    today: string;
+};
+
+export type TodaySectionDto = {
+    count: number;
+    tasks: Array<TodayTaskSummaryDto>;
+};
+
+export type TodayTaskSummaryDto = {
+    canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+    dueAt?: string;
+    id: string;
+    lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+    plannedAt?: string;
+    priority: 'LOW' | 'MEDIUM' | 'HIGH';
+    reasons: Array<string>;
+    title: string;
+};
+
 export type UpdateCurrentUserRequestDto = {
     timeZone: string;
 };
@@ -1400,6 +1425,28 @@ export type ReorderChecklistResponses = {
 };
 
 export type ReorderChecklistResponse = ReorderChecklistResponses[keyof ReorderChecklistResponses];
+
+export type ListTodayTasksData = {
+    body?: never;
+    path?: never;
+    query?: {
+        timezone?: string;
+    };
+    url: '/api/v1/tasks/today';
+};
+
+export type ListTodayTasksErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+};
+
+export type ListTodayTasksResponses = {
+    200: TodayResponseDto;
+};
+
+export type ListTodayTasksResponse = ListTodayTasksResponses[keyof ListTodayTasksResponses];
 
 export type GetCurrentUserData = {
     body?: never;

@@ -136,6 +136,27 @@ export function parseListGlobalTasksQuery(value: unknown): ListGlobalTasksQueryI
   });
 }
 
+const listTodayTasksQuerySchema = z.object({
+  timezone: z.string().min(1).default('Europe/Istanbul'),
+});
+
+export type ListTodayTasksQueryInput = z.infer<typeof listTodayTasksQuerySchema>;
+
+export function parseListTodayTasksQuery(value: unknown): ListTodayTasksQueryInput {
+  const result = listTodayTasksQuerySchema.safeParse(value);
+
+  if (result.success) {
+    return result.data;
+  }
+
+  throw new ApiProblemException({
+    status: 422,
+    code: 'VALIDATION_FAILED',
+    detail: 'Sorgu parametrelerini kontrol edin.',
+    errors: result.error.issues.map(toValidationProblem),
+  });
+}
+
 function toValidationProblem(issue: z.core.$ZodIssue): ValidationProblemItem {
   return {
     code: zodIssueCode(issue),

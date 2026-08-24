@@ -139,3 +139,57 @@ export class EditTaskRequestDto {
   @ApiProperty({ format: 'uuid', type: String, required: false })
   projectId?: string | null;
 }
+
+export class TodayTaskSummaryDto {
+  @ApiProperty({ format: 'uuid', type: String })
+  id!: string;
+
+  @ApiProperty({ type: String })
+  title!: string;
+
+  @ApiProperty({ enum: ['LOW', 'MEDIUM', 'HIGH'], type: String })
+  priority!: 'LOW' | 'MEDIUM' | 'HIGH';
+
+  @ApiProperty({ enum: ['TO_DO', 'IN_PROGRESS', 'COMPLETED'], type: String })
+  canonicalStatus!: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+
+  @ApiProperty({ type: String, format: 'date-time', required: false })
+  dueAt!: string | null;
+
+  @ApiProperty({ type: String, format: 'date-time', required: false })
+  plannedAt!: string | null;
+
+  @ApiProperty({ enum: ['ACTIVE', 'ARCHIVED', 'TRASHED'], type: String })
+  lifecycleState!: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+
+  @ApiProperty({ type: [String] })
+  reasons!: string[];
+}
+
+export class TodaySectionDto {
+  @ApiProperty({ type: Number })
+  count!: number;
+
+  @ApiProperty({ type: () => [TodayTaskSummaryDto] })
+  tasks!: TodayTaskSummaryDto[];
+}
+
+export class TodayResponseDto {
+  @ApiProperty({ type: String })
+  today!: string;
+
+  @ApiProperty({ type: String })
+  timezone!: string;
+
+  @ApiProperty({ type: () => TodaySectionDto })
+  overdue!: TodaySectionDto;
+
+  @ApiProperty({ type: () => TodaySectionDto })
+  plannedToday!: TodaySectionDto;
+
+  @ApiProperty({ type: () => TodaySectionDto })
+  dueToday!: TodaySectionDto;
+
+  @ApiProperty({ type: () => TodaySectionDto })
+  completedToday!: TodaySectionDto;
+}

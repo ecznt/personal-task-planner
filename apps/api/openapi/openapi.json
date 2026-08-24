@@ -1338,6 +1338,113 @@
         ],
         "type": "object"
       },
+      "TodayResponseDto": {
+        "properties": {
+          "completedToday": {
+            "$ref": "#/components/schemas/TodaySectionDto"
+          },
+          "dueToday": {
+            "$ref": "#/components/schemas/TodaySectionDto"
+          },
+          "overdue": {
+            "$ref": "#/components/schemas/TodaySectionDto"
+          },
+          "plannedToday": {
+            "$ref": "#/components/schemas/TodaySectionDto"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "today": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "today",
+          "timezone",
+          "overdue",
+          "plannedToday",
+          "dueToday",
+          "completedToday"
+        ],
+        "type": "object"
+      },
+      "TodaySectionDto": {
+        "properties": {
+          "count": {
+            "type": "number"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/TodayTaskSummaryDto"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "count",
+          "tasks"
+        ],
+        "type": "object"
+      },
+      "TodayTaskSummaryDto": {
+        "properties": {
+          "canonicalStatus": {
+            "enum": [
+              "TO_DO",
+              "IN_PROGRESS",
+              "COMPLETED"
+            ],
+            "type": "string"
+          },
+          "dueAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "lifecycleState": {
+            "enum": [
+              "ACTIVE",
+              "ARCHIVED",
+              "TRASHED"
+            ],
+            "type": "string"
+          },
+          "plannedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "priority": {
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ],
+            "type": "string"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "priority",
+          "canonicalStatus",
+          "lifecycleState",
+          "reasons"
+        ],
+        "type": "object"
+      },
       "UpdateCurrentUserRequestDto": {
         "properties": {
           "timeZone": {
@@ -2991,6 +3098,40 @@
         "summary": "Reorder checklist items",
         "tags": [
           "Checklist"
+        ]
+      }
+    },
+    "/api/v1/tasks/today": {
+      "get": {
+        "operationId": "listTodayTasks",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "timezone",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TodayResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          }
+        },
+        "summary": "Get Today planning view",
+        "tags": [
+          "Tasks"
         ]
       }
     },

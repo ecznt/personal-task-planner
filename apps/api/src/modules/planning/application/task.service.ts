@@ -80,6 +80,24 @@ export type ListGlobalTasksResult = {
   readonly nextCursor?: string;
 };
 
+export type ListTodayTasksQuery = {
+  readonly timezone: string;
+};
+
+export type TodayTaskSummary = TaskSummary & {
+  readonly reasons: readonly string[];
+};
+
+export type ListTodayTasksResult = {
+  readonly outcome: 'SUCCESS';
+  readonly today: string;
+  readonly timezone: string;
+  readonly overdue: readonly TodayTaskSummary[];
+  readonly plannedToday: readonly TodayTaskSummary[];
+  readonly dueToday: readonly TodayTaskSummary[];
+  readonly completedToday: readonly TodayTaskSummary[];
+};
+
 @Injectable()
 export class TaskService {
   constructor(@Inject(TaskRepository) private readonly taskRepository: TaskRepository) {}
@@ -207,6 +225,48 @@ export class TaskService {
     };
   }
 
+  async listTodayTasks(userId: string, query: ListTodayTasksQuery): Promise<ListTodayTasksResult> {
+    const { todayStart, todayEnd, todayStr } = parseTodayRange(query.timezone);
+
+    const allTasks = await this.taskRepository.findTodayTasks(userId, todayStart, todayEnd);
+
+    const overdue: TodayTaskSummary[] = [];
+    const plannedToday: TodayTaskSummary[] = [];
+    const dueToday: TodayTaskSummary[] = [];
+    const completedToday: TodayTaskSummary[] = [];
+    const plannedTaskIds = new Set<string>();
+
+    for (const task of allTasks) {
+      if (task.reasons.includes('completedToday')) {
+        completedToday.push(task);
+        continue;
+      }
+
+      if (task.reasons.includes('plannedToday')) {
+        plannedToday.push(task);
+        plannedTaskIds.add(task.id);
+      }
+
+      if (task.reasons.includes('overdue')) {
+        overdue.push(task);
+      }
+
+      if (task.reasons.includes('dueToday') && !plannedTaskIds.has(task.id)) {
+        dueToday.push(task);
+      }
+    }
+
+    return {
+      outcome: 'SUCCESS',
+      today: todayStr,
+      timezone: query.timezone,
+      overdue,
+      plannedToday,
+      dueToday,
+      completedToday,
+    };
+  }
+
   async editTask(userId: string, command: EditTaskCommand): Promise<EditTaskResult> {
     if (command.title !== undefined) {
       const title = command.title.trim();
@@ -319,4 +379,29 @@ export class TaskService {
 
     return { outcome: 'SUCCESS', task, etag: task.version };
   }
+}
+
+function parseTodayRange(timezone: string): {
+  todayStart: Date;
+  todayEnd: Date;
+  todayStr: string;
+} {
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+
+  const todayStr = formatter.format(now);
+  const parts = todayStr.split('-');
+  const year = Number(parts[0]);
+  const month = Number(parts[1]);
+  const day = Number(parts[2]);
+
+  const todayStart = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+  const todayEnd = new Date(Date.UTC(year, month - 1, day + 1, 0, 0, 0, 0));
+
+  return { todayStart, todayEnd, todayStr };
 }

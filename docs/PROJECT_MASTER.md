@@ -534,11 +534,12 @@ Update this section after every successful graph generation.
 | 2026-08-20 | Phase 3 — L-007 Checklist and Labels for Tasks | Implemented, locally verified, and approved | Label CRUD, ChecklistItem CRUD, task integration, generated OpenAPI/client artifacts, full local verification, and no Projects, recurrence, reminders, or Kanban. |
 | 2026-08-20 | Phase 3 — L-008 Project management inside Areas | Implemented, locally verified, and approved | Project domain entity, repository, service, controller, schema, DTOs. Task extended with optional `projectId`. Same-Area invariant enforced. ProjectManager UI, task detail project selector, full local verification. |
 | 2026-08-21 | Phase 3 — L-009 Global active List view | Implemented, locally verified, and approved | `GET /api/v1/tasks` endpoint with filtering/sorting/pagination, frontend `/app/tasks` route with sort/filter controls, task list component, full local verification. |
+| 2026-08-21 | Phase 3 — L-010 Today planning | Implemented, locally verified, and approved | `GET /api/v1/tasks/today` endpoint with timezone-aware bucketing (overdue/planned/due/completed), frontend `/app/today` route with collapsible sections, task cards with reason badges, full local verification. |
 
 ## Current planning stage
 
-Phase 3 Implementation — L-009 Global active List view. EPIC-001, BL-007 through BL-011, BL-014, BL-015, BL-121, the lean backlog refactor, L-001, L-002, L-003, L-004, L-005, L-006, L-007, L-008, and L-009 are implemented. L-009 is locally verified and queued for publication. Today planning, Kanban, Area Kanban, status management, recurrence, reminders, search, bulk actions, notifications, Archive, Trash, and full primary-data purge implementation have not started.
+Phase 3 Implementation — L-010 Today planning. EPIC-001, BL-007 through BL-011, BL-014, BL-015, BL-121, the lean backlog refactor, L-001, L-002, L-003, L-004, L-005, L-006, L-007, L-008, L-009, and L-010 are implemented. L-010 is locally verified and queued for publication. Global Kanban, Area Kanban, status management, recurrence, reminders, search, bulk actions, notifications, Archive, Trash, and full primary-data purge implementation have not started.
 
 ## Next required action
 
-Run quality gates, verify CI, and publish L-009. Then plan next slice (Today planning or Kanban).
+Run quality gates, verify CI, and publish L-010. Then plan next slice (Global Kanban or Area Kanban).
