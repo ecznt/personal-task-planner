@@ -360,6 +360,111 @@ export class TaskRepository {
     return result;
   }
 
+  async findKanbanTasks(userId: string): Promise<{
+    readonly todo: readonly TaskSummary[];
+    readonly inProgress: readonly TaskSummary[];
+    readonly completed: readonly TaskSummary[];
+  }> {
+    const tasks = await this.prisma.task.findMany({
+      where: { userId, lifecycleState: 'ACTIVE' },
+      orderBy: [{ globalRank: 'asc' }, { id: 'asc' }],
+      include: { areaStatus: { select: { canonicalStatus: true } } },
+    });
+
+    const todo: TaskSummary[] = [];
+    const inProgress: TaskSummary[] = [];
+    const completed: TaskSummary[] = [];
+
+    for (const task of tasks) {
+      const summary: TaskSummary = {
+        id: task.id,
+        title: task.title,
+        priority: task.priority,
+        canonicalStatus: task.areaStatus.canonicalStatus,
+        dueAt: task.dueAt,
+        plannedAt: task.plannedAt,
+        lifecycleState: task.lifecycleState,
+      };
+
+      switch (task.areaStatus.canonicalStatus) {
+        case 'TO_DO':
+          todo.push(summary);
+          break;
+        case 'IN_PROGRESS':
+          inProgress.push(summary);
+          break;
+        case 'COMPLETED':
+          completed.push(summary);
+          break;
+      }
+    }
+
+    return { todo, inProgress, completed };
+  }
+
+  async moveTask(
+    userId: string,
+    taskId: string,
+    targetCanonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED',
+    version: number,
+  ): Promise<{ task: Task | null; defaultStatusId: string | null }> {
+    const task = await this.prisma.task.findFirst({
+      where: { id: taskId, userId, lifecycleState: 'ACTIVE' },
+      select: { id: true, areaId: true, version: true },
+    });
+
+    if (!task) {
+      return { task: null, defaultStatusId: null };
+    }
+
+    if (task.version !== version) {
+      return { task: null, defaultStatusId: null };
+    }
+
+    const defaultStatus = await this.prisma.areaStatus.findFirst({
+      where: {
+        userId,
+        areaId: task.areaId,
+        canonicalStatus: targetCanonicalStatus,
+        isDefault: true,
+        active: true,
+      },
+      select: { id: true },
+    });
+
+    if (!defaultStatus) {
+      return { task: null, defaultStatusId: null };
+    }
+
+    const maxRank = await this.prisma.task.findFirst({
+      where: {
+        userId,
+        lifecycleState: 'ACTIVE',
+        areaStatus: { canonicalStatus: targetCanonicalStatus },
+      },
+      orderBy: { globalRank: 'desc' },
+      select: { globalRank: true },
+    });
+
+    const nextRank = maxRank ? incrementRank(maxRank.globalRank) : '000000000000000000000001';
+
+    const result = await this.prisma.task.updateMany({
+      where: { id: taskId, userId, version, lifecycleState: 'ACTIVE' },
+      data: {
+        areaStatusId: defaultStatus.id,
+        globalRank: nextRank,
+        version: { increment: 1 },
+      },
+    });
+
+    if (result.count === 0) {
+      return { task: null, defaultStatusId: null };
+    }
+
+    const updatedTask = await this.prisma.task.findUnique({ where: { id: taskId } });
+    return { task: updatedTask, defaultStatusId: defaultStatus.id };
+  }
+
   async setTaskLabels(userId: string, taskId: string, labelIds: readonly string[]): Promise<void> {
     await this.prisma.$transaction(async (transaction) => {
       await transaction.taskLabel.deleteMany({

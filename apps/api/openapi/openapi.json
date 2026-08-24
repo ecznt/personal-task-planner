@@ -624,6 +624,43 @@
         ],
         "type": "object"
       },
+      "KanbanColumnDto": {
+        "properties": {
+          "count": {
+            "type": "number"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/TaskSummaryDto"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "count",
+          "tasks"
+        ],
+        "type": "object"
+      },
+      "KanbanResponseDto": {
+        "properties": {
+          "completed": {
+            "$ref": "#/components/schemas/KanbanColumnDto"
+          },
+          "inProgress": {
+            "$ref": "#/components/schemas/KanbanColumnDto"
+          },
+          "todo": {
+            "$ref": "#/components/schemas/KanbanColumnDto"
+          }
+        },
+        "required": [
+          "todo",
+          "inProgress",
+          "completed"
+        ],
+        "type": "object"
+      },
       "LabelDataDto": {
         "properties": {
           "id": {
@@ -733,6 +770,27 @@
         },
         "required": [
           "data"
+        ],
+        "type": "object"
+      },
+      "MoveKanbanTaskRequestDto": {
+        "properties": {
+          "targetCanonicalStatus": {
+            "enum": [
+              "TO_DO",
+              "IN_PROGRESS",
+              "COMPLETED"
+            ],
+            "type": "string"
+          },
+          "taskId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "taskId",
+          "targetCanonicalStatus"
         ],
         "type": "object"
       },
@@ -3098,6 +3156,75 @@
         "summary": "Reorder checklist items",
         "tags": [
           "Checklist"
+        ]
+      }
+    },
+    "/api/v1/tasks/kanban": {
+      "get": {
+        "operationId": "listKanbanTasks",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KanbanResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          }
+        },
+        "summary": "Get Global Kanban view",
+        "tags": [
+          "Tasks"
+        ]
+      }
+    },
+    "/api/v1/tasks/kanban-moves": {
+      "post": {
+        "operationId": "moveKanbanTask",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MoveKanbanTaskRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "404": {
+            "description": "Task not found."
+          },
+          "409": {
+            "description": "Version conflict."
+          },
+          "422": {
+            "description": "Validation failed."
+          }
+        },
+        "summary": "Move Task between Kanban groups",
+        "tags": [
+          "Tasks"
         ]
       }
     },

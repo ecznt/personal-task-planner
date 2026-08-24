@@ -157,6 +157,28 @@ export function parseListTodayTasksQuery(value: unknown): ListTodayTasksQueryInp
   });
 }
 
+const moveKanbanTaskSchema = z.strictObject({
+  taskId: z.string().uuid(),
+  targetCanonicalStatus: z.enum(['TO_DO', 'IN_PROGRESS', 'COMPLETED']),
+});
+
+export type MoveKanbanTaskInput = z.infer<typeof moveKanbanTaskSchema>;
+
+export function parseMoveKanbanTaskInput(value: unknown): MoveKanbanTaskInput {
+  const result = moveKanbanTaskSchema.safeParse(value);
+
+  if (result.success) {
+    return result.data;
+  }
+
+  throw new ApiProblemException({
+    status: 422,
+    code: 'VALIDATION_FAILED',
+    detail: 'Kanban taşıma bilgilerini kontrol edin.',
+    errors: result.error.issues.map(toValidationProblem),
+  });
+}
+
 function toValidationProblem(issue: z.core.$ZodIssue): ValidationProblemItem {
   return {
     code: zodIssueCode(issue),

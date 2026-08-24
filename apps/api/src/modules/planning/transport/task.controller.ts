@@ -4,9 +4,11 @@ import {
   Get,
   Header,
   Headers,
+  HttpCode,
   Inject,
   Param,
   Patch,
+  Post,
   Query,
   Req,
   Res,
@@ -23,15 +25,21 @@ import type {
   EditTaskResult,
   GetTaskResult,
   ListGlobalTasksResult,
+  ListKanbanTasksResult,
   ListTodayTasksResult,
+  MoveKanbanTaskResult,
 } from '../application/task.service';
+import type { TaskSummary } from '../domain/task.entity';
 import {
   parseEditTaskInput,
   parseListGlobalTasksQuery,
   parseListTodayTasksQuery,
+  parseMoveKanbanTaskInput,
 } from './task.schema';
 import {
   EditTaskRequestDto,
+  KanbanResponseDto,
+  MoveKanbanTaskRequestDto,
   TaskListResponseDto,
   TaskResponseDto,
   TodayResponseDto,
@@ -120,6 +128,93 @@ export class TaskController {
     });
 
     return this.handleListTodayTasksResult(result);
+  }
+
+  @Get('kanban')
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    operationId: 'listKanbanTasks',
+    summary: 'Get Global Kanban view',
+  })
+  @ApiResponse({
+    status: 200,
+    type: KanbanResponseDto,
+  })
+  @ApiResponse({
+    description: 'No valid authenticated session is present.',
+    status: 401,
+  })
+  async listKanbanTasks(@Req() request: Request): Promise<KanbanResponseDto> {
+    const userId = await this.resolveUserId(request);
+
+    const result = await this.taskService.listKanbanTasks(userId);
+
+    return this.handleListKanbanTasksResult(result);
+  }
+
+  @Post('kanban-moves')
+  @HttpCode(200)
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    operationId: 'moveKanbanTask',
+    summary: 'Move Task between Kanban groups',
+  })
+  @ApiBody({ type: MoveKanbanTaskRequestDto })
+  @ApiResponse({
+    status: 200,
+    type: TaskResponseDto,
+  })
+  @ApiResponse({
+    description: 'No valid authenticated session is present.',
+    status: 401,
+  })
+  @ApiResponse({
+    description: 'Task not found.',
+    status: 404,
+  })
+  @ApiResponse({
+    description: 'Version conflict.',
+    status: 409,
+  })
+  @ApiResponse({
+    description: 'Validation failed.',
+    status: 422,
+  })
+  async moveKanbanTask(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+    @Body() body: unknown,
+    @Headers('if-match') ifMatch?: string,
+  ): Promise<TaskResponseDto> {
+    const userId = await this.resolveUserId(request);
+
+    const input = parseMoveKanbanTaskInput(body);
+
+    if (!ifMatch) {
+      throw new ApiProblemException({
+        status: 422,
+        code: 'VALIDATION_FAILED',
+        detail: 'If-Match başlığı gereklidir.',
+      });
+    }
+
+    const version = parseInt(ifMatch, 10);
+
+    if (isNaN(version)) {
+      throw new ApiProblemException({
+        status: 422,
+        code: 'VALIDATION_FAILED',
+        detail: 'If-Match başlığı geçerli bir sayı olmalıdır.',
+      });
+    }
+
+    const result = await this.taskService.moveKanbanTask(userId, {
+      taskId: input.taskId,
+      targetCanonicalStatus: input.targetCanonicalStatus,
+      version,
+    });
+
+    return this.handleMoveKanbanTaskResult(result, response);
   }
 
   @Get(':taskId')
@@ -430,5 +525,76 @@ export class TaskController {
         })),
       },
     };
+  }
+
+  private handleListKanbanTasksResult(result: ListKanbanTasksResult): KanbanResponseDto {
+    const mapTasks = (tasks: readonly TaskSummary[]) =>
+      tasks.map((task) => ({
+        id: task.id,
+        title: task.title,
+        priority: task.priority,
+        canonicalStatus: task.canonicalStatus,
+        dueAt: task.dueAt?.toISOString() ?? null,
+        plannedAt: task.plannedAt?.toISOString() ?? null,
+        lifecycleState: task.lifecycleState,
+      }));
+
+    return {
+      todo: { count: result.todo.length, tasks: mapTasks(result.todo) },
+      inProgress: { count: result.inProgress.length, tasks: mapTasks(result.inProgress) },
+      completed: { count: result.completed.length, tasks: mapTasks(result.completed) },
+    };
+  }
+
+  private handleMoveKanbanTaskResult(
+    result: MoveKanbanTaskResult,
+    response: Response,
+  ): TaskResponseDto {
+    switch (result.outcome) {
+      case 'SUCCESS':
+        response.setHeader('ETag', String(result.etag));
+        return {
+          data: {
+            id: result.task.id,
+            areaId: result.task.areaId,
+            title: result.task.title,
+            description: result.task.description,
+            plannedAt: result.task.plannedAt?.toISOString() ?? null,
+            dueAt: result.task.dueAt?.toISOString() ?? null,
+            priority: result.task.priority,
+            areaStatusId: result.task.areaStatusId,
+            canonicalStatus: 'TO_DO',
+            lifecycleState: result.task.lifecycleState,
+            version: result.task.version,
+            labels: [],
+            checklistItems: [],
+            projectId: result.task.projectId,
+          },
+        };
+      case 'NOT_FOUND':
+        throw new ApiProblemException({
+          status: 404,
+          code: 'RESOURCE_NOT_FOUND',
+          detail: 'Kaynak bulunamadı.',
+        });
+      case 'STALE_VERSION':
+        throw new ApiProblemException({
+          status: 409,
+          code: 'VERSION_CONFLICT',
+          detail: 'Çakışma oluştu. Lütfen sayfayı yenileyin.',
+        });
+      case 'VALIDATION_ERROR':
+        throw new ApiProblemException({
+          status: 422,
+          code: 'VALIDATION_FAILED',
+          detail: result.detail,
+        });
+      case 'UNAUTHENTICATED':
+        throw new ApiProblemException({
+          status: 401,
+          code: 'AUTHENTICATION_REQUIRED',
+          detail: 'Oturum açmanız gerekiyor.',
+        });
+    }
   }
 }

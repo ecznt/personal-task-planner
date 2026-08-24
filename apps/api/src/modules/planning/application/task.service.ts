@@ -98,6 +98,26 @@ export type ListTodayTasksResult = {
   readonly completedToday: readonly TodayTaskSummary[];
 };
 
+export type ListKanbanTasksResult = {
+  readonly outcome: 'SUCCESS';
+  readonly todo: readonly TaskSummary[];
+  readonly inProgress: readonly TaskSummary[];
+  readonly completed: readonly TaskSummary[];
+};
+
+export type MoveKanbanTaskCommand = {
+  readonly taskId: string;
+  readonly targetCanonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+  readonly version: number;
+};
+
+export type MoveKanbanTaskResult =
+  | { readonly outcome: 'SUCCESS'; readonly task: Task; readonly etag: number }
+  | { readonly outcome: 'NOT_FOUND' }
+  | { readonly outcome: 'STALE_VERSION' }
+  | { readonly outcome: 'VALIDATION_ERROR'; readonly detail: string }
+  | { readonly outcome: 'UNAUTHENTICATED' };
+
 @Injectable()
 export class TaskService {
   constructor(@Inject(TaskRepository) private readonly taskRepository: TaskRepository) {}
@@ -265,6 +285,48 @@ export class TaskService {
       dueToday,
       completedToday,
     };
+  }
+
+  async listKanbanTasks(userId: string): Promise<ListKanbanTasksResult> {
+    const { todo, inProgress, completed } = await this.taskRepository.findKanbanTasks(userId);
+
+    return {
+      outcome: 'SUCCESS',
+      todo,
+      inProgress,
+      completed,
+    };
+  }
+
+  async moveKanbanTask(
+    userId: string,
+    command: MoveKanbanTaskCommand,
+  ): Promise<MoveKanbanTaskResult> {
+    const { task, defaultStatusId } = await this.taskRepository.moveTask(
+      userId,
+      command.taskId,
+      command.targetCanonicalStatus,
+      command.version,
+    );
+
+    if (!task) {
+      const existing = await this.taskRepository.findById(userId, command.taskId);
+
+      if (!existing) {
+        return { outcome: 'NOT_FOUND' };
+      }
+
+      return { outcome: 'STALE_VERSION' };
+    }
+
+    if (!defaultStatusId) {
+      return {
+        outcome: 'VALIDATION_ERROR',
+        detail: 'Hedef durum için varsayılan alan durumu bulunamadı.',
+      };
+    }
+
+    return { outcome: 'SUCCESS', task, etag: task.version };
   }
 
   async editTask(userId: string, command: EditTaskCommand): Promise<EditTaskResult> {

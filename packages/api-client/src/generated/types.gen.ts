@@ -179,6 +179,17 @@ export type EmailVerificationRequestDto = {
     email: string;
 };
 
+export type KanbanColumnDto = {
+    count: number;
+    tasks: Array<TaskSummaryDto>;
+};
+
+export type KanbanResponseDto = {
+    completed: KanbanColumnDto;
+    inProgress: KanbanColumnDto;
+    todo: KanbanColumnDto;
+};
+
 export type LabelDataDto = {
     id: string;
     name: string;
@@ -210,6 +221,11 @@ export type LoginRequestDto = {
 
 export type LoginResponseDto = {
     data: AuthenticatedSessionDataDto;
+};
+
+export type MoveKanbanTaskRequestDto = {
+    targetCanonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+    taskId: string;
 };
 
 export type OnboardingCompletionDataDto = {
@@ -1425,6 +1441,58 @@ export type ReorderChecklistResponses = {
 };
 
 export type ReorderChecklistResponse = ReorderChecklistResponses[keyof ReorderChecklistResponses];
+
+export type ListKanbanTasksData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/tasks/kanban';
+};
+
+export type ListKanbanTasksErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+};
+
+export type ListKanbanTasksResponses = {
+    200: KanbanResponseDto;
+};
+
+export type ListKanbanTasksResponse = ListKanbanTasksResponses[keyof ListKanbanTasksResponses];
+
+export type MoveKanbanTaskData = {
+    body: MoveKanbanTaskRequestDto;
+    path?: never;
+    query?: never;
+    url: '/api/v1/tasks/kanban-moves';
+};
+
+export type MoveKanbanTaskErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Task not found.
+     */
+    404: unknown;
+    /**
+     * Version conflict.
+     */
+    409: unknown;
+    /**
+     * Validation failed.
+     */
+    422: unknown;
+};
+
+export type MoveKanbanTaskResponses = {
+    200: TaskResponseDto;
+};
+
+export type MoveKanbanTaskResponse = MoveKanbanTaskResponses[keyof MoveKanbanTaskResponses];
 
 export type ListTodayTasksData = {
     body?: never;

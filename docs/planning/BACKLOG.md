@@ -2,13 +2,13 @@
 
 | Field | Value |
 | --- | --- |
-| Status | L-009 and L-010 implemented and approved |
+| Status | L-010 and L-011 implemented and approved |
 | Revision date | 2026-08-21 |
 | Product scope | MVP, personal use only |
 | Document language | English |
 | Execution mode | Small vertical slices, but not one micro-story per technical concern |
-| Current completed baseline | EPIC-001; BL-007 through BL-011; BL-014; BL-015; BL-121; L-001; L-002; L-003; L-004; L-005; L-006; L-007; L-008; L-009; L-010 |
-| Next slice | L-011 — Global Kanban |
+| Current completed baseline | EPIC-001; BL-007 through BL-011; BL-014; BL-015; BL-121; L-001; L-002; L-003; L-004; L-005; L-006; L-007; L-008; L-009; L-010; L-011 |
+| Next slice | L-012 — Area Kanban |
 
 This document replaces the earlier over-granular execution queue. The approved PRD, UX, Domain, Data, API, Architecture, and ADR documents remain authoritative for product and technical rules. This backlog controls implementation order only.
 
@@ -49,6 +49,7 @@ These items are complete, published to `develop`, and CI-verified. Future slices
 | L-008 | User manages Projects inside Areas. | Implemented, locally verified, and approved. |
 | L-009 | User can use the global active List view. | Implemented, locally verified, and approved. |
 | L-010 | User can use Today planning. | Implemented, locally verified, and approved. |
+| L-011 | User can use basic Global Kanban. | Implemented, locally verified, and approved. |
 
 Reserved/deferred IDs `BL-012` and `BL-013` remain reserved for removed social-authentication work and must not be reused.
 

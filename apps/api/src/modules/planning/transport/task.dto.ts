@@ -193,3 +193,30 @@ export class TodayResponseDto {
   @ApiProperty({ type: () => TodaySectionDto })
   completedToday!: TodaySectionDto;
 }
+
+export class KanbanColumnDto {
+  @ApiProperty({ type: Number })
+  count!: number;
+
+  @ApiProperty({ type: () => [TaskSummaryDto] })
+  tasks!: TaskSummaryDto[];
+}
+
+export class KanbanResponseDto {
+  @ApiProperty({ type: () => KanbanColumnDto })
+  todo!: KanbanColumnDto;
+
+  @ApiProperty({ type: () => KanbanColumnDto })
+  inProgress!: KanbanColumnDto;
+
+  @ApiProperty({ type: () => KanbanColumnDto })
+  completed!: KanbanColumnDto;
+}
+
+export class MoveKanbanTaskRequestDto {
+  @ApiProperty({ format: 'uuid', type: String })
+  taskId!: string;
+
+  @ApiProperty({ enum: ['TO_DO', 'IN_PROGRESS', 'COMPLETED'], type: String })
+  targetCanonicalStatus!: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+}
