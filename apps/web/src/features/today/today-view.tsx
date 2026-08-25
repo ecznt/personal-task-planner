@@ -77,7 +77,7 @@ function SectionHeader({
     <button
       type="button"
       onClick={() => setIsOpen(!isOpen)}
-      className="flex w-full items-center justify-between rounded-lg border bg-card px-3 py-2 text-left text-sm font-medium transition-colors hover:bg-accent"
+      className="flex w-full items-center justify-between rounded-lg border bg-card px-3 py-2 text-left text-sm font-medium transition-colors duration-150 active:scale-[0.97] hover:bg-accent"
     >
       <span>
         {title} ({count})
@@ -87,11 +87,12 @@ function SectionHeader({
   );
 }
 
-function TaskCard({ task }: { task: TodayTask }) {
+function TaskCard({ task, index }: { task: TodayTask; index: number }) {
   return (
     <Link
       href={`/app/areas/tasks/${task.id}`}
-      className="flex items-center justify-between rounded-lg border bg-card p-3 transition-colors hover:bg-accent"
+      className="animate-fade-slide-in flex items-center justify-between rounded-lg border bg-card p-3 transition-colors duration-150 active:scale-[0.97] hover:bg-accent"
+      style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
     >
       <div className="min-w-0 flex-1">
         <div className="truncate font-medium">{task.title}</div>
@@ -101,10 +102,10 @@ function TaskCard({ task }: { task: TodayTask }) {
               key={reason}
               className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                 reason === 'overdue'
-                  ? 'bg-red-100 text-red-700'
+                  ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
                   : reason === 'completedToday'
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-blue-100 text-blue-700'
+                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                    : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
               }`}
             >
               {REASON_LABELS[reason] ?? reason}
@@ -113,10 +114,10 @@ function TaskCard({ task }: { task: TodayTask }) {
           <span
             className={`rounded-full px-2 py-0.5 text-xs font-medium ${
               task.priority === 'HIGH'
-                ? 'bg-red-100 text-red-700'
+                ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
                 : task.priority === 'LOW'
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'bg-gray-100 text-gray-700'
+                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                  : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
             }`}
           >
             {PRIORITY_LABELS[task.priority]}
@@ -197,7 +198,7 @@ export function TodayView() {
           <div className="mt-3 flex justify-center gap-3">
             <Link
               href="/app/tasks"
-              className="inline-flex items-center rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              className="inline-flex items-center rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors duration-150 active:scale-[0.97] hover:bg-primary/90"
             >
               Görevlere Git
             </Link>
@@ -209,8 +210,8 @@ export function TodayView() {
             <div className="space-y-2">
               <SectionHeader title="Gecikmiş" count={data.overdue.count} />
               <div className="space-y-2 pl-0">
-                {data.overdue.tasks.map((task) => (
-                  <TaskCard key={task.id} task={task} />
+                {data.overdue.tasks.map((task, index) => (
+                  <TaskCard key={task.id} task={task} index={index} />
                 ))}
               </div>
             </div>
@@ -220,8 +221,8 @@ export function TodayView() {
             <div className="space-y-2">
               <SectionHeader title="Bugün Planlandı" count={data.plannedToday.count} />
               <div className="space-y-2">
-                {data.plannedToday.tasks.map((task) => (
-                  <TaskCard key={task.id} task={task} />
+                {data.plannedToday.tasks.map((task, index) => (
+                  <TaskCard key={task.id} task={task} index={index} />
                 ))}
               </div>
             </div>
@@ -231,8 +232,8 @@ export function TodayView() {
             <div className="space-y-2">
               <SectionHeader title="Bugün Bitiş" count={data.dueToday.count} />
               <div className="space-y-2">
-                {data.dueToday.tasks.map((task) => (
-                  <TaskCard key={task.id} task={task} />
+                {data.dueToday.tasks.map((task, index) => (
+                  <TaskCard key={task.id} task={task} index={index} />
                 ))}
               </div>
             </div>
@@ -243,18 +244,23 @@ export function TodayView() {
               <button
                 type="button"
                 onClick={() => setShowCompleted(!showCompleted)}
-                className="flex w-full items-center justify-between rounded-lg border bg-card px-3 py-2 text-left text-sm font-medium transition-colors hover:bg-accent"
+                className="flex w-full items-center justify-between rounded-lg border bg-card px-3 py-2 text-left text-sm font-medium transition-colors duration-150 active:scale-[0.97] hover:bg-accent"
               >
                 <span>Tamamlanan ({data.completedToday.count})</span>
                 <span className="text-muted-foreground">{showCompleted ? '−' : '+'}</span>
               </button>
-              {showCompleted && (
-                <div className="space-y-2">
-                  {data.completedToday.tasks.map((task) => (
-                    <TaskCard key={task.id} task={task} />
-                  ))}
+              <div
+                className="accordion-content"
+                data-open={showCompleted}
+              >
+                <div>
+                  <div className="space-y-2 pt-1">
+                    {data.completedToday.tasks.map((task, index) => (
+                      <TaskCard key={task.id} task={task} index={index} />
+                    ))}
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
           )}
         </div>

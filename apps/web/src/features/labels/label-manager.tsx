@@ -133,7 +133,7 @@ export function LabelManager({ selectedLabelIds, onToggleLabel }: LabelManagerPr
                 key={label.id}
                 type="button"
                 onClick={() => onToggleLabel(label.id)}
-                className={`inline-flex items-center rounded-full border px-3 py-1 text-sm transition-colors ${
+                className={`inline-flex items-center rounded-full border px-3 py-1 text-sm transition-colors duration-150 active:scale-90 ${
                   isSelected
                     ? 'border-primary bg-primary text-primary-foreground'
                     : 'border-border bg-transparent text-foreground hover:bg-muted'

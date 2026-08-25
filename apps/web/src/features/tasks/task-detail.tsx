@@ -254,7 +254,7 @@ export function TaskDetail({ taskId }: TaskDetailProps) {
             <select
               id="priority"
               defaultValue={taskData.priority}
-              className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm"
+              className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base outline-none transition-transform duration-150 active:scale-[0.97] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm"
               {...form.register('priority')}
             >
               <option value="LOW">Düşük</option>
@@ -275,7 +275,7 @@ export function TaskDetail({ taskId }: TaskDetailProps) {
             <select
               id="projectId"
               defaultValue={taskData.projectId ?? ''}
-              className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm"
+              className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base outline-none transition-transform duration-150 active:scale-[0.97] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm"
               {...form.register('projectId')}
             >
               <option value="">Proje yok</option>
@@ -312,13 +312,13 @@ export function TaskDetail({ taskId }: TaskDetailProps) {
         <div>
           <a
             href={`/app/areas/${taskData.areaId}`}
-            className="text-sm text-muted-foreground hover:underline"
+            className="text-sm text-muted-foreground transition-colors duration-150 hover:underline"
           >
             ← Alana dön
           </a>
           <h1 className="mt-2 text-2xl font-bold tracking-tight">{taskData.title}</h1>
         </div>
-        <Button variant="outline" onClick={() => setIsEditing(true)}>
+        <Button variant="outline" onClick={() => setIsEditing(true)} className="transition-transform duration-150 active:scale-[0.97]">
           Düzenle
         </Button>
       </div>

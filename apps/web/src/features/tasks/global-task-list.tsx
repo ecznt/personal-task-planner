@@ -122,7 +122,7 @@ export function GlobalTaskList() {
             id="sort"
             value={sort}
             onChange={(e) => setSort(e.target.value)}
-            className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm outline-none transition-transform duration-150 active:scale-[0.97] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           >
             {SORT_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -133,7 +133,7 @@ export function GlobalTaskList() {
           <button
             type="button"
             onClick={() => setOrder(order === 'asc' ? 'desc' : 'asc')}
-            className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm hover:bg-accent"
+            className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm transition-transform duration-150 hover:bg-accent active:scale-[0.97]"
           >
             {order === 'asc' ? '↑' : '↓'}
           </button>
@@ -147,7 +147,7 @@ export function GlobalTaskList() {
             id="statusFilter"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm outline-none transition-transform duration-150 active:scale-[0.97] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           >
             <option value="">Tümü</option>
             {STATUS_OPTIONS.map((opt) => (
@@ -166,7 +166,7 @@ export function GlobalTaskList() {
             id="priorityFilter"
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
-            className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm outline-none transition-transform duration-150 active:scale-[0.97] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           >
             <option value="">Tümü</option>
             {PRIORITY_OPTIONS.map((opt) => (
@@ -184,11 +184,12 @@ export function GlobalTaskList() {
         </div>
       ) : (
         <div className="space-y-2">
-          {taskData.map((task) => (
+          {taskData.map((task, index) => (
             <Link
               key={task.id}
               href={`/app/areas/tasks/${task.id}`}
-              className="flex items-center justify-between rounded-lg border bg-card p-3 transition-colors hover:bg-accent"
+              className="animate-fade-slide-in flex items-center justify-between rounded-lg border bg-card p-3 transition-colors duration-150 active:scale-[0.97] hover:bg-accent"
+              style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
             >
               <div className="min-w-0 flex-1">
                 <div className="truncate font-medium">{task.title}</div>
@@ -196,10 +197,10 @@ export function GlobalTaskList() {
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                       task.priority === 'HIGH'
-                        ? 'bg-red-100 text-red-700'
+                        ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
                         : task.priority === 'LOW'
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'bg-gray-100 text-gray-700'
+                          ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                          : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
                     }`}
                   >
                     {PRIORITY_LABELS[task.priority]}

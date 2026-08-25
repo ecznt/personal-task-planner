@@ -192,7 +192,7 @@ export function ProjectManager({ areaId }: ProjectManagerProps) {
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="h-6 w-6 p-0 text-muted-foreground"
+                    className="h-6 w-6 p-0 text-muted-foreground transition-transform duration-150 active:scale-90"
                     onClick={() => {
                       setEditingId(project.id);
                       setEditName(project.name);

@@ -180,7 +180,7 @@ export function OnboardingPreferenceForm() {
               <FieldLabel htmlFor="onboarding-choice">Başlangıç tercihi</FieldLabel>
               <select
                 id="onboarding-choice"
-                className="h-9 rounded-lg border border-input bg-background px-3 text-sm focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+                className="h-9 rounded-lg border border-input bg-background px-3 text-sm transition-transform duration-150 active:scale-[0.97] focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
                 aria-invalid={Boolean(form.formState.errors.choice)}
                 aria-describedby={
                   form.formState.errors.choice ? 'onboarding-choice-error' : undefined
@@ -197,7 +197,7 @@ export function OnboardingPreferenceForm() {
               <FieldLabel htmlFor="onboarding-time-zone">Saat dilimi</FieldLabel>
               <select
                 id="onboarding-time-zone"
-                className="h-9 rounded-lg border border-input bg-background px-3 text-sm focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+                className="h-9 rounded-lg border border-input bg-background px-3 text-sm transition-transform duration-150 active:scale-[0.97] focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
                 aria-invalid={Boolean(form.formState.errors.timeZone)}
                 aria-describedby={
                   form.formState.errors.timeZone ? 'onboarding-time-zone-error' : undefined

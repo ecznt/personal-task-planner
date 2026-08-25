@@ -80,9 +80,14 @@ export function AreaList() {
         <CreateAreaForm />
       </div>
       <div className="grid gap-4">
-        {areaList.map((area) => (
-          <Link key={area.id} href={`/app/areas/${area.id}`}>
-            <Card className="transition-colors hover:bg-muted/50">
+        {areaList.map((area, index) => (
+          <Link
+            key={area.id}
+            href={`/app/areas/${area.id}`}
+            className="animate-fade-slide-in"
+            style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
+          >
+            <Card className="transition-colors duration-150 active:scale-[0.97] hover:bg-muted/50">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg">{area.name}</CardTitle>
               </CardHeader>

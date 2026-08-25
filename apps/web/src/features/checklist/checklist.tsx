@@ -175,7 +175,7 @@ export function Checklist({ taskId }: ChecklistProps) {
                 type="button"
                 onClick={() => toggleItem.mutate(item)}
                 disabled={toggleItem.isPending}
-                className={`flex h-5 w-5 items-center justify-center rounded border transition-colors ${
+                className={`flex h-5 w-5 items-center justify-center rounded border transition-colors duration-150 active:scale-90 ${
                   item.completed
                     ? 'border-primary bg-primary text-primary-foreground'
                     : 'border-border bg-transparent hover:bg-muted'
@@ -204,7 +204,7 @@ export function Checklist({ taskId }: ChecklistProps) {
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                className="h-6 w-6 p-0 text-muted-foreground transition-colors duration-150 active:scale-90 hover:text-destructive"
                 onClick={() => deleteItem.mutate(item.id)}
                 disabled={deleteItem.isPending}
               >

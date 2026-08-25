@@ -129,7 +129,7 @@ export function CreateTaskForm({ areaId, onSuccess }: CreateTaskFormProps) {
           <FieldLabel htmlFor="priority">Öncelik</FieldLabel>
           <select
             id="priority"
-            className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm"
+            className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base outline-none transition-transform duration-150 active:scale-[0.97] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm"
             {...form.register('priority')}
           >
             <option value="LOW">Düşük</option>
