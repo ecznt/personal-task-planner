@@ -224,5 +224,10 @@ function repositoryMock(): jest.Mocked<AreaRepository> {
     findById: jest.fn(),
     listByUser: jest.fn(),
     updateName: jest.fn(),
+    createStatus: jest.fn(),
+    updateStatusName: jest.fn(),
+    retireStatus: jest.fn(),
+    activateStatus: jest.fn(),
+    reorderStatuses: jest.fn(),
   } as unknown as jest.Mocked<AreaRepository>;
 }

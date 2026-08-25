@@ -47,6 +47,72 @@ export type RenameAreaResult =
   | { readonly outcome: 'VALIDATION_ERROR'; readonly detail: string }
   | { readonly outcome: 'UNAUTHENTICATED' };
 
+export type CreateAreaStatusCommand = {
+  readonly areaId: string;
+  readonly name: string;
+  readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+  readonly version: number;
+};
+
+export type CreateAreaStatusResult =
+  | { readonly outcome: 'SUCCESS'; readonly status: AreaStatus; readonly areaVersion: number }
+  | { readonly outcome: 'NOT_FOUND' }
+  | { readonly outcome: 'STALE_VERSION' }
+  | { readonly outcome: 'VALIDATION_ERROR'; readonly detail: string }
+  | { readonly outcome: 'UNAUTHENTICATED' };
+
+export type UpdateAreaStatusNameCommand = {
+  readonly areaId: string;
+  readonly statusId: string;
+  readonly name: string;
+  readonly version: number;
+};
+
+export type UpdateAreaStatusNameResult =
+  | { readonly outcome: 'SUCCESS'; readonly status: AreaStatus; readonly areaVersion: number }
+  | { readonly outcome: 'NOT_FOUND' }
+  | { readonly outcome: 'STALE_VERSION' }
+  | { readonly outcome: 'VALIDATION_ERROR'; readonly detail: string }
+  | { readonly outcome: 'UNAUTHENTICATED' };
+
+export type RetireAreaStatusCommand = {
+  readonly areaId: string;
+  readonly statusId: string;
+  readonly version: number;
+};
+
+export type RetireAreaStatusResult =
+  | { readonly outcome: 'SUCCESS'; readonly areaVersion: number; readonly migratedCount: number }
+  | { readonly outcome: 'NOT_FOUND' }
+  | { readonly outcome: 'STALE_VERSION' }
+  | { readonly outcome: 'VALIDATION_ERROR'; readonly detail: string }
+  | { readonly outcome: 'UNAUTHENTICATED' };
+
+export type ActivateAreaStatusCommand = {
+  readonly areaId: string;
+  readonly statusId: string;
+  readonly version: number;
+};
+
+export type ActivateAreaStatusResult =
+  | { readonly outcome: 'SUCCESS'; readonly areaVersion: number }
+  | { readonly outcome: 'NOT_FOUND' }
+  | { readonly outcome: 'STALE_VERSION' }
+  | { readonly outcome: 'UNAUTHENTICATED' };
+
+export type ReorderAreaStatusesCommand = {
+  readonly areaId: string;
+  readonly statusIds: readonly string[];
+  readonly version: number;
+};
+
+export type ReorderAreaStatusesResult =
+  | { readonly outcome: 'SUCCESS'; readonly areaVersion: number }
+  | { readonly outcome: 'NOT_FOUND' }
+  | { readonly outcome: 'STALE_VERSION' }
+  | { readonly outcome: 'VALIDATION_ERROR'; readonly detail: string }
+  | { readonly outcome: 'UNAUTHENTICATED' };
+
 @Injectable()
 export class AreaService {
   constructor(@Inject(AreaRepository) private readonly areaRepository: AreaRepository) {}
@@ -125,5 +191,142 @@ export class AreaService {
     }
 
     return { outcome: 'SUCCESS', area };
+  }
+
+  async createAreaStatus(userId: string, command: CreateAreaStatusCommand): Promise<CreateAreaStatusResult> {
+    const name = command.name.trim();
+
+    if (name.length === 0) {
+      return { outcome: 'VALIDATION_ERROR', detail: 'Durum adı boş olamaz.' };
+    }
+
+    if (name.length > 100) {
+      return { outcome: 'VALIDATION_ERROR', detail: 'Durum adı 100 karakterden uzun olamaz.' };
+    }
+
+    const normalizedName = name.toLowerCase();
+
+    const result = await this.areaRepository.createStatus(
+      userId,
+      command.areaId,
+      name,
+      normalizedName,
+      command.canonicalStatus,
+    );
+
+    if ('error' in result) {
+      if (result.error === 'NOT_FOUND') {
+        return { outcome: 'NOT_FOUND' };
+      }
+      return { outcome: 'VALIDATION_ERROR', detail: 'Bu isimde bir durum zaten var.' };
+    }
+
+    return { outcome: 'SUCCESS', status: result.status, areaVersion: result.areaVersion };
+  }
+
+  async updateAreaStatusName(userId: string, command: UpdateAreaStatusNameCommand): Promise<UpdateAreaStatusNameResult> {
+    const name = command.name.trim();
+
+    if (name.length === 0) {
+      return { outcome: 'VALIDATION_ERROR', detail: 'Durum adı boş olamaz.' };
+    }
+
+    if (name.length > 100) {
+      return { outcome: 'VALIDATION_ERROR', detail: 'Durum adı 100 karakterden uzun olamaz.' };
+    }
+
+    const normalizedName = name.toLowerCase();
+
+    const result = await this.areaRepository.updateStatusName(
+      userId,
+      command.areaId,
+      command.statusId,
+      name,
+      normalizedName,
+      command.version,
+    );
+
+    if ('error' in result) {
+      switch (result.error) {
+        case 'NOT_FOUND':
+          return { outcome: 'NOT_FOUND' };
+        case 'STALE_VERSION':
+          return { outcome: 'STALE_VERSION' };
+        case 'DUPLICATE_NAME':
+          return { outcome: 'VALIDATION_ERROR', detail: 'Bu isimde bir durum zaten var.' };
+        case 'CANNOT_RENAME_DEFAULT':
+          return { outcome: 'VALIDATION_ERROR', detail: 'Varsayılan durumlar yeniden adlandırılamaz.' };
+      }
+    }
+
+    return { outcome: 'SUCCESS', status: result.status, areaVersion: result.areaVersion };
+  }
+
+  async retireAreaStatus(userId: string, command: RetireAreaStatusCommand): Promise<RetireAreaStatusResult> {
+    const result = await this.areaRepository.retireStatus(
+      userId,
+      command.areaId,
+      command.statusId,
+      command.version,
+    );
+
+    if ('error' in result) {
+      switch (result.error) {
+        case 'NOT_FOUND':
+          return { outcome: 'NOT_FOUND' };
+        case 'STALE_VERSION':
+          return { outcome: 'STALE_VERSION' };
+        case 'CANNOT_RETIRE_DEFAULT':
+          return { outcome: 'VALIDATION_ERROR', detail: 'Varsayılan durumlar emekli edilemez.' };
+      }
+    }
+
+    return { outcome: 'SUCCESS', areaVersion: result.areaVersion, migratedCount: result.migratedCount };
+  }
+
+  async activateAreaStatus(userId: string, command: ActivateAreaStatusCommand): Promise<ActivateAreaStatusResult> {
+    const result = await this.areaRepository.activateStatus(
+      userId,
+      command.areaId,
+      command.statusId,
+      command.version,
+    );
+
+    if ('error' in result) {
+      switch (result.error) {
+        case 'NOT_FOUND':
+          return { outcome: 'NOT_FOUND' };
+        case 'STALE_VERSION':
+          return { outcome: 'STALE_VERSION' };
+      }
+    }
+
+    return { outcome: 'SUCCESS', areaVersion: result.areaVersion };
+  }
+
+  async reorderAreaStatuses(userId: string, command: ReorderAreaStatusesCommand): Promise<ReorderAreaStatusesResult> {
+    if (command.statusIds.length === 0) {
+      return { outcome: 'VALIDATION_ERROR', detail: 'En az bir durum seçmelisiniz.' };
+    }
+
+    const result = await this.areaRepository.reorderStatuses(
+      userId,
+      command.areaId,
+      command.statusIds,
+      command.version,
+    );
+
+    if ('error' in result) {
+      switch (result.error) {
+        case 'NOT_FOUND':
+          return { outcome: 'NOT_FOUND' };
+        case 'STALE_VERSION':
+          return { outcome: 'STALE_VERSION' };
+        case 'VALIDATION_ERROR':
+          return { outcome: 'VALIDATION_ERROR', detail: 'Geçersiz durum listesi.' };
+      }
+    }
+
+    return { outcome: 'SUCCESS', areaVersion: result.areaVersion };
   }
 }

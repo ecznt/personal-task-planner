@@ -159,3 +159,24 @@ export class RenameAreaRequestDto {
   })
   name!: string;
 }
+
+export class CreateAreaStatusRequestDto {
+  @ApiProperty({ example: 'İnceleme', type: String })
+  name!: string;
+
+  @ApiProperty({
+    enum: ['TO_DO', 'IN_PROGRESS', 'COMPLETED'],
+    type: String,
+  })
+  canonicalStatus!: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+}
+
+export class UpdateAreaStatusNameRequestDto {
+  @ApiProperty({ example: 'Yeni Durum Adı', type: String })
+  name!: string;
+}
+
+export class ReorderAreaStatusesRequestDto {
+  @ApiProperty({ type: [String], format: 'uuid' })
+  statusIds!: string[];
+}

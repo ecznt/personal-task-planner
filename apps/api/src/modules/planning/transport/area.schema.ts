@@ -77,6 +77,78 @@ export function parseListAreasQuery(value: unknown): ListAreasQueryInput {
   });
 }
 
+const createAreaStatusSchema = z.strictObject({
+  name: z
+    .string()
+    .trim()
+    .min(1, 'Durum adı zorunludur.')
+    .max(100, 'Durum adı en fazla 100 karakter olabilir.'),
+  canonicalStatus: z.enum(['TO_DO', 'IN_PROGRESS', 'COMPLETED']),
+});
+
+export type CreateAreaStatusInput = z.infer<typeof createAreaStatusSchema>;
+
+export function parseCreateAreaStatusInput(value: unknown): CreateAreaStatusInput {
+  const result = createAreaStatusSchema.safeParse(value);
+
+  if (result.success) {
+    return result.data;
+  }
+
+  throw new ApiProblemException({
+    status: 422,
+    code: 'VALIDATION_FAILED',
+    detail: 'Durum bilgilerini kontrol edin.',
+    errors: result.error.issues.map(toValidationProblem),
+  });
+}
+
+const updateAreaStatusNameSchema = z.strictObject({
+  name: z
+    .string()
+    .trim()
+    .min(1, 'Durum adı zorunludur.')
+    .max(100, 'Durum adı en fazla 100 karakter olabilir.'),
+});
+
+export type UpdateAreaStatusNameInput = z.infer<typeof updateAreaStatusNameSchema>;
+
+export function parseUpdateAreaStatusNameInput(value: unknown): UpdateAreaStatusNameInput {
+  const result = updateAreaStatusNameSchema.safeParse(value);
+
+  if (result.success) {
+    return result.data;
+  }
+
+  throw new ApiProblemException({
+    status: 422,
+    code: 'VALIDATION_FAILED',
+    detail: 'Durum bilgilerini kontrol edin.',
+    errors: result.error.issues.map(toValidationProblem),
+  });
+}
+
+const reorderAreaStatusesSchema = z.strictObject({
+  statusIds: z.array(z.string().uuid()).min(1, 'En az bir durum seçmelisiniz.'),
+});
+
+export type ReorderAreaStatusesInput = z.infer<typeof reorderAreaStatusesSchema>;
+
+export function parseReorderAreaStatusesInput(value: unknown): ReorderAreaStatusesInput {
+  const result = reorderAreaStatusesSchema.safeParse(value);
+
+  if (result.success) {
+    return result.data;
+  }
+
+  throw new ApiProblemException({
+    status: 422,
+    code: 'VALIDATION_FAILED',
+    detail: 'Durum sıralama bilgilerini kontrol edin.',
+    errors: result.error.issues.map(toValidationProblem),
+  });
+}
+
 function toValidationProblem(issue: z.core.$ZodIssue): ValidationProblemItem {
   return {
     code: zodIssueCode(issue),

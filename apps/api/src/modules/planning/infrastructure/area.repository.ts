@@ -163,4 +163,296 @@ export class AreaRepository {
     const area = await this.prisma.area.findUnique({ where: { id: areaId } });
     return area;
   }
+
+  async createStatus(
+    userId: string,
+    areaId: string,
+    name: string,
+    normalizedName: string,
+    canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED',
+  ): Promise<{ status: AreaStatus; areaVersion: number } | { error: 'NOT_FOUND' | 'DUPLICATE_NAME' }> {
+    return this.prisma.$transaction(async (transaction) => {
+      const area = await transaction.area.findFirst({
+        where: { id: areaId, userId, lifecycleState: 'ACTIVE' },
+        select: { id: true, version: true },
+      });
+
+      if (!area) {
+        return { error: 'NOT_FOUND' as const };
+      }
+
+      const existing = await transaction.areaStatus.findFirst({
+        where: { areaId, normalizedName },
+        select: { id: true },
+      });
+
+      if (existing) {
+        return { error: 'DUPLICATE_NAME' as const };
+      }
+
+      const maxPosition = await transaction.areaStatus.findFirst({
+        where: { areaId },
+        orderBy: { position: 'desc' },
+        select: { position: true },
+      });
+
+      const nextPosition = (maxPosition?.position ?? 0) + 1;
+
+      const status = await transaction.areaStatus.create({
+        data: {
+          userId,
+          areaId,
+          name,
+          normalizedName,
+          canonicalStatus,
+          position: nextPosition,
+          isDefault: false,
+        },
+      });
+
+      await transaction.area.update({
+        where: { id: areaId },
+        data: { version: { increment: 1 } },
+      });
+
+      const updatedArea = await transaction.area.findUnique({ where: { id: areaId } });
+
+      return { status, areaVersion: updatedArea!.version };
+    });
+  }
+
+  async updateStatusName(
+    userId: string,
+    areaId: string,
+    statusId: string,
+    name: string,
+    normalizedName: string,
+    version: number,
+  ): Promise<{ status: AreaStatus; areaVersion: number } | { error: 'NOT_FOUND' | 'STALE_VERSION' | 'DUPLICATE_NAME' | 'CANNOT_RENAME_DEFAULT' }> {
+    return this.prisma.$transaction(async (transaction) => {
+      const area = await transaction.area.findFirst({
+        where: { id: areaId, userId, version, lifecycleState: 'ACTIVE' },
+        select: { id: true, version: true },
+      });
+
+      if (!area) {
+        const existing = await transaction.area.findFirst({
+          where: { id: areaId, userId, lifecycleState: 'ACTIVE' },
+          select: { id: true },
+        });
+        return { error: existing ? 'STALE_VERSION' as const : 'NOT_FOUND' as const };
+      }
+
+      const status = await transaction.areaStatus.findFirst({
+        where: { id: statusId, areaId, userId },
+      });
+
+      if (!status) {
+        return { error: 'NOT_FOUND' as const };
+      }
+
+      if (status.isDefault) {
+        return { error: 'CANNOT_RENAME_DEFAULT' as const };
+      }
+
+      const duplicate = await transaction.areaStatus.findFirst({
+        where: { areaId, normalizedName, id: { not: statusId } },
+        select: { id: true },
+      });
+
+      if (duplicate) {
+        return { error: 'DUPLICATE_NAME' as const };
+      }
+
+      await transaction.areaStatus.update({
+        where: { id: statusId },
+        data: { name, normalizedName },
+      });
+
+      await transaction.area.update({
+        where: { id: areaId },
+        data: { version: { increment: 1 } },
+      });
+
+      const updatedArea = await transaction.area.findUnique({ where: { id: areaId } });
+
+      return { status: { ...status, name, normalizedName }, areaVersion: updatedArea!.version };
+    });
+  }
+
+  async retireStatus(
+    userId: string,
+    areaId: string,
+    statusId: string,
+    version: number,
+  ): Promise<{ areaVersion: number; migratedCount: number } | { error: 'NOT_FOUND' | 'STALE_VERSION' | 'CANNOT_RETIRE_DEFAULT' }> {
+    return this.prisma.$transaction(async (transaction) => {
+      const area = await transaction.area.findFirst({
+        where: { id: areaId, userId, version, lifecycleState: 'ACTIVE' },
+        select: { id: true, version: true },
+      });
+
+      if (!area) {
+        const existing = await transaction.area.findFirst({
+          where: { id: areaId, userId, lifecycleState: 'ACTIVE' },
+          select: { id: true },
+        });
+        return { error: existing ? 'STALE_VERSION' as const : 'NOT_FOUND' as const };
+      }
+
+      const status = await transaction.areaStatus.findFirst({
+        where: { id: statusId, areaId, userId },
+      });
+
+      if (!status) {
+        return { error: 'NOT_FOUND' as const };
+      }
+
+      if (status.isDefault) {
+        return { error: 'CANNOT_RETIRE_DEFAULT' as const };
+      }
+
+      const defaultStatus = await transaction.areaStatus.findFirst({
+        where: { areaId, canonicalStatus: status.canonicalStatus, isDefault: true, active: true },
+        select: { id: true },
+      });
+
+      let migratedCount = 0;
+
+      if (defaultStatus) {
+        const result = await transaction.task.updateMany({
+          where: { areaStatusId: statusId, lifecycleState: 'ACTIVE' },
+          data: { areaStatusId: defaultStatus.id },
+        });
+        migratedCount = result.count;
+      }
+
+      await transaction.areaStatus.update({
+        where: { id: statusId },
+        data: { active: false },
+      });
+
+      await transaction.area.update({
+        where: { id: areaId },
+        data: { version: { increment: 1 } },
+      });
+
+      const updatedArea = await transaction.area.findUnique({ where: { id: areaId } });
+
+      return { areaVersion: updatedArea!.version, migratedCount };
+    });
+  }
+
+  async activateStatus(
+    userId: string,
+    areaId: string,
+    statusId: string,
+    version: number,
+  ): Promise<{ areaVersion: number } | { error: 'NOT_FOUND' | 'STALE_VERSION' }> {
+    return this.prisma.$transaction(async (transaction) => {
+      const area = await transaction.area.findFirst({
+        where: { id: areaId, userId, version, lifecycleState: 'ACTIVE' },
+        select: { id: true, version: true },
+      });
+
+      if (!area) {
+        const existing = await transaction.area.findFirst({
+          where: { id: areaId, userId, lifecycleState: 'ACTIVE' },
+          select: { id: true },
+        });
+        return { error: existing ? 'STALE_VERSION' as const : 'NOT_FOUND' as const };
+      }
+
+      const status = await transaction.areaStatus.findFirst({
+        where: { id: statusId, areaId, userId },
+        select: { id: true },
+      });
+
+      if (!status) {
+        return { error: 'NOT_FOUND' as const };
+      }
+
+      await transaction.areaStatus.update({
+        where: { id: statusId },
+        data: { active: true },
+      });
+
+      await transaction.area.update({
+        where: { id: areaId },
+        data: { version: { increment: 1 } },
+      });
+
+      const updatedArea = await transaction.area.findUnique({ where: { id: areaId } });
+
+      return { areaVersion: updatedArea!.version };
+    });
+  }
+
+  async reorderStatuses(
+    userId: string,
+    areaId: string,
+    orderedStatusIds: readonly string[],
+    version: number,
+  ): Promise<{ areaVersion: number } | { error: 'NOT_FOUND' | 'STALE_VERSION' | 'VALIDATION_ERROR' }> {
+    return this.prisma.$transaction(async (transaction) => {
+      const area = await transaction.area.findFirst({
+        where: { id: areaId, userId, version, lifecycleState: 'ACTIVE' },
+        select: { id: true, version: true },
+      });
+
+      if (!area) {
+        const existing = await transaction.area.findFirst({
+          where: { id: areaId, userId, lifecycleState: 'ACTIVE' },
+          select: { id: true },
+        });
+        return { error: existing ? 'STALE_VERSION' as const : 'NOT_FOUND' as const };
+      }
+
+      const statuses = await transaction.areaStatus.findMany({
+        where: { areaId },
+        select: { id: true },
+      });
+
+      const statusIds = new Set(statuses.map((s) => s.id));
+
+      for (const id of orderedStatusIds) {
+        if (!statusIds.has(id)) {
+          return { error: 'VALIDATION_ERROR' as const };
+        }
+      }
+
+      if (orderedStatusIds.length !== statuses.length) {
+        return { error: 'VALIDATION_ERROR' as const };
+      }
+
+      const tempBase = 10000;
+
+      const idArray = [...orderedStatusIds];
+
+      for (let i = 0; i < idArray.length; i++) {
+        const id = idArray[i]!;
+        await transaction.areaStatus.update({
+          where: { id },
+          data: { position: tempBase + i },
+        });
+      }
+
+      for (let i = 0; i < idArray.length; i++) {
+        const id = idArray[i]!;
+        await transaction.areaStatus.update({
+          where: { id },
+          data: { position: i + 1 },
+        });
+      }
+
+      await transaction.area.update({
+        where: { id: areaId },
+        data: { version: { increment: 1 } },
+      });
+
+      const updatedArea = await transaction.area.findUnique({ where: { id: areaId } });
+
+      return { areaVersion: updatedArea!.version };
+    });
+  }
 }

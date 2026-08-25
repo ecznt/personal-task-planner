@@ -14,6 +14,7 @@ import { ProjectManager } from '@/features/projects/project-manager';
 import { TaskList } from '@/features/tasks/task-list';
 
 import { RenameAreaForm } from './rename-area-form';
+import { StatusEditor } from './status-editor';
 
 type AreaStatusData = {
   readonly id: string;
@@ -111,16 +112,7 @@ export function AreaDetail({ areaId }: AreaDetailProps) {
             <CardTitle className="text-lg">Durumlar</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {areaData.statuses.map((status) => (
-                <div key={status.id} className="rounded-full border px-3 py-1 text-sm">
-                  {status.name}
-                  {status.isDefault && (
-                    <span className="ml-1 text-muted-foreground">(varsayılan)</span>
-                  )}
-                </div>
-              ))}
-            </div>
+            <StatusEditor areaId={areaId} areaData={areaData} />
           </CardContent>
         </Card>
       )}

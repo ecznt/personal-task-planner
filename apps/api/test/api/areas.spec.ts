@@ -23,6 +23,11 @@ describe('area HTTP contract', () => {
     getArea: jest.fn<AreaService['getArea']>(),
     listAreas: jest.fn<AreaService['listAreas']>(),
     renameArea: jest.fn<AreaService['renameArea']>(),
+    createAreaStatus: jest.fn<AreaService['createAreaStatus']>(),
+    updateAreaStatusName: jest.fn<AreaService['updateAreaStatusName']>(),
+    retireAreaStatus: jest.fn<AreaService['retireAreaStatus']>(),
+    activateAreaStatus: jest.fn<AreaService['activateAreaStatus']>(),
+    reorderAreaStatuses: jest.fn<AreaService['reorderAreaStatuses']>(),
   };
   const taskService = {
     createTask: jest.fn<TaskService['createTask']>(),
@@ -367,6 +372,186 @@ describe('area HTTP contract', () => {
         .set('If-Match', '1')
         .send({ taskId: 'c0000000-0000-4000-8000-000000000001', targetAreaStatusId: STATUS_ID })
         .expect(404);
+    });
+  });
+
+  describe('POST /areas/:areaId/statuses', () => {
+    it('creates a new status', async () => {
+      areaService.createAreaStatus.mockResolvedValue({
+        outcome: 'SUCCESS',
+        status: {
+          id: 'b0000000-0000-4000-8000-000000000010',
+          userId: 'user-id',
+          areaId: 'area-id',
+          name: 'İnceleme',
+          normalizedName: 'inceleme',
+          canonicalStatus: 'IN_PROGRESS',
+          position: 4,
+          isDefault: false,
+          active: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        areaVersion: 2,
+      });
+
+      const response = await request(app.getHttpServer())
+        .post('/areas/area-id/statuses')
+        .set('Cookie', 'planner-session=token')
+        .set('Content-Type', 'application/json')
+        .set('If-Match', '1')
+        .send({ name: 'İnceleme', canonicalStatus: 'IN_PROGRESS' })
+        .expect(201);
+
+      expect(response.body.data).toMatchObject({ name: 'İnceleme' });
+    });
+
+    it('returns 401 without session', async () => {
+      accountsRepository.findAuthenticatedSession.mockResolvedValue(null);
+
+      await request(app.getHttpServer())
+        .post('/areas/area-id/statuses')
+        .set('Content-Type', 'application/json')
+        .set('If-Match', '1')
+        .send({ name: 'Test', canonicalStatus: 'TO_DO' })
+        .expect(401);
+    });
+
+    it('returns 422 without If-Match', async () => {
+      await request(app.getHttpServer())
+        .post('/areas/area-id/statuses')
+        .set('Cookie', 'planner-session=token')
+        .set('Content-Type', 'application/json')
+        .send({ name: 'Test', canonicalStatus: 'TO_DO' })
+        .expect(422);
+    });
+  });
+
+  describe('PATCH /areas/:areaId/statuses/:statusId', () => {
+    it('renames a status', async () => {
+      areaService.updateAreaStatusName.mockResolvedValue({
+        outcome: 'SUCCESS',
+        status: {
+          id: STATUS_ID,
+          userId: 'user-id',
+          areaId: 'area-id',
+          name: 'Yeni Ad',
+          normalizedName: 'yeni ad',
+          canonicalStatus: 'TO_DO',
+          position: 1,
+          isDefault: false,
+          active: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        areaVersion: 2,
+      });
+
+      const response = await request(app.getHttpServer())
+        .patch(`/areas/area-id/statuses/${STATUS_ID}`)
+        .set('Cookie', 'planner-session=token')
+        .set('Content-Type', 'application/json')
+        .set('If-Match', '1')
+        .send({ name: 'Yeni Ad' })
+        .expect(200);
+
+      expect(response.body.data).toMatchObject({ name: 'Yeni Ad' });
+    });
+
+    it('returns 409 for stale version', async () => {
+      areaService.updateAreaStatusName.mockResolvedValue({ outcome: 'STALE_VERSION' });
+
+      await request(app.getHttpServer())
+        .patch(`/areas/area-id/statuses/${STATUS_ID}`)
+        .set('Cookie', 'planner-session=token')
+        .set('Content-Type', 'application/json')
+        .set('If-Match', '1')
+        .send({ name: 'Test' })
+        .expect(409);
+    });
+  });
+
+  describe('POST /areas/:areaId/statuses/:statusId/retire', () => {
+    it('retires a status', async () => {
+      areaService.retireAreaStatus.mockResolvedValue({
+        outcome: 'SUCCESS',
+        areaVersion: 2,
+        migratedCount: 2,
+      });
+
+      const response = await request(app.getHttpServer())
+        .post(`/areas/area-id/statuses/${STATUS_ID}/retire`)
+        .set('Cookie', 'planner-session=token')
+        .set('If-Match', '1')
+        .expect(200);
+
+      expect(response.body.data).toMatchObject({ version: 2 });
+    });
+
+    it('returns 422 for default status', async () => {
+      areaService.retireAreaStatus.mockResolvedValue({
+        outcome: 'VALIDATION_ERROR',
+        detail: 'Varsayılan durumlar emekli edilemez.',
+      });
+
+      await request(app.getHttpServer())
+        .post(`/areas/area-id/statuses/${STATUS_ID}/retire`)
+        .set('Cookie', 'planner-session=token')
+        .set('If-Match', '1')
+        .expect(422);
+    });
+  });
+
+  describe('POST /areas/:areaId/statuses/:statusId/activate', () => {
+    it('activates a status', async () => {
+      areaService.activateAreaStatus.mockResolvedValue({
+        outcome: 'SUCCESS',
+        areaVersion: 2,
+      });
+
+      const response = await request(app.getHttpServer())
+        .post(`/areas/area-id/statuses/${STATUS_ID}/activate`)
+        .set('Cookie', 'planner-session=token')
+        .set('If-Match', '1')
+        .expect(200);
+
+      expect(response.body.data).toMatchObject({ version: 2 });
+    });
+  });
+
+  describe('PUT /areas/:areaId/statuses/reorder', () => {
+    it('reorders statuses', async () => {
+      areaService.reorderAreaStatuses.mockResolvedValue({
+        outcome: 'SUCCESS',
+        areaVersion: 2,
+      });
+
+      const STATUS_2 = 'b0000000-0000-4000-8000-000000000003';
+
+      const response = await request(app.getHttpServer())
+        .put('/areas/area-id/statuses/reorder')
+        .set('Cookie', 'planner-session=token')
+        .set('Content-Type', 'application/json')
+        .set('If-Match', '1')
+        .send({ statusIds: [STATUS_ID, STATUS_2] })
+        .expect(200);
+
+      expect(response.body.data).toMatchObject({ version: 2 });
+    });
+
+    it('returns 422 for empty list', async () => {
+      areaService.reorderAreaStatuses.mockResolvedValue({
+        outcome: 'VALIDATION_ERROR',
+        detail: 'En az bir durum seçmelisiniz.',
+      });
+
+      await request(app.getHttpServer())
+        .put('/areas/area-id/statuses/reorder')
+        .set('Cookie', 'planner-session=token')
+        .set('Content-Type', 'application/json')
+        .set('If-Match', '1')
+        .send({ statusIds: [] })
+        .expect(422);
     });
   });
 });
