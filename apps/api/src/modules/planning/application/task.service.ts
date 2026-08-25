@@ -118,6 +118,41 @@ export type MoveKanbanTaskResult =
   | { readonly outcome: 'VALIDATION_ERROR'; readonly detail: string }
   | { readonly outcome: 'UNAUTHENTICATED' };
 
+export type AreaKanbanStatusColumn = {
+  readonly id: string;
+  readonly name: string;
+  readonly canonicalStatus: string;
+  readonly position: number;
+};
+
+export type AreaKanbanColumn = {
+  readonly statusId: string;
+  readonly count: number;
+  readonly tasks: readonly TaskSummary[];
+};
+
+export type ListAreaKanbanTasksResult =
+  | {
+      readonly outcome: 'SUCCESS';
+      readonly statuses: readonly AreaKanbanStatusColumn[];
+      readonly columns: readonly AreaKanbanColumn[];
+    }
+  | { readonly outcome: 'NOT_FOUND' }
+  | { readonly outcome: 'UNAUTHENTICATED' };
+
+export type MoveAreaKanbanTaskCommand = {
+  readonly taskId: string;
+  readonly targetAreaStatusId: string;
+  readonly version: number;
+};
+
+export type MoveAreaKanbanTaskResult =
+  | { readonly outcome: 'SUCCESS'; readonly task: Task; readonly etag: number }
+  | { readonly outcome: 'NOT_FOUND' }
+  | { readonly outcome: 'STALE_VERSION' }
+  | { readonly outcome: 'VALIDATION_ERROR'; readonly detail: string }
+  | { readonly outcome: 'UNAUTHENTICATED' };
+
 @Injectable()
 export class TaskService {
   constructor(@Inject(TaskRepository) private readonly taskRepository: TaskRepository) {}
@@ -323,6 +358,48 @@ export class TaskService {
       return {
         outcome: 'VALIDATION_ERROR',
         detail: 'Hedef durum için varsayılan alan durumu bulunamadı.',
+      };
+    }
+
+    return { outcome: 'SUCCESS', task, etag: task.version };
+  }
+
+  async listAreaKanbanTasks(userId: string, areaId: string): Promise<ListAreaKanbanTasksResult> {
+    const areaExists = await this.taskRepository.areaExists(userId, areaId);
+
+    if (!areaExists) {
+      return { outcome: 'NOT_FOUND' };
+    }
+
+    const { statuses, columns } = await this.taskRepository.findAreaKanbanTasks(userId, areaId);
+    return { outcome: 'SUCCESS', statuses, columns };
+  }
+
+  async moveAreaKanbanTask(
+    userId: string,
+    command: MoveAreaKanbanTaskCommand,
+  ): Promise<MoveAreaKanbanTaskResult> {
+    const { task, valid } = await this.taskRepository.moveAreaKanbanTask(
+      userId,
+      command.taskId,
+      command.targetAreaStatusId,
+      command.version,
+    );
+
+    if (!task) {
+      if (!valid) {
+        const existing = await this.taskRepository.findById(userId, command.taskId);
+
+        if (!existing) {
+          return { outcome: 'NOT_FOUND' };
+        }
+
+        return { outcome: 'STALE_VERSION' };
+      }
+
+      return {
+        outcome: 'VALIDATION_ERROR',
+        detail: 'Hedef durum bulunamadı.',
       };
     }
 

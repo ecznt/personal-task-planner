@@ -28,7 +28,7 @@ import type {
   RenameAreaResult,
 } from '../application/area.service';
 import { TaskService } from '../application/task.service';
-import type { CreateTaskResult, ListTasksResult } from '../application/task.service';
+import type { CreateTaskResult, ListTasksResult, ListAreaKanbanTasksResult, MoveAreaKanbanTaskResult } from '../application/task.service';
 import { parseCreateAreaInput, parseListAreasQuery, parseRenameAreaInput } from './area.schema';
 import {
   AreaDetailResponseDto,
@@ -37,8 +37,14 @@ import {
   CreateAreaRequestDto,
   RenameAreaRequestDto,
 } from './area.dto';
-import { parseCreateTaskInput, parseListTasksQuery } from './task.schema';
-import { CreateTaskRequestDto, TaskListResponseDto, TaskResponseDto } from './task.dto';
+import { parseCreateTaskInput, parseListTasksQuery, parseMoveAreaKanbanTaskInput } from './task.schema';
+import {
+  AreaKanbanResponseDto,
+  CreateTaskRequestDto,
+  MoveAreaKanbanTaskRequestDto,
+  TaskListResponseDto,
+  TaskResponseDto,
+} from './task.dto';
 
 @ApiTags('Areas', 'Tasks')
 @Controller('areas')
@@ -303,6 +309,103 @@ export class AreaController {
     return this.handleListTasksResult(result);
   }
 
+  @Get(':areaId/kanban')
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    operationId: 'listAreaKanbanTasks',
+    summary: 'List Tasks in an Area as Kanban columns',
+  })
+  @ApiParam({ name: 'areaId', type: String, format: 'uuid' })
+  @ApiResponse({
+    status: 200,
+    type: AreaKanbanResponseDto,
+  })
+  @ApiResponse({
+    description: 'No valid authenticated session is present.',
+    status: 401,
+  })
+  @ApiResponse({
+    description: 'Area not found.',
+    status: 404,
+  })
+  async listAreaKanbanTasks(
+    @Req() request: Request,
+    @Param('areaId') areaId: string,
+  ): Promise<AreaKanbanResponseDto> {
+    const userId = await this.resolveUserId(request);
+
+    const result = await this.taskService.listAreaKanbanTasks(userId, areaId);
+
+    return this.handleAreaKanbanResult(result);
+  }
+
+  @Post(':areaId/kanban-moves')
+  @HttpCode(200)
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    operationId: 'moveAreaKanbanTask',
+    summary: 'Move a Task between area Kanban columns',
+  })
+  @ApiParam({ name: 'areaId', type: String, format: 'uuid' })
+  @ApiBody({ type: MoveAreaKanbanTaskRequestDto })
+  @ApiResponse({
+    status: 200,
+    type: TaskResponseDto,
+  })
+  @ApiResponse({
+    description: 'No valid authenticated session is present.',
+    status: 401,
+  })
+  @ApiResponse({
+    description: 'Task or target status not found.',
+    status: 404,
+  })
+  @ApiResponse({
+    description: 'Version conflict.',
+    status: 409,
+  })
+  @ApiResponse({
+    description: 'Validation failed.',
+    status: 422,
+  })
+  async moveAreaKanbanTask(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+    @Param('areaId') _areaId: string,
+    @Body() body: unknown,
+    @Headers('if-match') ifMatch?: string,
+  ): Promise<TaskResponseDto> {
+    const userId = await this.resolveUserId(request);
+
+    const input = parseMoveAreaKanbanTaskInput(body);
+
+    if (!ifMatch) {
+      throw new ApiProblemException({
+        status: 422,
+        code: 'VALIDATION_FAILED',
+        detail: 'If-Match başlığı gereklidir.',
+      });
+    }
+
+    const version = parseInt(ifMatch, 10);
+
+    if (isNaN(version)) {
+      throw new ApiProblemException({
+        status: 422,
+        code: 'VALIDATION_FAILED',
+        detail: 'If-Match başlığı geçerli bir sayı olmalıdır.',
+      });
+    }
+
+    const result = await this.taskService.moveAreaKanbanTask(userId, {
+      taskId: input.taskId,
+      targetAreaStatusId: input.targetAreaStatusId,
+      version,
+    });
+
+    return this.handleMoveAreaKanbanResult(result, response);
+  }
+
   private async resolveUserId(request: Request): Promise<string> {
     const token = parseCookieValue(request.headers.cookie, sessionCookieName());
 
@@ -538,6 +641,97 @@ export class AreaController {
           status: 404,
           code: 'RESOURCE_NOT_FOUND',
           detail: 'Kaynak bulunamadı.',
+        });
+      case 'UNAUTHENTICATED':
+        throw new ApiProblemException({
+          status: 401,
+          code: 'AUTHENTICATION_REQUIRED',
+          detail: 'Oturum açmanız gerekiyor.',
+        });
+    }
+  }
+
+  private handleAreaKanbanResult(result: ListAreaKanbanTasksResult): AreaKanbanResponseDto {
+    switch (result.outcome) {
+      case 'SUCCESS':
+        return {
+          statuses: result.statuses.map((s) => ({
+            id: s.id,
+            name: s.name,
+            canonicalStatus: s.canonicalStatus,
+            position: s.position,
+          })),
+          columns: result.columns.map((col) => ({
+            statusId: col.statusId,
+            count: col.count,
+            tasks: col.tasks.map((task) => ({
+              id: task.id,
+              title: task.title,
+              priority: task.priority,
+              canonicalStatus: task.canonicalStatus,
+              dueAt: task.dueAt?.toISOString() ?? null,
+              plannedAt: task.plannedAt?.toISOString() ?? null,
+              lifecycleState: task.lifecycleState,
+            })),
+          })),
+        };
+      case 'NOT_FOUND':
+        throw new ApiProblemException({
+          status: 404,
+          code: 'RESOURCE_NOT_FOUND',
+          detail: 'Kaynak bulunamadı.',
+        });
+      case 'UNAUTHENTICATED':
+        throw new ApiProblemException({
+          status: 401,
+          code: 'AUTHENTICATION_REQUIRED',
+          detail: 'Oturum açmanız gerekiyor.',
+        });
+    }
+  }
+
+  private handleMoveAreaKanbanResult(
+    result: MoveAreaKanbanTaskResult,
+    response: Response,
+  ): TaskResponseDto {
+    switch (result.outcome) {
+      case 'SUCCESS':
+        response.setHeader('ETag', String(result.etag));
+        return {
+          data: {
+            id: result.task.id,
+            areaId: result.task.areaId,
+            title: result.task.title,
+            description: result.task.description,
+            plannedAt: result.task.plannedAt?.toISOString() ?? null,
+            dueAt: result.task.dueAt?.toISOString() ?? null,
+            priority: result.task.priority,
+            areaStatusId: result.task.areaStatusId,
+            canonicalStatus: 'TO_DO',
+            lifecycleState: result.task.lifecycleState,
+            version: result.task.version,
+            labels: [],
+            checklistItems: [],
+            projectId: result.task.projectId,
+          },
+        };
+      case 'NOT_FOUND':
+        throw new ApiProblemException({
+          status: 404,
+          code: 'RESOURCE_NOT_FOUND',
+          detail: 'Kaynak bulunamadı.',
+        });
+      case 'STALE_VERSION':
+        throw new ApiProblemException({
+          status: 409,
+          code: 'VERSION_CONFLICT',
+          detail: 'Çakışma oluştu. Lütfen sayfayı yenileyin.',
+        });
+      case 'VALIDATION_ERROR':
+        throw new ApiProblemException({
+          status: 422,
+          code: 'VALIDATION_FAILED',
+          detail: result.detail,
         });
       case 'UNAUTHENTICATED':
         throw new ApiProblemException({

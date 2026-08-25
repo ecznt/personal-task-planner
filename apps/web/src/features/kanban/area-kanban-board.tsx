@@ -19,27 +19,28 @@ type TaskSummary = {
   readonly lifecycleState: string;
 };
 
-type KanbanColumn = {
+type AreaKanbanStatus = {
+  readonly id: string;
+  readonly name: string;
+  readonly canonicalStatus: string;
+  readonly position: number;
+};
+
+type AreaKanbanColumn = {
+  readonly statusId: string;
   readonly count: number;
   readonly tasks: readonly TaskSummary[];
 };
 
-type KanbanResponse = {
-  todo: KanbanColumn;
-  inProgress: KanbanColumn;
-  completed: KanbanColumn;
+type AreaKanbanResponse = {
+  readonly statuses: readonly AreaKanbanStatus[];
+  readonly columns: readonly AreaKanbanColumn[];
 };
 
 const PRIORITY_LABELS: Record<string, string> = {
   LOW: 'Düşük',
   MEDIUM: 'Orta',
   HIGH: 'Yüksek',
-};
-
-const COLUMN_LABELS: Record<string, string> = {
-  todo: 'Yapılacak',
-  inProgress: 'Devam Ediyor',
-  completed: 'Tamamlandı',
 };
 
 function TaskCard({ task, index }: { task: TaskSummary; index: number }) {
@@ -72,19 +73,26 @@ function TaskCard({ task, index }: { task: TaskSummary; index: number }) {
   );
 }
 
-function KanbanColumnView({
-  columnKey,
+function AreaKanbanColumnView({
   column,
+  statusName,
+  columns,
+  columnIndex,
   onMove,
 }: {
-  columnKey: string;
-  column: KanbanColumn;
-  onMove: (taskId: string, target: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED') => void;
+  column: AreaKanbanColumn;
+  statusName: string;
+  columns: readonly AreaKanbanColumn[];
+  columnIndex: number;
+  onMove: (taskId: string, targetAreaStatusId: string) => void;
 }) {
+  const hasPrevious = columnIndex > 0;
+  const hasNext = columnIndex < columns.length - 1;
+
   return (
     <div className="flex min-w-[260px] flex-1 flex-col rounded-lg border bg-muted/50 p-3">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-semibold">{COLUMN_LABELS[columnKey]}</h2>
+        <h2 className="text-sm font-semibold">{statusName}</h2>
         <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
           {column.count}
         </span>
@@ -99,20 +107,20 @@ function KanbanColumnView({
             <div key={task.id} className="group relative">
               <TaskCard task={task} index={index} />
               <div className="absolute right-1 top-1 hidden group-hover:flex gap-1">
-                {columnKey !== 'todo' && (
+                {hasPrevious && (
                   <button
                     type="button"
-                    onClick={() => onMove(task.id, 'TO_DO')}
+                    onClick={() => columns[columnIndex - 1] && onMove(task.id, columns[columnIndex - 1]!.statusId)}
                     className="rounded bg-background/80 px-1.5 py-0.5 text-muted-foreground backdrop-blur transition-transform duration-150 active:scale-90 hover:bg-background"
-                    title="Yapılacak'a taşı"
+                    title="Önceki duruma taşı"
                   >
                     <ArrowLeft className="size-3" />
                   </button>
                 )}
-                {columnKey !== 'completed' && (
+                {hasNext && (
                   <button
                     type="button"
-                    onClick={() => onMove(task.id, columnKey === 'todo' ? 'IN_PROGRESS' : 'COMPLETED')}
+                    onClick={() => columns[columnIndex + 1] && onMove(task.id, columns[columnIndex + 1]!.statusId)}
                     className="rounded bg-background/80 px-1.5 py-0.5 text-muted-foreground backdrop-blur transition-transform duration-150 active:scale-90 hover:bg-background"
                     title="Sonraki duruma taşı"
                   >
@@ -128,27 +136,27 @@ function KanbanColumnView({
   );
 }
 
-export function KanbanBoard() {
+export function AreaKanbanBoard({ areaId }: { areaId: string }) {
   const queryClient = useQueryClient();
 
   const kanban = useQuery({
-    queryKey: ['tasks', 'kanban'],
+    queryKey: ['areas', areaId, 'kanban'],
     queryFn: async () => {
-      const result = await apiClient.get({ url: '/api/v1/tasks/kanban' });
+      const result = await apiClient.get({ url: `/api/v1/areas/${areaId}/kanban` });
 
       if (result.error !== undefined) {
         throw new Error('Kanban yüklenemedi.');
       }
 
-      return result.data as KanbanResponse;
+      return result.data as AreaKanbanResponse;
     },
   });
 
   const moveMutation = useMutation({
-    mutationFn: async ({ taskId, target }: { taskId: string; target: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED' }) => {
+    mutationFn: async ({ taskId, targetAreaStatusId }: { taskId: string; targetAreaStatusId: string }) => {
       const result = await apiClient.post({
-        url: '/api/v1/tasks/kanban-moves',
-        body: { taskId, targetCanonicalStatus: target },
+        url: `/api/v1/areas/${areaId}/kanban-moves`,
+        body: { taskId, targetAreaStatusId },
         headers: { 'Content-Type': 'application/json' },
       });
 
@@ -159,6 +167,7 @@ export function KanbanBoard() {
       return result.data;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['areas', areaId, 'kanban'] });
       queryClient.invalidateQueries({ queryKey: ['tasks', 'kanban'] });
       toast.success('Görev taşındı');
     },
@@ -183,32 +192,39 @@ export function KanbanBoard() {
 
   const data = kanban.data;
 
-  const handleMove = (taskId: string, target: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED') => {
-    moveMutation.mutate({ taskId, target });
+  const handleMove = (taskId: string, targetAreaStatusId: string) => {
+    moveMutation.mutate({ taskId, targetAreaStatusId });
   };
+
+  const allEmpty = data.columns.every((col) => col.count === 0);
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Kanban</h1>
-        <p className="text-sm text-muted-foreground">Tüm alanlardaki görevler</p>
-      </div>
-
       <div className="flex gap-4 overflow-x-auto pb-4">
-        <KanbanColumnView columnKey="todo" column={data.todo} onMove={handleMove} />
-        <KanbanColumnView columnKey="inProgress" column={data.inProgress} onMove={handleMove} />
-        <KanbanColumnView columnKey="completed" column={data.completed} onMove={handleMove} />
+        {data.columns.map((column, index) => {
+          const status = data.statuses.find((s) => s.id === column.statusId);
+          return (
+            <AreaKanbanColumnView
+              key={column.statusId}
+              column={column}
+              statusName={status?.name ?? ''}
+              columns={data.columns}
+              columnIndex={index}
+              onMove={handleMove}
+            />
+          );
+        })}
       </div>
 
-      {data.todo.count === 0 && data.inProgress.count === 0 && data.completed.count === 0 && (
+      {allEmpty && (
         <div className="rounded-lg border bg-card p-6 text-center text-muted-foreground">
-          <p>Henüz Kanban&apos;da görev yok.</p>
+          <p>Bu alanda henüz görev yok.</p>
           <div className="mt-3 flex justify-center gap-3">
             <Link
-              href="/app/tasks"
+              href={`/app/areas/${areaId}/tasks/new`}
               className="inline-flex items-center rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors duration-150 active:scale-[0.97] hover:bg-primary/90"
             >
-              Görevlere Git
+              Görev Oluştur
             </Link>
           </div>
         </div>

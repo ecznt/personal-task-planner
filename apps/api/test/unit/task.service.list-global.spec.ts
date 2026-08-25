@@ -83,5 +83,7 @@ function repositoryMock(): jest.Mocked<TaskRepository> {
     projectBelongsToArea: jest.fn(),
     incrementVersion: jest.fn(),
     setTaskLabels: jest.fn(),
+    findAreaKanbanTasks: jest.fn(),
+    moveAreaKanbanTask: jest.fn(),
   } as unknown as jest.Mocked<TaskRepository>;
 }

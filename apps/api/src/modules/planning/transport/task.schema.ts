@@ -179,6 +179,28 @@ export function parseMoveKanbanTaskInput(value: unknown): MoveKanbanTaskInput {
   });
 }
 
+const moveAreaKanbanTaskSchema = z.strictObject({
+  taskId: z.string().uuid(),
+  targetAreaStatusId: z.string().uuid(),
+});
+
+export type MoveAreaKanbanTaskInput = z.infer<typeof moveAreaKanbanTaskSchema>;
+
+export function parseMoveAreaKanbanTaskInput(value: unknown): MoveAreaKanbanTaskInput {
+  const result = moveAreaKanbanTaskSchema.safeParse(value);
+
+  if (result.success) {
+    return result.data;
+  }
+
+  throw new ApiProblemException({
+    status: 422,
+    code: 'VALIDATION_FAILED',
+    detail: 'Kanban taşıma bilgilerini kontrol edin.',
+    errors: result.error.issues.map(toValidationProblem),
+  });
+}
+
 function toValidationProblem(issue: z.core.$ZodIssue): ValidationProblemItem {
   return {
     code: zodIssueCode(issue),

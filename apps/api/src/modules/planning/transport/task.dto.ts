@@ -220,3 +220,44 @@ export class MoveKanbanTaskRequestDto {
   @ApiProperty({ enum: ['TO_DO', 'IN_PROGRESS', 'COMPLETED'], type: String })
   targetCanonicalStatus!: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
 }
+
+export class AreaKanbanStatusDto {
+  @ApiProperty({ format: 'uuid', type: String })
+  id!: string;
+
+  @ApiProperty({ type: String })
+  name!: string;
+
+  @ApiProperty({ enum: ['TO_DO', 'IN_PROGRESS', 'COMPLETED'], type: String })
+  canonicalStatus!: string;
+
+  @ApiProperty({ type: Number })
+  position!: number;
+}
+
+export class AreaKanbanColumnDto {
+  @ApiProperty({ format: 'uuid', type: String })
+  statusId!: string;
+
+  @ApiProperty({ type: Number })
+  count!: number;
+
+  @ApiProperty({ type: () => [TaskSummaryDto] })
+  tasks!: TaskSummaryDto[];
+}
+
+export class AreaKanbanResponseDto {
+  @ApiProperty({ type: () => [AreaKanbanStatusDto] })
+  statuses!: AreaKanbanStatusDto[];
+
+  @ApiProperty({ type: () => [AreaKanbanColumnDto] })
+  columns!: AreaKanbanColumnDto[];
+}
+
+export class MoveAreaKanbanTaskRequestDto {
+  @ApiProperty({ format: 'uuid', type: String })
+  taskId!: string;
+
+  @ApiProperty({ format: 'uuid', type: String })
+  targetAreaStatusId!: string;
+}

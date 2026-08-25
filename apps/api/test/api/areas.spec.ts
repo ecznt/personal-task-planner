@@ -14,6 +14,9 @@ import { AuthSecurityService } from '../../src/modules/accounts/security/auth-se
 import { ProblemDetailsFilter } from '../../src/platform/http/problem-details.filter';
 
 describe('area HTTP contract', () => {
+  const TASK_ID = 'b0000000-0000-4000-8000-000000000001';
+  const STATUS_ID = 'b0000000-0000-4000-8000-000000000002';
+
   let app: INestApplication;
   const areaService = {
     createArea: jest.fn<AreaService['createArea']>(),
@@ -26,6 +29,8 @@ describe('area HTTP contract', () => {
     getTask: jest.fn<TaskService['getTask']>(),
     listTasks: jest.fn<TaskService['listTasks']>(),
     editTask: jest.fn<TaskService['editTask']>(),
+    listAreaKanbanTasks: jest.fn<TaskService['listAreaKanbanTasks']>(),
+    moveAreaKanbanTask: jest.fn<TaskService['moveAreaKanbanTask']>(),
   };
   const accountsRepository = {
     findAuthenticatedSession: jest
@@ -240,6 +245,127 @@ describe('area HTTP contract', () => {
         .send({ name: 'New Name' })
         .set('Cookie', 'planner-session=token')
         .set('If-Match', '1')
+        .expect(404);
+    });
+  });
+
+  describe('GET /areas/:areaId/kanban', () => {
+    it('returns area kanban columns', async () => {
+      taskService.listAreaKanbanTasks.mockResolvedValue({
+        outcome: 'SUCCESS',
+        statuses: [
+          { id: 'status-1', name: 'Yapılacak', canonicalStatus: 'TO_DO', position: 1 },
+        ],
+        columns: [
+          { statusId: 'status-1', count: 0, tasks: [] },
+        ],
+      });
+
+      const response = await request(app.getHttpServer())
+        .get('/areas/area-id/kanban')
+        .set('Cookie', 'planner-session=token')
+        .expect(200);
+
+      expect(response.body).toHaveProperty('statuses');
+      expect(response.body).toHaveProperty('columns');
+      expect(response.body.statuses).toHaveLength(1);
+    });
+
+    it('returns 401 without session', async () => {
+      accountsRepository.findAuthenticatedSession.mockResolvedValue(null);
+
+      await request(app.getHttpServer())
+        .get('/areas/area-id/kanban')
+        .expect(401);
+    });
+
+    it('returns 404 for non-existent area', async () => {
+      taskService.listAreaKanbanTasks.mockResolvedValue({ outcome: 'NOT_FOUND' });
+
+      await request(app.getHttpServer())
+        .get('/areas/non-existent/kanban')
+        .set('Cookie', 'planner-session=token')
+        .expect(404);
+    });
+  });
+
+  describe('POST /areas/:areaId/kanban-moves', () => {
+    it('moves task between area columns', async () => {
+      taskService.moveAreaKanbanTask.mockResolvedValue({
+        outcome: 'SUCCESS',
+        task: {
+          id: TASK_ID,
+          areaId: 'area-id',
+          userId: 'user-id',
+          title: 'Task',
+          description: null,
+          plannedAt: null,
+          dueAt: null,
+          priority: 'MEDIUM',
+          areaStatusId: STATUS_ID,
+          globalRank: '001',
+          areaRank: '001',
+          lifecycleState: 'ACTIVE',
+          version: 2,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          projectId: null,
+          completedAt: null,
+        },
+        etag: 2,
+      });
+
+      const response = await request(app.getHttpServer())
+        .post('/areas/area-id/kanban-moves')
+        .set('Cookie', 'planner-session=token')
+        .set('Content-Type', 'application/json')
+        .set('If-Match', '1')
+        .send({ taskId: TASK_ID, targetAreaStatusId: STATUS_ID })
+        .expect(200);
+
+      expect(response.body.data.id).toBe(TASK_ID);
+    });
+
+    it('returns 401 without session', async () => {
+      accountsRepository.findAuthenticatedSession.mockResolvedValue(null);
+
+      await request(app.getHttpServer())
+        .post('/areas/area-id/kanban-moves')
+        .set('Content-Type', 'application/json')
+        .send({ taskId: TASK_ID, targetAreaStatusId: STATUS_ID })
+        .expect(401);
+    });
+
+    it('returns 422 without If-Match header', async () => {
+      await request(app.getHttpServer())
+        .post('/areas/area-id/kanban-moves')
+        .set('Cookie', 'planner-session=token')
+        .set('Content-Type', 'application/json')
+        .send({ taskId: TASK_ID, targetAreaStatusId: STATUS_ID })
+        .expect(422);
+    });
+
+    it('returns 409 for stale version', async () => {
+      taskService.moveAreaKanbanTask.mockResolvedValue({ outcome: 'STALE_VERSION' });
+
+      await request(app.getHttpServer())
+        .post('/areas/area-id/kanban-moves')
+        .set('Cookie', 'planner-session=token')
+        .set('Content-Type', 'application/json')
+        .set('If-Match', '1')
+        .send({ taskId: TASK_ID, targetAreaStatusId: STATUS_ID })
+        .expect(409);
+    });
+
+    it('returns 404 when task not found', async () => {
+      taskService.moveAreaKanbanTask.mockResolvedValue({ outcome: 'NOT_FOUND' });
+
+      await request(app.getHttpServer())
+        .post('/areas/area-id/kanban-moves')
+        .set('Cookie', 'planner-session=token')
+        .set('Content-Type', 'application/json')
+        .set('If-Match', '1')
+        .send({ taskId: 'c0000000-0000-4000-8000-000000000001', targetAreaStatusId: STATUS_ID })
         .expect(404);
     });
   });

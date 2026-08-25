@@ -465,6 +465,109 @@ export class TaskRepository {
     return { task: updatedTask, defaultStatusId: defaultStatus.id };
   }
 
+  async findAreaKanbanTasks(
+    userId: string,
+    areaId: string,
+  ): Promise<{
+    readonly statuses: ReadonlyArray<{ readonly id: string; readonly name: string; readonly canonicalStatus: string; readonly position: number }>;
+    readonly columns: ReadonlyArray<{ readonly statusId: string; readonly count: number; readonly tasks: readonly TaskSummary[] }>;
+  }> {
+    const statuses = await this.prisma.areaStatus.findMany({
+      where: { userId, areaId, active: true },
+      orderBy: { position: 'asc' },
+      select: { id: true, name: true, canonicalStatus: true, position: true },
+    });
+
+    const tasks = await this.prisma.task.findMany({
+      where: { userId, areaId, lifecycleState: 'ACTIVE' },
+      orderBy: [{ areaRank: 'asc' }, { id: 'asc' }],
+      include: { areaStatus: { select: { id: true, canonicalStatus: true } } },
+    });
+
+    const taskMap = new Map<string, TaskSummary[]>();
+
+    for (const status of statuses) {
+      taskMap.set(status.id, []);
+    }
+
+    for (const task of tasks) {
+      const bucket = taskMap.get(task.areaStatus.id);
+
+      if (bucket) {
+        bucket.push({
+          id: task.id,
+          title: task.title,
+          priority: task.priority,
+          canonicalStatus: task.areaStatus.canonicalStatus,
+          dueAt: task.dueAt,
+          plannedAt: task.plannedAt,
+          lifecycleState: task.lifecycleState,
+        });
+      }
+    }
+
+    const columns = statuses.map((status) => ({
+      statusId: status.id,
+      count: taskMap.get(status.id)?.length ?? 0,
+      tasks: taskMap.get(status.id) ?? [],
+    }));
+
+    return { statuses, columns };
+  }
+
+  async moveAreaKanbanTask(
+    userId: string,
+    taskId: string,
+    targetAreaStatusId: string,
+    version: number,
+  ): Promise<{ task: Task | null; valid: boolean }> {
+    const task = await this.prisma.task.findFirst({
+      where: { id: taskId, userId, lifecycleState: 'ACTIVE' },
+      select: { id: true, areaId: true, version: true },
+    });
+
+    if (!task) {
+      return { task: null, valid: false };
+    }
+
+    if (task.version !== version) {
+      return { task: null, valid: false };
+    }
+
+    const targetStatus = await this.prisma.areaStatus.findFirst({
+      where: { id: targetAreaStatusId, userId, areaId: task.areaId, active: true },
+      select: { id: true },
+    });
+
+    if (!targetStatus) {
+      return { task: null, valid: false };
+    }
+
+    const maxRank = await this.prisma.task.findFirst({
+      where: { userId, areaId: task.areaId, areaStatusId: targetAreaStatusId, lifecycleState: 'ACTIVE' },
+      orderBy: { areaRank: 'desc' },
+      select: { areaRank: true },
+    });
+
+    const nextRank = maxRank ? incrementRank(maxRank.areaRank) : '000000000000000000000001';
+
+    const result = await this.prisma.task.updateMany({
+      where: { id: taskId, userId, version, lifecycleState: 'ACTIVE' },
+      data: {
+        areaStatusId: targetAreaStatusId,
+        areaRank: nextRank,
+        version: { increment: 1 },
+      },
+    });
+
+    if (result.count === 0) {
+      return { task: null, valid: false };
+    }
+
+    const updatedTask = await this.prisma.task.findUnique({ where: { id: taskId } });
+    return { task: updatedTask, valid: true };
+  }
+
   async setTaskLabels(userId: string, taskId: string, labelIds: readonly string[]): Promise<void> {
     await this.prisma.$transaction(async (transaction) => {
       await transaction.taskLabel.deleteMany({

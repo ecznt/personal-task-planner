@@ -3,11 +3,13 @@
 import { apiClient } from '@planner/api-client';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
+import { useState } from 'react';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/spinner';
+import { AreaKanbanBoard } from '@/features/kanban/area-kanban-board';
 import { ProjectManager } from '@/features/projects/project-manager';
 import { TaskList } from '@/features/tasks/task-list';
 
@@ -37,6 +39,7 @@ type AreaDetailProps = {
 };
 
 export function AreaDetail({ areaId }: AreaDetailProps) {
+  const [view, setView] = useState<'list' | 'kanban'>('list');
   const area = useQuery({
     queryKey: ['areas', areaId],
     queryFn: async () => {
@@ -129,11 +132,37 @@ export function AreaDetail({ areaId }: AreaDetailProps) {
       <div>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-semibold">Görevler</h2>
-          <Link href={`/app/areas/${areaId}/tasks/new`}>
-            <Button size="sm">Yeni Görev</Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <div className="flex rounded-lg border bg-muted p-0.5">
+              <button
+                type="button"
+                onClick={() => setView('list')}
+                className={`rounded-md px-3 py-1 text-sm font-medium transition-colors duration-150 ${
+                  view === 'list' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'
+                }`}
+              >
+                Liste
+              </button>
+              <button
+                type="button"
+                onClick={() => setView('kanban')}
+                className={`rounded-md px-3 py-1 text-sm font-medium transition-colors duration-150 ${
+                  view === 'kanban' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'
+                }`}
+              >
+                Kanban
+              </button>
+            </div>
+            <Link href={`/app/areas/${areaId}/tasks/new`}>
+              <Button size="sm">Yeni Görev</Button>
+            </Link>
+          </div>
         </div>
-        <TaskList areaId={areaId} />
+        {view === 'list' ? (
+          <TaskList areaId={areaId} />
+        ) : (
+          <AreaKanbanBoard areaId={areaId} />
+        )}
       </div>
     </div>
   );
