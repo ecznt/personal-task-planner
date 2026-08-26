@@ -38,7 +38,7 @@ describe('task service — listAreaKanbanTasks', () => {
       ],
     });
 
-    const service = new TaskService(repository);
+    const service = new TaskService(repository, recurrenceServiceMock());
     const result = await service.listAreaKanbanTasks('user-id', 'area-1');
 
     expect(result).toEqual({
@@ -52,7 +52,7 @@ describe('task service — listAreaKanbanTasks', () => {
     const repository = repositoryMock();
     repository.areaExists.mockResolvedValue(false);
 
-    const service = new TaskService(repository);
+    const service = new TaskService(repository, recurrenceServiceMock());
     const result = await service.listAreaKanbanTasks('user-id', 'nonexistent');
 
     expect(result.outcome).toBe('NOT_FOUND');
@@ -81,12 +81,17 @@ describe('task service — moveAreaKanbanTask', () => {
         updatedAt: new Date(),
         projectId: null,
         completedAt: null,
+        recurrenceSeriesId: null,
+        recurrenceRuleVersionId: null,
+        occurrenceNumber: null,
+        predecessorTaskId: null,
+        generationKey: null,
       },
       valid: true,
     });
     repository.getCanonicalStatus.mockResolvedValue('IN_PROGRESS');
 
-    const service = new TaskService(repository);
+    const service = new TaskService(repository, recurrenceServiceMock());
     const result = await service.moveAreaKanbanTask('user-id', {
       taskId: 'task-1',
       targetAreaStatusId: 'status-2',
@@ -104,7 +109,7 @@ describe('task service — moveAreaKanbanTask', () => {
     repository.moveAreaKanbanTask.mockResolvedValue({ task: null, valid: false });
     repository.findById.mockResolvedValue(null);
 
-    const service = new TaskService(repository);
+    const service = new TaskService(repository, recurrenceServiceMock());
     const result = await service.moveAreaKanbanTask('user-id', {
       taskId: 'nonexistent',
       targetAreaStatusId: 'status-2',
@@ -125,7 +130,7 @@ describe('task service — moveAreaKanbanTask', () => {
       checklistItems: [],
     } as never);
 
-    const service = new TaskService(repository);
+    const service = new TaskService(repository, recurrenceServiceMock());
     const result = await service.moveAreaKanbanTask('user-id', {
       taskId: 'task-1',
       targetAreaStatusId: 'status-2',
@@ -139,7 +144,7 @@ describe('task service — moveAreaKanbanTask', () => {
     const repository = repositoryMock();
     repository.moveAreaKanbanTask.mockResolvedValue({ task: null, valid: true });
 
-    const service = new TaskService(repository);
+    const service = new TaskService(repository, recurrenceServiceMock());
     const result = await service.moveAreaKanbanTask('user-id', {
       taskId: 'task-1',
       targetAreaStatusId: 'invalid-status',
@@ -170,4 +175,13 @@ function repositoryMock(): jest.Mocked<TaskRepository> {
     setTaskLabels: jest.fn(),
     getCanonicalStatus: jest.fn(),
   } as unknown as jest.Mocked<TaskRepository>;
+}
+
+function recurrenceServiceMock(): any {
+  return {
+    setRecurrence: jest.fn(),
+    stopRecurrence: jest.fn(),
+    getRecurrence: jest.fn(),
+    generateNextOccurrence: jest.fn(),
+  };
 }

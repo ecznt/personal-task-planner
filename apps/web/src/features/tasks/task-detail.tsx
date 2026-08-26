@@ -29,6 +29,26 @@ type ChecklistItem = {
   readonly completed: boolean;
 };
 
+type RecurrenceInfo = {
+  readonly series: {
+    readonly id: string;
+    readonly state: string;
+    readonly currentOpenTaskId: string | null;
+    readonly nextOccurrenceNumber: number;
+  };
+  readonly activeRule: {
+    readonly id: string;
+    readonly mode: string;
+    readonly frequency: string;
+    readonly interval: number;
+    readonly selectedWeekdays: readonly number[];
+    readonly dayOfMonth: number | null;
+    readonly monthOfYear: number | null;
+    readonly localTime: string | null;
+  };
+  readonly currentOpenTaskId: string | null;
+} | null;
+
 type TaskData = {
   readonly id: string;
   readonly areaId: string;
@@ -44,6 +64,7 @@ type TaskData = {
   readonly labels: readonly LabelSummary[];
   readonly checklistItems: readonly ChecklistItem[];
   readonly projectId: string | null;
+  readonly recurrence: RecurrenceInfo;
 };
 
 type TaskDetailProps = {
@@ -370,6 +391,347 @@ export function TaskDetail({ taskId }: TaskDetailProps) {
 
       <div className="rounded-lg border bg-card p-4">
         <Checklist taskId={taskId} />
+      </div>
+
+      <RecurrenceSection taskId={taskId} taskData={taskData} queryClient={queryClient} csrfToken={csrfQuery.data?.token} />
+    </div>
+  );
+}
+
+const FREQUENCY_LABELS: Record<string, string> = {
+  DAILY: 'Her gün',
+  WEEKDAYS: 'Her iş günü',
+  WEEKLY: 'Her hafta',
+  MONTHLY: 'Her ay',
+  YEARLY: 'Her yıl',
+};
+
+const WEEKDAY_LABELS: Record<number, string> = {
+  1: 'Pazartesi',
+  2: 'Salı',
+  3: 'Çarşamba',
+  4: 'Perşembe',
+  5: 'Cuma',
+  6: 'Cumartesi',
+  7: 'Pazar',
+};
+
+function describeRecurrence(rule: RecurrenceInfo extends null ? never : NonNullable<RecurrenceInfo>['activeRule']): string {
+  const freq = FREQUENCY_LABELS[rule.frequency] ?? rule.frequency;
+  const interval = rule.interval > 1 ? ` ${rule.interval}` : '';
+
+  if (rule.frequency === 'WEEKLY' && rule.selectedWeekdays.length > 0) {
+    const days = rule.selectedWeekdays.map((d) => WEEKDAY_LABELS[d] ?? String(d)).join(', ');
+    return `Her${interval} hafta ${days}`;
+  }
+
+  if (rule.frequency === 'MONTHLY' && rule.dayOfMonth !== null) {
+    return `Her${interval} ayın ${rule.dayOfMonth}`;
+  }
+
+  if (rule.frequency === 'YEARLY' && rule.monthOfYear !== null && rule.dayOfMonth !== null) {
+    return `Her${interval} yıl ${rule.monthOfYear}/${rule.dayOfMonth}`;
+  }
+
+  return `${freq}${interval ? ` ${rule.interval} günlük` : ''}`;
+}
+
+function RecurrenceSection({
+  taskId,
+  taskData,
+  queryClient,
+  csrfToken,
+}: {
+  readonly taskId: string;
+  readonly taskData: TaskData;
+  readonly queryClient: ReturnType<typeof useQueryClient>;
+  readonly csrfToken: string | undefined;
+}) {
+  const [showForm, setShowForm] = useState(false);
+  const recurrence = taskData.recurrence;
+
+  const setRecurrence = useMutation({
+    mutationFn: async (values: {
+      mode: string;
+      frequency: string;
+      interval: number;
+      selectedWeekdays: number[];
+      dayOfMonth: number | null;
+      monthOfYear: number | null;
+    }) => {
+      const csrf = csrfToken ?? (await fetchCsrf()).token;
+
+      const result = await apiClient.put({
+        url: '/api/v1/tasks/{taskId}/recurrence',
+        path: { taskId },
+        body: values,
+        headers: {
+          'X-CSRF-Token': csrf,
+          'If-Match': String(taskData.version),
+        },
+      });
+
+      if (result.error !== undefined) {
+        throw apiError(result.error);
+      }
+
+      return result.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['areas', 'tasks', taskId] });
+      setShowForm(false);
+    },
+  });
+
+  const stopRecurrence = useMutation({
+    mutationFn: async () => {
+      const csrf = csrfToken ?? (await fetchCsrf()).token;
+
+      const result = await apiClient.delete({
+        url: '/api/v1/tasks/{taskId}/recurrence',
+        path: { taskId },
+        headers: {
+          'X-CSRF-Token': csrf,
+          'If-Match': String(taskData.version),
+        },
+      });
+
+      if (result.error !== undefined) {
+        throw apiError(result.error);
+      }
+
+      return result.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['areas', 'tasks', taskId] });
+    },
+  });
+
+  if (recurrence && !showForm) {
+    return (
+      <div className="rounded-lg border bg-card p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-sm text-muted-foreground">Tekrarlama</div>
+            <div className="mt-1 font-medium">
+              {describeRecurrence(recurrence.activeRule)}
+            </div>
+            {recurrence.series.state !== 'ACTIVE' && (
+              <div className="mt-1 text-xs text-muted-foreground">
+                Duraklatılmış
+              </div>
+            )}
+          </div>
+          <div className="flex gap-2">
+            {recurrence.series.state === 'ACTIVE' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => stopRecurrence.mutate()}
+                disabled={stopRecurrence.isPending}
+                className="transition-transform duration-150 active:scale-[0.97]"
+              >
+                {stopRecurrence.isPending ? 'Durduruluyor...' : 'Durdur'}
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (showForm) {
+    return (
+      <div className="rounded-lg border bg-card p-4">
+        <h3 className="text-sm font-medium">Tekrarlama Ayarla</h3>
+        <RecurrenceForm
+          onSubmit={(values) => setRecurrence.mutate(values)}
+          onCancel={() => setShowForm(false)}
+          isPending={setRecurrence.isPending}
+          error={setRecurrence.error?.message}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-lg border bg-card p-4">
+      <div className="text-sm text-muted-foreground">Tekrarlama</div>
+      <Button
+        variant="outline"
+        size="sm"
+        className="mt-2 transition-transform duration-150 active:scale-[0.97]"
+        onClick={() => setShowForm(true)}
+      >
+        Tekrarlama Ayarla
+      </Button>
+    </div>
+  );
+}
+
+function RecurrenceForm({
+  onSubmit,
+  onCancel,
+  isPending,
+  error,
+}: {
+  readonly onSubmit: (values: {
+    mode: string;
+    frequency: string;
+    interval: number;
+    selectedWeekdays: number[];
+    dayOfMonth: number | null;
+    monthOfYear: number | null;
+  }) => void;
+  readonly onCancel: () => void;
+  readonly isPending: boolean;
+  readonly error: string | undefined;
+}) {
+  const [frequency, setFrequency] = useState('WEEKLY');
+  const [interval, setInterval] = useState(1);
+  const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>([]);
+  const [dayOfMonth, setDayOfMonth] = useState<number | null>(null);
+  const [monthOfYear, setMonthOfYear] = useState<number | null>(null);
+
+  const handleSubmit = () => {
+    onSubmit({
+      mode: 'CALENDAR_BASED',
+      frequency,
+      interval,
+      selectedWeekdays,
+      dayOfMonth,
+      monthOfYear,
+    });
+  };
+
+  return (
+    <div className="mt-3 space-y-3">
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      <Field>
+        <FieldLabel>Sıklık</FieldLabel>
+        <select
+          value={frequency}
+          onChange={(e) => {
+            setFrequency(e.target.value);
+            setSelectedWeekdays([]);
+            setDayOfMonth(null);
+            setMonthOfYear(null);
+          }}
+          className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base outline-none transition-transform duration-150 active:scale-[0.97] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm"
+        >
+          <option value="DAILY">Her gün</option>
+          <option value="WEEKDAYS">Her iş günü</option>
+          <option value="WEEKLY">Her hafta</option>
+          <option value="MONTHLY">Her ay</option>
+          <option value="YEARLY">Her yıl</option>
+        </select>
+      </Field>
+
+      {frequency !== 'WEEKDAYS' && (
+        <Field>
+          <FieldLabel>Her ... bir</FieldLabel>
+          <Input
+            type="number"
+            min={1}
+            value={interval}
+            onChange={(e) => setInterval(Number(e.target.value) || 1)}
+            className="h-8"
+          />
+        </Field>
+      )}
+
+      {frequency === 'WEEKLY' && (
+        <Field>
+          <FieldLabel>Günler</FieldLabel>
+          <div className="flex flex-wrap gap-2">
+            {([1, 2, 3, 4, 5, 6, 7] as const).map((day) => (
+              <button
+                key={day}
+                type="button"
+                onClick={() => {
+                  setSelectedWeekdays((prev) =>
+                    prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day].sort(),
+                  );
+                }}
+                className={`rounded-lg border px-3 py-1 text-sm transition-all duration-150 ${
+                  selectedWeekdays.includes(day)
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-transparent hover:bg-muted'
+                }`}
+              >
+                {WEEKDAY_LABELS[day]}
+              </button>
+            ))}
+          </div>
+        </Field>
+      )}
+
+      {frequency === 'MONTHLY' && (
+        <Field>
+          <FieldLabel>Ayın günü</FieldLabel>
+          <Input
+            type="number"
+            min={1}
+            max={31}
+            value={dayOfMonth ?? ''}
+            onChange={(e) => setDayOfMonth(e.target.value ? Number(e.target.value) : null)}
+            placeholder="1-31"
+            className="h-8"
+          />
+        </Field>
+      )}
+
+      {frequency === 'YEARLY' && (
+        <>
+          <Field>
+            <FieldLabel>Ay</FieldLabel>
+            <Input
+              type="number"
+              min={1}
+              max={12}
+              value={monthOfYear ?? ''}
+              onChange={(e) => setMonthOfYear(e.target.value ? Number(e.target.value) : null)}
+              placeholder="1-12"
+              className="h-8"
+            />
+          </Field>
+          <Field>
+            <FieldLabel>Gün</FieldLabel>
+            <Input
+              type="number"
+              min={1}
+              max={31}
+              value={dayOfMonth ?? ''}
+              onChange={(e) => setDayOfMonth(e.target.value ? Number(e.target.value) : null)}
+              placeholder="1-31"
+              className="h-8"
+            />
+          </Field>
+        </>
+      )}
+
+      <div className="flex gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          className="transition-transform duration-150 active:scale-[0.97]"
+        >
+          İptal
+        </Button>
+        <Button
+          type="button"
+          onClick={handleSubmit}
+          disabled={isPending || (frequency === 'WEEKLY' && selectedWeekdays.length === 0)}
+          className="transition-transform duration-150 active:scale-[0.97]"
+        >
+          {isPending ? 'Kaydediliyor...' : 'Kaydet'}
+        </Button>
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 
 import { TaskRepository } from '../infrastructure/task.repository';
 import type { Task, TaskDetail, TaskSummary } from '../domain/task.entity';
+import { RecurrenceService } from './recurrence.service';
 
 export type CreateTaskCommand = {
   readonly areaId: string;
@@ -155,7 +156,10 @@ export type MoveAreaKanbanTaskResult =
 
 @Injectable()
 export class TaskService {
-  constructor(@Inject(TaskRepository) private readonly taskRepository: TaskRepository) {}
+  constructor(
+    @Inject(TaskRepository) private readonly taskRepository: TaskRepository,
+    @Inject(RecurrenceService) private readonly recurrenceService: RecurrenceService,
+  ) {}
 
   async createTask(userId: string, command: CreateTaskCommand): Promise<CreateTaskResult> {
     const title = command.title.trim();
@@ -361,6 +365,10 @@ export class TaskService {
       };
     }
 
+    if (command.targetCanonicalStatus === 'COMPLETED' && task.recurrenceSeriesId) {
+      await this.recurrenceService.generateNextOccurrence(userId, task.id);
+    }
+
     return { outcome: 'SUCCESS', task, etag: task.version, canonicalStatus: command.targetCanonicalStatus };
   }
 
@@ -404,6 +412,10 @@ export class TaskService {
     }
 
     const canonicalStatus = await this.taskRepository.getCanonicalStatus(userId, command.targetAreaStatusId);
+
+    if (canonicalStatus === 'COMPLETED' && task.recurrenceSeriesId) {
+      await this.recurrenceService.generateNextOccurrence(userId, task.id);
+    }
 
     return { outcome: 'SUCCESS', task, etag: task.version, canonicalStatus: canonicalStatus ?? 'TO_DO' };
   }

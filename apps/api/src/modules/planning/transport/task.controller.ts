@@ -382,6 +382,30 @@ export class TaskController {
               completedAt: item.completedAt?.toISOString() ?? null,
             })),
             projectId: result.data.task.projectId,
+            recurrence: result.data.recurrence
+              ? {
+                  series: {
+                    id: result.data.recurrence.series.id,
+                    state: result.data.recurrence.series.state,
+                    currentOpenTaskId: result.data.recurrence.series.currentOpenTaskId,
+                    nextOccurrenceNumber: result.data.recurrence.series.nextOccurrenceNumber,
+                    createdAt: result.data.recurrence.series.createdAt.toISOString(),
+                    updatedAt: result.data.recurrence.series.updatedAt.toISOString(),
+                  },
+                  activeRule: {
+                    id: result.data.recurrence.activeRule.id,
+                    mode: result.data.recurrence.activeRule.mode,
+                    frequency: result.data.recurrence.activeRule.frequency,
+                    interval: result.data.recurrence.activeRule.interval,
+                    selectedWeekdays: [...result.data.recurrence.activeRule.selectedWeekdays],
+                    dayOfMonth: result.data.recurrence.activeRule.dayOfMonth,
+                    monthOfYear: result.data.recurrence.activeRule.monthOfYear,
+                    localTime: result.data.recurrence.activeRule.localTime,
+                    state: result.data.recurrence.activeRule.state,
+                  },
+                  currentOpenTaskId: result.data.recurrence.currentOpenTaskId,
+                }
+              : null,
           },
         };
       case 'NOT_FOUND':

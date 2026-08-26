@@ -8,7 +8,7 @@ describe('task service — listTodayTasks', () => {
     const repository = repositoryMock();
     repository.findTodayTasks.mockResolvedValue([]);
 
-    const service = new TaskService(repository);
+    const service = new TaskService(repository, recurrenceServiceMock());
     const result = await service.listTodayTasks('user-id', {
       timezone: 'Europe/Istanbul',
     });
@@ -41,7 +41,7 @@ describe('task service — listTodayTasks', () => {
       },
     ]);
 
-    const service = new TaskService(repository);
+    const service = new TaskService(repository, recurrenceServiceMock());
     const result = await service.listTodayTasks('user-id', {
       timezone: 'Europe/Istanbul',
     });
@@ -71,7 +71,7 @@ describe('task service — listTodayTasks', () => {
       },
     ]);
 
-    const service = new TaskService(repository);
+    const service = new TaskService(repository, recurrenceServiceMock());
     const result = await service.listTodayTasks('user-id', {
       timezone: 'Europe/Istanbul',
     });
@@ -101,4 +101,13 @@ function repositoryMock(): jest.Mocked<TaskRepository> {
     findAreaKanbanTasks: jest.fn(),
     moveAreaKanbanTask: jest.fn(),
   } as unknown as jest.Mocked<TaskRepository>;
+}
+
+function recurrenceServiceMock(): any {
+  return {
+    setRecurrence: jest.fn(),
+    stopRecurrence: jest.fn(),
+    getRecurrence: jest.fn(),
+    generateNextOccurrence: jest.fn(),
+  };
 }

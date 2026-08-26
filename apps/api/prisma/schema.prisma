@@ -43,6 +43,31 @@ enum TaskPriority {
   HIGH
 }
 
+enum RecurrenceSeriesState {
+  ACTIVE
+  PAUSED
+  STOPPED
+}
+
+enum RecurrenceMode {
+  CALENDAR_BASED
+  COMPLETION_BASED
+}
+
+enum RecurrenceFrequency {
+  DAILY
+  WEEKDAYS
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+enum RecurrenceRuleState {
+  ACTIVE
+  SUPERSEDED
+  STOPPED
+}
+
 enum IdentityVerificationState {
   PENDING
   ACTIVE
@@ -115,6 +140,8 @@ model User {
   labels                            Label[]
   taskLabels                        TaskLabel[]
   checklistItems                    ChecklistItem[]
+  recurrenceSeries                  RecurrenceSeries[]
+  recurrenceRuleVersions            RecurrenceRuleVersion[]
 
   @@map("users")
 }
@@ -343,14 +370,69 @@ model Task {
   area           Area                   @relation(fields: [areaId], references: [id], onDelete: Cascade)
   project        Project?               @relation(fields: [projectId], references: [id], onDelete: SetNull)
   areaStatus     AreaStatus             @relation(fields: [areaStatusId], references: [id], onDelete: Restrict)
-  labels         TaskLabel[]
-  checklistItems ChecklistItem[]
+  labels                   TaskLabel[]
+  checklistItems           ChecklistItem[]
+  recurrenceRuleVersion    RecurrenceRuleVersion?   @relation(fields: [recurrenceRuleVersionId], references: [id])
+  recurrenceRuleVersionId  String?                  @db.Uuid
+  recurrenceSeries         RecurrenceSeries?        @relation("ProducedBySeries", fields: [recurrenceSeriesId], references: [id])
+  recurrenceSeriesId       String?                  @db.Uuid
+  occurrenceNumber         Int?
+  predecessorTask          Task?                    @relation("PredecessorSuccessor", fields: [predecessorTaskId], references: [id])
+  predecessorTaskId        String?                  @db.Uuid @unique
+  successorTask            Task?                    @relation("PredecessorSuccessor")
+  generationKey            String?                  @unique
+  currentOpenSeries        RecurrenceSeries?        @relation("CurrentOpenTask")
+  lastCompletedBySeries    RecurrenceSeries?        @relation("LastCompletedBySeries")
 
   @@index([userId, lifecycleState, updatedAt, id], map: "task_user_lifecycle_idx")
   @@index([userId, areaId, lifecycleState, areaRank, id], map: "task_area_rank_idx")
   @@index([userId, lifecycleState, globalRank, id], map: "task_global_rank_idx")
   @@index([userId, dueAt, id], map: "task_user_due_idx")
+  @@index([recurrenceSeriesId, occurrenceNumber], map: "task_recurrence_series_occurrence_idx")
   @@map("tasks")
+}
+
+model RecurrenceSeries {
+  id                          String                @id @default(uuid()) @db.Uuid
+  userId                      String                @db.Uuid
+  state                       RecurrenceSeriesState @default(ACTIVE)
+  currentOpenTaskId           String?               @db.Uuid @unique
+  lastCompletedTaskId         String?               @db.Uuid @unique
+  nextOccurrenceNumber        Int                   @default(2)
+  activeRuleVersionId         String                @db.Uuid
+  createdAt                   DateTime              @default(now()) @db.Timestamptz(3)
+  updatedAt                   DateTime              @updatedAt @db.Timestamptz(3)
+  user                        User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currentOpenTask             Task?                 @relation("CurrentOpenTask", fields: [currentOpenTaskId], references: [id])
+  lastCompletedTask           Task?                 @relation("LastCompletedBySeries", fields: [lastCompletedTaskId], references: [id])
+  ruleVersions                RecurrenceRuleVersion[]
+  tasks                       Task[]                @relation("ProducedBySeries")
+
+  @@index([userId, state], map: "recurrence_series_user_state_idx")
+  @@map("recurrence_series")
+}
+
+model RecurrenceRuleVersion {
+  id              String               @id @default(uuid()) @db.Uuid
+  userId          String               @db.Uuid
+  seriesId        String               @db.Uuid
+  versionNumber   Int
+  mode            RecurrenceMode
+  frequency       RecurrenceFrequency
+  interval        Int                  @default(1)
+  selectedWeekdays Int[]               @default([])
+  dayOfMonth      Int?
+  monthOfYear     Int?
+  localTime       String?
+  state           RecurrenceRuleState  @default(ACTIVE)
+  createdAt       DateTime             @default(now()) @db.Timestamptz(3)
+  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  series          RecurrenceSeries     @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  tasks           Task[]
+
+  @@unique([seriesId, versionNumber], map: "recurrence_rule_version_series_version_key")
+  @@index([userId], map: "recurrence_rule_version_user_idx")
+  @@map("recurrence_rule_versions")
 }
 
 model Label {

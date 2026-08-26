@@ -5,17 +5,20 @@ import { AreaService } from './application/area.service';
 import { ChecklistItemService } from './application/checklist-item.service';
 import { LabelService } from './application/label.service';
 import { ProjectService } from './application/project.service';
+import { RecurrenceService } from './application/recurrence.service';
 import { TaskService } from './application/task.service';
 import { AreaRepository } from './infrastructure/area.repository';
 import { ChecklistItemRepository } from './infrastructure/checklist-item.repository';
 import { LabelRepository } from './infrastructure/label.repository';
 import { ProjectRepository } from './infrastructure/project.repository';
+import { RecurrenceRepository } from './infrastructure/recurrence.repository';
 import { TaskRepository } from './infrastructure/task.repository';
 import { AreaController } from './transport/area.controller';
 import { ChecklistController } from './transport/checklist.controller';
 import { ChecklistOrderController } from './transport/checklist-order.controller';
 import { LabelController } from './transport/label.controller';
 import { ProjectController } from './transport/project.controller';
+import { RecurrenceController } from './transport/recurrence.controller';
 import { TaskController } from './transport/task.controller';
 
 @Module({
@@ -23,6 +26,7 @@ import { TaskController } from './transport/task.controller';
   controllers: [
     AreaController,
     TaskController,
+    RecurrenceController,
     LabelController,
     ChecklistController,
     ChecklistOrderController,
@@ -33,6 +37,8 @@ import { TaskController } from './transport/task.controller';
     AreaRepository,
     TaskService,
     TaskRepository,
+    RecurrenceService,
+    RecurrenceRepository,
     LabelService,
     LabelRepository,
     ChecklistItemService,
@@ -40,6 +46,6 @@ import { TaskController } from './transport/task.controller';
     ProjectService,
     ProjectRepository,
   ],
-  exports: [AreaService, TaskService, LabelService, ChecklistItemService, ProjectService],
+  exports: [AreaService, TaskService, RecurrenceService, LabelService, ChecklistItemService, ProjectService],
 })
 export class PlanningModule {}

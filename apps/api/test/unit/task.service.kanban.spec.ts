@@ -24,7 +24,7 @@ describe('task service — listKanbanTasks', () => {
       completed: [],
     });
 
-    const service = new TaskService(repository);
+    const service = new TaskService(repository, recurrenceServiceMock());
     const result = await service.listKanbanTasks('user-id');
 
     expect(result).toEqual({
@@ -58,11 +58,16 @@ describe('task service — moveKanbanTask', () => {
         updatedAt: new Date(),
         projectId: null,
         completedAt: null,
+        recurrenceSeriesId: null,
+        recurrenceRuleVersionId: null,
+        occurrenceNumber: null,
+        predecessorTaskId: null,
+        generationKey: null,
       },
       defaultStatusId: 'status-2',
     });
 
-    const service = new TaskService(repository);
+    const service = new TaskService(repository, recurrenceServiceMock());
     const result = await service.moveKanbanTask('user-id', {
       taskId: 'task-1',
       targetCanonicalStatus: 'IN_PROGRESS',
@@ -80,7 +85,7 @@ describe('task service — moveKanbanTask', () => {
     repository.moveTask.mockResolvedValue({ task: null, defaultStatusId: null });
     repository.findById.mockResolvedValue(null);
 
-    const service = new TaskService(repository);
+    const service = new TaskService(repository, recurrenceServiceMock());
     const result = await service.moveKanbanTask('user-id', {
       taskId: 'nonexistent',
       targetCanonicalStatus: 'IN_PROGRESS',
@@ -101,7 +106,7 @@ describe('task service — moveKanbanTask', () => {
       checklistItems: [],
     } as never);
 
-    const service = new TaskService(repository);
+    const service = new TaskService(repository, recurrenceServiceMock());
     const result = await service.moveKanbanTask('user-id', {
       taskId: 'task-1',
       targetCanonicalStatus: 'IN_PROGRESS',
@@ -131,4 +136,13 @@ function repositoryMock(): jest.Mocked<TaskRepository> {
     incrementVersion: jest.fn(),
     setTaskLabels: jest.fn(),
   } as unknown as jest.Mocked<TaskRepository>;
+}
+
+function recurrenceServiceMock(): any {
+  return {
+    setRecurrence: jest.fn(),
+    stopRecurrence: jest.fn(),
+    getRecurrence: jest.fn(),
+    generateNextOccurrence: jest.fn(),
+  };
 }

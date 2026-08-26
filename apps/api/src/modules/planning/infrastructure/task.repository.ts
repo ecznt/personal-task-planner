@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 
 import { PrismaService } from '../../../platform/database/prisma.service';
-import type { Task, TaskDetail, TaskSummary } from '../domain/task.entity';
+import type { RecurrenceSeriesDetail, Task, TaskDetail, TaskSummary } from '../domain/task.entity';
 
 @Injectable()
 export class TaskRepository {
@@ -93,12 +93,35 @@ export class TaskRepository {
       orderBy: { position: 'asc' },
     });
 
+    let recurrence: RecurrenceSeriesDetail | null = null;
+
+    if (task.recurrenceSeriesId) {
+      const series = await this.prisma.recurrenceSeries.findFirst({
+        where: { id: task.recurrenceSeriesId, userId },
+      });
+
+      if (series) {
+        const activeRule = await this.prisma.recurrenceRuleVersion.findFirst({
+          where: { id: series.activeRuleVersionId },
+        });
+
+        if (activeRule) {
+          recurrence = {
+            series,
+            activeRule,
+            currentOpenTaskId: series.currentOpenTaskId,
+          };
+        }
+      }
+    }
+
     return {
       task,
       canonicalStatus: areaStatus?.canonicalStatus ?? 'TO_DO',
       areaName: area?.name ?? '',
       labels: taskLabels.map((tl) => ({ id: tl.label.id, name: tl.label.name })),
       checklistItems,
+      recurrence,
     };
   }
 

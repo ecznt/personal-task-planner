@@ -22,7 +22,7 @@ describe('task service — listGlobalTasks', () => {
       ],
     });
 
-    const service = new TaskService(repository);
+    const service = new TaskService(repository, recurrenceServiceMock());
     const result = await service.listGlobalTasks('user-id', {});
 
     expect(result).toEqual({
@@ -35,7 +35,7 @@ describe('task service — listGlobalTasks', () => {
     const repository = repositoryMock();
     repository.listGlobal.mockResolvedValue({ tasks: [] });
 
-    const service = new TaskService(repository);
+    const service = new TaskService(repository, recurrenceServiceMock());
     await service.listGlobalTasks('user-id', {
       sort: 'dueDate',
       order: 'desc',
@@ -61,7 +61,7 @@ describe('task service — listGlobalTasks', () => {
       nextCursor: 'cursor-123',
     });
 
-    const service = new TaskService(repository);
+    const service = new TaskService(repository, recurrenceServiceMock());
     const result = await service.listGlobalTasks('user-id', {});
 
     expect(result).toEqual({
@@ -88,4 +88,13 @@ function repositoryMock(): jest.Mocked<TaskRepository> {
     findAreaKanbanTasks: jest.fn(),
     moveAreaKanbanTask: jest.fn(),
   } as unknown as jest.Mocked<TaskRepository>;
+}
+
+function recurrenceServiceMock(): any {
+  return {
+    setRecurrence: jest.fn(),
+    stopRecurrence: jest.fn(),
+    getRecurrence: jest.fn(),
+    generateNextOccurrence: jest.fn(),
+  };
 }

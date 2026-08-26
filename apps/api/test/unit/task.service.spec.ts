@@ -5,7 +5,7 @@ import type { TaskRepository } from '../../src/modules/planning/infrastructure/t
 
 describe('task service', () => {
   it('validates task title is not blank', async () => {
-    const service = new TaskService(repositoryMock());
+    const service = new TaskService(repositoryMock(), recurrenceServiceMock());
 
     const result = await service.createTask('user-id', {
       areaId: 'area-id',
@@ -23,7 +23,7 @@ describe('task service', () => {
   });
 
   it('validates task title length', async () => {
-    const service = new TaskService(repositoryMock());
+    const service = new TaskService(repositoryMock(), recurrenceServiceMock());
 
     const result = await service.createTask('user-id', {
       areaId: 'area-id',
@@ -41,7 +41,7 @@ describe('task service', () => {
   });
 
   it('validates description length', async () => {
-    const service = new TaskService(repositoryMock());
+    const service = new TaskService(repositoryMock(), recurrenceServiceMock());
 
     const result = await service.createTask('user-id', {
       areaId: 'area-id',
@@ -63,7 +63,7 @@ describe('task service', () => {
     repository.areaExists.mockResolvedValue(true);
     repository.findDefaultToDoStatus.mockResolvedValue({ id: 'status-id' });
 
-    const service = new TaskService(repository);
+    const service = new TaskService(repository, recurrenceServiceMock());
 
     const result = await service.createTask('user-id', {
       areaId: 'area-id',
@@ -84,7 +84,7 @@ describe('task service', () => {
     const repository = repositoryMock();
     repository.areaExists.mockResolvedValue(false);
 
-    const service = new TaskService(repository);
+    const service = new TaskService(repository, recurrenceServiceMock());
 
     const result = await service.createTask('user-id', {
       areaId: 'non-existent',
@@ -103,7 +103,7 @@ describe('task service', () => {
     repository.areaExists.mockResolvedValue(true);
     repository.findDefaultToDoStatus.mockResolvedValue(null);
 
-    const service = new TaskService(repository);
+    const service = new TaskService(repository, recurrenceServiceMock());
 
     const result = await service.createTask('user-id', {
       areaId: 'area-id',
@@ -142,9 +142,14 @@ describe('task service', () => {
       version: 1,
       createdAt: new Date(),
       updatedAt: new Date(),
+      recurrenceSeriesId: null,
+      recurrenceRuleVersionId: null,
+      occurrenceNumber: null,
+      predecessorTaskId: null,
+      generationKey: null,
     });
 
-    const service = new TaskService(repository);
+    const service = new TaskService(repository, recurrenceServiceMock());
     const result = await service.createTask('user-id', {
       areaId: 'area-id',
       title: 'Test Task',
@@ -165,7 +170,7 @@ describe('task service', () => {
     const repository = repositoryMock();
     repository.findById.mockResolvedValue(null);
 
-    const service = new TaskService(repository);
+    const service = new TaskService(repository, recurrenceServiceMock());
     const result = await service.getTask('user-id', { taskId: 'non-existent' });
 
     expect(result).toEqual({ outcome: 'NOT_FOUND' });
@@ -192,14 +197,20 @@ describe('task service', () => {
         version: 1,
         createdAt: new Date(),
         updatedAt: new Date(),
+        recurrenceSeriesId: null,
+        recurrenceRuleVersionId: null,
+        occurrenceNumber: null,
+        predecessorTaskId: null,
+        generationKey: null,
       },
       canonicalStatus: 'TO_DO',
       areaName: 'Test Area',
       labels: [],
       checklistItems: [],
+      recurrence: null,
     });
 
-    const service = new TaskService(repository);
+    const service = new TaskService(repository, recurrenceServiceMock());
     const result = await service.getTask('user-id', { taskId: 'task-id' });
 
     expect(result).toEqual({
@@ -217,7 +228,7 @@ describe('task service', () => {
     const repository = repositoryMock();
     repository.areaExists.mockResolvedValue(false);
 
-    const service = new TaskService(repository);
+    const service = new TaskService(repository, recurrenceServiceMock());
     const result = await service.listTasks('user-id', { areaId: 'non-existent' });
 
     expect(result).toEqual({ outcome: 'NOT_FOUND' });
@@ -242,7 +253,7 @@ describe('task service', () => {
       ],
     });
 
-    const service = new TaskService(repository);
+    const service = new TaskService(repository, recurrenceServiceMock());
     const result = await service.listTasks('user-id', { areaId: 'area-id' });
 
     expect(result).toEqual({
@@ -253,7 +264,7 @@ describe('task service', () => {
   });
 
   it('validates edit task title', async () => {
-    const service = new TaskService(repositoryMock());
+    const service = new TaskService(repositoryMock(), recurrenceServiceMock());
 
     const result = await service.editTask('user-id', {
       taskId: 'task-id',
@@ -271,7 +282,7 @@ describe('task service', () => {
     const repository = repositoryMock();
     repository.areaStatusBelongsToArea.mockResolvedValue(true);
 
-    const service = new TaskService(repository);
+    const service = new TaskService(repository, recurrenceServiceMock());
 
     const result = await service.editTask('user-id', {
       taskId: 'task-id',
@@ -291,7 +302,7 @@ describe('task service', () => {
     repository.updateTask.mockResolvedValue(null);
     repository.findById.mockResolvedValue(null);
 
-    const service = new TaskService(repository);
+    const service = new TaskService(repository, recurrenceServiceMock());
     const result = await service.editTask('user-id', {
       taskId: 'non-existent',
       title: 'New Title',
@@ -323,14 +334,20 @@ describe('task service', () => {
         version: 2,
         createdAt: new Date(),
         updatedAt: new Date(),
+        recurrenceSeriesId: null,
+        recurrenceRuleVersionId: null,
+        occurrenceNumber: null,
+        predecessorTaskId: null,
+        generationKey: null,
       },
       canonicalStatus: 'TO_DO',
       areaName: 'Test Area',
       labels: [],
       checklistItems: [],
+      recurrence: null,
     });
 
-    const service = new TaskService(repository);
+    const service = new TaskService(repository, recurrenceServiceMock());
     const result = await service.editTask('user-id', {
       taskId: 'task-id',
       title: 'New Title',
@@ -360,10 +377,15 @@ describe('task service', () => {
       version: 2,
       createdAt: new Date(),
       updatedAt: new Date(),
+      recurrenceSeriesId: null,
+      recurrenceRuleVersionId: null,
+      occurrenceNumber: null,
+      predecessorTaskId: null,
+      generationKey: null,
     });
     repository.getCanonicalStatus.mockResolvedValue('TO_DO');
 
-    const service = new TaskService(repository);
+    const service = new TaskService(repository, recurrenceServiceMock());
     const result = await service.editTask('user-id', {
       taskId: 'task-id',
       title: 'New Title',
@@ -379,6 +401,15 @@ describe('task service', () => {
     });
   });
 });
+
+function recurrenceServiceMock(): any {
+  return {
+    setRecurrence: jest.fn(),
+    stopRecurrence: jest.fn(),
+    getRecurrence: jest.fn(),
+    generateNextOccurrence: jest.fn(),
+  };
+}
 
 function repositoryMock(): jest.Mocked<TaskRepository> {
   return {
