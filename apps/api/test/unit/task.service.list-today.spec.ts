@@ -35,6 +35,8 @@ describe('task service — listTodayTasks', () => {
         dueAt: new Date('2020-01-01'),
         plannedAt: null,
         lifecycleState: 'ACTIVE',
+        version: 1,
+        areaId: 'area-id',
         reasons: ['overdue'],
       },
     ]);
@@ -63,6 +65,8 @@ describe('task service — listTodayTasks', () => {
         dueAt: new Date(),
         plannedAt: new Date(),
         lifecycleState: 'ACTIVE',
+        version: 1,
+        areaId: 'area-id',
         reasons: ['plannedToday', 'dueToday'],
       },
     ]);

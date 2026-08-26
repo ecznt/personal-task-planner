@@ -17,6 +17,8 @@ type TaskSummary = {
   readonly dueAt: string | null;
   readonly plannedAt: string | null;
   readonly lifecycleState: string;
+  readonly version: number;
+  readonly areaId: string;
 };
 
 type KanbanColumn = {
@@ -79,7 +81,7 @@ function KanbanColumnView({
 }: {
   columnKey: string;
   column: KanbanColumn;
-  onMove: (taskId: string, target: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED') => void;
+  onMove: (taskId: string, target: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED', version: number) => void;
 }) {
   return (
     <div className="flex min-w-[260px] flex-1 flex-col rounded-lg border bg-muted/50 p-3">
@@ -102,7 +104,7 @@ function KanbanColumnView({
                 {columnKey !== 'todo' && (
                   <button
                     type="button"
-                    onClick={() => onMove(task.id, 'TO_DO')}
+                    onClick={() => onMove(task.id, 'TO_DO', task.version)}
                     className="rounded bg-background/80 px-1.5 py-0.5 text-muted-foreground backdrop-blur transition-transform duration-150 active:scale-90 hover:bg-background"
                     title="Yapılacak'a taşı"
                   >
@@ -112,7 +114,7 @@ function KanbanColumnView({
                 {columnKey !== 'completed' && (
                   <button
                     type="button"
-                    onClick={() => onMove(task.id, columnKey === 'todo' ? 'IN_PROGRESS' : 'COMPLETED')}
+                    onClick={() => onMove(task.id, columnKey === 'todo' ? 'IN_PROGRESS' : 'COMPLETED', task.version)}
                     className="rounded bg-background/80 px-1.5 py-0.5 text-muted-foreground backdrop-blur transition-transform duration-150 active:scale-90 hover:bg-background"
                     title="Sonraki duruma taşı"
                   >
@@ -145,11 +147,14 @@ export function KanbanBoard() {
   });
 
   const moveMutation = useMutation({
-    mutationFn: async ({ taskId, target }: { taskId: string; target: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED' }) => {
+    mutationFn: async ({ taskId, target, version }: { taskId: string; target: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED'; version: number }) => {
       const result = await apiClient.post({
         url: '/api/v1/tasks/kanban-moves',
         body: { taskId, targetCanonicalStatus: target },
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'If-Match': String(version),
+        },
       });
 
       if (result.error !== undefined) {
@@ -183,8 +188,8 @@ export function KanbanBoard() {
 
   const data = kanban.data;
 
-  const handleMove = (taskId: string, target: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED') => {
-    moveMutation.mutate({ taskId, target });
+  const handleMove = (taskId: string, target: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED', version: number) => {
+    moveMutation.mutate({ taskId, target, version });
   };
 
   return (

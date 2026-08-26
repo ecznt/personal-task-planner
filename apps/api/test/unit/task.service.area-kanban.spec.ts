@@ -25,6 +25,8 @@ describe('task service — listAreaKanbanTasks', () => {
               dueAt: null,
               plannedAt: null,
               lifecycleState: 'ACTIVE',
+              version: 1,
+              areaId: 'area-1',
             },
           ],
         },
@@ -82,6 +84,7 @@ describe('task service — moveAreaKanbanTask', () => {
       },
       valid: true,
     });
+    repository.getCanonicalStatus.mockResolvedValue('IN_PROGRESS');
 
     const service = new TaskService(repository);
     const result = await service.moveAreaKanbanTask('user-id', {
@@ -165,5 +168,6 @@ function repositoryMock(): jest.Mocked<TaskRepository> {
     projectBelongsToArea: jest.fn(),
     incrementVersion: jest.fn(),
     setTaskLabels: jest.fn(),
+    getCanonicalStatus: jest.fn(),
   } as unknown as jest.Mocked<TaskRepository>;
 }

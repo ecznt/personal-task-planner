@@ -236,6 +236,8 @@ describe('task service', () => {
           dueAt: null,
           plannedAt: null,
           lifecycleState: 'ACTIVE',
+          version: 1,
+          areaId: 'area-id',
         },
       ],
     });
@@ -359,6 +361,7 @@ describe('task service', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     });
+    repository.getCanonicalStatus.mockResolvedValue('TO_DO');
 
     const service = new TaskService(repository);
     const result = await service.editTask('user-id', {
@@ -372,6 +375,7 @@ describe('task service', () => {
       outcome: 'SUCCESS',
       task: expect.objectContaining({ id: 'task-id', title: 'New Title', version: 2 }),
       etag: 2,
+      canonicalStatus: 'TO_DO',
     });
   });
 });
@@ -389,5 +393,6 @@ function repositoryMock(): jest.Mocked<TaskRepository> {
     setTaskLabels: jest.fn(),
     findAreaKanbanTasks: jest.fn(),
     moveAreaKanbanTask: jest.fn(),
+    getCanonicalStatus: jest.fn(),
   } as unknown as jest.Mocked<TaskRepository>;
 }

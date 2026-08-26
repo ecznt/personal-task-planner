@@ -16,6 +16,8 @@ describe('task service — listKanbanTasks', () => {
           dueAt: null,
           plannedAt: null,
           lifecycleState: 'ACTIVE',
+          version: 1,
+          areaId: 'area-id',
         },
       ],
       inProgress: [],

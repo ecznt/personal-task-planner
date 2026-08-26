@@ -855,6 +855,8 @@ export class AreaController {
             dueAt: task.dueAt?.toISOString() ?? null,
             plannedAt: task.plannedAt?.toISOString() ?? null,
             lifecycleState: task.lifecycleState,
+            version: task.version,
+            areaId: task.areaId,
           })),
           meta: {
             ...(result.nextCursor !== undefined && { nextCursor: result.nextCursor }),
@@ -896,6 +898,8 @@ export class AreaController {
               dueAt: task.dueAt?.toISOString() ?? null,
               plannedAt: task.plannedAt?.toISOString() ?? null,
               lifecycleState: task.lifecycleState,
+              version: task.version,
+              areaId: task.areaId,
             })),
           })),
         };
@@ -931,7 +935,7 @@ export class AreaController {
             dueAt: result.task.dueAt?.toISOString() ?? null,
             priority: result.task.priority,
             areaStatusId: result.task.areaStatusId,
-            canonicalStatus: 'TO_DO',
+            canonicalStatus: result.canonicalStatus,
             lifecycleState: result.task.lifecycleState,
             version: result.task.version,
             labels: [],

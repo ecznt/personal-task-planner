@@ -129,6 +129,8 @@ export class TaskRepository {
       dueAt: task.dueAt,
       plannedAt: task.plannedAt,
       lifecycleState: task.lifecycleState,
+      version: task.version,
+      areaId: task.areaId,
     }));
 
     return { tasks: summaries, ...(nextCursor !== undefined && { nextCursor }) };
@@ -189,6 +191,14 @@ export class TaskRepository {
 
     const task = await this.prisma.task.findUnique({ where: { id: taskId } });
     return task;
+  }
+
+  async getCanonicalStatus(userId: string, areaStatusId: string): Promise<'TO_DO' | 'IN_PROGRESS' | 'COMPLETED' | null> {
+    const status = await this.prisma.areaStatus.findFirst({
+      where: { id: areaStatusId, userId, active: true },
+      select: { canonicalStatus: true },
+    });
+    return status?.canonicalStatus ?? null;
   }
 
   async areaExists(userId: string, areaId: string): Promise<boolean> {
@@ -294,6 +304,8 @@ export class TaskRepository {
       dueAt: task.dueAt,
       plannedAt: task.plannedAt,
       lifecycleState: task.lifecycleState,
+      version: task.version,
+      areaId: task.areaId,
     }));
 
     return { tasks: summaries, ...(nextCursor !== undefined && { nextCursor }) };
@@ -352,6 +364,8 @@ export class TaskRepository {
           dueAt: task.dueAt,
           plannedAt: task.plannedAt,
           lifecycleState: task.lifecycleState,
+          version: task.version,
+          areaId: task.areaId,
           reasons,
         });
       }
@@ -384,6 +398,8 @@ export class TaskRepository {
         dueAt: task.dueAt,
         plannedAt: task.plannedAt,
         lifecycleState: task.lifecycleState,
+        version: task.version,
+        areaId: task.areaId,
       };
 
       switch (task.areaStatus.canonicalStatus) {
@@ -502,6 +518,8 @@ export class TaskRepository {
           dueAt: task.dueAt,
           plannedAt: task.plannedAt,
           lifecycleState: task.lifecycleState,
+          version: task.version,
+          areaId: task.areaId,
         });
       }
     }

@@ -31,6 +31,8 @@ export type TaskSummary = {
   readonly dueAt: Date | null;
   readonly plannedAt: Date | null;
   readonly lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+  readonly version: number;
+  readonly areaId: string;
 };
 
 export type TaskDetail = {

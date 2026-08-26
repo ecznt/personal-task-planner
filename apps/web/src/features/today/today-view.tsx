@@ -1,12 +1,15 @@
 'use client';
 
 import { apiClient } from '@planner/api-client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { CheckCircle2, PlayCircle, CircleDot } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Spinner } from '@/components/ui/spinner';
+import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
 
 type TodayTask = {
   readonly id: string;
@@ -16,6 +19,8 @@ type TodayTask = {
   readonly dueAt: string | null;
   readonly plannedAt: string | null;
   readonly lifecycleState: string;
+  readonly version: number;
+  readonly areaId: string;
   readonly reasons: readonly string[];
 };
 
@@ -87,14 +92,29 @@ function SectionHeader({
   );
 }
 
-function TaskCard({ task, index }: { task: TodayTask; index: number }) {
+const CANONICAL_LABELS: Record<string, string> = {
+  TO_DO: 'Yapılacak',
+  IN_PROGRESS: 'Devam Ediyor',
+  COMPLETED: 'Tamamlandı',
+};
+
+function TaskCard({
+  task,
+  index,
+  onStatusChange,
+}: {
+  task: TodayTask;
+  index: number;
+  onStatusChange: (taskId: string, target: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED', version: number) => void;
+}) {
+  const isCompleted = task.canonicalStatus === 'COMPLETED';
+
   return (
-    <Link
-      href={`/app/areas/tasks/${task.id}`}
-      className="animate-fade-slide-in flex items-center justify-between rounded-lg border bg-card p-3 transition-colors duration-150 active:scale-[0.97] hover:bg-accent"
+    <div
+      className="animate-fade-slide-in flex items-center gap-3 rounded-lg border bg-card p-3 transition-colors duration-150 hover:bg-accent"
       style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
     >
-      <div className="min-w-0 flex-1">
+      <Link href={`/app/areas/tasks/${task.id}`} className="min-w-0 flex-1">
         <div className="truncate font-medium">{task.title}</div>
         <div className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
           {task.reasons.map((reason) => (
@@ -129,13 +149,42 @@ function TaskCard({ task, index }: { task: TodayTask; index: number }) {
             </span>
           )}
         </div>
+      </Link>
+      <div className="flex shrink-0 gap-1">
+        {!isCompleted && task.canonicalStatus !== 'IN_PROGRESS' && (
+          <button
+            type="button"
+            onClick={() => onStatusChange(task.id, 'IN_PROGRESS', task.version)}
+            className="rounded p-1 text-muted-foreground transition-transform duration-150 active:scale-90 hover:bg-muted hover:text-foreground"
+            title="Devam Ediyor'a taşı"
+          >
+            <PlayCircle className="size-4" />
+          </button>
+        )}
+        {!isCompleted && (
+          <button
+            type="button"
+            onClick={() => onStatusChange(task.id, 'COMPLETED', task.version)}
+            className="rounded p-1 text-muted-foreground transition-transform duration-150 active:scale-90 hover:bg-muted hover:text-green-600"
+            title="Tamamlandı olarak işaretle"
+          >
+            <CheckCircle2 className="size-4" />
+          </button>
+        )}
+        {isCompleted && (
+          <span className="flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400">
+            <CircleDot className="size-3" />
+            Tamamlandı
+          </span>
+        )}
       </div>
-    </Link>
+    </div>
   );
 }
 
 export function TodayView() {
   const [showCompleted, setShowCompleted] = useState(false);
+  const queryClient = useQueryClient();
 
   const today = useQuery({
     queryKey: ['tasks', 'today'],
@@ -153,6 +202,35 @@ export function TodayView() {
       return result.data as TodayResponse;
     },
   });
+
+  const moveMutation = useMutation({
+    mutationFn: async ({ taskId, target, version }: { taskId: string; target: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED'; version: number }) => {
+      const csrf = await fetchCsrf();
+      queryClient.setQueryData(csrfQueryKey, csrf);
+
+      const result = await apiClient.post({
+        url: '/api/v1/tasks/kanban-moves',
+        body: { taskId, targetCanonicalStatus: target },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrf.token,
+          'If-Match': String(version),
+        },
+      });
+
+      if (result.error !== undefined) throw apiError(result.error);
+      return result.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks', 'today'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks', 'kanban'] });
+      toast.success('Durum güncellendi');
+    },
+  });
+
+  const handleStatusChange = (taskId: string, target: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED', version: number) => {
+    moveMutation.mutate({ taskId, target, version });
+  };
 
   if (today.isLoading) {
     return (
@@ -211,7 +289,7 @@ export function TodayView() {
               <SectionHeader title="Gecikmiş" count={data.overdue.count} />
               <div className="space-y-2 pl-0">
                 {data.overdue.tasks.map((task, index) => (
-                  <TaskCard key={task.id} task={task} index={index} />
+                  <TaskCard key={task.id} task={task} index={index} onStatusChange={handleStatusChange} />
                 ))}
               </div>
             </div>
@@ -222,7 +300,7 @@ export function TodayView() {
               <SectionHeader title="Bugün Planlandı" count={data.plannedToday.count} />
               <div className="space-y-2">
                 {data.plannedToday.tasks.map((task, index) => (
-                  <TaskCard key={task.id} task={task} index={index} />
+                  <TaskCard key={task.id} task={task} index={index} onStatusChange={handleStatusChange} />
                 ))}
               </div>
             </div>
@@ -233,7 +311,7 @@ export function TodayView() {
               <SectionHeader title="Bugün Bitiş" count={data.dueToday.count} />
               <div className="space-y-2">
                 {data.dueToday.tasks.map((task, index) => (
-                  <TaskCard key={task.id} task={task} index={index} />
+                  <TaskCard key={task.id} task={task} index={index} onStatusChange={handleStatusChange} />
                 ))}
               </div>
             </div>
@@ -256,7 +334,7 @@ export function TodayView() {
                 <div>
                   <div className="space-y-2 pt-1">
                     {data.completedToday.tasks.map((task, index) => (
-                      <TaskCard key={task.id} task={task} index={index} />
+                      <TaskCard key={task.id} task={task} index={index} onStatusChange={handleStatusChange} />
                     ))}
                   </div>
                 </div>

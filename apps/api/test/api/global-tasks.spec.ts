@@ -68,6 +68,8 @@ describe('global task list HTTP contract', () => {
             dueAt: null,
             plannedAt: null,
             lifecycleState: 'ACTIVE',
+            version: 1,
+            areaId: 'area-id',
           },
         ],
       });

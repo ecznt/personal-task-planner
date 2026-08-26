@@ -142,6 +142,8 @@ describe('task HTTP contract', () => {
             dueAt: null,
             plannedAt: null,
             lifecycleState: 'ACTIVE',
+            version: 1,
+            areaId: 'area-id',
           },
         ],
       });
@@ -244,6 +246,7 @@ describe('task HTTP contract', () => {
           updatedAt: new Date(),
         },
         etag: 2,
+        canonicalStatus: 'TO_DO',
       });
 
       const response = await request(app.getHttpServer())

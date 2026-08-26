@@ -108,6 +108,7 @@ describe('kanban HTTP contract', () => {
           completedAt: null,
         },
         etag: 2,
+        canonicalStatus: 'IN_PROGRESS',
       });
 
       const response = await request(app.getHttpServer())

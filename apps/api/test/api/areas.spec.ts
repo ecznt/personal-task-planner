@@ -318,6 +318,7 @@ describe('area HTTP contract', () => {
           completedAt: null,
         },
         etag: 2,
+        canonicalStatus: 'TO_DO',
       });
 
       const response = await request(app.getHttpServer())
