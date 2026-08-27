@@ -23,7 +23,6 @@ import { RecurrenceService } from '../application/recurrence.service';
 import type { GetRecurrenceResult, SetRecurrenceResult, StopRecurrenceResult } from '../application/recurrence.service';
 import { parseSetRecurrenceInput } from './recurrence.schema';
 import {
-  RecurrenceResponseDto,
   RecurrenceSuccessResponseDto,
   StopRecurrenceSuccessResponseDto,
 } from './recurrence.dto';

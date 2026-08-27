@@ -1,6 +1,7 @@
 import { describe, expect, it, jest } from '@jest/globals';
 
 import { TaskService } from '../../src/modules/planning/application/task.service';
+import type { RecurrenceService } from '../../src/modules/planning/application/recurrence.service';
 import type { TaskRepository } from '../../src/modules/planning/infrastructure/task.repository';
 
 describe('task service — listTodayTasks', () => {
@@ -103,11 +104,11 @@ function repositoryMock(): jest.Mocked<TaskRepository> {
   } as unknown as jest.Mocked<TaskRepository>;
 }
 
-function recurrenceServiceMock(): any {
+function recurrenceServiceMock() {
   return {
     setRecurrence: jest.fn(),
     stopRecurrence: jest.fn(),
     getRecurrence: jest.fn(),
     generateNextOccurrence: jest.fn(),
-  };
+  } as unknown as RecurrenceService;
 }

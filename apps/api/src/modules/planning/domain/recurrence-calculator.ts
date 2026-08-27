@@ -74,7 +74,7 @@ function nextWeeklyMatch(
     }
   }
 
-  const firstDayNextWeek = sortedDays[0]!;
+  const firstDayNextWeek = sortedDays[0] ?? 0;
   const daysToNextWeek = 7 - anchorWeekday + firstDayNextWeek;
   return addDays(anchor, daysToNextWeek + 7 * (interval - 1));
 }
