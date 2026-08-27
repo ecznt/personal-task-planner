@@ -609,6 +609,117 @@ export class TaskRepository {
     return { task: updatedTask, valid: true };
   }
 
+  async searchTasks(
+    userId: string,
+    query: string,
+    options: {
+      readonly cursor?: string;
+      readonly limit: number;
+      readonly sort: string;
+      readonly order: 'asc' | 'desc';
+      readonly areaId?: string;
+      readonly projectId?: string;
+      readonly priority?: string;
+      readonly canonicalStatus?: string;
+      readonly labelId?: string;
+    },
+  ): Promise<{
+    readonly tasks: readonly (TaskSummary & { readonly descriptionSnippet: string | null; readonly score: number })[];
+    readonly nextCursor?: string;
+  }> {
+    const searchTerms = query
+      .split(/\s+/)
+      .filter((t) => t.length > 0)
+      .map((t) => t.replace(/[^\wğüşıöçĞÜŞİÖÇ]/g, ''));
+
+    const titleConditions = searchTerms.map((term) => ({
+      title: { contains: term, mode: 'insensitive' as const },
+    }));
+
+    const descriptionConditions = searchTerms.map((term) => ({
+      description: { contains: term, mode: 'insensitive' as const },
+    }));
+
+    const where: Record<string, unknown> = {
+      userId,
+      lifecycleState: 'ACTIVE',
+      OR: [...titleConditions, ...descriptionConditions],
+    };
+
+    if (options.areaId !== undefined) {
+      where.areaId = options.areaId;
+    }
+
+    if (options.projectId !== undefined) {
+      where.projectId = options.projectId;
+    }
+
+    if (options.priority !== undefined) {
+      where.priority = options.priority;
+    }
+
+    if (options.canonicalStatus !== undefined) {
+      where.areaStatus = { canonicalStatus: options.canonicalStatus };
+    }
+
+    if (options.labelId !== undefined) {
+      where.taskLabels = { some: { labelId: options.labelId } };
+    }
+
+    const orderBy = options.sort === 'relevance'
+      ? [{ updatedAt: 'desc' as const }, { id: 'asc' as const }]
+      : buildGlobalSort(options.sort, options.order);
+
+    const tasks = await this.prisma.task.findMany({
+      where,
+      orderBy,
+      take: options.limit + 1,
+      ...(options.cursor !== undefined && { cursor: { id: options.cursor } }),
+      include: { areaStatus: { select: { canonicalStatus: true } } },
+    });
+
+    const hasMore = tasks.length > options.limit;
+    const lastFetched = hasMore ? tasks.at(options.limit) : undefined;
+    const nextCursor = lastFetched?.id;
+    const slicedTasks = tasks.slice(0, options.limit);
+
+    const results = slicedTasks.map((task) => {
+      let score = 0;
+
+      for (const term of searchTerms) {
+        const lowerTerm = term.toLowerCase();
+        if (task.title.toLowerCase().includes(lowerTerm)) {
+          score += 10;
+        }
+        if (task.description?.toLowerCase().includes(lowerTerm)) {
+          score += 5;
+        }
+      }
+
+      const snippet = task.description
+        ? extractSnippet(task.description, searchTerms)
+        : null;
+
+      return {
+        id: task.id,
+        title: task.title,
+        descriptionSnippet: snippet,
+        priority: task.priority,
+        canonicalStatus: task.areaStatus.canonicalStatus,
+        dueAt: task.dueAt,
+        plannedAt: task.plannedAt,
+        lifecycleState: task.lifecycleState,
+        version: task.version,
+        areaId: task.areaId,
+        score,
+      };
+    });
+
+    results.sort((a, b) => b.score - a.score);
+
+    return { tasks: results, ...(nextCursor !== undefined && { nextCursor }) };
+  }
+
   async setTaskLabels(userId: string, taskId: string, labelIds: readonly string[]): Promise<void> {
     await this.prisma.$transaction(async (transaction) => {
       await transaction.taskLabel.deleteMany({
@@ -661,4 +772,23 @@ function buildGlobalSort(
   const field = SORT_FIELDS[sort] ?? 'plannedAt';
 
   return [{ [field]: order }, { id: 'asc' }];
+}
+
+function extractSnippet(description: string, searchTerms: readonly string[]): string | null {
+  const lowerDesc = description.toLowerCase();
+
+  for (const term of searchTerms) {
+    const lowerTerm = term.toLowerCase();
+    const idx = lowerDesc.indexOf(lowerTerm);
+    if (idx !== -1) {
+      const start = Math.max(0, idx - 40);
+      const end = Math.min(description.length, idx + term.length + 60);
+      let snippet = description.slice(start, end);
+      if (start > 0) snippet = `...${snippet}`;
+      if (end < description.length) snippet = `${snippet}...`;
+      return snippet;
+    }
+  }
+
+  return description.slice(0, 100) + (description.length > 100 ? '...' : '');
 }

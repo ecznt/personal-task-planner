@@ -6,6 +6,7 @@ import { ChecklistItemService } from './application/checklist-item.service';
 import { LabelService } from './application/label.service';
 import { ProjectService } from './application/project.service';
 import { RecurrenceService } from './application/recurrence.service';
+import { SearchService } from './application/search.service';
 import { TaskService } from './application/task.service';
 import { AreaRepository } from './infrastructure/area.repository';
 import { ChecklistItemRepository } from './infrastructure/checklist-item.repository';
@@ -19,6 +20,7 @@ import { ChecklistOrderController } from './transport/checklist-order.controller
 import { LabelController } from './transport/label.controller';
 import { ProjectController } from './transport/project.controller';
 import { RecurrenceController } from './transport/recurrence.controller';
+import { SearchController } from './transport/search.controller';
 import { TaskController } from './transport/task.controller';
 
 @Module({
@@ -31,6 +33,7 @@ import { TaskController } from './transport/task.controller';
     ChecklistController,
     ChecklistOrderController,
     ProjectController,
+    SearchController,
   ],
   providers: [
     AreaService,
@@ -39,6 +42,7 @@ import { TaskController } from './transport/task.controller';
     TaskRepository,
     RecurrenceService,
     RecurrenceRepository,
+    SearchService,
     LabelService,
     LabelRepository,
     ChecklistItemService,
@@ -46,6 +50,6 @@ import { TaskController } from './transport/task.controller';
     ProjectService,
     ProjectRepository,
   ],
-  exports: [AreaService, TaskService, RecurrenceService, LabelService, ChecklistItemService, ProjectService],
+  exports: [AreaService, TaskService, RecurrenceService, SearchService, LabelService, ChecklistItemService, ProjectService],
 })
 export class PlanningModule {}
