@@ -142,6 +142,8 @@ model User {
   checklistItems                    ChecklistItem[]
   recurrenceSeries                  RecurrenceSeries[]
   recurrenceRuleVersions            RecurrenceRuleVersion[]
+  reminders                         TaskReminder[]
+  notifications                     Notification[]
 
   @@map("users")
 }
@@ -383,6 +385,7 @@ model Task {
   generationKey            String?                  @unique
   currentOpenSeries        RecurrenceSeries?        @relation("CurrentOpenTask")
   lastCompletedBySeries    RecurrenceSeries?        @relation("LastCompletedBySeries")
+  reminders                TaskReminder[]
 
   @@index([userId, lifecycleState, updatedAt, id], map: "task_user_lifecycle_idx")
   @@index([userId, areaId, lifecycleState, areaRank, id], map: "task_area_rank_idx")
@@ -481,4 +484,67 @@ model ChecklistItem {
   @@unique([taskId, position], map: "checklist_item_task_position_key")
   @@index([userId, taskId, position], map: "checklist_item_user_task_position_idx")
   @@map("checklist_items")
+}
+
+enum ReminderAnchorType {
+  PLANNED
+  DUE
+}
+
+enum ReminderRuleType {
+  OFFSET
+  AT_TIME
+}
+
+enum ReminderState {
+  SCHEDULED
+  TRIGGERED
+  SUPPRESSED
+  PAUSED
+  CANCELLED
+}
+
+model TaskReminder {
+  id              String           @id @default(uuid()) @db.Uuid
+  userId          String           @db.Uuid
+  taskId          String           @db.Uuid
+  anchorType      ReminderAnchorType
+  ruleType        ReminderRuleType
+  offsetMinutes   Int?
+  atTime          DateTime?        @db.Timestamptz(3)
+  scheduledAt     DateTime         @db.Timestamptz(3)
+  state           ReminderState    @default(SCHEDULED)
+  version         Int              @default(1)
+  createdAt       DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime         @updatedAt @db.Timestamptz(3)
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task            Task             @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  notification    Notification?
+
+  @@unique([taskId, anchorType, ruleType, offsetMinutes, atTime], map: "task_reminder_unique_def")
+  @@index([state, scheduledAt, id], map: "task_reminder_trigger_idx")
+  @@index([userId, taskId], map: "task_reminder_user_task_idx")
+  @@map("task_reminders")
+}
+
+enum NotificationReadState {
+  UNREAD
+  READ
+}
+
+model Notification {
+  id              String                @id @default(uuid()) @db.Uuid
+  userId          String                @db.Uuid
+  taskReminderId  String                @unique @db.Uuid
+  title           String
+  body            String?
+  readState       NotificationReadState @default(UNREAD)
+  version         Int                   @default(1)
+  createdAt       DateTime              @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime              @updatedAt @db.Timestamptz(3)
+  user            User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskReminder    TaskReminder          @relation(fields: [taskReminderId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readState, createdAt, id], map: "notification_user_read_idx")
+  @@map("notifications")
 }

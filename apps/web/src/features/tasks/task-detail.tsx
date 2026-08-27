@@ -14,6 +14,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
 import { Checklist } from '@/features/checklist/checklist';
 import { LabelManager } from '@/features/labels/label-manager';
+import { ReminderManager } from '@/features/reminders/reminder-manager';
 
 import { editTaskSchema, type EditTaskFormValues } from './task-schema';
 
@@ -392,6 +393,13 @@ export function TaskDetail({ taskId }: TaskDetailProps) {
       <div className="rounded-lg border bg-card p-4">
         <Checklist taskId={taskId} />
       </div>
+
+      <ReminderManager
+        taskId={taskId}
+        plannedAt={taskData.plannedAt}
+        dueAt={taskData.dueAt}
+        version={taskData.version}
+      />
 
       <RecurrenceSection taskId={taskId} taskData={taskData} queryClient={queryClient} csrfToken={csrfQuery.data?.token} />
     </div>
