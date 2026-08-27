@@ -7,6 +7,7 @@ import Link from 'next/link';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Spinner } from '@/components/ui/spinner';
+import { BulkActionBar } from './bulk-action-bar';
 
 type TaskSummary = {
   readonly id: string;
@@ -16,6 +17,7 @@ type TaskSummary = {
   readonly dueAt: string | null;
   readonly plannedAt: string | null;
   readonly lifecycleState: string;
+  readonly version: number;
 };
 
 const PRIORITY_LABELS: Record<string, string> = {
@@ -58,6 +60,9 @@ export function GlobalTaskList() {
   const [order, setOrder] = useState<'asc' | 'desc'>('asc');
   const [statusFilter, setStatusFilter] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
+  const [bulkResult, setBulkResult] = useState<{ succeeded: number; failed: number } | null>(null);
 
   const tasks = useQuery({
     queryKey: ['tasks', 'global', sort, order, statusFilter, priorityFilter],
@@ -87,6 +92,27 @@ export function GlobalTaskList() {
     },
   });
 
+  const toggleTaskSelection = (taskId: string) => {
+    setSelectedTaskIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(taskId)) {
+        next.delete(taskId);
+      } else {
+        next.add(taskId);
+      }
+      return next;
+    });
+  };
+
+  const clearSelection = () => {
+    setSelectedTaskIds(new Set());
+    setSelectionMode(false);
+  };
+
+  const selectedTasks = (tasks.data ?? [])
+    .filter((t) => selectedTaskIds.has(t.id))
+    .map((t) => ({ id: t.id, version: t.version }));
+
   if (tasks.isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -112,6 +138,16 @@ export function GlobalTaskList() {
         <h1 className="text-2xl font-bold tracking-tight">Görevler</h1>
         <p className="text-sm text-muted-foreground">Tüm alanlardaki aktif görevler</p>
       </div>
+
+      {bulkResult && (
+        <Alert variant={bulkResult.failed > 0 ? 'destructive' : 'default'}>
+          <AlertTitle>İşlem Tamamlandı</AlertTitle>
+          <AlertDescription>
+            {bulkResult.succeeded} görev başarıyla güncellendi.
+            {bulkResult.failed > 0 && ` ${bulkResult.failed} görev başarısız.`}
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="flex flex-wrap gap-3 rounded-lg border bg-card p-3">
         <div className="flex items-center gap-2">
@@ -176,6 +212,25 @@ export function GlobalTaskList() {
             ))}
           </select>
         </div>
+
+        <div className="ml-auto">
+          <button
+            type="button"
+            onClick={() => {
+              setSelectionMode(!selectionMode);
+              if (selectionMode) {
+                setSelectedTaskIds(new Set());
+              }
+            }}
+            className={`h-8 rounded-lg border px-3 text-sm transition-all duration-150 active:scale-[0.97] ${
+              selectionMode
+                ? 'border-primary bg-primary text-primary-foreground'
+                : 'border-input bg-transparent hover:bg-accent'
+            }`}
+          >
+            {selectionMode ? 'Seçimi Kaldır' : 'Toplu İşlem'}
+          </button>
+        </div>
       </div>
 
       {taskData.length === 0 ? (
@@ -185,30 +240,75 @@ export function GlobalTaskList() {
       ) : (
         <div className="space-y-2">
           {taskData.map((task, index) => (
-            <Link
+            <div
               key={task.id}
-              href={`/app/areas/tasks/${task.id}`}
-              className="animate-fade-slide-in flex items-center justify-between rounded-lg border bg-card p-3 transition-colors duration-150 active:scale-[0.97] hover:bg-accent"
+              className={`animate-fade-slide-in flex items-center rounded-lg border bg-card p-3 transition-colors duration-150 active:scale-[0.97] ${
+                selectionMode
+                  ? selectedTaskIds.has(task.id)
+                    ? 'border-primary bg-primary/5'
+                    : 'hover:bg-accent'
+                  : 'hover:bg-accent'
+              }`}
               style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
             >
-              <div className="min-w-0 flex-1">
-                <div className="truncate font-medium">{task.title}</div>
-                <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                      task.priority === 'HIGH'
-                        ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                        : task.priority === 'LOW'
-                          ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                          : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-                    }`}
-                  >
-                    {PRIORITY_LABELS[task.priority]}
-                  </span>
-                  {task.plannedAt && <span>Plan: {formatDate(task.plannedAt)}</span>}
-                  {task.dueAt && <span>Bitiş: {formatDate(task.dueAt)}</span>}
+              {selectionMode && (
+                <button
+                  type="button"
+                  onClick={() => toggleTaskSelection(task.id)}
+                  className="mr-3 flex h-5 w-5 items-center justify-center rounded border transition-colors duration-150"
+                  style={{
+                    backgroundColor: selectedTaskIds.has(task.id) ? 'hsl(var(--primary))' : 'transparent',
+                    borderColor: selectedTaskIds.has(task.id) ? 'hsl(var(--primary))' : 'hsl(var(--border))',
+                  }}
+                >
+                  {selectedTaskIds.has(task.id) && (
+                    <svg className="h-3 w-3 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </button>
+              )}
+
+              {selectionMode ? (
+                <div className="min-w-0 flex-1">
+                  <div className="truncate font-medium">{task.title}</div>
+                  <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                        task.priority === 'HIGH'
+                          ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                          : task.priority === 'LOW'
+                            ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                            : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+                      }`}
+                    >
+                      {PRIORITY_LABELS[task.priority]}
+                    </span>
+                    {task.plannedAt && <span>Plan: {formatDate(task.plannedAt)}</span>}
+                    {task.dueAt && <span>Bitiş: {formatDate(task.dueAt)}</span>}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <Link href={`/app/areas/tasks/${task.id}`} className="min-w-0 flex-1">
+                  <div className="truncate font-medium">{task.title}</div>
+                  <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                        task.priority === 'HIGH'
+                          ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                          : task.priority === 'LOW'
+                            ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                            : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+                      }`}
+                    >
+                      {PRIORITY_LABELS[task.priority]}
+                    </span>
+                    {task.plannedAt && <span>Plan: {formatDate(task.plannedAt)}</span>}
+                    {task.dueAt && <span>Bitiş: {formatDate(task.dueAt)}</span>}
+                  </div>
+                </Link>
+              )}
+
               <div className="ml-4 text-sm text-muted-foreground">
                 {task.canonicalStatus === 'TO_DO'
                   ? 'Yapılacak'
@@ -216,9 +316,20 @@ export function GlobalTaskList() {
                     ? 'Devam Ediyor'
                     : 'Tamamlandı'}
               </div>
-            </Link>
+            </div>
           ))}
         </div>
+      )}
+
+      {selectionMode && selectedTasks.length > 0 && (
+        <BulkActionBar
+          selectedTasks={selectedTasks}
+          onClearSelection={clearSelection}
+          onResult={(result) => {
+            setBulkResult(result);
+            setTimeout(() => setBulkResult(null), 5000);
+          }}
+        />
       )}
     </div>
   );

@@ -748,6 +748,151 @@ export class TaskRepository {
       }
     });
   }
+
+  async bulkStatusChange(
+    userId: string,
+    items: readonly { taskId: string; etag: string }[],
+    targetCanonicalStatus?: string,
+    targetAreaStatusId?: string,
+  ): Promise<readonly { taskId: string; success: boolean; version?: number; etag?: string; errorCode?: string; errorDetail?: string }[]> {
+    const results: { taskId: string; success: boolean; version?: number; etag?: string; errorCode?: string; errorDetail?: string }[] = [];
+
+    for (const item of items) {
+      const task = await this.prisma.task.findFirst({
+        where: { id: item.taskId, userId, lifecycleState: 'ACTIVE' },
+        select: { id: true, version: true, areaId: true },
+      });
+
+      if (!task) {
+        results.push({ taskId: item.taskId, success: false, errorCode: 'RESOURCE_NOT_FOUND', errorDetail: 'Görev bulunamadı.' });
+        continue;
+      }
+
+      const currentEtag = String(task.version);
+      if (currentEtag !== item.etag) {
+        results.push({ taskId: item.taskId, success: false, errorCode: 'PRECONDITION_FAILED', errorDetail: 'Versiyon çakışması.' });
+        continue;
+      }
+
+      let statusId: string | null = null;
+
+      if (targetAreaStatusId) {
+        const validStatus = await this.prisma.areaStatus.findFirst({
+          where: { id: targetAreaStatusId, userId, areaId: task.areaId, active: true },
+          select: { id: true },
+        });
+
+        if (!validStatus) {
+          results.push({ taskId: item.taskId, success: false, errorCode: 'INVALID_STATUS', errorDetail: 'Geçersiz alan durumu.' });
+          continue;
+        }
+
+        statusId = targetAreaStatusId;
+      } else if (targetCanonicalStatus) {
+        const defaultStatus = await this.prisma.areaStatus.findFirst({
+          where: { userId, areaId: task.areaId, canonicalStatus: targetCanonicalStatus as 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED', isDefault: true, active: true },
+          select: { id: true },
+        });
+
+        if (!defaultStatus) {
+          results.push({ taskId: item.taskId, success: false, errorCode: 'INVALID_STATUS', errorDetail: 'Geçersiz durum.' });
+          continue;
+        }
+
+        statusId = defaultStatus.id;
+      }
+
+      if (statusId) {
+        const updateResult = await this.prisma.task.updateMany({
+          where: { id: item.taskId, userId, version: task.version, lifecycleState: 'ACTIVE' },
+          data: { areaStatusId: statusId, version: { increment: 1 } },
+        });
+
+        if (updateResult.count === 0) {
+          results.push({ taskId: item.taskId, success: false, errorCode: 'PRECONDITION_FAILED', errorDetail: 'Versiyon çakışması.' });
+          continue;
+        }
+
+        const updated = await this.prisma.task.findUnique({ where: { id: item.taskId } });
+        results.push({ taskId: item.taskId, success: true, ...(updated?.version !== undefined && { version: updated.version }), etag: String(updated?.version) });
+      } else {
+        results.push({ taskId: item.taskId, success: false, errorCode: 'INVALID_INPUT', errorDetail: 'Geçersiz istek.' });
+      }
+    }
+
+    return results;
+  }
+
+  async bulkLabelChange(
+    userId: string,
+    items: readonly { taskId: string; etag: string }[],
+    labelAction: 'add' | 'remove',
+    labelIds: readonly string[],
+  ): Promise<readonly { taskId: string; success: boolean; version?: number; etag?: string; errorCode?: string; errorDetail?: string }[]> {
+    const results: { taskId: string; success: boolean; version?: number; etag?: string; errorCode?: string; errorDetail?: string }[] = [];
+
+    const validLabels = await this.prisma.label.findMany({
+      where: { id: { in: [...labelIds] }, userId },
+      select: { id: true },
+    });
+
+    const validLabelIds = new Set(validLabels.map((l) => l.id));
+    const filteredLabelIds = labelIds.filter((id) => validLabelIds.has(id));
+
+    for (const item of items) {
+      const task = await this.prisma.task.findFirst({
+        where: { id: item.taskId, userId, lifecycleState: 'ACTIVE' },
+        select: { id: true, version: true },
+      });
+
+      if (!task) {
+        results.push({ taskId: item.taskId, success: false, errorCode: 'RESOURCE_NOT_FOUND', errorDetail: 'Görev bulunamadı.' });
+        continue;
+      }
+
+      const currentEtag = String(task.version);
+      if (currentEtag !== item.etag) {
+        results.push({ taskId: item.taskId, success: false, errorCode: 'PRECONDITION_FAILED', errorDetail: 'Versiyon çakışması.' });
+        continue;
+      }
+
+      try {
+        await this.prisma.$transaction(async (transaction) => {
+          if (labelAction === 'add') {
+            const existing = await transaction.taskLabel.findMany({
+              where: { taskId: item.taskId, userId, labelId: { in: filteredLabelIds } },
+              select: { labelId: true },
+            });
+
+            const existingSet = new Set(existing.map((e) => e.labelId));
+            const newLabelIds = filteredLabelIds.filter((id) => !existingSet.has(id));
+
+            if (newLabelIds.length > 0) {
+              await transaction.taskLabel.createMany({
+                data: newLabelIds.map((labelId) => ({ userId, taskId: item.taskId, labelId })),
+              });
+            }
+          } else {
+            await transaction.taskLabel.deleteMany({
+              where: { taskId: item.taskId, userId, labelId: { in: filteredLabelIds } },
+            });
+          }
+
+          await transaction.task.update({
+            where: { id: item.taskId },
+            data: { version: { increment: 1 } },
+          });
+        });
+
+        const updated = await this.prisma.task.findUnique({ where: { id: item.taskId } });
+        results.push({ taskId: item.taskId, success: true, ...(updated?.version !== undefined && { version: updated.version }), etag: String(updated?.version) });
+      } catch {
+        results.push({ taskId: item.taskId, success: false, errorCode: 'INTERNAL_ERROR', errorDetail: 'İşlem başarısız.' });
+      }
+    }
+
+    return results;
+  }
 }
 
 function incrementRank(rank: string): string {
