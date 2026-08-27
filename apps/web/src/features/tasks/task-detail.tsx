@@ -15,6 +15,7 @@ import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
 import { Checklist } from '@/features/checklist/checklist';
 import { LabelManager } from '@/features/labels/label-manager';
 import { ReminderManager } from '@/features/reminders/reminder-manager';
+import { TaskLifecycleActions } from '@/features/lifecycle/task-lifecycle-actions';
 
 import { editTaskSchema, type EditTaskFormValues } from './task-schema';
 
@@ -378,6 +379,10 @@ export function TaskDetail({ taskId }: TaskDetailProps) {
           <div className="mt-1 whitespace-pre-wrap text-sm">{taskData.description}</div>
         </div>
       )}
+
+      <div className="rounded-lg border bg-card p-4">
+        <TaskLifecycleActions taskId={taskId} version={taskData.version} lifecycleState={taskData.lifecycleState} />
+      </div>
 
       <div className="rounded-lg border bg-card p-4">
         <LabelManager

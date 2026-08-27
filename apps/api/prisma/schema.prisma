@@ -37,6 +37,25 @@ enum PlanningLifecycleState {
   TRASHED
 }
 
+enum LifecycleOperationKind {
+  ARCHIVE
+  TRASH
+  RESTORE
+  PERMANENT_DELETE
+}
+
+enum LifecycleOperationState {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum LifecycleEntityKind {
+  AREA
+  PROJECT
+  TASK
+}
+
 enum TaskPriority {
   LOW
   MEDIUM
@@ -144,6 +163,8 @@ model User {
   recurrenceRuleVersions            RecurrenceRuleVersion[]
   reminders                         TaskReminder[]
   notifications                     Notification[]
+  lifecycleOperations               LifecycleOperation[]
+  lifecycleEffects                  LifecycleEffect[]
 
   @@map("users")
 }
@@ -296,6 +317,11 @@ model Area {
   name           String
   normalizedName String
   lifecycleState PlanningLifecycleState @default(ACTIVE)
+  archivedAt     DateTime?              @db.Timestamptz(3)
+  trashedAt      DateTime?              @db.Timestamptz(3)
+  purgeAfter     DateTime?              @db.Timestamptz(3)
+  currentLifecycleOperationId String?    @db.Uuid
+  currentLifecycleOperation  LifecycleOperation? @relation("AreaLifecycleOperation", fields: [currentLifecycleOperationId], references: [id], onDelete: SetNull)
   version        Int                    @default(1)
   createdAt      DateTime               @default(now()) @db.Timestamptz(3)
   updatedAt      DateTime               @updatedAt @db.Timestamptz(3)
@@ -303,9 +329,11 @@ model Area {
   statuses       AreaStatus[]
   projects       Project[]
   tasks          Task[]
+  lifecycleEffects LifecycleEffect[] @relation("AreaLifecycleEffect")
 
   @@unique([userId, normalizedName], map: "area_user_normalized_name_key")
   @@index([userId, lifecycleState, updatedAt, id], map: "area_user_lifecycle_idx")
+  @@index([userId, lifecycleState, purgeAfter, id], map: "area_user_purge_idx")
   @@map("areas")
 }
 
@@ -338,15 +366,22 @@ model Project {
   name           String
   normalizedName String
   lifecycleState PlanningLifecycleState @default(ACTIVE)
+  archivedAt     DateTime?              @db.Timestamptz(3)
+  trashedAt      DateTime?              @db.Timestamptz(3)
+  purgeAfter     DateTime?              @db.Timestamptz(3)
+  currentLifecycleOperationId String?    @db.Uuid
+  currentLifecycleOperation  LifecycleOperation? @relation("ProjectLifecycleOperation", fields: [currentLifecycleOperationId], references: [id], onDelete: SetNull)
   version        Int                    @default(1)
   createdAt      DateTime               @default(now()) @db.Timestamptz(3)
   updatedAt      DateTime               @updatedAt @db.Timestamptz(3)
   user           User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   area           Area                   @relation(fields: [areaId], references: [id], onDelete: Cascade)
   tasks          Task[]
+  lifecycleEffects LifecycleEffect[] @relation("ProjectLifecycleEffect")
 
   @@unique([areaId, normalizedName], map: "project_area_normalized_name_key")
   @@index([userId, lifecycleState, updatedAt, id], map: "project_user_lifecycle_idx")
+  @@index([userId, lifecycleState, purgeAfter, id], map: "project_user_purge_idx")
   @@map("projects")
 }
 
@@ -363,6 +398,11 @@ model Task {
   priority       TaskPriority           @default(MEDIUM)
   completedAt    DateTime?              @db.Timestamptz(3)
   lifecycleState PlanningLifecycleState @default(ACTIVE)
+  archivedAt     DateTime?              @db.Timestamptz(3)
+  trashedAt      DateTime?              @db.Timestamptz(3)
+  purgeAfter     DateTime?              @db.Timestamptz(3)
+  currentLifecycleOperationId String?    @db.Uuid
+  currentLifecycleOperation  LifecycleOperation? @relation("TaskLifecycleOperation", fields: [currentLifecycleOperationId], references: [id], onDelete: SetNull)
   globalRank     String
   areaRank       String
   version        Int                    @default(1)
@@ -386,12 +426,14 @@ model Task {
   currentOpenSeries        RecurrenceSeries?        @relation("CurrentOpenTask")
   lastCompletedBySeries    RecurrenceSeries?        @relation("LastCompletedBySeries")
   reminders                TaskReminder[]
+  lifecycleEffects         LifecycleEffect[] @relation("TaskLifecycleEffect")
 
   @@index([userId, lifecycleState, updatedAt, id], map: "task_user_lifecycle_idx")
   @@index([userId, areaId, lifecycleState, areaRank, id], map: "task_area_rank_idx")
   @@index([userId, lifecycleState, globalRank, id], map: "task_global_rank_idx")
   @@index([userId, dueAt, id], map: "task_user_due_idx")
   @@index([recurrenceSeriesId, occurrenceNumber], map: "task_recurrence_series_occurrence_idx")
+  @@index([userId, lifecycleState, purgeAfter, id], map: "task_user_purge_idx")
   @@map("tasks")
 }
 
@@ -547,4 +589,55 @@ model Notification {
 
   @@index([userId, readState, createdAt, id], map: "notification_user_read_idx")
   @@map("notifications")
+}
+
+model LifecycleOperation {
+  id             String                  @id @default(uuid()) @db.Uuid
+  userId         String                  @db.Uuid
+  kind           LifecycleOperationKind
+  rootKind       LifecycleEntityKind
+  rootId         String                  @db.Uuid
+  state          LifecycleOperationState @default(PENDING)
+  startedAt      DateTime                @default(now()) @db.Timestamptz(3)
+  completedAt    DateTime?               @db.Timestamptz(3)
+  failureSummary String?
+  version        Int                     @default(1)
+  createdAt      DateTime                @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime                @updatedAt @db.Timestamptz(3)
+  user           User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  effects        LifecycleEffect[]
+  areas          Area[]                  @relation("AreaLifecycleOperation")
+  projects       Project[]               @relation("ProjectLifecycleOperation")
+  tasks          Task[]                  @relation("TaskLifecycleOperation")
+
+  @@index([userId, kind, rootKind, rootId], map: "lifecycle_op_user_root_idx")
+  @@index([userId, startedAt, id], map: "lifecycle_op_user_started_idx")
+  @@map("lifecycle_operations")
+}
+
+model LifecycleEffect {
+  id             String               @id @default(uuid()) @db.Uuid
+  userId         String               @db.Uuid
+  operationId    String               @db.Uuid
+  affectedKind   LifecycleEntityKind
+  affectedId     String               @db.Uuid
+  previousState  PlanningLifecycleState
+  resultingState PlanningLifecycleState
+  effectTime     DateTime             @default(now()) @db.Timestamptz(3)
+  previousArchivedAt DateTime?        @db.Timestamptz(3)
+  previousTrashedAt  DateTime?        @db.Timestamptz(3)
+  previousPurgeAfter DateTime?        @db.Timestamptz(3)
+  reversedAt     DateTime?            @db.Timestamptz(3)
+  reversed       Boolean              @default(false)
+  replacementAreaId  String?          @db.Uuid
+  replacementProjectId String?        @db.Uuid
+  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  operation      LifecycleOperation   @relation(fields: [operationId], references: [id], onDelete: Cascade)
+  affectedArea   Area?                @relation("AreaLifecycleEffect", fields: [affectedId], references: [id], onDelete: Cascade, map: "lifecycle_effects_affected_area_fkey")
+  affectedProject Project?            @relation("ProjectLifecycleEffect", fields: [affectedId], references: [id], onDelete: Cascade, map: "lifecycle_effects_affected_project_fkey")
+  affectedTask   Task?                @relation("TaskLifecycleEffect", fields: [affectedId], references: [id], onDelete: Cascade, map: "lifecycle_effects_affected_task_fkey")
+
+  @@index([operationId, reversed], map: "lifecycle_effect_operation_reversed_idx")
+  @@index([userId, affectedKind, affectedId], map: "lifecycle_effect_entity_idx")
+  @@map("lifecycle_effects")
 }
