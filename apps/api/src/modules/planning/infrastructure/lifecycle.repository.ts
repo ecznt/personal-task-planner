@@ -478,6 +478,54 @@ export class LifecycleRepository {
     return controller;
   }
 
+  async purgeExpiredAcrossAllUsers(): Promise<{ readonly receipts: number }> {
+    const now = new Date();
+    let receipts = 0;
+
+    await this.prisma.$transaction(async (tx) => {
+      const tasks = await tx.task.findMany({
+        where: { lifecycleState: 'TRASHED', purgeAfter: { lte: now } },
+        select: { id: true, userId: true },
+      });
+      for (const task of tasks) {
+        const counts: MutableCounts = { tasks: 0, projects: 0, areas: 0 };
+        await this.deleteTaskRecords(tx, task.id, counts);
+        await tx.deletionReceipt.create({
+          data: { userId: task.userId, entityKind: 'TASK', entityId: task.id, origin: 'AUTO_TRASH_EXPIRY' },
+        });
+        receipts++;
+      }
+
+      const projects = await tx.project.findMany({
+        where: { lifecycleState: 'TRASHED', purgeAfter: { lte: now } },
+        select: { id: true, userId: true },
+      });
+      for (const project of projects) {
+        const counts: MutableCounts = { tasks: 0, projects: 0, areas: 0 };
+        await this.deleteProjectRecords(tx, project.userId, project.id, counts);
+        await tx.deletionReceipt.create({
+          data: { userId: project.userId, entityKind: 'PROJECT', entityId: project.id, origin: 'AUTO_TRASH_EXPIRY' },
+        });
+        receipts++;
+      }
+
+      const areas = await tx.area.findMany({
+        where: { lifecycleState: 'TRASHED', purgeAfter: { lte: now } },
+        select: { id: true, userId: true },
+      });
+      for (const area of areas) {
+        const counts: MutableCounts = { tasks: 0, projects: 0, areas: 0 };
+        await this.deleteAreaRecords(tx, area.userId, area.id, counts);
+        await tx.deletionReceipt.create({
+          data: { userId: area.userId, entityKind: 'AREA', entityId: area.id, origin: 'AUTO_TRASH_EXPIRY' },
+        });
+        receipts++;
+      }
+    });
+
+    return { receipts };
+  }
+
   private async archiveTasksUnder(tx: Prisma.TransactionClient, userId: string, projectId: string, operationId: string, now: Date, counts: MutableCounts): Promise<void> {
     for (const task of await tx.task.findMany({ where: { projectId, userId, lifecycleState: { in: ['ACTIVE', 'ARCHIVED'] } } })) {
       if (task.lifecycleState === 'ACTIVE') {

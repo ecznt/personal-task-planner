@@ -134,6 +134,20 @@ model Job {
   @@index([state, leaseExpiresAt, id], map: "job_expired_lease_idx")
 }
 
+model DeletionReceipt {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid
+  entityKind String
+  entityId   String   @db.Uuid
+  origin     String
+  purgedAt   DateTime @default(now()) @db.Timestamptz(3)
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([userId, purgedAt], map: "deletion_receipt_user_purged_idx")
+  @@index([entityId], map: "deletion_receipt_entity_idx")
+  @@map("deletion_receipts")
+}
+
 model User {
   id                                String                   @id @default(uuid()) @db.Uuid
   primaryEmail                      String

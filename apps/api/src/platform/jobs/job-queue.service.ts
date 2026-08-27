@@ -34,6 +34,20 @@ export class JobQueueService {
     return job.id;
   }
 
+  async enqueue(type: string, payload: Readonly<Record<string, string>> = {}): Promise<bigint> {
+    const job = await this.prisma.job.create({
+      data: {
+        type,
+        payload,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    return job.id;
+  }
+
   async claimNext(options: {
     readonly workerId: string;
     readonly leaseMilliseconds: number;

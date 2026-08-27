@@ -10,6 +10,8 @@ import { EmailVerificationJobHandler } from '../../modules/accounts/application/
 import { PasswordResetJobHandler } from '../../modules/accounts/application/password-reset-job.handler';
 import { PASSWORD_RESET_JOB_TYPE } from '../../modules/accounts/application/password-reset-email-delivery.port';
 import { EMAIL_VERIFICATION_JOB_TYPE } from '../../modules/accounts/application/verification-email-delivery.port';
+import { PLANNING_PURGE_JOB_TYPE } from '../../modules/planning/application/purge-job.port';
+import { PurgeJobHandler } from '../../modules/planning/application/purge-job.handler';
 import { parseWorkerEnvironment } from '../config/environment';
 import { FOUNDATION_JOB_TYPE, type LeasedJob, JobQueueService } from './job-queue.service';
 
@@ -25,6 +27,8 @@ export class JobRunnerService implements OnApplicationBootstrap, OnApplicationSh
     private readonly emailVerification: EmailVerificationJobHandler,
     @Inject(PasswordResetJobHandler)
     private readonly passwordReset: PasswordResetJobHandler,
+    @Inject(PurgeJobHandler)
+    private readonly planningPurge: PurgeJobHandler,
     @Inject(PinoLogger) private readonly logger: PinoLogger,
   ) {
     this.logger.setContext(JobRunnerService.name);
@@ -97,6 +101,11 @@ export class JobRunnerService implements OnApplicationBootstrap, OnApplicationSh
     if (job.type === PASSWORD_RESET_JOB_TYPE) {
       const challengeId = parseChallengeId(job.payload);
       await this.passwordReset.handle(challengeId);
+      return;
+    }
+
+    if (job.type === PLANNING_PURGE_JOB_TYPE) {
+      await this.planningPurge.handle();
       return;
     }
 

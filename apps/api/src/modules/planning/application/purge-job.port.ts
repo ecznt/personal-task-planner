@@ -1,0 +1,1 @@
+export const PLANNING_PURGE_JOB_TYPE = 'PLANNING_PURGE';
