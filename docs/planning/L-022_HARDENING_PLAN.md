@@ -77,20 +77,20 @@ Harden the shipped MVP UI across responsive, keyboard, focus, and semantic quali
 | dependency-cruiser | No violations (293 modules) |
 | verify-workspace / verify-forbidden-import | Pass |
 | `scan-secrets.mjs` | No high-confidence credential patterns |
-| CI (branch push) | Run `33989414398` (see status) |
+| CI (branch push) | Runs `33989414398` (L-022) and `33992498866` (e2e/security repair) — both success; see acceptance notes |
 
 Two component suites (`kanban-board.test.tsx`, `registration-form.test.tsx`) initially timed out on fork-worker startup under full-parallel load; both pass deterministically when run solo. This is host flakiness, not a code failure.
 
 ## 7. Known Gaps Deferred to L-023
 
-1. **`test:security` audit** — `pnpm audit` still reports 10 advisories (6 high, 4 moderate), all indirect transitive dev-tooling paths (`fast-uri` via `@nestjs/cli` → `ajv`/`@angular-devkit/core`, `mysql2` via the Prisma toolchain, `deepmerge-ts`). Zero direct production dependencies. This is pre-existing on the committed baseline. L-023 dependency-hygiene item owns the upgrade/override and a full re-audit.
-2. **Test suites requiring infrastructure** — `test:api`, `test:db`, `test:contract`, and Playwright E2E require PostgreSQL/SMTP/testcontainers and are exercised by CI on the branch rather than in the local L-022 pass.
-3. **CI green confirmation** — the L-022 push started CI run `33989414398`; confirm it completes before closing the slice and before L-023 executes the release checklist.
+1. **`test:security` audit** — **RESOLVED** in commit `608febe`: added `fast-uri 3.1.6`, `mysql2 >=3.22.0`, and `deepmerge-ts >=8.0.0` overrides to `pnpm-workspace.yaml` (override source of truth for this repo), re-resolved the lockfile, and re-verified `prisma generate` and the NestJS build. `pnpm audit --audit-level high` now exits clean (3 moderate remain; no high). `scan-secrets.mjs` stays clean.
+2. **Test suites requiring infrastructure** — `test:api`, `test:db`, and `test:contract` require PostgreSQL/SMTP/testcontainers and are exercised by CI rather than locally; Playwright E2E is now also runnable locally against the standalone web server with mocked API routes (13 tests, all green).
+3. **CI green confirmation** — **RESOLVED**: the L-022 push (`4ccb4d0`) ran `33989414398` and the L-022 E2E/security repair (`608febe`) ran `33992498866`; both completed `success`, including `test:e2e` and `test:security`.
 
 ## 8. Risks
 
 - Formatting 42 previously-shipped files enlarges the L-022 diff; it is whitespace-only and restores `format:check` as a working gate.
-- The audit gap means CI `test:security` will not be green until L-023; do not suppress the gate — fix the dependency set there.
+- The audit gap was resolved with reviewed transitive overrides rather than by suppressing the `test:security` gate; validated by re-running `prisma generate` and the API build against the overridden dependency set.
 
 ## 9. Files Touched (summary)
 
@@ -99,5 +99,5 @@ Two component suites (`kanban-board.test.tsx`, `registration-form.test.tsx`) ini
 
 ## 10. Acceptance Notes
 
-- All acceptance criteria in section 2 are met. Remaining validation is the CI run on `opencode/develop`.
+- All acceptance criteria in section 2 are met. CI on `opencode/develop` completed green for the L-022 commit (`33989414398`) and the E2E/security repair commit `608febe` (`33992498866`), including `test:e2e` and `test:security`.
 - The next slice is L-023 (release readiness), documented in `docs/planning/L-023_RELEASE_READINESS_PLAN.md`.

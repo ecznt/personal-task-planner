@@ -367,13 +367,13 @@ Before each slice, verify the exact requirement IDs from PRD and API/Domain/Data
 
 ### L-022 — MVP responsive/accessibility hardening pass
 
-**Implementation status:** Implemented, committed `4ccb4d0`, and pushed to `opencode/develop` on 2026-09-05.
+**Implementation status:** Implemented, committed `4ccb4d0`, and pushed to `opencode/develop` on 2026-09-05. CI verified green on run `33992498866` (commit `608febe` closed the L-022 E2E/security repair).
 
 **Plan document:** `docs/planning/L-022_HARDENING_PLAN.md`
 
 **Implemented scope:** shared responsive `AppShell` in a single `app/app/layout.tsx` (SessionBoundary + shell) replacing per-page scaffolding; sticky header with search, notifications tooltips, and header quick-create sheet; mobile bottom tab bar with safe-area padding; new `sheet`/`tooltip` (delayed-open fade/zoom-in-95)/`dropdown-menu` primitives; short page metadata titles; `autoFocus` replaced with deterministic focus-on-open across status editor, search view, and quick-create; leftover lint/format/type failures repaired repo-wide (including seven non-null assertions in `area.repository.ts`); CI workflow now triggers on `opencode/develop` for both `pull_request` and `push`.
 
-**Known deferred gap:** `pnpm audit --audit-level high` still reports 10 advisories, all indirect transitive dev-tooling paths with zero direct production dependencies; owned by L-023 dependency hygiene.
+**E2E/security repair (commit `608febe`, run `33992498866`, all green):** restored sign-out UI in the shell (SignOutButton in sidebar + More sheet), gated quick-create csrf/areas fetches on dialog open, derived the session-boundary login return target from `usePathname()`, refit stale e2e specs to the shell-era UI (authenticated session + raw `tasks/today` mocks, exact button-name matching, detail-page count/label assertions), and closed the audit gap via `pnpm-workspace.yaml` overrides (`fast-uri` 3.1.6, `mysql2 >=3.22.0`, `deepmerge-ts >=8.0.0`). `pnpm audit --audit-level high` now exits clean (0 high, 3 moderate); no accepted-risk record required.
 
 ## 7. Backlog maintenance policy
 

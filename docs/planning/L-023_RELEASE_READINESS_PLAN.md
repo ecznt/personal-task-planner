@@ -4,9 +4,9 @@
 | --- | --- |
 | Slice | L-023 |
 | Goal | Final traceability, CI evidence, migration/deploy rehearsal, known risks, rollback note |
-| Status | Planned |
+| Status | In progress (2.1, 2.2 complete) |
 | Created | 2026-09-05 |
-| Dependencies | L-022 (completed, commit `4ccb4d0`) |
+| Dependencies | L-022 (completed, commits `4ccb4d0`, `608febe`) |
 
 ## 1. Story Goal
 
@@ -16,14 +16,13 @@ Prepare the MVP for release. L-023 adds no product functionality; it closes the 
 
 ### 2.1 Dependency hygiene and security audit cleanup
 
-- Resolve the pre-existing `pnpm audit` findings (10 advisories, all indirect dev-tooling transitive paths) via targeted upgrades or reviewed PRISMA/NestJS-CLI `pnpm.overrides` re-audit.
-- Goal: `pnpm audit --audit-level high` passes (0 high) or changes are registered in `docs/spikes` with an explicit accepted-risk record.
-- Re-run `pnpm test:security` and confirm `scan-secrets.mjs` remains clean.
+- **RESOLVED in commit `608febe`**: added `fast-uri 3.1.6`, `mysql2 >=3.22.0`, and `deepmerge-ts >=8.0.0` overrides to `pnpm-workspace.yaml` (this repo's override source of truth), re-resolved the lockfile, and validated against the real consumers: `prisma generate` and `pnpm --filter @planner/api build` both pass on the overridden set.
+- `pnpm audit --audit-level high` now exits clean (3 moderate remain, 0 high); `pnpm test:security` (audit + `scan-secrets.mjs`) passes in CI run `33992498866`. No accepted-risk record needed.
 
 ### 2.2 Full CI evidence on opencode/develop
 
-- Confirm CI run `33989414398` (L-022 push) and all subsequent branch runs complete green, including `test:api`, `test:db`, `test:contract`, and Playwright E2E which are not exercised locally.
-- Fix or explicitly defer any red step with a written reason and owner.
+- CI runs `33989414398` (L-022 push, commit `4ccb4d0`) and `33992498866` (E2E/security repair, commit `608febe`) both completed `success` on `opencode/develop`, covering lint, format, typecheck, unit, component, api, db, contract, build, security, and Playwright E2E. The L-022-era E2E failures (stale assertions vs. the shared-shell UI, missing session/tasks mocks) were diagnosed and fixed hermetically in commit `608febe`; the suite also runs green locally against the standalone web server with mocked API routes (13 tests).
+- Conclusion: no red steps on the branch; no deferral required.
 
 ### 2.3 Final traceability
 
@@ -54,7 +53,7 @@ Prepare the MVP for release. L-023 adds no product functionality; it closes the 
 
 | Item | Status | Resolution |
 | --- | --- | --- |
-| `pnpm audit` high findings (indirect dev-deps) | Open since committed baseline | Item 2.1 |
+| `pnpm audit` high findings (indirect dev-deps) | Resolved in commit `608febe` via `pnpm-workspace.yaml` overrides | Item 2.1; 0 high, 3 moderate |
 | L-009–L-021 shipped as locally-verified unbatched work without per-slice CI | Closed by L-022 CI change + branch publishing | Evidence in 2.2 |
 | Some component suites flaky under full-parallel vitest forks on this host | Observed | Keep `fileParallelism` conservative in local runs; CI is authoritative |
 | Docs were stale (backlog claimed next = L-012 while code reached L-021) | Closed in this session's sync | Section 2.3 |
