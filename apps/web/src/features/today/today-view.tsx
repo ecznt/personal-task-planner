@@ -70,33 +70,33 @@ function formatTime(iso: string | null): string {
 function SectionHeader({
   title,
   count,
-  defaultOpen = true,
+  id,
+  open,
+  onToggle,
 }: {
   title: string;
   count: number;
-  defaultOpen?: boolean;
+  id: string;
+  open: boolean;
+  onToggle: () => void;
 }) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-
   return (
     <button
       type="button"
-      onClick={() => setIsOpen(!isOpen)}
+      onClick={onToggle}
+      aria-expanded={open}
+      aria-controls={id}
       className="flex w-full items-center justify-between rounded-lg border bg-card px-3 py-2 text-left text-sm font-medium transition-colors duration-150 active:scale-[0.97] hover:bg-accent"
     >
       <span>
         {title} ({count})
       </span>
-      <span className="text-muted-foreground">{isOpen ? '−' : '+'}</span>
+      <span aria-hidden="true" className="text-muted-foreground">
+        {open ? '−' : '+'}
+      </span>
     </button>
   );
 }
-
-const CANONICAL_LABELS: Record<string, string> = {
-  TO_DO: 'Yapılacak',
-  IN_PROGRESS: 'Devam Ediyor',
-  COMPLETED: 'Tamamlandı',
-};
 
 function TaskCard({
   task,
@@ -105,7 +105,11 @@ function TaskCard({
 }: {
   task: TodayTask;
   index: number;
-  onStatusChange: (taskId: string, target: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED', version: number) => void;
+  onStatusChange: (
+    taskId: string,
+    target: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED',
+    version: number,
+  ) => void;
 }) {
   const isCompleted = task.canonicalStatus === 'COMPLETED';
 
@@ -155,20 +159,20 @@ function TaskCard({
           <button
             type="button"
             onClick={() => onStatusChange(task.id, 'IN_PROGRESS', task.version)}
-            className="rounded p-1 text-muted-foreground transition-transform duration-150 active:scale-90 hover:bg-muted hover:text-foreground"
-            title="Devam Ediyor'a taşı"
+            className="rounded p-1 text-muted-foreground transition-transform duration-150 focus-visible:ring-2 active:scale-90 hover:bg-muted hover:text-foreground"
+            aria-label={`${task.title} görevini Devam Ediyor'a taşı`}
           >
-            <PlayCircle className="size-4" />
+            <PlayCircle className="size-4" aria-hidden="true" />
           </button>
         )}
         {!isCompleted && (
           <button
             type="button"
             onClick={() => onStatusChange(task.id, 'COMPLETED', task.version)}
-            className="rounded p-1 text-muted-foreground transition-transform duration-150 active:scale-90 hover:bg-muted hover:text-green-600"
-            title="Tamamlandı olarak işaretle"
+            className="rounded p-1 text-muted-foreground transition-transform duration-150 focus-visible:ring-2 active:scale-90 hover:bg-muted hover:text-green-600"
+            aria-label={`${task.title} görevini tamamlandı olarak işaretle`}
           >
-            <CheckCircle2 className="size-4" />
+            <CheckCircle2 className="size-4" aria-hidden="true" />
           </button>
         )}
         {isCompleted && (
@@ -184,6 +188,13 @@ function TaskCard({
 
 export function TodayView() {
   const [showCompleted, setShowCompleted] = useState(false);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    overdue: true,
+    planned: true,
+    due: true,
+  });
+  const toggleSection = (key: string) =>
+    setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
   const queryClient = useQueryClient();
 
   const today = useQuery({
@@ -204,7 +215,15 @@ export function TodayView() {
   });
 
   const moveMutation = useMutation({
-    mutationFn: async ({ taskId, target, version }: { taskId: string; target: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED'; version: number }) => {
+    mutationFn: async ({
+      taskId,
+      target,
+      version,
+    }: {
+      taskId: string;
+      target: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+      version: number;
+    }) => {
       const csrf = await fetchCsrf();
       queryClient.setQueryData(csrfQueryKey, csrf);
 
@@ -228,7 +247,11 @@ export function TodayView() {
     },
   });
 
-  const handleStatusChange = (taskId: string, target: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED', version: number) => {
+  const handleStatusChange = (
+    taskId: string,
+    target: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED',
+    version: number,
+  ) => {
     moveMutation.mutate({ taskId, target, version });
   };
 
@@ -286,34 +309,73 @@ export function TodayView() {
         <div className="space-y-4">
           {data.overdue.count > 0 && (
             <div className="space-y-2">
-              <SectionHeader title="Gecikmiş" count={data.overdue.count} />
-              <div className="space-y-2 pl-0">
-                {data.overdue.tasks.map((task, index) => (
-                  <TaskCard key={task.id} task={task} index={index} onStatusChange={handleStatusChange} />
-                ))}
-              </div>
+              <SectionHeader
+                title="Gecikmiş"
+                count={data.overdue.count}
+                id="today-section-overdue"
+                open={openSections['overdue'] ?? true}
+                onToggle={() => toggleSection('overdue')}
+              />
+              {openSections.overdue && (
+                <div id="today-section-overdue" className="space-y-2 pl-0">
+                  {data.overdue.tasks.map((task, index) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      index={index}
+                      onStatusChange={handleStatusChange}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
           {data.plannedToday.count > 0 && (
             <div className="space-y-2">
-              <SectionHeader title="Bugün Planlandı" count={data.plannedToday.count} />
-              <div className="space-y-2">
-                {data.plannedToday.tasks.map((task, index) => (
-                  <TaskCard key={task.id} task={task} index={index} onStatusChange={handleStatusChange} />
-                ))}
-              </div>
+              <SectionHeader
+                title="Bugün Planlandı"
+                count={data.plannedToday.count}
+                id="today-section-planned"
+                open={openSections['planned'] ?? true}
+                onToggle={() => toggleSection('planned')}
+              />
+              {openSections.planned && (
+                <div id="today-section-planned" className="space-y-2">
+                  {data.plannedToday.tasks.map((task, index) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      index={index}
+                      onStatusChange={handleStatusChange}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
           {data.dueToday.count > 0 && (
             <div className="space-y-2">
-              <SectionHeader title="Bugün Bitiş" count={data.dueToday.count} />
-              <div className="space-y-2">
-                {data.dueToday.tasks.map((task, index) => (
-                  <TaskCard key={task.id} task={task} index={index} onStatusChange={handleStatusChange} />
-                ))}
-              </div>
+              <SectionHeader
+                title="Bugün Bitiş"
+                count={data.dueToday.count}
+                id="today-section-due"
+                open={openSections['due'] ?? true}
+                onToggle={() => toggleSection('due')}
+              />
+              {openSections.due && (
+                <div id="today-section-due" className="space-y-2">
+                  {data.dueToday.tasks.map((task, index) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      index={index}
+                      onStatusChange={handleStatusChange}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -322,23 +384,35 @@ export function TodayView() {
               <button
                 type="button"
                 onClick={() => setShowCompleted(!showCompleted)}
+                aria-expanded={showCompleted}
+                aria-controls="today-section-completed"
                 className="flex w-full items-center justify-between rounded-lg border bg-card px-3 py-2 text-left text-sm font-medium transition-colors duration-150 active:scale-[0.97] hover:bg-accent"
               >
                 <span>Tamamlanan ({data.completedToday.count})</span>
-                <span className="text-muted-foreground">{showCompleted ? '−' : '+'}</span>
+                <span aria-hidden="true" className="text-muted-foreground">
+                  {showCompleted ? '−' : '+'}
+                </span>
               </button>
-              <div
-                className="accordion-content"
-                data-open={showCompleted}
-              >
-                <div>
-                  <div className="space-y-2 pt-1">
-                    {data.completedToday.tasks.map((task, index) => (
-                      <TaskCard key={task.id} task={task} index={index} onStatusChange={handleStatusChange} />
-                    ))}
+              {showCompleted && (
+                <div
+                  id="today-section-completed"
+                  className="accordion-content"
+                  data-open={showCompleted}
+                >
+                  <div>
+                    <div className="space-y-2 pt-1">
+                      {data.completedToday.tasks.map((task, index) => (
+                        <TaskCard
+                          key={task.id}
+                          task={task}
+                          index={index}
+                          onStatusChange={handleStatusChange}
+                        />
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
         </div>

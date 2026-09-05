@@ -216,7 +216,10 @@ export class TaskRepository {
     return task;
   }
 
-  async getCanonicalStatus(userId: string, areaStatusId: string): Promise<'TO_DO' | 'IN_PROGRESS' | 'COMPLETED' | null> {
+  async getCanonicalStatus(
+    userId: string,
+    areaStatusId: string,
+  ): Promise<'TO_DO' | 'IN_PROGRESS' | 'COMPLETED' | null> {
     const status = await this.prisma.areaStatus.findFirst({
       where: { id: areaStatusId, userId, active: true },
       select: { canonicalStatus: true },
@@ -508,8 +511,17 @@ export class TaskRepository {
     userId: string,
     areaId: string,
   ): Promise<{
-    readonly statuses: ReadonlyArray<{ readonly id: string; readonly name: string; readonly canonicalStatus: string; readonly position: number }>;
-    readonly columns: ReadonlyArray<{ readonly statusId: string; readonly count: number; readonly tasks: readonly TaskSummary[] }>;
+    readonly statuses: ReadonlyArray<{
+      readonly id: string;
+      readonly name: string;
+      readonly canonicalStatus: string;
+      readonly position: number;
+    }>;
+    readonly columns: ReadonlyArray<{
+      readonly statusId: string;
+      readonly count: number;
+      readonly tasks: readonly TaskSummary[];
+    }>;
   }> {
     const statuses = await this.prisma.areaStatus.findMany({
       where: { userId, areaId, active: true },
@@ -585,7 +597,12 @@ export class TaskRepository {
     }
 
     const maxRank = await this.prisma.task.findFirst({
-      where: { userId, areaId: task.areaId, areaStatusId: targetAreaStatusId, lifecycleState: 'ACTIVE' },
+      where: {
+        userId,
+        areaId: task.areaId,
+        areaStatusId: targetAreaStatusId,
+        lifecycleState: 'ACTIVE',
+      },
       orderBy: { areaRank: 'desc' },
       select: { areaRank: true },
     });
@@ -624,7 +641,10 @@ export class TaskRepository {
       readonly labelId?: string;
     },
   ): Promise<{
-    readonly tasks: readonly (TaskSummary & { readonly descriptionSnippet: string | null; readonly score: number })[];
+    readonly tasks: readonly (TaskSummary & {
+      readonly descriptionSnippet: string | null;
+      readonly score: number;
+    })[];
     readonly nextCursor?: string;
   }> {
     const searchTerms = query
@@ -666,9 +686,10 @@ export class TaskRepository {
       where.taskLabels = { some: { labelId: options.labelId } };
     }
 
-    const orderBy = options.sort === 'relevance'
-      ? [{ updatedAt: 'desc' as const }, { id: 'asc' as const }]
-      : buildGlobalSort(options.sort, options.order);
+    const orderBy =
+      options.sort === 'relevance'
+        ? [{ updatedAt: 'desc' as const }, { id: 'asc' as const }]
+        : buildGlobalSort(options.sort, options.order);
 
     const tasks = await this.prisma.task.findMany({
       where,
@@ -696,9 +717,7 @@ export class TaskRepository {
         }
       }
 
-      const snippet = task.description
-        ? extractSnippet(task.description, searchTerms)
-        : null;
+      const snippet = task.description ? extractSnippet(task.description, searchTerms) : null;
 
       return {
         id: task.id,
@@ -754,8 +773,24 @@ export class TaskRepository {
     items: readonly { taskId: string; etag: string }[],
     targetCanonicalStatus?: string,
     targetAreaStatusId?: string,
-  ): Promise<readonly { taskId: string; success: boolean; version?: number; etag?: string; errorCode?: string; errorDetail?: string }[]> {
-    const results: { taskId: string; success: boolean; version?: number; etag?: string; errorCode?: string; errorDetail?: string }[] = [];
+  ): Promise<
+    readonly {
+      taskId: string;
+      success: boolean;
+      version?: number;
+      etag?: string;
+      errorCode?: string;
+      errorDetail?: string;
+    }[]
+  > {
+    const results: {
+      taskId: string;
+      success: boolean;
+      version?: number;
+      etag?: string;
+      errorCode?: string;
+      errorDetail?: string;
+    }[] = [];
 
     for (const item of items) {
       const task = await this.prisma.task.findFirst({
@@ -764,13 +799,23 @@ export class TaskRepository {
       });
 
       if (!task) {
-        results.push({ taskId: item.taskId, success: false, errorCode: 'RESOURCE_NOT_FOUND', errorDetail: 'Görev bulunamadı.' });
+        results.push({
+          taskId: item.taskId,
+          success: false,
+          errorCode: 'RESOURCE_NOT_FOUND',
+          errorDetail: 'Görev bulunamadı.',
+        });
         continue;
       }
 
       const currentEtag = String(task.version);
       if (currentEtag !== item.etag) {
-        results.push({ taskId: item.taskId, success: false, errorCode: 'PRECONDITION_FAILED', errorDetail: 'Versiyon çakışması.' });
+        results.push({
+          taskId: item.taskId,
+          success: false,
+          errorCode: 'PRECONDITION_FAILED',
+          errorDetail: 'Versiyon çakışması.',
+        });
         continue;
       }
 
@@ -783,19 +828,35 @@ export class TaskRepository {
         });
 
         if (!validStatus) {
-          results.push({ taskId: item.taskId, success: false, errorCode: 'INVALID_STATUS', errorDetail: 'Geçersiz alan durumu.' });
+          results.push({
+            taskId: item.taskId,
+            success: false,
+            errorCode: 'INVALID_STATUS',
+            errorDetail: 'Geçersiz alan durumu.',
+          });
           continue;
         }
 
         statusId = targetAreaStatusId;
       } else if (targetCanonicalStatus) {
         const defaultStatus = await this.prisma.areaStatus.findFirst({
-          where: { userId, areaId: task.areaId, canonicalStatus: targetCanonicalStatus as 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED', isDefault: true, active: true },
+          where: {
+            userId,
+            areaId: task.areaId,
+            canonicalStatus: targetCanonicalStatus as 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED',
+            isDefault: true,
+            active: true,
+          },
           select: { id: true },
         });
 
         if (!defaultStatus) {
-          results.push({ taskId: item.taskId, success: false, errorCode: 'INVALID_STATUS', errorDetail: 'Geçersiz durum.' });
+          results.push({
+            taskId: item.taskId,
+            success: false,
+            errorCode: 'INVALID_STATUS',
+            errorDetail: 'Geçersiz durum.',
+          });
           continue;
         }
 
@@ -809,14 +870,29 @@ export class TaskRepository {
         });
 
         if (updateResult.count === 0) {
-          results.push({ taskId: item.taskId, success: false, errorCode: 'PRECONDITION_FAILED', errorDetail: 'Versiyon çakışması.' });
+          results.push({
+            taskId: item.taskId,
+            success: false,
+            errorCode: 'PRECONDITION_FAILED',
+            errorDetail: 'Versiyon çakışması.',
+          });
           continue;
         }
 
         const updated = await this.prisma.task.findUnique({ where: { id: item.taskId } });
-        results.push({ taskId: item.taskId, success: true, ...(updated?.version !== undefined && { version: updated.version }), etag: String(updated?.version) });
+        results.push({
+          taskId: item.taskId,
+          success: true,
+          ...(updated?.version !== undefined && { version: updated.version }),
+          etag: String(updated?.version),
+        });
       } else {
-        results.push({ taskId: item.taskId, success: false, errorCode: 'INVALID_INPUT', errorDetail: 'Geçersiz istek.' });
+        results.push({
+          taskId: item.taskId,
+          success: false,
+          errorCode: 'INVALID_INPUT',
+          errorDetail: 'Geçersiz istek.',
+        });
       }
     }
 
@@ -828,8 +904,24 @@ export class TaskRepository {
     items: readonly { taskId: string; etag: string }[],
     labelAction: 'add' | 'remove',
     labelIds: readonly string[],
-  ): Promise<readonly { taskId: string; success: boolean; version?: number; etag?: string; errorCode?: string; errorDetail?: string }[]> {
-    const results: { taskId: string; success: boolean; version?: number; etag?: string; errorCode?: string; errorDetail?: string }[] = [];
+  ): Promise<
+    readonly {
+      taskId: string;
+      success: boolean;
+      version?: number;
+      etag?: string;
+      errorCode?: string;
+      errorDetail?: string;
+    }[]
+  > {
+    const results: {
+      taskId: string;
+      success: boolean;
+      version?: number;
+      etag?: string;
+      errorCode?: string;
+      errorDetail?: string;
+    }[] = [];
 
     const validLabels = await this.prisma.label.findMany({
       where: { id: { in: [...labelIds] }, userId },
@@ -846,13 +938,23 @@ export class TaskRepository {
       });
 
       if (!task) {
-        results.push({ taskId: item.taskId, success: false, errorCode: 'RESOURCE_NOT_FOUND', errorDetail: 'Görev bulunamadı.' });
+        results.push({
+          taskId: item.taskId,
+          success: false,
+          errorCode: 'RESOURCE_NOT_FOUND',
+          errorDetail: 'Görev bulunamadı.',
+        });
         continue;
       }
 
       const currentEtag = String(task.version);
       if (currentEtag !== item.etag) {
-        results.push({ taskId: item.taskId, success: false, errorCode: 'PRECONDITION_FAILED', errorDetail: 'Versiyon çakışması.' });
+        results.push({
+          taskId: item.taskId,
+          success: false,
+          errorCode: 'PRECONDITION_FAILED',
+          errorDetail: 'Versiyon çakışması.',
+        });
         continue;
       }
 
@@ -885,9 +987,19 @@ export class TaskRepository {
         });
 
         const updated = await this.prisma.task.findUnique({ where: { id: item.taskId } });
-        results.push({ taskId: item.taskId, success: true, ...(updated?.version !== undefined && { version: updated.version }), etag: String(updated?.version) });
+        results.push({
+          taskId: item.taskId,
+          success: true,
+          ...(updated?.version !== undefined && { version: updated.version }),
+          etag: String(updated?.version),
+        });
       } catch {
-        results.push({ taskId: item.taskId, success: false, errorCode: 'INTERNAL_ERROR', errorDetail: 'İşlem başarısız.' });
+        results.push({
+          taskId: item.taskId,
+          success: false,
+          errorCode: 'INTERNAL_ERROR',
+          errorDetail: 'İşlem başarısız.',
+        });
       }
     }
 

@@ -17,7 +17,11 @@ export type SetRecurrenceCommand = {
 };
 
 export type SetRecurrenceResult =
-  | { readonly outcome: 'SUCCESS'; readonly recurrence: RecurrenceSeriesDetail; readonly etag: number }
+  | {
+      readonly outcome: 'SUCCESS';
+      readonly recurrence: RecurrenceSeriesDetail;
+      readonly etag: number;
+    }
   | { readonly outcome: 'NOT_FOUND' }
   | { readonly outcome: 'VALIDATION_ERROR'; readonly detail: string }
   | { readonly outcome: 'UNAUTHENTICATED' };
@@ -37,7 +41,11 @@ export type GetRecurrenceQuery = {
 };
 
 export type GetRecurrenceResult =
-  | { readonly outcome: 'SUCCESS'; readonly recurrence: RecurrenceSeriesDetail; readonly etag: number }
+  | {
+      readonly outcome: 'SUCCESS';
+      readonly recurrence: RecurrenceSeriesDetail;
+      readonly etag: number;
+    }
   | { readonly outcome: 'NOT_FOUND' }
   | { readonly outcome: 'UNAUTHENTICATED' };
 
@@ -48,10 +56,7 @@ export class RecurrenceService {
     @Inject(TaskRepository) private readonly taskRepo: TaskRepository,
   ) {}
 
-  async setRecurrence(
-    userId: string,
-    command: SetRecurrenceCommand,
-  ): Promise<SetRecurrenceResult> {
+  async setRecurrence(userId: string, command: SetRecurrenceCommand): Promise<SetRecurrenceResult> {
     const task = await this.taskRepo.findById(userId, command.taskId);
 
     if (!task) {
@@ -86,7 +91,10 @@ export class RecurrenceService {
       };
     }
 
-    if (command.frequency === 'YEARLY' && (command.monthOfYear === null || command.dayOfMonth === null)) {
+    if (
+      command.frequency === 'YEARLY' &&
+      (command.monthOfYear === null || command.dayOfMonth === null)
+    ) {
       return {
         outcome: 'VALIDATION_ERROR',
         detail: 'Yıllık tekrarlama için ay ve gün seçmelisiniz.',
@@ -143,10 +151,7 @@ export class RecurrenceService {
     return { outcome: 'SUCCESS', etag };
   }
 
-  async getRecurrence(
-    userId: string,
-    query: GetRecurrenceQuery,
-  ): Promise<GetRecurrenceResult> {
+  async getRecurrence(userId: string, query: GetRecurrenceQuery): Promise<GetRecurrenceResult> {
     const recurrence = await this.recurrenceRepo.findSeriesDetail(userId, query.taskId);
 
     if (!recurrence) {
@@ -163,7 +168,10 @@ export class RecurrenceService {
     userId: string,
     completedTaskId: string,
   ): Promise<{ readonly successorTaskId: string | null }> {
-    const completionData = await this.recurrenceRepo.findSeriesForCompletion(userId, completedTaskId);
+    const completionData = await this.recurrenceRepo.findSeriesForCompletion(
+      userId,
+      completedTaskId,
+    );
 
     if (!completionData) {
       return { successorTaskId: null };
@@ -192,9 +200,8 @@ export class RecurrenceService {
       return { successorTaskId: null };
     }
 
-    const plannedOffset = task.plannedAt && task.dueAt
-      ? task.dueAt.getTime() - task.plannedAt.getTime()
-      : null;
+    const plannedOffset =
+      task.plannedAt && task.dueAt ? task.dueAt.getTime() - task.plannedAt.getTime() : null;
 
     const nextPlannedAt = task.plannedAt ? nextDate : null;
     const nextDueAt = task.dueAt

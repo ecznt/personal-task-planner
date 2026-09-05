@@ -20,12 +20,13 @@ import { AccountsRepository } from '../../accounts/infrastructure/accounts.repos
 import { AuthSecurityService } from '../../accounts/security/auth-security.service';
 import { parseCookieValue, sessionCookieName } from '../../accounts/transport/auth-cookie';
 import { RecurrenceService } from '../application/recurrence.service';
-import type { GetRecurrenceResult, SetRecurrenceResult, StopRecurrenceResult } from '../application/recurrence.service';
+import type {
+  GetRecurrenceResult,
+  SetRecurrenceResult,
+  StopRecurrenceResult,
+} from '../application/recurrence.service';
 import { parseSetRecurrenceInput } from './recurrence.schema';
-import {
-  RecurrenceSuccessResponseDto,
-  StopRecurrenceSuccessResponseDto,
-} from './recurrence.dto';
+import { RecurrenceSuccessResponseDto, StopRecurrenceSuccessResponseDto } from './recurrence.dto';
 
 @ApiTags('Recurrence')
 @Controller('tasks')
@@ -190,7 +191,10 @@ export class RecurrenceController {
     return session.userId;
   }
 
-  private handleSetResult(result: SetRecurrenceResult, response: Response): RecurrenceSuccessResponseDto {
+  private handleSetResult(
+    result: SetRecurrenceResult,
+    response: Response,
+  ): RecurrenceSuccessResponseDto {
     switch (result.outcome) {
       case 'SUCCESS':
         response.setHeader('ETag', String(result.etag));
@@ -240,7 +244,10 @@ export class RecurrenceController {
     }
   }
 
-  private handleGetResult(result: GetRecurrenceResult, response: Response): RecurrenceSuccessResponseDto {
+  private handleGetResult(
+    result: GetRecurrenceResult,
+    response: Response,
+  ): RecurrenceSuccessResponseDto {
     switch (result.outcome) {
       case 'SUCCESS':
         response.setHeader('ETag', String(result.etag));
@@ -284,7 +291,10 @@ export class RecurrenceController {
     }
   }
 
-  private handleStopResult(result: StopRecurrenceResult, response: Response): StopRecurrenceSuccessResponseDto {
+  private handleStopResult(
+    result: StopRecurrenceResult,
+    response: Response,
+  ): StopRecurrenceSuccessResponseDto {
     switch (result.outcome) {
       case 'SUCCESS':
         response.setHeader('ETag', String(result.etag));

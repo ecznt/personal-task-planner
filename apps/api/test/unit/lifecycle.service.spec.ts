@@ -115,7 +115,9 @@ describe('lifecycle service', () => {
     repository.findOrigin
       .mockResolvedValueOnce(nodeFactory() as never)
       .mockResolvedValueOnce(nodeFactory({ lifecycleState: 'ARCHIVED' }) as never);
-    repository.archive.mockResolvedValue({ affected: { tasks: 3, projects: 0, areas: 0 } } as never);
+    repository.archive.mockResolvedValue({
+      affected: { tasks: 3, projects: 0, areas: 0 },
+    } as never);
 
     const service = new LifecycleService(prismaMock(), repository);
 
@@ -155,7 +157,9 @@ describe('lifecycle service', () => {
 
   it('restore returns STALE_VERSION when version does not match', async () => {
     const repository = repoMock();
-    repository.findOrigin.mockResolvedValue(nodeFactory({ lifecycleState: 'TRASHED', version: 2 }) as never);
+    repository.findOrigin.mockResolvedValue(
+      nodeFactory({ lifecycleState: 'TRASHED', version: 2 }) as never,
+    );
 
     const service = new LifecycleService(prismaMock(), repository);
 
@@ -170,7 +174,11 @@ describe('lifecycle service', () => {
 
     const service = new LifecycleService(prismaMock(), repository);
 
-    const result = await service.permanentDelete('user-id', { kind: 'TASK', id: TASK_ID, version: 1 });
+    const result = await service.permanentDelete('user-id', {
+      kind: 'TASK',
+      id: TASK_ID,
+      version: 1,
+    });
 
     expect(result).toEqual({ outcome: 'NOT_FOUND' });
   });
@@ -180,7 +188,10 @@ describe('lifecycle service', () => {
     repository.findOrigin
       .mockResolvedValueOnce(nodeFactory({ lifecycleState: 'TRASHED' }) as never)
       .mockResolvedValueOnce(nodeFactory({ lifecycleState: 'ACTIVE' }) as never);
-    repository.restore.mockResolvedValue({ affected: { tasks: 0, projects: 0, areas: 0 }, restored: false } as never);
+    repository.restore.mockResolvedValue({
+      affected: { tasks: 0, projects: 0, areas: 0 },
+      restored: false,
+    } as never);
 
     const service = new LifecycleService(prismaMock(), repository);
 

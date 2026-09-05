@@ -1,20 +1,15 @@
 import type { Metadata } from 'next';
 
-import { SessionBoundary } from '@/features/auth/session-boundary';
 import { SearchView } from '@/features/search/search-view';
 
 export const metadata: Metadata = {
-  title: 'Arama | Kişisel İş Planlayıcı',
+  title: 'Arama',
 };
 
 export default function SearchPage() {
   return (
-    <main className="min-h-screen bg-muted/40 px-4 py-10 sm:py-16">
-      <div className="mx-auto w-full max-w-2xl">
-        <SessionBoundary>
-          <SearchView />
-        </SessionBoundary>
-      </div>
-    </main>
+    <div className="mx-auto w-full max-w-2xl">
+      <SearchView />
+    </div>
   );
 }

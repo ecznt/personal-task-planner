@@ -21,7 +21,10 @@ type CommandOptions = {
   readonly version: number;
 };
 
-export async function archiveResource({ resourceType, id, version }: CommandOptions, queryClient: QueryClient): Promise<void> {
+export async function archiveResource(
+  { resourceType, id, version }: CommandOptions,
+  queryClient: QueryClient,
+): Promise<void> {
   const csrf = await withCsrf(queryClient);
   const result = await apiClient.post({
     url: `/api/v1/${resourceType}/{id}/archive`,
@@ -36,7 +39,10 @@ export async function archiveResource({ resourceType, id, version }: CommandOpti
   if (result.error !== undefined) throw apiError(result.error);
 }
 
-export async function trashResource({ resourceType, id, version }: CommandOptions, queryClient: QueryClient): Promise<void> {
+export async function trashResource(
+  { resourceType, id, version }: CommandOptions,
+  queryClient: QueryClient,
+): Promise<void> {
   const csrf = await withCsrf(queryClient);
   const result = await apiClient.post({
     url: `/api/v1/${resourceType}/{id}/trash`,
@@ -51,7 +57,13 @@ export async function trashResource({ resourceType, id, version }: CommandOption
   if (result.error !== undefined) throw apiError(result.error);
 }
 
-export async function restoreResource(options: CommandOptions & { readonly replacementAreaId?: string; readonly replacementProjectId?: string }, queryClient: QueryClient): Promise<void> {
+export async function restoreResource(
+  options: CommandOptions & {
+    readonly replacementAreaId?: string;
+    readonly replacementProjectId?: string;
+  },
+  queryClient: QueryClient,
+): Promise<void> {
   const { resourceType, id, version, replacementAreaId, replacementProjectId } = options;
   const csrf = await withCsrf(queryClient);
   const result = await apiClient.post({
@@ -70,7 +82,13 @@ export async function restoreResource(options: CommandOptions & { readonly repla
   if (result.error !== undefined) throw apiError(result.error);
 }
 
-export async function restoreFromTrashResource(options: CommandOptions & { readonly replacementAreaId?: string; readonly replacementProjectId?: string }, queryClient: QueryClient): Promise<void> {
+export async function restoreFromTrashResource(
+  options: CommandOptions & {
+    readonly replacementAreaId?: string;
+    readonly replacementProjectId?: string;
+  },
+  queryClient: QueryClient,
+): Promise<void> {
   const { resourceType, id, version, replacementAreaId, replacementProjectId } = options;
   const csrf = await withCsrf(queryClient);
   const result = await apiClient.post({
@@ -89,7 +107,10 @@ export async function restoreFromTrashResource(options: CommandOptions & { reado
   if (result.error !== undefined) throw apiError(result.error);
 }
 
-export async function permanentDeleteResource({ resourceType, id, version }: CommandOptions, queryClient: QueryClient): Promise<void> {
+export async function permanentDeleteResource(
+  { resourceType, id, version }: CommandOptions,
+  queryClient: QueryClient,
+): Promise<void> {
   const csrf = await withCsrf(queryClient);
   const result = await apiClient.post({
     url: `/api/v1/trash/{resourceType}/{id}/permanent-deletions`,

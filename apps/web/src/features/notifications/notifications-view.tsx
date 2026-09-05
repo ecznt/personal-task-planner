@@ -2,7 +2,6 @@
 
 import { apiClient } from '@planner/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import Link from 'next/link';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -127,7 +126,9 @@ export function NotificationsView() {
     return (
       <Alert variant="destructive">
         <AlertTitle>Hata</AlertTitle>
-        <AlertDescription>{notifications.error?.message ?? 'Bildirimler yüklenemedi.'}</AlertDescription>
+        <AlertDescription>
+          {notifications.error?.message ?? 'Bildirimler yüklenemedi.'}
+        </AlertDescription>
       </Alert>
     );
   }
@@ -167,9 +168,7 @@ export function NotificationsView() {
             <div
               key={notification.id}
               className={`rounded-lg border p-4 transition-colors duration-150 ${
-                notification.readState === 'UNREAD'
-                  ? 'bg-card border-primary/20'
-                  : 'bg-muted/30'
+                notification.readState === 'UNREAD' ? 'bg-card border-primary/20' : 'bg-muted/30'
               }`}
             >
               <div className="flex items-start justify-between gap-3">

@@ -70,8 +70,12 @@ export class BulkActionController {
         userId,
         operation: 'status_change',
         items: parsed.data.items,
-        ...(parsed.data.targetCanonicalStatus !== undefined && { targetCanonicalStatus: parsed.data.targetCanonicalStatus }),
-        ...(parsed.data.targetAreaStatusId !== undefined && { targetAreaStatusId: parsed.data.targetAreaStatusId }),
+        ...(parsed.data.targetCanonicalStatus !== undefined && {
+          targetCanonicalStatus: parsed.data.targetCanonicalStatus,
+        }),
+        ...(parsed.data.targetAreaStatusId !== undefined && {
+          targetAreaStatusId: parsed.data.targetAreaStatusId,
+        }),
       });
     } else {
       results = await this.bulkActionService.executeBulkLabelChange({

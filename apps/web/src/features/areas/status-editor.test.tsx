@@ -24,9 +24,30 @@ const BASE_DATA = {
   name: 'Test Alanı',
   version: 1,
   statuses: [
-    { id: 's1', name: 'Yapılacak', canonicalStatus: 'TO_DO', position: 1, isDefault: true, active: true },
-    { id: 's2', name: 'İnceleme', canonicalStatus: 'IN_PROGRESS', position: 2, isDefault: false, active: true },
-    { id: 's3', name: 'Tamamlandı', canonicalStatus: 'COMPLETED', position: 3, isDefault: false, active: true },
+    {
+      id: 's1',
+      name: 'Yapılacak',
+      canonicalStatus: 'TO_DO',
+      position: 1,
+      isDefault: true,
+      active: true,
+    },
+    {
+      id: 's2',
+      name: 'İnceleme',
+      canonicalStatus: 'IN_PROGRESS',
+      position: 2,
+      isDefault: false,
+      active: true,
+    },
+    {
+      id: 's3',
+      name: 'Tamamlandı',
+      canonicalStatus: 'COMPLETED',
+      position: 3,
+      isDefault: false,
+      active: true,
+    },
   ] as const,
 };
 

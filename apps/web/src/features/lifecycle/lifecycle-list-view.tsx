@@ -8,7 +8,12 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { apiError } from '@/features/auth/auth-api';
-import { permanentDeleteResource, restoreResource, restoreFromTrashResource, type ResourceType } from '@/features/lifecycle/lifecycle-api';
+import {
+  permanentDeleteResource,
+  restoreResource,
+  restoreFromTrashResource,
+  type ResourceType,
+} from '@/features/lifecycle/lifecycle-api';
 
 type LifecycleEntry = {
   readonly id: string;
@@ -26,9 +31,22 @@ type LifecycleListResponse = {
   readonly meta: { readonly nextCursor?: string };
 };
 
-export function LifecycleListView({ state, title, description }: { state: 'ARCHIVED' | 'TRASHED'; title: string; description: string }) {
+export function LifecycleListView({
+  state,
+  title,
+  description,
+}: {
+  state: 'ARCHIVED' | 'TRASHED';
+  title: string;
+  description: string;
+}) {
   const queryClient = useQueryClient();
-  const [confirming, setConfirming] = useState<{ id: string; name: string; resourceType: ResourceType; version: number } | null>(null);
+  const [confirming, setConfirming] = useState<{
+    id: string;
+    name: string;
+    resourceType: ResourceType;
+    version: number;
+  } | null>(null);
 
   const baseUrl = state === 'ARCHIVED' ? '/api/v1/archive' : '/api/v1/trash';
 
@@ -47,9 +65,15 @@ export function LifecycleListView({ state, title, description }: { state: 'ARCHI
   const restoreOne = useMutation({
     mutationFn: async (entry: LifecycleEntry) => {
       if (state === 'ARCHIVED') {
-        await restoreResource({ resourceType: entry.resourceType, id: entry.id, version: entry.version }, queryClient);
+        await restoreResource(
+          { resourceType: entry.resourceType, id: entry.id, version: entry.version },
+          queryClient,
+        );
       } else {
-        await restoreFromTrashResource({ resourceType: entry.resourceType, id: entry.id, version: entry.version }, queryClient);
+        await restoreFromTrashResource(
+          { resourceType: entry.resourceType, id: entry.id, version: entry.version },
+          queryClient,
+        );
       }
     },
     onSuccess: () => {
@@ -62,7 +86,10 @@ export function LifecycleListView({ state, title, description }: { state: 'ARCHI
 
   const purgeOne = useMutation({
     mutationFn: async (entry: LifecycleEntry) => {
-      await permanentDeleteResource({ resourceType: entry.resourceType, id: entry.id, version: entry.version }, queryClient);
+      await permanentDeleteResource(
+        { resourceType: entry.resourceType, id: entry.id, version: entry.version },
+        queryClient,
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lifecycle', 'trashed'] });
@@ -103,7 +130,10 @@ export function LifecycleListView({ state, title, description }: { state: 'ARCHI
       ) : (
         <div className="space-y-2">
           {entries.map((entry) => (
-            <div key={`${entry.resourceType}-${entry.id}`} className="rounded-lg border bg-card p-4">
+            <div
+              key={`${entry.resourceType}-${entry.id}`}
+              className="rounded-lg border bg-card p-4"
+            >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="font-medium">{entry.name}</div>
@@ -117,7 +147,14 @@ export function LifecycleListView({ state, title, description }: { state: 'ARCHI
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setConfirming({ id: entry.id, name: entry.name, resourceType: entry.resourceType, version: entry.version })}
+                      onClick={() =>
+                        setConfirming({
+                          id: entry.id,
+                          name: entry.name,
+                          resourceType: entry.resourceType,
+                          version: entry.version,
+                        })
+                      }
                       className="h-7 px-2 text-xs text-destructive transition-transform duration-150 active:scale-[0.97]"
                     >
                       Kalıcı Sil
@@ -160,7 +197,9 @@ export function LifecycleListView({ state, title, description }: { state: 'ARCHI
                     </Button>
                   </div>
                   {purgeOne.isError && (
-                    <p className="mt-2 text-sm text-destructive">{apiError(purgeOne.error as never).message}</p>
+                    <p className="mt-2 text-sm text-destructive">
+                      {apiError(purgeOne.error as never).message}
+                    </p>
                   )}
                 </div>
               )}

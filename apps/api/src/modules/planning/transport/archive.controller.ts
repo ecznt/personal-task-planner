@@ -38,7 +38,11 @@ export class ArchiveController {
   @ApiQuery({ name: 'limit', type: Number, required: false })
   @ApiResponse({ status: 200, description: 'Archived resources returned.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  async list(@Req() request: Request, @Res() response: Response, @Query() query: unknown): Promise<void> {
+  async list(
+    @Req() request: Request,
+    @Res() response: Response,
+    @Query() query: unknown,
+  ): Promise<void> {
     const userId = await resolveUserId(request, this.accounts, this.security);
     const input = parseListLifecycleQuery(query);
 
@@ -78,7 +82,11 @@ export class ArchiveController {
     const result = await this.lifecycle.detail(userId, kind, id);
 
     if (result.outcome !== 'SUCCESS') {
-      throw new ApiProblemException({ status: 404, code: 'RESOURCE_NOT_FOUND', detail: 'Kaynak bulunamadı.' });
+      throw new ApiProblemException({
+        status: 404,
+        code: 'RESOURCE_NOT_FOUND',
+        detail: 'Kaynak bulunamadı.',
+      });
     }
     response.setHeader('ETag', String(result.data.etag));
     response.json({
@@ -119,12 +127,20 @@ export class ArchiveController {
     const kind = toKind(parseResourceType(resourceType));
 
     if (!idempotencyKey) {
-      throw new ApiProblemException({ status: 422, code: 'VALIDATION_FAILED', detail: 'Idempotency-Key başlığı gereklidir.' });
+      throw new ApiProblemException({
+        status: 422,
+        code: 'VALIDATION_FAILED',
+        detail: 'Idempotency-Key başlığı gereklidir.',
+      });
     }
 
     const version = parseInt(ifMatch ?? '', 10);
     if (!ifMatch || isNaN(version)) {
-      throw new ApiProblemException({ status: 428, code: 'PRECONDITION_REQUIRED', detail: 'If-Match başlığı gereklidir.' });
+      throw new ApiProblemException({
+        status: 428,
+        code: 'PRECONDITION_REQUIRED',
+        detail: 'If-Match başlığı gereklidir.',
+      });
     }
 
     const input = parseRestoreInput(body);
@@ -134,7 +150,9 @@ export class ArchiveController {
       id,
       version,
       ...(input.replacementAreaId !== undefined && { replacementAreaId: input.replacementAreaId }),
-      ...(input.replacementProjectId !== undefined && { replacementProjectId: input.replacementProjectId }),
+      ...(input.replacementProjectId !== undefined && {
+        replacementProjectId: input.replacementProjectId,
+      }),
     });
 
     handleLifecycleCommandResult(result, response);

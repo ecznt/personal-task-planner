@@ -52,7 +52,11 @@ export class ReminderRepository {
     return result.count > 0;
   }
 
-  async findDueReminders(now: Date): Promise<readonly (TaskReminder & { readonly user: { readonly id: string; readonly inAppReminderNotificationsEnabled: boolean } })[]> {
+  async findDueReminders(now: Date): Promise<
+    readonly (TaskReminder & {
+      readonly user: { readonly id: string; readonly inAppReminderNotificationsEnabled: boolean };
+    })[]
+  > {
     return this.prisma.taskReminder.findMany({
       where: {
         state: 'SCHEDULED',
@@ -84,10 +88,7 @@ export class ReminderRepository {
     return result.count > 0;
   }
 
-  async recalculateScheduledAt(
-    reminderId: string,
-    newScheduledAt: Date,
-  ): Promise<boolean> {
+  async recalculateScheduledAt(reminderId: string, newScheduledAt: Date): Promise<boolean> {
     const result = await this.prisma.taskReminder.updateMany({
       where: { id: reminderId, state: { in: ['SCHEDULED', 'PAUSED'] } },
       data: { scheduledAt: newScheduledAt, version: { increment: 1 } },
@@ -124,7 +125,10 @@ export class ReminderRepository {
       readonly limit: number;
       readonly readState?: 'UNREAD' | 'READ';
     },
-  ): Promise<{ readonly notifications: readonly NotificationDetail[]; readonly nextCursor?: string }> {
+  ): Promise<{
+    readonly notifications: readonly NotificationDetail[];
+    readonly nextCursor?: string;
+  }> {
     const where: Record<string, unknown> = { userId };
 
     if (options.readState) {
@@ -191,7 +195,10 @@ export class ReminderRepository {
     return result.count;
   }
 
-  async findNotificationByReminderId(userId: string, taskReminderId: string): Promise<Notification | null> {
+  async findNotificationByReminderId(
+    userId: string,
+    taskReminderId: string,
+  ): Promise<Notification | null> {
     return this.prisma.notification.findFirst({
       where: { userId, taskReminderId },
     });

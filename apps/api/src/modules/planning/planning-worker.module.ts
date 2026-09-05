@@ -7,11 +7,6 @@ import { LifecycleRepository } from './infrastructure/lifecycle.repository';
 
 @Module({
   exports: [PurgeJobHandler],
-  providers: [
-    LifecycleRepository,
-    PurgeService,
-    PurgeJobHandler,
-    PurgeSchedulerService,
-  ],
+  providers: [LifecycleRepository, PurgeService, PurgeJobHandler, PurgeSchedulerService],
 })
 export class PlanningWorkerModule {}

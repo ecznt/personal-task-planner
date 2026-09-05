@@ -14,7 +14,11 @@ type TaskLifecycleActionsProps = {
   readonly lifecycleState: string;
 };
 
-export function TaskLifecycleActions({ taskId, version, lifecycleState }: TaskLifecycleActionsProps) {
+export function TaskLifecycleActions({
+  taskId,
+  version,
+  lifecycleState,
+}: TaskLifecycleActionsProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [confirming, setConfirming] = useState<null | 'ARCHIVE' | 'TRASH'>(null);
@@ -45,11 +49,17 @@ export function TaskLifecycleActions({ taskId, version, lifecycleState }: TaskLi
     return (
       <div className="rounded-lg border bg-muted/30 p-3 text-xs text-muted-foreground">
         Bu görev arşivde/çöp kutusunda. Yönetmek için{' '}
-        <a href={lifecycleState === 'ARCHIVED' ? '/app/archive' : '/app/trash'} className="underline">
+        <a
+          href={lifecycleState === 'ARCHIVED' ? '/app/archive' : '/app/trash'}
+          className="underline"
+        >
           Arşiv
         </a>{' '}
         veya{' '}
-        <a href={lifecycleState === 'ARCHIVED' ? '/app/trash' : '/app/archive'} className="underline">
+        <a
+          href={lifecycleState === 'ARCHIVED' ? '/app/trash' : '/app/archive'}
+          className="underline"
+        >
           Çöp Kutusu
         </a>{' '}
         sayfasını kullanın.
@@ -61,28 +71,60 @@ export function TaskLifecycleActions({ taskId, version, lifecycleState }: TaskLi
     <div className="flex flex-wrap gap-2">
       {confirming === 'ARCHIVE' ? (
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={() => setConfirming(null)} className="h-7 transition-transform duration-150 active:scale-[0.97]">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setConfirming(null)}
+            className="h-7 transition-transform duration-150 active:scale-[0.97]"
+          >
             Vazgeç
           </Button>
-          <Button variant="secondary" size="sm" disabled={archiveAction.isPending} onClick={() => archiveAction.mutate()} className="h-7 transition-transform duration-150 active:scale-[0.97]">
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={archiveAction.isPending}
+            onClick={() => archiveAction.mutate()}
+            className="h-7 transition-transform duration-150 active:scale-[0.97]"
+          >
             {archiveAction.isPending ? 'Arşivleniyor...' : 'Arşivle'}
           </Button>
         </div>
       ) : confirming === 'TRASH' ? (
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={() => setConfirming(null)} className="h-7 transition-transform duration-150 active:scale-[0.97]">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setConfirming(null)}
+            className="h-7 transition-transform duration-150 active:scale-[0.97]"
+          >
             Vazgeç
           </Button>
-          <Button variant="destructive" size="sm" disabled={trashAction.isPending} onClick={() => trashAction.mutate()} className="h-7 transition-transform duration-150 active:scale-[0.97]">
+          <Button
+            variant="destructive"
+            size="sm"
+            disabled={trashAction.isPending}
+            onClick={() => trashAction.mutate()}
+            className="h-7 transition-transform duration-150 active:scale-[0.97]"
+          >
             {trashAction.isPending ? 'Taşınıyor...' : 'Çöp Kutusuna Taşı'}
           </Button>
         </div>
       ) : (
         <>
-          <Button variant="outline" size="sm" onClick={() => setConfirming('ARCHIVE')} className="h-7 transition-transform duration-150 active:scale-[0.97]">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setConfirming('ARCHIVE')}
+            className="h-7 transition-transform duration-150 active:scale-[0.97]"
+          >
             Arşivle
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setConfirming('TRASH')} className="h-7 text-destructive transition-transform duration-150 active:scale-[0.97]">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setConfirming('TRASH')}
+            className="h-7 text-destructive transition-transform duration-150 active:scale-[0.97]"
+          >
             Çöp Kutusu
           </Button>
         </>

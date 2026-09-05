@@ -17,10 +17,7 @@ import { ApiProblemException } from '../../../platform/http/api-problem.exceptio
 import { AccountsRepository } from '../../accounts/infrastructure/accounts.repository';
 import { AuthSecurityService } from '../../accounts/security/auth-security.service';
 import { LifecycleService } from '../application/lifecycle.service';
-import {
-  handleLifecycleCommandResult,
-  resolveUserId,
-} from './lifecycle-command.shared';
+import { handleLifecycleCommandResult, resolveUserId } from './lifecycle-command.shared';
 import { parseConfirmAction } from './lifecycle.schema';
 
 type ActionKind = 'archive' | 'trash';
@@ -65,7 +62,16 @@ export class LifecycleActionsController {
     @Headers('if-match') ifMatch?: string,
     @Headers('idempotency-key') idempotencyKey?: string,
   ): Promise<void> {
-    await this.runAction(request, response, 'archive', 'PROJECT', id, body, ifMatch, idempotencyKey);
+    await this.runAction(
+      request,
+      response,
+      'archive',
+      'PROJECT',
+      id,
+      body,
+      ifMatch,
+      idempotencyKey,
+    );
   }
 
   @Post('tasks/:id/archive')
@@ -149,19 +155,38 @@ export class LifecycleActionsController {
     const userId = await resolveUserId(request, this.accounts, this.security);
 
     if (!idempotencyKey) {
-      throw new ApiProblemException({ status: 422, code: 'VALIDATION_FAILED', detail: 'Idempotency-Key başlığı gereklidir.' });
+      throw new ApiProblemException({
+        status: 422,
+        code: 'VALIDATION_FAILED',
+        detail: 'Idempotency-Key başlığı gereklidir.',
+      });
     }
 
     parseConfirmAction(body);
 
     const version = parseInt(ifMatch ?? '', 10);
     if (!ifMatch || isNaN(version)) {
-      throw new ApiProblemException({ status: 428, code: 'PRECONDITION_REQUIRED', detail: 'If-Match başlığı gereklidir.' });
+      throw new ApiProblemException({
+        status: 428,
+        code: 'PRECONDITION_REQUIRED',
+        detail: 'If-Match başlığı gereklidir.',
+      });
     }
 
-    const result = kind === 'archive'
-      ? await this.lifecycle.archive(userId, { kind: entityKind, id, version, confirmCascade: true })
-      : await this.lifecycle.trash(userId, { kind: entityKind, id, version, confirmCascade: true });
+    const result =
+      kind === 'archive'
+        ? await this.lifecycle.archive(userId, {
+            kind: entityKind,
+            id,
+            version,
+            confirmCascade: true,
+          })
+        : await this.lifecycle.trash(userId, {
+            kind: entityKind,
+            id,
+            version,
+            confirmCascade: true,
+          });
 
     handleLifecycleCommandResult(result, response);
   }

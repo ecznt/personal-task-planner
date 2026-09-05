@@ -3,7 +3,7 @@
 import { apiClient } from '@planner/api-client';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -61,6 +61,12 @@ export function SearchView() {
     return () => clearTimeout(timer);
   }, [query]);
 
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    searchInputRef.current?.focus();
+  }, []);
+
   useEffect(() => {
     if (debouncedQuery) {
       router.replace(`/app/search?q=${encodeURIComponent(debouncedQuery)}`, { scroll: false });
@@ -105,13 +111,18 @@ export function SearchView() {
       </div>
 
       <div className="relative">
+        <label htmlFor="app-search-input" className="sr-only">
+          Görev ara
+        </label>
         <Input
+          id="app-search-input"
           type="search"
+          role="searchbox"
+          ref={searchInputRef}
           placeholder="Görev ara..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="h-10 pl-4"
-          autoFocus
         />
       </div>
 
@@ -172,9 +183,7 @@ export function SearchView() {
                 </div>
               </div>
               <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
-                {result.plannedAt && (
-                  <span>Başlangıç: {formatDate(result.plannedAt)}</span>
-                )}
+                {result.plannedAt && <span>Başlangıç: {formatDate(result.plannedAt)}</span>}
                 {result.dueAt && <span>Bitiş: {formatDate(result.dueAt)}</span>}
               </div>
             </button>
@@ -192,9 +201,7 @@ export function SearchView() {
 
       {!debouncedQuery.trim() && !search.isLoading && (
         <div className="rounded-lg border bg-card p-8 text-center">
-          <div className="text-muted-foreground">
-            Aramak istediğiniz terimi girin
-          </div>
+          <div className="text-muted-foreground">Aramak istediğiniz terimi girin</div>
         </div>
       )}
     </div>

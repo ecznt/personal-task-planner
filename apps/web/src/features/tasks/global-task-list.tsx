@@ -257,12 +257,22 @@ export function GlobalTaskList() {
                   onClick={() => toggleTaskSelection(task.id)}
                   className="mr-3 flex h-5 w-5 items-center justify-center rounded border transition-colors duration-150"
                   style={{
-                    backgroundColor: selectedTaskIds.has(task.id) ? 'hsl(var(--primary))' : 'transparent',
-                    borderColor: selectedTaskIds.has(task.id) ? 'hsl(var(--primary))' : 'hsl(var(--border))',
+                    backgroundColor: selectedTaskIds.has(task.id)
+                      ? 'hsl(var(--primary))'
+                      : 'transparent',
+                    borderColor: selectedTaskIds.has(task.id)
+                      ? 'hsl(var(--primary))'
+                      : 'hsl(var(--border))',
                   }}
                 >
                   {selectedTaskIds.has(task.id) && (
-                    <svg className="h-3 w-3 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <svg
+                      className="h-3 w-3 text-primary-foreground"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={3}
+                    >
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   )}

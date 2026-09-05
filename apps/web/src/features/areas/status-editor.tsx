@@ -1,11 +1,11 @@
 'use client';
 
 import { apiClient } from '@planner/api-client';
-import { DragDropProvider } from '@dnd-kit/react';
+import { DragDropProvider, type DragEndEvent } from '@dnd-kit/react';
 import { useSortable } from '@dnd-kit/react/sortable';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { GripVertical, Plus, X } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { ChevronDown, ChevronUp, GripVertical, Plus, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -37,20 +37,27 @@ type StatusEditorProps = {
 function SortableStatusItem({
   status,
   index,
-  areaId,
-  version,
   onRename,
   onRetire,
+  onMove,
+  isLast,
 }: {
   status: StatusData;
   index: number;
-  areaId: string;
-  version: number;
   onRename: (statusId: string, name: string) => void;
   onRetire: (statusId: string) => void;
+  onMove: (statusId: string, direction: 'up' | 'down') => void;
+  isLast: boolean;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(status.name);
+  const editInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isEditing) {
+      editInputRef.current?.focus();
+    }
+  }, [isEditing]);
 
   const { ref, handleRef } = useSortable({
     id: status.id,
@@ -75,14 +82,35 @@ function SortableStatusItem({
       <button
         type="button"
         ref={handleRef}
+        aria-label={`${status.name} durumunu sürükleyerek yeniden sırala`}
         className="cursor-grab touch-none text-muted-foreground active:cursor-grabbing"
       >
-        <GripVertical className="size-4" />
+        <GripVertical className="size-4" aria-hidden="true" />
       </button>
+      <div className="flex flex-col">
+        <button
+          type="button"
+          onClick={() => onMove(status.id, 'up')}
+          aria-label={`${status.name} durumunu yukarı taşı`}
+          disabled={index === 0}
+          className="text-muted-foreground disabled:pointer-events-none disabled:opacity-40 hover:text-foreground"
+        >
+          <ChevronUp className="size-3.5" aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          onClick={() => onMove(status.id, 'down')}
+          aria-label={`${status.name} durumunu aşağı taşı`}
+          disabled={isLast}
+          className="text-muted-foreground disabled:pointer-events-none disabled:opacity-40 hover:text-foreground"
+        >
+          <ChevronDown className="size-3.5" aria-hidden="true" />
+        </button>
+      </div>
 
       {isEditing ? (
         <input
-          autoFocus
+          ref={editInputRef}
           value={editName}
           onChange={(e) => setEditName(e.target.value)}
           onBlur={handleSaveRename}
@@ -147,6 +175,13 @@ export function StatusEditor({ areaId, areaData }: StatusEditorProps) {
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState('');
   const [newCanonical, setNewCanonical] = useState<'TO_DO' | 'IN_PROGRESS' | 'COMPLETED'>('TO_DO');
+  const createInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (showCreate) {
+      createInputRef.current?.focus();
+    }
+  }, [showCreate]);
 
   const version = areaData.version;
 
@@ -249,10 +284,12 @@ export function StatusEditor({ areaId, areaData }: StatusEditorProps) {
     },
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleDragEnd = useCallback(
-    (event: any) => {
-      const source = event.operation.source as unknown as { index: number; initialIndex: number } | null;
+    (event: DragEndEvent) => {
+      const source = event.operation.source as unknown as {
+        index: number;
+        initialIndex: number;
+      } | null;
       const target = event.operation.target as unknown as { index: number } | null;
 
       if (!source || !target) return;
@@ -280,6 +317,17 @@ export function StatusEditor({ areaId, areaData }: StatusEditorProps) {
     retireMutation.mutate(statusId);
   };
 
+  const handleMove = (statusId: string, direction: 'up' | 'down') => {
+    const sorted = areaData.statuses.slice().sort((a, b) => a.position - b.position);
+    const index = sorted.findIndex((s) => s.id === statusId);
+    const target = direction === 'up' ? index - 1 : index + 1;
+    if (index === -1 || target < 0 || target >= sorted.length) return;
+    const [moved] = sorted.splice(index, 1);
+    if (moved === undefined) return;
+    sorted.splice(target, 0, moved);
+    reorderMutation.mutate(sorted.map((s) => s.id));
+  };
+
   const handleCreate = () => {
     if (!newName.trim()) return;
     createMutation.mutate({ name: newName.trim(), canonicalStatus: newCanonical });
@@ -296,10 +344,10 @@ export function StatusEditor({ areaId, areaData }: StatusEditorProps) {
               key={status.id}
               status={status}
               index={index}
-              areaId={areaId}
-              version={version}
+              isLast={index === areaData.statuses.length - 1}
               onRename={handleRename}
               onRetire={handleRetire}
+              onMove={handleMove}
             />
           ))}
       </DragDropProvider>
@@ -314,7 +362,7 @@ export function StatusEditor({ areaId, areaData }: StatusEditorProps) {
       {showCreate ? (
         <div className="flex items-center gap-2 rounded-lg border border-dashed bg-muted/30 px-3 py-2">
           <input
-            autoFocus
+            ref={createInputRef}
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             placeholder="Durum adı"

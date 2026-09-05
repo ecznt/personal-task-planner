@@ -10,7 +10,9 @@ export type NotificationSummary = {
 
 @Injectable()
 export class NotificationService {
-  constructor(@Inject(ReminderRepository) private readonly reminderRepository: ReminderRepository) {}
+  constructor(
+    @Inject(ReminderRepository) private readonly reminderRepository: ReminderRepository,
+  ) {}
 
   async listNotifications(
     userId: string,
@@ -19,7 +21,11 @@ export class NotificationService {
       readonly limit: number;
       readonly readState?: 'UNREAD' | 'READ';
     },
-  ): Promise<{ readonly data: readonly NotificationDetail[]; readonly nextCursor?: string; readonly hasMore: boolean }> {
+  ): Promise<{
+    readonly data: readonly NotificationDetail[];
+    readonly nextCursor?: string;
+    readonly hasMore: boolean;
+  }> {
     const result = await this.reminderRepository.findNotifications(userId, options);
     return {
       data: result.notifications,

@@ -100,25 +100,31 @@ function KanbanColumnView({
           column.tasks.map((task, index) => (
             <div key={task.id} className="group relative">
               <TaskCard task={task} index={index} />
-              <div className="absolute right-1 top-1 hidden group-hover:flex gap-1">
+              <div className="absolute right-1 top-1 z-10 flex gap-1">
                 {columnKey !== 'todo' && (
                   <button
                     type="button"
                     onClick={() => onMove(task.id, 'TO_DO', task.version)}
-                    className="rounded bg-background/80 px-1.5 py-0.5 text-muted-foreground backdrop-blur transition-transform duration-150 active:scale-90 hover:bg-background"
-                    title="Yapılacak'a taşı"
+                    className="rounded bg-background/80 px-1.5 py-0.5 text-muted-foreground backdrop-blur transition-transform duration-150 focus-visible:ring-2 active:scale-90 hover:bg-background"
+                    aria-label={`${task.title} görevini Yapılacak'a taşı`}
                   >
-                    <ArrowLeft className="size-3" />
+                    <ArrowLeft className="size-3" aria-hidden="true" />
                   </button>
                 )}
                 {columnKey !== 'completed' && (
                   <button
                     type="button"
-                    onClick={() => onMove(task.id, columnKey === 'todo' ? 'IN_PROGRESS' : 'COMPLETED', task.version)}
-                    className="rounded bg-background/80 px-1.5 py-0.5 text-muted-foreground backdrop-blur transition-transform duration-150 active:scale-90 hover:bg-background"
-                    title="Sonraki duruma taşı"
+                    onClick={() =>
+                      onMove(
+                        task.id,
+                        columnKey === 'todo' ? 'IN_PROGRESS' : 'COMPLETED',
+                        task.version,
+                      )
+                    }
+                    className="rounded bg-background/80 px-1.5 py-0.5 text-muted-foreground backdrop-blur transition-transform duration-150 focus-visible:ring-2 active:scale-90 hover:bg-background"
+                    aria-label={`${task.title} görevini ${columnKey === 'todo' ? 'Devam Ediyor' : 'Tamamlandı'} durumuna taşı`}
                   >
-                    <ArrowRight className="size-3" />
+                    <ArrowRight className="size-3" aria-hidden="true" />
                   </button>
                 )}
               </div>
@@ -147,7 +153,15 @@ export function KanbanBoard() {
   });
 
   const moveMutation = useMutation({
-    mutationFn: async ({ taskId, target, version }: { taskId: string; target: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED'; version: number }) => {
+    mutationFn: async ({
+      taskId,
+      target,
+      version,
+    }: {
+      taskId: string;
+      target: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+      version: number;
+    }) => {
       const result = await apiClient.post({
         url: '/api/v1/tasks/kanban-moves',
         body: { taskId, targetCanonicalStatus: target },
@@ -188,7 +202,11 @@ export function KanbanBoard() {
 
   const data = kanban.data;
 
-  const handleMove = (taskId: string, target: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED', version: number) => {
+  const handleMove = (
+    taskId: string,
+    target: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED',
+    version: number,
+  ) => {
     moveMutation.mutate({ taskId, target, version });
   };
 
@@ -199,7 +217,11 @@ export function KanbanBoard() {
         <p className="text-sm text-muted-foreground">Tüm alanlardaki görevler</p>
       </div>
 
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <div
+        className="flex gap-4 overflow-x-auto pb-4"
+        role="region"
+        aria-label="Kanban panosu, yatay kaydırılabilir"
+      >
         <KanbanColumnView columnKey="todo" column={data.todo} onMove={handleMove} />
         <KanbanColumnView columnKey="inProgress" column={data.inProgress} onMove={handleMove} />
         <KanbanColumnView columnKey="completed" column={data.completed} onMove={handleMove} />

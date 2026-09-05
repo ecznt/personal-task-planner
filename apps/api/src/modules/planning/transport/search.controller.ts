@@ -68,7 +68,9 @@ export class SearchController {
       ...(parsed.data.areaId !== undefined && { areaId: parsed.data.areaId }),
       ...(parsed.data.projectId !== undefined && { projectId: parsed.data.projectId }),
       ...(parsed.data.priority !== undefined && { priority: parsed.data.priority }),
-      ...(parsed.data.canonicalStatus !== undefined && { canonicalStatus: parsed.data.canonicalStatus }),
+      ...(parsed.data.canonicalStatus !== undefined && {
+        canonicalStatus: parsed.data.canonicalStatus,
+      }),
       ...(parsed.data.labelId !== undefined && { labelId: parsed.data.labelId }),
     });
 

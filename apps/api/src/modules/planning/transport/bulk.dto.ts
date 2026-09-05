@@ -21,6 +21,9 @@ export class BulkActionItemResultDto {
 }
 
 export class BulkActionsResponseDto {
-  @ApiProperty({ type: [BulkActionItemResultDto], description: 'Per-item results in request order' })
+  @ApiProperty({
+    type: [BulkActionItemResultDto],
+    description: 'Per-item results in request order',
+  })
   readonly results!: readonly BulkActionItemResultDto[];
 }

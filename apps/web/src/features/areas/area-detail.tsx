@@ -130,7 +130,9 @@ export function AreaDetail({ areaId }: AreaDetailProps) {
                 type="button"
                 onClick={() => setView('list')}
                 className={`rounded-md px-3 py-1 text-sm font-medium transition-colors duration-150 ${
-                  view === 'list' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'
+                  view === 'list'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground'
                 }`}
               >
                 Liste
@@ -139,7 +141,9 @@ export function AreaDetail({ areaId }: AreaDetailProps) {
                 type="button"
                 onClick={() => setView('kanban')}
                 className={`rounded-md px-3 py-1 text-sm font-medium transition-colors duration-150 ${
-                  view === 'kanban' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'
+                  view === 'kanban'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground'
                 }`}
               >
                 Kanban
@@ -150,11 +154,7 @@ export function AreaDetail({ areaId }: AreaDetailProps) {
             </Link>
           </div>
         </div>
-        {view === 'list' ? (
-          <TaskList areaId={areaId} />
-        ) : (
-          <AreaKanbanBoard areaId={areaId} />
-        )}
+        {view === 'list' ? <TaskList areaId={areaId} /> : <AreaKanbanBoard areaId={areaId} />}
       </div>
     </div>
   );

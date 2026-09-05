@@ -19,27 +19,28 @@ const labelChangeSchema = z.object({
   labelIds: z.array(z.string().uuid()).min(1, 'En az bir etiket seçin.'),
 });
 
-export const bulkActionsSchema = z.discriminatedUnion('operation', [
-  statusChangeSchema,
-  labelChangeSchema,
-]).and(
-  z.object({
-    items: z
-      .array(bulkTaskItemSchema)
-      .min(1, 'En az bir görev seçin.')
-      .max(50, 'En fazla 50 görev işlenebilir.'),
-  }),
-);
+export const bulkActionsSchema = z
+  .discriminatedUnion('operation', [statusChangeSchema, labelChangeSchema])
+  .and(
+    z.object({
+      items: z
+        .array(bulkTaskItemSchema)
+        .min(1, 'En az bir görev seçin.')
+        .max(50, 'En fazla 50 görev işlenebilir.'),
+    }),
+  );
 
 export type BulkActionsInput = z.infer<typeof bulkActionsSchema>;
 
-export function parseBulkActionsInput(input: unknown): {
-  success: true;
-  data: BulkActionsInput;
-} | {
-  success: false;
-  issues: ValidationProblemItem[];
-} {
+export function parseBulkActionsInput(input: unknown):
+  | {
+      success: true;
+      data: BulkActionsInput;
+    }
+  | {
+      success: false;
+      issues: ValidationProblemItem[];
+    } {
   const result = bulkActionsSchema.safeParse(input);
 
   if (result.success) {

@@ -81,9 +81,7 @@ export function BulkActionBar({ selectedTasks, onClearSelection, onResult }: Bul
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card p-4 shadow-lg">
       <div className="mx-auto flex max-w-2xl items-center justify-between">
-        <div className="text-sm text-muted-foreground">
-          {selectedTasks.length} görev seçildi
-        </div>
+        <div className="text-sm text-muted-foreground">{selectedTasks.length} görev seçildi</div>
         <div className="flex items-center gap-2">
           {STATUS_OPTIONS.map((opt) => (
             <Button
@@ -94,11 +92,7 @@ export function BulkActionBar({ selectedTasks, onClearSelection, onResult }: Bul
               disabled={bulkStatusChange.isPending}
               className="transition-transform duration-150 active:scale-[0.97]"
             >
-              {bulkStatusChange.isPending ? (
-                <Spinner className="h-3 w-3" />
-              ) : (
-                opt.label
-              )}
+              {bulkStatusChange.isPending ? <Spinner className="h-3 w-3" /> : opt.label}
             </Button>
           ))}
           <Button

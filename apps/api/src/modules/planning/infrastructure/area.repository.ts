@@ -170,7 +170,9 @@ export class AreaRepository {
     name: string,
     normalizedName: string,
     canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED',
-  ): Promise<{ status: AreaStatus; areaVersion: number } | { error: 'NOT_FOUND' | 'DUPLICATE_NAME' }> {
+  ): Promise<
+    { status: AreaStatus; areaVersion: number } | { error: 'NOT_FOUND' | 'DUPLICATE_NAME' }
+  > {
     return this.prisma.$transaction(async (transaction) => {
       const area = await transaction.area.findFirst({
         where: { id: areaId, userId, lifecycleState: 'ACTIVE' },
@@ -216,8 +218,11 @@ export class AreaRepository {
       });
 
       const updatedArea = await transaction.area.findUnique({ where: { id: areaId } });
+      if (updatedArea === null) {
+        throw new Error('Area disappeared during workflow update');
+      }
 
-      return { status, areaVersion: updatedArea!.version };
+      return { status, areaVersion: updatedArea.version };
     });
   }
 
@@ -228,7 +233,10 @@ export class AreaRepository {
     name: string,
     normalizedName: string,
     version: number,
-  ): Promise<{ status: AreaStatus; areaVersion: number } | { error: 'NOT_FOUND' | 'STALE_VERSION' | 'DUPLICATE_NAME' | 'CANNOT_RENAME_DEFAULT' }> {
+  ): Promise<
+    | { status: AreaStatus; areaVersion: number }
+    | { error: 'NOT_FOUND' | 'STALE_VERSION' | 'DUPLICATE_NAME' | 'CANNOT_RENAME_DEFAULT' }
+  > {
     return this.prisma.$transaction(async (transaction) => {
       const area = await transaction.area.findFirst({
         where: { id: areaId, userId, version, lifecycleState: 'ACTIVE' },
@@ -240,7 +248,7 @@ export class AreaRepository {
           where: { id: areaId, userId, lifecycleState: 'ACTIVE' },
           select: { id: true },
         });
-        return { error: existing ? 'STALE_VERSION' as const : 'NOT_FOUND' as const };
+        return { error: existing ? ('STALE_VERSION' as const) : ('NOT_FOUND' as const) };
       }
 
       const status = await transaction.areaStatus.findFirst({
@@ -275,8 +283,11 @@ export class AreaRepository {
       });
 
       const updatedArea = await transaction.area.findUnique({ where: { id: areaId } });
+      if (updatedArea === null) {
+        throw new Error('Area disappeared during workflow update');
+      }
 
-      return { status: { ...status, name, normalizedName }, areaVersion: updatedArea!.version };
+      return { status: { ...status, name, normalizedName }, areaVersion: updatedArea.version };
     });
   }
 
@@ -285,7 +296,10 @@ export class AreaRepository {
     areaId: string,
     statusId: string,
     version: number,
-  ): Promise<{ areaVersion: number; migratedCount: number } | { error: 'NOT_FOUND' | 'STALE_VERSION' | 'CANNOT_RETIRE_DEFAULT' }> {
+  ): Promise<
+    | { areaVersion: number; migratedCount: number }
+    | { error: 'NOT_FOUND' | 'STALE_VERSION' | 'CANNOT_RETIRE_DEFAULT' }
+  > {
     return this.prisma.$transaction(async (transaction) => {
       const area = await transaction.area.findFirst({
         where: { id: areaId, userId, version, lifecycleState: 'ACTIVE' },
@@ -297,7 +311,7 @@ export class AreaRepository {
           where: { id: areaId, userId, lifecycleState: 'ACTIVE' },
           select: { id: true },
         });
-        return { error: existing ? 'STALE_VERSION' as const : 'NOT_FOUND' as const };
+        return { error: existing ? ('STALE_VERSION' as const) : ('NOT_FOUND' as const) };
       }
 
       const status = await transaction.areaStatus.findFirst({
@@ -338,8 +352,11 @@ export class AreaRepository {
       });
 
       const updatedArea = await transaction.area.findUnique({ where: { id: areaId } });
+      if (updatedArea === null) {
+        throw new Error('Area disappeared during workflow update');
+      }
 
-      return { areaVersion: updatedArea!.version, migratedCount };
+      return { areaVersion: updatedArea.version, migratedCount };
     });
   }
 
@@ -360,7 +377,7 @@ export class AreaRepository {
           where: { id: areaId, userId, lifecycleState: 'ACTIVE' },
           select: { id: true },
         });
-        return { error: existing ? 'STALE_VERSION' as const : 'NOT_FOUND' as const };
+        return { error: existing ? ('STALE_VERSION' as const) : ('NOT_FOUND' as const) };
       }
 
       const status = await transaction.areaStatus.findFirst({
@@ -383,8 +400,11 @@ export class AreaRepository {
       });
 
       const updatedArea = await transaction.area.findUnique({ where: { id: areaId } });
+      if (updatedArea === null) {
+        throw new Error('Area disappeared during workflow update');
+      }
 
-      return { areaVersion: updatedArea!.version };
+      return { areaVersion: updatedArea.version };
     });
   }
 
@@ -393,7 +413,9 @@ export class AreaRepository {
     areaId: string,
     orderedStatusIds: readonly string[],
     version: number,
-  ): Promise<{ areaVersion: number } | { error: 'NOT_FOUND' | 'STALE_VERSION' | 'VALIDATION_ERROR' }> {
+  ): Promise<
+    { areaVersion: number } | { error: 'NOT_FOUND' | 'STALE_VERSION' | 'VALIDATION_ERROR' }
+  > {
     return this.prisma.$transaction(async (transaction) => {
       const area = await transaction.area.findFirst({
         where: { id: areaId, userId, version, lifecycleState: 'ACTIVE' },
@@ -405,7 +427,7 @@ export class AreaRepository {
           where: { id: areaId, userId, lifecycleState: 'ACTIVE' },
           select: { id: true },
         });
-        return { error: existing ? 'STALE_VERSION' as const : 'NOT_FOUND' as const };
+        return { error: existing ? ('STALE_VERSION' as const) : ('NOT_FOUND' as const) };
       }
 
       const statuses = await transaction.areaStatus.findMany({
@@ -429,16 +451,14 @@ export class AreaRepository {
 
       const idArray = [...orderedStatusIds];
 
-      for (let i = 0; i < idArray.length; i++) {
-        const id = idArray[i]!;
+      for (const [i, id] of idArray.entries()) {
         await transaction.areaStatus.update({
           where: { id },
           data: { position: tempBase + i },
         });
       }
 
-      for (let i = 0; i < idArray.length; i++) {
-        const id = idArray[i]!;
+      for (const [i, id] of idArray.entries()) {
         await transaction.areaStatus.update({
           where: { id },
           data: { position: i + 1 },
@@ -451,8 +471,11 @@ export class AreaRepository {
       });
 
       const updatedArea = await transaction.area.findUnique({ where: { id: areaId } });
+      if (updatedArea === null) {
+        throw new Error('Area disappeared during workflow update');
+      }
 
-      return { areaVersion: updatedArea!.version };
+      return { areaVersion: updatedArea.version };
     });
   }
 }

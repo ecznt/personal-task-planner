@@ -1,5 +1,26 @@
-import { Body, Controller, Get, Header, Headers, Inject, Param, Patch, Post, Query, Req, Res } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiParam, ApiBody, ApiResponse, ApiHeader, ApiQuery } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Get,
+  Header,
+  Headers,
+  Inject,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  Res,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiParam,
+  ApiBody,
+  ApiResponse,
+  ApiHeader,
+  ApiQuery,
+} from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 
 import { ApiProblemException } from '../../../platform/http/api-problem.exception';
@@ -33,9 +54,10 @@ export class NotificationController {
     const userId = await this.resolveUserId(request);
 
     const limit = Math.min(Math.max(Number(query.limit) || 20, 1), 100);
-    const readState = query.readState && ['UNREAD', 'READ'].includes(query.readState)
-      ? (query.readState as 'UNREAD' | 'READ')
-      : undefined;
+    const readState =
+      query.readState && ['UNREAD', 'READ'].includes(query.readState)
+        ? (query.readState as 'UNREAD' | 'READ')
+        : undefined;
 
     const result = await this.notificationService.listNotifications(userId, {
       limit,
@@ -66,10 +88,7 @@ export class NotificationController {
   @ApiOperation({ summary: 'Get notification summary (unread count)' })
   @ApiResponse({ status: 200, description: 'Summary returned.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  async getSummary(
-    @Req() request: Request,
-    @Res() response: Response,
-  ): Promise<void> {
+  async getSummary(@Req() request: Request, @Res() response: Response): Promise<void> {
     const userId = await this.resolveUserId(request);
     const summary = await this.notificationService.getSummary(userId);
 

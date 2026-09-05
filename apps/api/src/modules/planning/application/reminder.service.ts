@@ -32,7 +32,8 @@ export class ReminderService {
       return { outcome: 'TASK_NOT_FOUND' };
     }
 
-    const anchorDate = command.anchorType === 'PLANNED' ? taskDetail.task.plannedAt : taskDetail.task.dueAt;
+    const anchorDate =
+      command.anchorType === 'PLANNED' ? taskDetail.task.plannedAt : taskDetail.task.dueAt;
 
     if (!anchorDate) {
       return { outcome: 'TASK_NO_TIME' };
@@ -58,7 +59,10 @@ export class ReminderService {
 
     const computedScheduledAt = scheduledAt;
 
-    const existing = await this.reminderRepository.findRemindersByTask(command.userId, command.taskId);
+    const existing = await this.reminderRepository.findRemindersByTask(
+      command.userId,
+      command.taskId,
+    );
     const isDuplicate = existing.some(
       (r) =>
         r.anchorType === command.anchorType &&

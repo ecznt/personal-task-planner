@@ -103,33 +103,37 @@ function AreaKanbanColumnView({
             Boş
           </div>
         ) : (
-          column.tasks.map((task, index) => (
-            <div key={task.id} className="group relative">
-              <TaskCard task={task} index={index} />
-              <div className="absolute right-1 top-1 hidden group-hover:flex gap-1">
-                {hasPrevious && (
-                  <button
-                    type="button"
-                    onClick={() => columns[columnIndex - 1] && onMove(task.id, columns[columnIndex - 1]!.statusId)}
-                    className="rounded bg-background/80 px-1.5 py-0.5 text-muted-foreground backdrop-blur transition-transform duration-150 active:scale-90 hover:bg-background"
-                    title="Önceki duruma taşı"
-                  >
-                    <ArrowLeft className="size-3" />
-                  </button>
-                )}
-                {hasNext && (
-                  <button
-                    type="button"
-                    onClick={() => columns[columnIndex + 1] && onMove(task.id, columns[columnIndex + 1]!.statusId)}
-                    className="rounded bg-background/80 px-1.5 py-0.5 text-muted-foreground backdrop-blur transition-transform duration-150 active:scale-90 hover:bg-background"
-                    title="Sonraki duruma taşı"
-                  >
-                    <ArrowRight className="size-3" />
-                  </button>
-                )}
+          column.tasks.map((task, index) => {
+            const previousColumn = columns[columnIndex - 1];
+            const nextColumn = columns[columnIndex + 1];
+            return (
+              <div key={task.id} className="group relative">
+                <TaskCard task={task} index={index} />
+                <div className="absolute right-1 top-1 z-10 flex gap-1">
+                  {hasPrevious && previousColumn && (
+                    <button
+                      type="button"
+                      onClick={() => onMove(task.id, previousColumn.statusId)}
+                      className="rounded bg-background/80 px-1.5 py-0.5 text-muted-foreground backdrop-blur transition-transform duration-150 focus-visible:ring-2 active:scale-90 hover:bg-background"
+                      aria-label={`${task.title} görevini önceki duruma taşı`}
+                    >
+                      <ArrowLeft className="size-3" aria-hidden="true" />
+                    </button>
+                  )}
+                  {hasNext && nextColumn && (
+                    <button
+                      type="button"
+                      onClick={() => onMove(task.id, nextColumn.statusId)}
+                      className="rounded bg-background/80 px-1.5 py-0.5 text-muted-foreground backdrop-blur transition-transform duration-150 focus-visible:ring-2 active:scale-90 hover:bg-background"
+                      aria-label={`${task.title} görevini sonraki duruma taşı`}
+                    >
+                      <ArrowRight className="size-3" aria-hidden="true" />
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>
@@ -153,7 +157,13 @@ export function AreaKanbanBoard({ areaId }: { areaId: string }) {
   });
 
   const moveMutation = useMutation({
-    mutationFn: async ({ taskId, targetAreaStatusId }: { taskId: string; targetAreaStatusId: string }) => {
+    mutationFn: async ({
+      taskId,
+      targetAreaStatusId,
+    }: {
+      taskId: string;
+      targetAreaStatusId: string;
+    }) => {
       const result = await apiClient.post({
         url: `/api/v1/areas/${areaId}/kanban-moves`,
         body: { taskId, targetAreaStatusId },
@@ -200,7 +210,11 @@ export function AreaKanbanBoard({ areaId }: { areaId: string }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <div
+        className="flex gap-4 overflow-x-auto pb-4"
+        role="region"
+        aria-label="Alan Kanban panosu, yatay kaydırılabilir"
+      >
         {data.columns.map((column, index) => {
           const status = data.statuses.find((s) => s.id === column.statusId);
           return (

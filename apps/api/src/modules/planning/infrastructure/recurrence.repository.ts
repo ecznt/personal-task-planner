@@ -71,10 +71,7 @@ export class RecurrenceRepository {
     });
   }
 
-  async findSeriesDetail(
-    userId: string,
-    taskId: string,
-  ): Promise<RecurrenceSeriesDetail | null> {
+  async findSeriesDetail(userId: string, taskId: string): Promise<RecurrenceSeriesDetail | null> {
     const task = await this.prisma.task.findFirst({
       where: { id: taskId, userId, lifecycleState: 'ACTIVE' },
       select: { recurrenceSeriesId: true },
@@ -107,10 +104,7 @@ export class RecurrenceRepository {
     };
   }
 
-  async stopSeries(
-    userId: string,
-    seriesId: string,
-  ): Promise<RecurrenceSeries | null> {
+  async stopSeries(userId: string, seriesId: string): Promise<RecurrenceSeries | null> {
     const series = await this.prisma.recurrenceSeries.findFirst({
       where: { id: seriesId, userId },
     });
@@ -136,7 +130,16 @@ export class RecurrenceRepository {
   ): Promise<{
     series: RecurrenceSeries;
     activeRule: RecurrenceRule;
-    task: { id: string; areaId: string; projectId: string | null; title: string; description: string | null; plannedAt: Date | null; dueAt: Date | null; priority: 'LOW' | 'MEDIUM' | 'HIGH' };
+    task: {
+      id: string;
+      areaId: string;
+      projectId: string | null;
+      title: string;
+      description: string | null;
+      plannedAt: Date | null;
+      dueAt: Date | null;
+      priority: 'LOW' | 'MEDIUM' | 'HIGH';
+    };
   } | null> {
     const task = await this.prisma.task.findFirst({
       where: { id: taskId, userId, lifecycleState: 'ACTIVE' },
@@ -284,11 +287,7 @@ export class RecurrenceRepository {
     return labels.map((l) => l.labelId);
   }
 
-  async copyLabels(
-    userId: string,
-    sourceTaskId: string,
-    targetTaskId: string,
-  ): Promise<void> {
+  async copyLabels(userId: string, sourceTaskId: string, targetTaskId: string): Promise<void> {
     const labels = await this.getLabels(userId, sourceTaskId);
     if (labels.length === 0) return;
 
@@ -301,11 +300,7 @@ export class RecurrenceRepository {
     });
   }
 
-  async copyChecklist(
-    userId: string,
-    sourceTaskId: string,
-    targetTaskId: string,
-  ): Promise<void> {
+  async copyChecklist(userId: string, sourceTaskId: string, targetTaskId: string): Promise<void> {
     const items = await this.prisma.checklistItem.findMany({
       where: { taskId: sourceTaskId, userId },
       orderBy: { position: 'asc' },

@@ -74,6 +74,18 @@ import { TrashController } from './transport/trash.controller';
     LifecycleService,
     LifecycleRepository,
   ],
-  exports: [AreaService, TaskService, RecurrenceService, ReminderService, NotificationService, SearchService, BulkActionService, LabelService, ChecklistItemService, ProjectService, LifecycleService],
+  exports: [
+    AreaService,
+    TaskService,
+    RecurrenceService,
+    ReminderService,
+    NotificationService,
+    SearchService,
+    BulkActionService,
+    LabelService,
+    ChecklistItemService,
+    ProjectService,
+    LifecycleService,
+  ],
 })
 export class PlanningModule {}

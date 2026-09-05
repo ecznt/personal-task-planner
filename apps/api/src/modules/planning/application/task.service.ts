@@ -57,7 +57,12 @@ export type EditTaskCommand = {
 };
 
 export type EditTaskResult =
-  | { readonly outcome: 'SUCCESS'; readonly task: Task; readonly etag: number; readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED' }
+  | {
+      readonly outcome: 'SUCCESS';
+      readonly task: Task;
+      readonly etag: number;
+      readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+    }
   | { readonly outcome: 'NOT_FOUND' }
   | { readonly outcome: 'STALE_VERSION' }
   | { readonly outcome: 'VALIDATION_ERROR'; readonly detail: string }
@@ -113,7 +118,12 @@ export type MoveKanbanTaskCommand = {
 };
 
 export type MoveKanbanTaskResult =
-  | { readonly outcome: 'SUCCESS'; readonly task: Task; readonly etag: number; readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED' }
+  | {
+      readonly outcome: 'SUCCESS';
+      readonly task: Task;
+      readonly etag: number;
+      readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+    }
   | { readonly outcome: 'NOT_FOUND' }
   | { readonly outcome: 'STALE_VERSION' }
   | { readonly outcome: 'VALIDATION_ERROR'; readonly detail: string }
@@ -148,7 +158,12 @@ export type MoveAreaKanbanTaskCommand = {
 };
 
 export type MoveAreaKanbanTaskResult =
-  | { readonly outcome: 'SUCCESS'; readonly task: Task; readonly etag: number; readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED' }
+  | {
+      readonly outcome: 'SUCCESS';
+      readonly task: Task;
+      readonly etag: number;
+      readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+    }
   | { readonly outcome: 'NOT_FOUND' }
   | { readonly outcome: 'STALE_VERSION' }
   | { readonly outcome: 'VALIDATION_ERROR'; readonly detail: string }
@@ -369,7 +384,12 @@ export class TaskService {
       await this.recurrenceService.generateNextOccurrence(userId, task.id);
     }
 
-    return { outcome: 'SUCCESS', task, etag: task.version, canonicalStatus: command.targetCanonicalStatus };
+    return {
+      outcome: 'SUCCESS',
+      task,
+      etag: task.version,
+      canonicalStatus: command.targetCanonicalStatus,
+    };
   }
 
   async listAreaKanbanTasks(userId: string, areaId: string): Promise<ListAreaKanbanTasksResult> {
@@ -411,13 +431,21 @@ export class TaskService {
       };
     }
 
-    const canonicalStatus = await this.taskRepository.getCanonicalStatus(userId, command.targetAreaStatusId);
+    const canonicalStatus = await this.taskRepository.getCanonicalStatus(
+      userId,
+      command.targetAreaStatusId,
+    );
 
     if (canonicalStatus === 'COMPLETED' && task.recurrenceSeriesId) {
       await this.recurrenceService.generateNextOccurrence(userId, task.id);
     }
 
-    return { outcome: 'SUCCESS', task, etag: task.version, canonicalStatus: canonicalStatus ?? 'TO_DO' };
+    return {
+      outcome: 'SUCCESS',
+      task,
+      etag: task.version,
+      canonicalStatus: canonicalStatus ?? 'TO_DO',
+    };
   }
 
   async editTask(userId: string, command: EditTaskCommand): Promise<EditTaskResult> {
@@ -532,7 +560,12 @@ export class TaskService {
 
     const canonicalStatus = await this.taskRepository.getCanonicalStatus(userId, task.areaStatusId);
 
-    return { outcome: 'SUCCESS', task, etag: task.version, canonicalStatus: canonicalStatus ?? 'TO_DO' };
+    return {
+      outcome: 'SUCCESS',
+      task,
+      etag: task.version,
+      canonicalStatus: canonicalStatus ?? 'TO_DO',
+    };
   }
 }
 

@@ -23,13 +23,15 @@ export const searchTasksQuerySchema = z.object({
 
 export type SearchTasksQueryInput = z.infer<typeof searchTasksQuerySchema>;
 
-export function parseSearchTasksQuery(input: unknown): {
-  success: true;
-  data: SearchTasksQueryInput;
-} | {
-  success: false;
-  issues: ValidationProblemItem[];
-} {
+export function parseSearchTasksQuery(input: unknown):
+  | {
+      success: true;
+      data: SearchTasksQueryInput;
+    }
+  | {
+      success: false;
+      issues: ValidationProblemItem[];
+    } {
   const result = searchTasksQuerySchema.safeParse(input);
 
   if (result.success) {

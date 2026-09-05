@@ -49,9 +49,7 @@ describe('AreaKanbanBoard', () => {
   it('renders tasks in columns', async () => {
     mockedApiClient.get.mockResolvedValue({
       data: {
-        statuses: [
-          { id: 's1', name: 'Yapılacak', canonicalStatus: 'TO_DO', position: 1 },
-        ],
+        statuses: [{ id: 's1', name: 'Yapılacak', canonicalStatus: 'TO_DO', position: 1 }],
         columns: [
           {
             statusId: 's1',
@@ -83,12 +81,8 @@ describe('AreaKanbanBoard', () => {
   it('shows empty state when no tasks', async () => {
     mockedApiClient.get.mockResolvedValue({
       data: {
-        statuses: [
-          { id: 's1', name: 'Yapılacak', canonicalStatus: 'TO_DO', position: 1 },
-        ],
-        columns: [
-          { statusId: 's1', count: 0, tasks: [] },
-        ],
+        statuses: [{ id: 's1', name: 'Yapılacak', canonicalStatus: 'TO_DO', position: 1 }],
+        columns: [{ statusId: 's1', count: 0, tasks: [] }],
       },
       error: undefined,
     });

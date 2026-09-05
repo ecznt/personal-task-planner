@@ -161,7 +161,10 @@ export function ReminderManager({ taskId, plannedAt, dueAt, version }: ReminderM
                 <span className="font-medium">{ANCHOR_LABELS[reminder.anchorType]}</span>
                 <span className="text-muted-foreground"> — </span>
                 <span>{reminder.offsetMinutes} dakika önce</span>
-                <span className="text-muted-foreground"> ({formatScheduledAt(reminder.scheduledAt)})</span>
+                <span className="text-muted-foreground">
+                  {' '}
+                  ({formatScheduledAt(reminder.scheduledAt)})
+                </span>
               </div>
               <Button
                 variant="ghost"
@@ -178,9 +181,7 @@ export function ReminderManager({ taskId, plannedAt, dueAt, version }: ReminderM
       )}
 
       {reminders.data && reminders.data.length === 0 && !showForm && (
-        <div className="mt-2 text-sm text-muted-foreground">
-          Hatırlatma yok
-        </div>
+        <div className="mt-2 text-sm text-muted-foreground">Hatırlatma yok</div>
       )}
 
       {showForm && (

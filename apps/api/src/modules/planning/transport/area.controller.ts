@@ -34,7 +34,12 @@ import type {
   ReorderAreaStatusesResult,
 } from '../application/area.service';
 import { TaskService } from '../application/task.service';
-import type { CreateTaskResult, ListTasksResult, ListAreaKanbanTasksResult, MoveAreaKanbanTaskResult } from '../application/task.service';
+import type {
+  CreateTaskResult,
+  ListTasksResult,
+  ListAreaKanbanTasksResult,
+  MoveAreaKanbanTaskResult,
+} from '../application/task.service';
 import {
   parseCreateAreaInput,
   parseListAreasQuery,
@@ -53,7 +58,11 @@ import {
   UpdateAreaStatusNameRequestDto,
   ReorderAreaStatusesRequestDto,
 } from './area.dto';
-import { parseCreateTaskInput, parseListTasksQuery, parseMoveAreaKanbanTaskInput } from './task.schema';
+import {
+  parseCreateTaskInput,
+  parseListTasksQuery,
+  parseMoveAreaKanbanTaskInput,
+} from './task.schema';
 import {
   AreaKanbanResponseDto,
   CreateTaskRequestDto,
@@ -260,12 +269,20 @@ export class AreaController {
     const input = parseCreateAreaStatusInput(body);
 
     if (!ifMatch) {
-      throw new ApiProblemException({ status: 422, code: 'VALIDATION_FAILED', detail: 'If-Match başlığı gereklidir.' });
+      throw new ApiProblemException({
+        status: 422,
+        code: 'VALIDATION_FAILED',
+        detail: 'If-Match başlığı gereklidir.',
+      });
     }
 
     const version = parseInt(ifMatch, 10);
     if (isNaN(version)) {
-      throw new ApiProblemException({ status: 422, code: 'VALIDATION_FAILED', detail: 'If-Match başlığı geçerli bir sayı olmalıdır.' });
+      throw new ApiProblemException({
+        status: 422,
+        code: 'VALIDATION_FAILED',
+        detail: 'If-Match başlığı geçerli bir sayı olmalıdır.',
+      });
     }
 
     const result = await this.areaService.createAreaStatus(userId, {
@@ -304,12 +321,20 @@ export class AreaController {
     const input = parseUpdateAreaStatusNameInput(body);
 
     if (!ifMatch) {
-      throw new ApiProblemException({ status: 422, code: 'VALIDATION_FAILED', detail: 'If-Match başlığı gereklidir.' });
+      throw new ApiProblemException({
+        status: 422,
+        code: 'VALIDATION_FAILED',
+        detail: 'If-Match başlığı gereklidir.',
+      });
     }
 
     const version = parseInt(ifMatch, 10);
     if (isNaN(version)) {
-      throw new ApiProblemException({ status: 422, code: 'VALIDATION_FAILED', detail: 'If-Match başlığı geçerli bir sayı olmalıdır.' });
+      throw new ApiProblemException({
+        status: 422,
+        code: 'VALIDATION_FAILED',
+        detail: 'If-Match başlığı geçerli bir sayı olmalıdır.',
+      });
     }
 
     const result = await this.areaService.updateAreaStatusName(userId, {
@@ -346,12 +371,20 @@ export class AreaController {
     const userId = await this.resolveUserId(request);
 
     if (!ifMatch) {
-      throw new ApiProblemException({ status: 422, code: 'VALIDATION_FAILED', detail: 'If-Match başlığı gereklidir.' });
+      throw new ApiProblemException({
+        status: 422,
+        code: 'VALIDATION_FAILED',
+        detail: 'If-Match başlığı gereklidir.',
+      });
     }
 
     const version = parseInt(ifMatch, 10);
     if (isNaN(version)) {
-      throw new ApiProblemException({ status: 422, code: 'VALIDATION_FAILED', detail: 'If-Match başlığı geçerli bir sayı olmalıdır.' });
+      throw new ApiProblemException({
+        status: 422,
+        code: 'VALIDATION_FAILED',
+        detail: 'If-Match başlığı geçerli bir sayı olmalıdır.',
+      });
     }
 
     const result = await this.areaService.retireAreaStatus(userId, {
@@ -386,12 +419,20 @@ export class AreaController {
     const userId = await this.resolveUserId(request);
 
     if (!ifMatch) {
-      throw new ApiProblemException({ status: 422, code: 'VALIDATION_FAILED', detail: 'If-Match başlığı gereklidir.' });
+      throw new ApiProblemException({
+        status: 422,
+        code: 'VALIDATION_FAILED',
+        detail: 'If-Match başlığı gereklidir.',
+      });
     }
 
     const version = parseInt(ifMatch, 10);
     if (isNaN(version)) {
-      throw new ApiProblemException({ status: 422, code: 'VALIDATION_FAILED', detail: 'If-Match başlığı geçerli bir sayı olmalıdır.' });
+      throw new ApiProblemException({
+        status: 422,
+        code: 'VALIDATION_FAILED',
+        detail: 'If-Match başlığı geçerli bir sayı olmalıdır.',
+      });
     }
 
     const result = await this.areaService.activateAreaStatus(userId, {
@@ -427,12 +468,20 @@ export class AreaController {
     const input = parseReorderAreaStatusesInput(body);
 
     if (!ifMatch) {
-      throw new ApiProblemException({ status: 422, code: 'VALIDATION_FAILED', detail: 'If-Match başlığı gereklidir.' });
+      throw new ApiProblemException({
+        status: 422,
+        code: 'VALIDATION_FAILED',
+        detail: 'If-Match başlığı gereklidir.',
+      });
     }
 
     const version = parseInt(ifMatch, 10);
     if (isNaN(version)) {
-      throw new ApiProblemException({ status: 422, code: 'VALIDATION_FAILED', detail: 'If-Match başlığı geçerli bir sayı olmalıdır.' });
+      throw new ApiProblemException({
+        status: 422,
+        code: 'VALIDATION_FAILED',
+        detail: 'If-Match başlığı geçerli bir sayı olmalıdır.',
+      });
     }
 
     const result = await this.areaService.reorderAreaStatuses(userId, {
@@ -970,7 +1019,10 @@ export class AreaController {
     }
   }
 
-  private handleCreateAreaStatusResult(result: CreateAreaStatusResult, response: Response): AreaResponseDto {
+  private handleCreateAreaStatusResult(
+    result: CreateAreaStatusResult,
+    response: Response,
+  ): AreaResponseDto {
     switch (result.outcome) {
       case 'SUCCESS':
         response.setHeader('ETag', String(result.areaVersion));
@@ -983,17 +1035,36 @@ export class AreaController {
           },
         };
       case 'NOT_FOUND':
-        throw new ApiProblemException({ status: 404, code: 'RESOURCE_NOT_FOUND', detail: 'Kaynak bulunamadı.' });
+        throw new ApiProblemException({
+          status: 404,
+          code: 'RESOURCE_NOT_FOUND',
+          detail: 'Kaynak bulunamadı.',
+        });
       case 'STALE_VERSION':
-        throw new ApiProblemException({ status: 409, code: 'VERSION_CONFLICT', detail: 'Çakışma oluştu. Lütfen sayfayı yenileyin.' });
+        throw new ApiProblemException({
+          status: 409,
+          code: 'VERSION_CONFLICT',
+          detail: 'Çakışma oluştu. Lütfen sayfayı yenileyin.',
+        });
       case 'VALIDATION_ERROR':
-        throw new ApiProblemException({ status: 422, code: 'VALIDATION_FAILED', detail: result.detail });
+        throw new ApiProblemException({
+          status: 422,
+          code: 'VALIDATION_FAILED',
+          detail: result.detail,
+        });
       case 'UNAUTHENTICATED':
-        throw new ApiProblemException({ status: 401, code: 'AUTHENTICATION_REQUIRED', detail: 'Oturum açmanız gerekiyor.' });
+        throw new ApiProblemException({
+          status: 401,
+          code: 'AUTHENTICATION_REQUIRED',
+          detail: 'Oturum açmanız gerekiyor.',
+        });
     }
   }
 
-  private handleUpdateAreaStatusNameResult(result: UpdateAreaStatusNameResult, response: Response): AreaResponseDto {
+  private handleUpdateAreaStatusNameResult(
+    result: UpdateAreaStatusNameResult,
+    response: Response,
+  ): AreaResponseDto {
     switch (result.outcome) {
       case 'SUCCESS':
         response.setHeader('ETag', String(result.areaVersion));
@@ -1006,17 +1077,36 @@ export class AreaController {
           },
         };
       case 'NOT_FOUND':
-        throw new ApiProblemException({ status: 404, code: 'RESOURCE_NOT_FOUND', detail: 'Kaynak bulunamadı.' });
+        throw new ApiProblemException({
+          status: 404,
+          code: 'RESOURCE_NOT_FOUND',
+          detail: 'Kaynak bulunamadı.',
+        });
       case 'STALE_VERSION':
-        throw new ApiProblemException({ status: 409, code: 'VERSION_CONFLICT', detail: 'Çakışma oluştu. Lütfen sayfayı yenileyin.' });
+        throw new ApiProblemException({
+          status: 409,
+          code: 'VERSION_CONFLICT',
+          detail: 'Çakışma oluştu. Lütfen sayfayı yenileyin.',
+        });
       case 'VALIDATION_ERROR':
-        throw new ApiProblemException({ status: 422, code: 'VALIDATION_FAILED', detail: result.detail });
+        throw new ApiProblemException({
+          status: 422,
+          code: 'VALIDATION_FAILED',
+          detail: result.detail,
+        });
       case 'UNAUTHENTICATED':
-        throw new ApiProblemException({ status: 401, code: 'AUTHENTICATION_REQUIRED', detail: 'Oturum açmanız gerekiyor.' });
+        throw new ApiProblemException({
+          status: 401,
+          code: 'AUTHENTICATION_REQUIRED',
+          detail: 'Oturum açmanız gerekiyor.',
+        });
     }
   }
 
-  private handleRetireAreaStatusResult(result: RetireAreaStatusResult, response: Response): AreaResponseDto {
+  private handleRetireAreaStatusResult(
+    result: RetireAreaStatusResult,
+    response: Response,
+  ): AreaResponseDto {
     switch (result.outcome) {
       case 'SUCCESS':
         response.setHeader('ETag', String(result.areaVersion));
@@ -1029,17 +1119,36 @@ export class AreaController {
           },
         };
       case 'NOT_FOUND':
-        throw new ApiProblemException({ status: 404, code: 'RESOURCE_NOT_FOUND', detail: 'Kaynak bulunamadı.' });
+        throw new ApiProblemException({
+          status: 404,
+          code: 'RESOURCE_NOT_FOUND',
+          detail: 'Kaynak bulunamadı.',
+        });
       case 'STALE_VERSION':
-        throw new ApiProblemException({ status: 409, code: 'VERSION_CONFLICT', detail: 'Çakışma oluştu. Lütfen sayfayı yenileyin.' });
+        throw new ApiProblemException({
+          status: 409,
+          code: 'VERSION_CONFLICT',
+          detail: 'Çakışma oluştu. Lütfen sayfayı yenileyin.',
+        });
       case 'VALIDATION_ERROR':
-        throw new ApiProblemException({ status: 422, code: 'VALIDATION_FAILED', detail: result.detail });
+        throw new ApiProblemException({
+          status: 422,
+          code: 'VALIDATION_FAILED',
+          detail: result.detail,
+        });
       case 'UNAUTHENTICATED':
-        throw new ApiProblemException({ status: 401, code: 'AUTHENTICATION_REQUIRED', detail: 'Oturum açmanız gerekiyor.' });
+        throw new ApiProblemException({
+          status: 401,
+          code: 'AUTHENTICATION_REQUIRED',
+          detail: 'Oturum açmanız gerekiyor.',
+        });
     }
   }
 
-  private handleActivateAreaStatusResult(result: ActivateAreaStatusResult, response: Response): AreaResponseDto {
+  private handleActivateAreaStatusResult(
+    result: ActivateAreaStatusResult,
+    response: Response,
+  ): AreaResponseDto {
     switch (result.outcome) {
       case 'SUCCESS':
         response.setHeader('ETag', String(result.areaVersion));
@@ -1052,15 +1161,30 @@ export class AreaController {
           },
         };
       case 'NOT_FOUND':
-        throw new ApiProblemException({ status: 404, code: 'RESOURCE_NOT_FOUND', detail: 'Kaynak bulunamadı.' });
+        throw new ApiProblemException({
+          status: 404,
+          code: 'RESOURCE_NOT_FOUND',
+          detail: 'Kaynak bulunamadı.',
+        });
       case 'STALE_VERSION':
-        throw new ApiProblemException({ status: 409, code: 'VERSION_CONFLICT', detail: 'Çakışma oluştu. Lütfen sayfayı yenileyin.' });
+        throw new ApiProblemException({
+          status: 409,
+          code: 'VERSION_CONFLICT',
+          detail: 'Çakışma oluştu. Lütfen sayfayı yenileyin.',
+        });
       case 'UNAUTHENTICATED':
-        throw new ApiProblemException({ status: 401, code: 'AUTHENTICATION_REQUIRED', detail: 'Oturum açmanız gerekiyor.' });
+        throw new ApiProblemException({
+          status: 401,
+          code: 'AUTHENTICATION_REQUIRED',
+          detail: 'Oturum açmanız gerekiyor.',
+        });
     }
   }
 
-  private handleReorderAreaStatusesResult(result: ReorderAreaStatusesResult, response: Response): AreaResponseDto {
+  private handleReorderAreaStatusesResult(
+    result: ReorderAreaStatusesResult,
+    response: Response,
+  ): AreaResponseDto {
     switch (result.outcome) {
       case 'SUCCESS':
         response.setHeader('ETag', String(result.areaVersion));
@@ -1073,13 +1197,29 @@ export class AreaController {
           },
         };
       case 'NOT_FOUND':
-        throw new ApiProblemException({ status: 404, code: 'RESOURCE_NOT_FOUND', detail: 'Kaynak bulunamadı.' });
+        throw new ApiProblemException({
+          status: 404,
+          code: 'RESOURCE_NOT_FOUND',
+          detail: 'Kaynak bulunamadı.',
+        });
       case 'STALE_VERSION':
-        throw new ApiProblemException({ status: 409, code: 'VERSION_CONFLICT', detail: 'Çakışma oluştu. Lütfen sayfayı yenileyin.' });
+        throw new ApiProblemException({
+          status: 409,
+          code: 'VERSION_CONFLICT',
+          detail: 'Çakışma oluştu. Lütfen sayfayı yenileyin.',
+        });
       case 'VALIDATION_ERROR':
-        throw new ApiProblemException({ status: 422, code: 'VALIDATION_FAILED', detail: result.detail });
+        throw new ApiProblemException({
+          status: 422,
+          code: 'VALIDATION_FAILED',
+          detail: result.detail,
+        });
       case 'UNAUTHENTICATED':
-        throw new ApiProblemException({ status: 401, code: 'AUTHENTICATION_REQUIRED', detail: 'Oturum açmanız gerekiyor.' });
+        throw new ApiProblemException({
+          status: 401,
+          code: 'AUTHENTICATION_REQUIRED',
+          detail: 'Oturum açmanız gerekiyor.',
+        });
     }
   }
 }

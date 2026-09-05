@@ -45,7 +45,9 @@ describe('task service — listAreaKanbanTasks', () => {
     expect(result).toEqual({
       outcome: 'SUCCESS',
       statuses: expect.arrayContaining([expect.objectContaining({ id: 'status-1' })]),
-      columns: expect.arrayContaining([expect.objectContaining({ statusId: 'status-1', count: 1 })]),
+      columns: expect.arrayContaining([
+        expect.objectContaining({ statusId: 'status-1', count: 1 }),
+      ]),
     });
   });
 

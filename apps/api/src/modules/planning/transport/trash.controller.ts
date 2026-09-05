@@ -20,11 +20,7 @@ import { ApiProblemException } from '../../../platform/http/api-problem.exceptio
 import { AccountsRepository } from '../../accounts/infrastructure/accounts.repository';
 import { AuthSecurityService } from '../../accounts/security/auth-security.service';
 import { LifecycleService } from '../application/lifecycle.service';
-import {
-  handleLifecycleCommandResult,
-  resolveUserId,
-  toKind,
-} from './lifecycle-command.shared';
+import { handleLifecycleCommandResult, resolveUserId, toKind } from './lifecycle-command.shared';
 import { parseListLifecycleQuery, parseResourceType, parseRestoreInput } from './lifecycle.schema';
 
 @ApiTags('Trash')
@@ -43,7 +39,11 @@ export class TrashController {
   @ApiQuery({ name: 'limit', type: Number, required: false })
   @ApiResponse({ status: 200, description: 'Trashed resources returned.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  async list(@Req() request: Request, @Res() response: Response, @Query() query: unknown): Promise<void> {
+  async list(
+    @Req() request: Request,
+    @Res() response: Response,
+    @Query() query: unknown,
+  ): Promise<void> {
     const userId = await resolveUserId(request, this.accounts, this.security);
     const input = parseListLifecycleQuery(query);
 
@@ -84,7 +84,11 @@ export class TrashController {
     const result = await this.lifecycle.detail(userId, kind, id);
 
     if (result.outcome !== 'SUCCESS') {
-      throw new ApiProblemException({ status: 404, code: 'RESOURCE_NOT_FOUND', detail: 'Kaynak bulunamadı.' });
+      throw new ApiProblemException({
+        status: 404,
+        code: 'RESOURCE_NOT_FOUND',
+        detail: 'Kaynak bulunamadı.',
+      });
     }
     response.setHeader('ETag', String(result.data.etag));
     response.json({
@@ -125,12 +129,20 @@ export class TrashController {
     const kind = toKind(parseResourceType(resourceType));
 
     if (!idempotencyKey) {
-      throw new ApiProblemException({ status: 422, code: 'VALIDATION_FAILED', detail: 'Idempotency-Key başlığı gereklidir.' });
+      throw new ApiProblemException({
+        status: 422,
+        code: 'VALIDATION_FAILED',
+        detail: 'Idempotency-Key başlığı gereklidir.',
+      });
     }
 
     const version = parseInt(ifMatch ?? '', 10);
     if (!ifMatch || isNaN(version)) {
-      throw new ApiProblemException({ status: 428, code: 'PRECONDITION_REQUIRED', detail: 'If-Match başlığı gereklidir.' });
+      throw new ApiProblemException({
+        status: 428,
+        code: 'PRECONDITION_REQUIRED',
+        detail: 'If-Match başlığı gereklidir.',
+      });
     }
 
     const input = parseRestoreInput(body);
@@ -140,7 +152,9 @@ export class TrashController {
       id,
       version,
       ...(input.replacementAreaId !== undefined && { replacementAreaId: input.replacementAreaId }),
-      ...(input.replacementProjectId !== undefined && { replacementProjectId: input.replacementProjectId }),
+      ...(input.replacementProjectId !== undefined && {
+        replacementProjectId: input.replacementProjectId,
+      }),
     });
 
     handleLifecycleCommandResult(result, response);
@@ -149,9 +163,14 @@ export class TrashController {
   @Post(':resourceType/:id/permanent-deletions')
   @HttpCode(HttpStatus.NO_CONTENT)
   @Header('Cache-Control', 'no-store')
-  @ApiOperation({ operationId: 'permanentlyDeleteTrashed', summary: 'Permanently delete a trashed resource' })
+  @ApiOperation({
+    operationId: 'permanentlyDeleteTrashed',
+    summary: 'Permanently delete a trashed resource',
+  })
   @ApiParam({ name: 'resourceType', enum: ['areas', 'projects', 'tasks'] })
-  @ApiBody({ schema: { type: 'object', properties: { confirmPermanentDelete: { type: 'boolean' } } } })
+  @ApiBody({
+    schema: { type: 'object', properties: { confirmPermanentDelete: { type: 'boolean' } } },
+  })
   @ApiResponse({ status: 204, description: 'Permanently deleted.' })
   @ApiResponse({ status: 409, description: 'Conflict/expired.' })
   @ApiResponse({ status: 422, description: 'Precondition failed.' })
@@ -168,16 +187,28 @@ export class TrashController {
     const kind = toKind(parseResourceType(resourceType));
 
     if (!idempotencyKey) {
-      throw new ApiProblemException({ status: 422, code: 'VALIDATION_FAILED', detail: 'Idempotency-Key başlığı gereklidir.' });
+      throw new ApiProblemException({
+        status: 422,
+        code: 'VALIDATION_FAILED',
+        detail: 'Idempotency-Key başlığı gereklidir.',
+      });
     }
 
     if (body.confirmPermanentDelete !== true) {
-      throw new ApiProblemException({ status: 422, code: 'VALIDATION_FAILED', detail: 'Kalıcı silme onayı gereklidir.' });
+      throw new ApiProblemException({
+        status: 422,
+        code: 'VALIDATION_FAILED',
+        detail: 'Kalıcı silme onayı gereklidir.',
+      });
     }
 
     const version = parseInt(ifMatch ?? '', 10);
     if (!ifMatch || isNaN(version)) {
-      throw new ApiProblemException({ status: 428, code: 'PRECONDITION_REQUIRED', detail: 'If-Match başlığı gereklidir.' });
+      throw new ApiProblemException({
+        status: 428,
+        code: 'PRECONDITION_REQUIRED',
+        detail: 'If-Match başlığı gereklidir.',
+      });
     }
 
     const result = await this.lifecycle.permanentDelete(userId, { kind, id, version });

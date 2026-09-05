@@ -48,7 +48,10 @@ export function toKind(resourceType: 'areas' | 'projects' | 'tasks'): 'AREA' | '
   return 'TASK';
 }
 
-export function handleLifecycleCommandResult(result: LifecycleCommandResult, response: Response): void {
+export function handleLifecycleCommandResult(
+  result: LifecycleCommandResult,
+  response: Response,
+): void {
   switch (result.outcome) {
     case 'SUCCESS':
       response.setHeader('ETag', String(result.data.version));
@@ -68,12 +71,28 @@ export function handleLifecycleCommandResult(result: LifecycleCommandResult, res
       });
       break;
     case 'NOT_FOUND':
-      throw new ApiProblemException({ status: 404, code: 'RESOURCE_NOT_FOUND', detail: 'Kaynak bulunamadı.' });
+      throw new ApiProblemException({
+        status: 404,
+        code: 'RESOURCE_NOT_FOUND',
+        detail: 'Kaynak bulunamadı.',
+      });
     case 'STALE_VERSION':
-      throw new ApiProblemException({ status: 409, code: 'VERSION_CONFLICT', detail: 'Çakışma oluştu. Lütfen sayfayı yenileyin.' });
+      throw new ApiProblemException({
+        status: 409,
+        code: 'VERSION_CONFLICT',
+        detail: 'Çakışma oluştu. Lütfen sayfayı yenileyin.',
+      });
     case 'INVALID_STATE':
-      throw new ApiProblemException({ status: 409, code: 'INVALID_LIFECYCLE_STATE', detail: result.detail });
+      throw new ApiProblemException({
+        status: 409,
+        code: 'INVALID_LIFECYCLE_STATE',
+        detail: result.detail,
+      });
     case 'DESTINATION_UNAVAILABLE':
-      throw new ApiProblemException({ status: 422, code: 'DESTINATION_UNAVAILABLE', detail: result.detail });
+      throw new ApiProblemException({
+        status: 422,
+        code: 'DESTINATION_UNAVAILABLE',
+        detail: result.detail,
+      });
   }
 }

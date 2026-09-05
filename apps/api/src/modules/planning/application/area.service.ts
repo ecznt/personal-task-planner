@@ -193,7 +193,10 @@ export class AreaService {
     return { outcome: 'SUCCESS', area };
   }
 
-  async createAreaStatus(userId: string, command: CreateAreaStatusCommand): Promise<CreateAreaStatusResult> {
+  async createAreaStatus(
+    userId: string,
+    command: CreateAreaStatusCommand,
+  ): Promise<CreateAreaStatusResult> {
     const name = command.name.trim();
 
     if (name.length === 0) {
@@ -224,7 +227,10 @@ export class AreaService {
     return { outcome: 'SUCCESS', status: result.status, areaVersion: result.areaVersion };
   }
 
-  async updateAreaStatusName(userId: string, command: UpdateAreaStatusNameCommand): Promise<UpdateAreaStatusNameResult> {
+  async updateAreaStatusName(
+    userId: string,
+    command: UpdateAreaStatusNameCommand,
+  ): Promise<UpdateAreaStatusNameResult> {
     const name = command.name.trim();
 
     if (name.length === 0) {
@@ -255,14 +261,20 @@ export class AreaService {
         case 'DUPLICATE_NAME':
           return { outcome: 'VALIDATION_ERROR', detail: 'Bu isimde bir durum zaten var.' };
         case 'CANNOT_RENAME_DEFAULT':
-          return { outcome: 'VALIDATION_ERROR', detail: 'Varsayılan durumlar yeniden adlandırılamaz.' };
+          return {
+            outcome: 'VALIDATION_ERROR',
+            detail: 'Varsayılan durumlar yeniden adlandırılamaz.',
+          };
       }
     }
 
     return { outcome: 'SUCCESS', status: result.status, areaVersion: result.areaVersion };
   }
 
-  async retireAreaStatus(userId: string, command: RetireAreaStatusCommand): Promise<RetireAreaStatusResult> {
+  async retireAreaStatus(
+    userId: string,
+    command: RetireAreaStatusCommand,
+  ): Promise<RetireAreaStatusResult> {
     const result = await this.areaRepository.retireStatus(
       userId,
       command.areaId,
@@ -281,10 +293,17 @@ export class AreaService {
       }
     }
 
-    return { outcome: 'SUCCESS', areaVersion: result.areaVersion, migratedCount: result.migratedCount };
+    return {
+      outcome: 'SUCCESS',
+      areaVersion: result.areaVersion,
+      migratedCount: result.migratedCount,
+    };
   }
 
-  async activateAreaStatus(userId: string, command: ActivateAreaStatusCommand): Promise<ActivateAreaStatusResult> {
+  async activateAreaStatus(
+    userId: string,
+    command: ActivateAreaStatusCommand,
+  ): Promise<ActivateAreaStatusResult> {
     const result = await this.areaRepository.activateStatus(
       userId,
       command.areaId,
@@ -304,7 +323,10 @@ export class AreaService {
     return { outcome: 'SUCCESS', areaVersion: result.areaVersion };
   }
 
-  async reorderAreaStatuses(userId: string, command: ReorderAreaStatusesCommand): Promise<ReorderAreaStatusesResult> {
+  async reorderAreaStatuses(
+    userId: string,
+    command: ReorderAreaStatusesCommand,
+  ): Promise<ReorderAreaStatusesResult> {
     if (command.statusIds.length === 0) {
       return { outcome: 'VALIDATION_ERROR', detail: 'En az bir durum seçmelisiniz.' };
     }

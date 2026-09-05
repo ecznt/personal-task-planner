@@ -258,12 +258,8 @@ describe('area HTTP contract', () => {
     it('returns area kanban columns', async () => {
       taskService.listAreaKanbanTasks.mockResolvedValue({
         outcome: 'SUCCESS',
-        statuses: [
-          { id: 'status-1', name: 'Yapılacak', canonicalStatus: 'TO_DO', position: 1 },
-        ],
-        columns: [
-          { statusId: 'status-1', count: 0, tasks: [] },
-        ],
+        statuses: [{ id: 'status-1', name: 'Yapılacak', canonicalStatus: 'TO_DO', position: 1 }],
+        columns: [{ statusId: 'status-1', count: 0, tasks: [] }],
       });
 
       const response = await request(app.getHttpServer())
@@ -279,9 +275,7 @@ describe('area HTTP contract', () => {
     it('returns 401 without session', async () => {
       accountsRepository.findAuthenticatedSession.mockResolvedValue(null);
 
-      await request(app.getHttpServer())
-        .get('/areas/area-id/kanban')
-        .expect(401);
+      await request(app.getHttpServer()).get('/areas/area-id/kanban').expect(401);
     });
 
     it('returns 404 for non-existent area', async () => {

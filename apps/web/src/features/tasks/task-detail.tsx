@@ -341,7 +341,11 @@ export function TaskDetail({ taskId }: TaskDetailProps) {
           </a>
           <h1 className="mt-2 text-2xl font-bold tracking-tight">{taskData.title}</h1>
         </div>
-        <Button variant="outline" onClick={() => setIsEditing(true)} className="transition-transform duration-150 active:scale-[0.97]">
+        <Button
+          variant="outline"
+          onClick={() => setIsEditing(true)}
+          className="transition-transform duration-150 active:scale-[0.97]"
+        >
           Düzenle
         </Button>
       </div>
@@ -381,7 +385,11 @@ export function TaskDetail({ taskId }: TaskDetailProps) {
       )}
 
       <div className="rounded-lg border bg-card p-4">
-        <TaskLifecycleActions taskId={taskId} version={taskData.version} lifecycleState={taskData.lifecycleState} />
+        <TaskLifecycleActions
+          taskId={taskId}
+          version={taskData.version}
+          lifecycleState={taskData.lifecycleState}
+        />
       </div>
 
       <div className="rounded-lg border bg-card p-4">
@@ -406,7 +414,12 @@ export function TaskDetail({ taskId }: TaskDetailProps) {
         version={taskData.version}
       />
 
-      <RecurrenceSection taskId={taskId} taskData={taskData} queryClient={queryClient} csrfToken={csrfQuery.data?.token} />
+      <RecurrenceSection
+        taskId={taskId}
+        taskData={taskData}
+        queryClient={queryClient}
+        csrfToken={csrfQuery.data?.token}
+      />
     </div>
   );
 }
@@ -429,7 +442,9 @@ const WEEKDAY_LABELS: Record<number, string> = {
   7: 'Pazar',
 };
 
-function describeRecurrence(rule: RecurrenceInfo extends null ? never : NonNullable<RecurrenceInfo>['activeRule']): string {
+function describeRecurrence(
+  rule: RecurrenceInfo extends null ? never : NonNullable<RecurrenceInfo>['activeRule'],
+): string {
   const freq = FREQUENCY_LABELS[rule.frequency] ?? rule.frequency;
   const interval = rule.interval > 1 ? ` ${rule.interval}` : '';
 
@@ -526,13 +541,9 @@ function RecurrenceSection({
         <div className="flex items-center justify-between">
           <div>
             <div className="text-sm text-muted-foreground">Tekrarlama</div>
-            <div className="mt-1 font-medium">
-              {describeRecurrence(recurrence.activeRule)}
-            </div>
+            <div className="mt-1 font-medium">{describeRecurrence(recurrence.activeRule)}</div>
             {recurrence.series.state !== 'ACTIVE' && (
-              <div className="mt-1 text-xs text-muted-foreground">
-                Duraklatılmış
-              </div>
+              <div className="mt-1 text-xs text-muted-foreground">Duraklatılmış</div>
             )}
           </div>
           <div className="flex gap-2">

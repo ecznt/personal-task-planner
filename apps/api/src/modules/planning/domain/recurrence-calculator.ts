@@ -9,10 +9,7 @@ export type RecurrenceInput = {
   readonly localTime: string | null;
 };
 
-export function calculateNextOccurrence(
-  anchor: Date,
-  rule: RecurrenceInput,
-): Date {
+export function calculateNextOccurrence(anchor: Date, rule: RecurrenceInput): Date {
   const base = new Date(anchor);
 
   switch (rule.frequency) {
@@ -79,11 +76,7 @@ function nextWeeklyMatch(
   return addDays(anchor, daysToNextWeek + 7 * (interval - 1));
 }
 
-function nextMonthlyMatch(
-  anchor: Date,
-  interval: number,
-  dayOfMonth: number | null,
-): Date {
+function nextMonthlyMatch(anchor: Date, interval: number, dayOfMonth: number | null): Date {
   if (dayOfMonth === null) {
     const result = new Date(anchor);
     result.setMonth(result.getMonth() + interval);

@@ -36,7 +36,9 @@ export type BulkActionResult = {
 export class BulkActionService {
   constructor(@Inject(TaskRepository) private readonly taskRepository: TaskRepository) {}
 
-  async executeBulkStatusChange(command: StatusChangeCommand): Promise<readonly BulkActionResult[]> {
+  async executeBulkStatusChange(
+    command: StatusChangeCommand,
+  ): Promise<readonly BulkActionResult[]> {
     if (command.items.length === 0) {
       return [];
     }
