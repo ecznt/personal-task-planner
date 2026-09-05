@@ -46,7 +46,7 @@ export class TaskDataDto {
   @ApiProperty({ format: 'uuid', type: String, required: false })
   projectId!: string | null;
 
-  @ApiProperty({ type: Object, required: false, nullable: true })
+  @ApiProperty({ type: Object, required: false })
   recurrence?: Record<string, unknown> | null;
 }
 

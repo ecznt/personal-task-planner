@@ -46,6 +46,24 @@ export type AreaDetailResponseDto = {
     data: AreaDetailDataDto;
 };
 
+export type AreaKanbanColumnDto = {
+    count: number;
+    statusId: string;
+    tasks: Array<TaskSummaryDto>;
+};
+
+export type AreaKanbanResponseDto = {
+    columns: Array<AreaKanbanColumnDto>;
+    statuses: Array<AreaKanbanStatusDto>;
+};
+
+export type AreaKanbanStatusDto = {
+    canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+    id: string;
+    name: string;
+    position: number;
+};
+
 export type AreaListMetaDto = {
     nextCursor?: string;
 };
@@ -107,6 +125,11 @@ export type ChecklistOrderResponseDto = {
 };
 
 export type CreateAreaRequestDto = {
+    name: string;
+};
+
+export type CreateAreaStatusRequestDto = {
+    canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
     name: string;
 };
 
@@ -223,6 +246,11 @@ export type LoginResponseDto = {
     data: AuthenticatedSessionDataDto;
 };
 
+export type MoveAreaKanbanTaskRequestDto = {
+    targetAreaStatusId: string;
+    taskId: string;
+};
+
 export type MoveKanbanTaskRequestDto = {
     targetCanonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
     taskId: string;
@@ -294,6 +322,38 @@ export type ReauthenticationResponseDto = {
     data: ReauthenticationDataDto;
 };
 
+export type RecurrenceResponseDto = {
+    activeRule: RecurrenceRuleDto;
+    currentOpenTaskId?: string;
+    series: RecurrenceSeriesDto;
+};
+
+export type RecurrenceRuleDto = {
+    dayOfMonth?: number;
+    frequency: string;
+    id: string;
+    interval: number;
+    localTime?: string;
+    mode: string;
+    monthOfYear?: number;
+    selectedWeekdays: Array<number>;
+    state: string;
+};
+
+export type RecurrenceSeriesDto = {
+    createdAt: string;
+    currentOpenTaskId?: string;
+    id: string;
+    nextOccurrenceNumber: number;
+    state: string;
+    updatedAt: string;
+};
+
+export type RecurrenceSuccessResponseDto = {
+    data: RecurrenceResponseDto;
+    etag: number;
+};
+
 export type RegisterAccountRequestDto = {
     email: string;
     termsAccepted: true;
@@ -320,6 +380,10 @@ export type RenameProjectRequestDto = {
     name: string;
 };
 
+export type ReorderAreaStatusesRequestDto = {
+    statusIds: Array<string>;
+};
+
 export type ReorderChecklistRequestDto = {
     orderedIds: Array<string>;
 };
@@ -341,6 +405,10 @@ export type SessionStateResponseDto = {
     data: SessionStateDataDto;
 };
 
+export type StopRecurrenceSuccessResponseDto = {
+    etag: number;
+};
+
 export type TaskDataDto = {
     areaId: string;
     areaStatusId: string;
@@ -354,6 +422,9 @@ export type TaskDataDto = {
     plannedAt?: string;
     priority: 'LOW' | 'MEDIUM' | 'HIGH';
     projectId?: string;
+    recurrence?: {
+        [key: string]: unknown;
+    };
     title: string;
     version: number;
 };
@@ -406,6 +477,10 @@ export type TodayTaskSummaryDto = {
     title: string;
 };
 
+export type UpdateAreaStatusNameRequestDto = {
+    name: string;
+};
+
 export type UpdateCurrentUserRequestDto = {
     timeZone: string;
 };
@@ -448,6 +523,82 @@ export type RegisterAccountRequestDtoWritable = {
 export type VerifyEmailRequestDtoWritable = {
     code: string;
     email: string;
+};
+
+export type ListArchiveData = {
+    body?: never;
+    path?: never;
+    query?: {
+        limit?: number;
+        cursor?: string;
+    };
+    url: '/api/v1/archive';
+};
+
+export type ListArchiveErrors = {
+    /**
+     * Unauthorized.
+     */
+    401: unknown;
+};
+
+export type ListArchiveResponses = {
+    /**
+     * Archived resources returned.
+     */
+    200: unknown;
+};
+
+export type GetArchiveDetailData = {
+    body?: never;
+    path: {
+        id: unknown;
+        resourceType: 'areas' | 'projects' | 'tasks';
+    };
+    query?: never;
+    url: '/api/v1/archive/{resourceType}/{id}';
+};
+
+export type GetArchiveDetailErrors = {
+    /**
+     * Not found.
+     */
+    404: unknown;
+};
+
+export type GetArchiveDetailResponses = {
+    /**
+     * Archived resource detail returned.
+     */
+    200: unknown;
+};
+
+export type RestoreArchivedData = {
+    body?: never;
+    path: {
+        id: unknown;
+        resourceType: 'areas' | 'projects' | 'tasks';
+    };
+    query?: never;
+    url: '/api/v1/archive/{resourceType}/{id}/restore';
+};
+
+export type RestoreArchivedErrors = {
+    /**
+     * Conflict.
+     */
+    409: unknown;
+    /**
+     * Destination unavailable.
+     */
+    422: unknown;
+};
+
+export type RestoreArchivedResponses = {
+    /**
+     * Restored.
+     */
+    200: unknown;
 };
 
 export type ListAreasData = {
@@ -554,6 +705,231 @@ export type RenameAreaResponses = {
 
 export type RenameAreaResponse = RenameAreaResponses[keyof RenameAreaResponses];
 
+export type ListAreaKanbanTasksData = {
+    body?: never;
+    path: {
+        areaId: string;
+    };
+    query?: never;
+    url: '/api/v1/areas/{areaId}/kanban';
+};
+
+export type ListAreaKanbanTasksErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Area not found.
+     */
+    404: unknown;
+};
+
+export type ListAreaKanbanTasksResponses = {
+    200: AreaKanbanResponseDto;
+};
+
+export type ListAreaKanbanTasksResponse = ListAreaKanbanTasksResponses[keyof ListAreaKanbanTasksResponses];
+
+export type MoveAreaKanbanTaskData = {
+    body: MoveAreaKanbanTaskRequestDto;
+    path: {
+        areaId: string;
+    };
+    query?: never;
+    url: '/api/v1/areas/{areaId}/kanban-moves';
+};
+
+export type MoveAreaKanbanTaskErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Task or target status not found.
+     */
+    404: unknown;
+    /**
+     * Version conflict.
+     */
+    409: unknown;
+    /**
+     * Validation failed.
+     */
+    422: unknown;
+};
+
+export type MoveAreaKanbanTaskResponses = {
+    200: TaskResponseDto;
+};
+
+export type MoveAreaKanbanTaskResponse = MoveAreaKanbanTaskResponses[keyof MoveAreaKanbanTaskResponses];
+
+export type CreateAreaStatusData = {
+    body: CreateAreaStatusRequestDto;
+    path: {
+        areaId: string;
+    };
+    query?: never;
+    url: '/api/v1/areas/{areaId}/statuses';
+};
+
+export type CreateAreaStatusErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Area not found.
+     */
+    404: unknown;
+    /**
+     * Validation failed.
+     */
+    422: unknown;
+};
+
+export type CreateAreaStatusResponses = {
+    201: AreaResponseDto;
+};
+
+export type CreateAreaStatusResponse = CreateAreaStatusResponses[keyof CreateAreaStatusResponses];
+
+export type UpdateAreaStatusNameData = {
+    body: UpdateAreaStatusNameRequestDto;
+    path: {
+        statusId: string;
+        areaId: string;
+    };
+    query?: never;
+    url: '/api/v1/areas/{areaId}/statuses/{statusId}';
+};
+
+export type UpdateAreaStatusNameErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Status not found.
+     */
+    404: unknown;
+    /**
+     * Version conflict.
+     */
+    409: unknown;
+    /**
+     * Validation failed.
+     */
+    422: unknown;
+};
+
+export type UpdateAreaStatusNameResponses = {
+    200: AreaResponseDto;
+};
+
+export type UpdateAreaStatusNameResponse = UpdateAreaStatusNameResponses[keyof UpdateAreaStatusNameResponses];
+
+export type ActivateAreaStatusData = {
+    body?: never;
+    path: {
+        statusId: string;
+        areaId: string;
+    };
+    query?: never;
+    url: '/api/v1/areas/{areaId}/statuses/{statusId}/activate';
+};
+
+export type ActivateAreaStatusErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Status not found.
+     */
+    404: unknown;
+    /**
+     * Version conflict.
+     */
+    409: unknown;
+};
+
+export type ActivateAreaStatusResponses = {
+    200: AreaResponseDto;
+};
+
+export type ActivateAreaStatusResponse = ActivateAreaStatusResponses[keyof ActivateAreaStatusResponses];
+
+export type RetireAreaStatusData = {
+    body?: never;
+    path: {
+        statusId: string;
+        areaId: string;
+    };
+    query?: never;
+    url: '/api/v1/areas/{areaId}/statuses/{statusId}/retire';
+};
+
+export type RetireAreaStatusErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Status not found.
+     */
+    404: unknown;
+    /**
+     * Version conflict.
+     */
+    409: unknown;
+    /**
+     * Validation failed.
+     */
+    422: unknown;
+};
+
+export type RetireAreaStatusResponses = {
+    200: AreaResponseDto;
+};
+
+export type RetireAreaStatusResponse = RetireAreaStatusResponses[keyof RetireAreaStatusResponses];
+
+export type ReorderAreaStatusesData = {
+    body: ReorderAreaStatusesRequestDto;
+    path: {
+        areaId: string;
+    };
+    query?: never;
+    url: '/api/v1/areas/{areaId}/statuses/reorder';
+};
+
+export type ReorderAreaStatusesErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Area not found.
+     */
+    404: unknown;
+    /**
+     * Version conflict.
+     */
+    409: unknown;
+    /**
+     * Validation failed.
+     */
+    422: unknown;
+};
+
+export type ReorderAreaStatusesResponses = {
+    200: AreaResponseDto;
+};
+
+export type ReorderAreaStatusesResponse = ReorderAreaStatusesResponses[keyof ReorderAreaStatusesResponses];
+
 export type ListTasksData = {
     body?: never;
     path: {
@@ -605,6 +981,38 @@ export type CreateTaskResponses = {
 };
 
 export type CreateTaskResponse = CreateTaskResponses[keyof CreateTaskResponses];
+
+export type ArchiveAreaData = {
+    body?: never;
+    path: {
+        id: unknown;
+    };
+    query?: never;
+    url: '/api/v1/areas/{id}/archive';
+};
+
+export type ArchiveAreaResponses = {
+    /**
+     * Archived.
+     */
+    200: unknown;
+};
+
+export type TrashAreaData = {
+    body?: never;
+    path: {
+        id: unknown;
+    };
+    query?: never;
+    url: '/api/v1/areas/{id}/trash';
+};
+
+export type TrashAreaResponses = {
+    /**
+     * Trashed.
+     */
+    200: unknown;
+};
 
 export type GetAuthCsrfData = {
     body?: never;
@@ -1011,6 +1419,104 @@ export type RenameLabelResponses = {
 
 export type RenameLabelResponse = RenameLabelResponses[keyof RenameLabelResponses];
 
+export type ListNotificationsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        readState?: 'UNREAD' | 'READ';
+        limit?: unknown;
+        cursor?: unknown;
+    };
+    url: '/api/v1/notifications';
+};
+
+export type ListNotificationsErrors = {
+    /**
+     * Unauthorized.
+     */
+    401: unknown;
+};
+
+export type ListNotificationsResponses = {
+    /**
+     * Notifications returned.
+     */
+    200: unknown;
+};
+
+export type MarkAsReadData = {
+    body?: never;
+    headers: {
+        'If-Match': string;
+    };
+    path: {
+        notificationId: string;
+    };
+    query?: never;
+    url: '/api/v1/notifications/{notificationId}';
+};
+
+export type MarkAsReadErrors = {
+    /**
+     * Unauthorized.
+     */
+    401: unknown;
+};
+
+export type MarkAsReadResponses = {
+    /**
+     * Notification marked as read.
+     */
+    200: unknown;
+};
+
+export type MarkMultipleAsReadData = {
+    body: {
+        [key: string]: unknown;
+    };
+    headers: {
+        'Idempotency-Key': string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/v1/notifications/read-actions';
+};
+
+export type MarkMultipleAsReadErrors = {
+    /**
+     * Unauthorized.
+     */
+    401: unknown;
+};
+
+export type MarkMultipleAsReadResponses = {
+    /**
+     * Notifications marked as read.
+     */
+    200: unknown;
+};
+
+export type GetSummaryData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/notifications/summary';
+};
+
+export type GetSummaryErrors = {
+    /**
+     * Unauthorized.
+     */
+    401: unknown;
+};
+
+export type GetSummaryResponses = {
+    /**
+     * Summary returned.
+     */
+    200: unknown;
+};
+
 export type ListProjectsData = {
     body?: never;
     path?: never;
@@ -1062,6 +1568,38 @@ export type CreateProjectResponses = {
 };
 
 export type CreateProjectResponse = CreateProjectResponses[keyof CreateProjectResponses];
+
+export type ArchiveProjectData = {
+    body?: never;
+    path: {
+        id: unknown;
+    };
+    query?: never;
+    url: '/api/v1/projects/{id}/archive';
+};
+
+export type ArchiveProjectResponses = {
+    /**
+     * Archived.
+     */
+    200: unknown;
+};
+
+export type TrashProjectData = {
+    body?: never;
+    path: {
+        id: unknown;
+    };
+    query?: never;
+    url: '/api/v1/projects/{id}/trash';
+};
+
+export type TrashProjectResponses = {
+    /**
+     * Trashed.
+     */
+    200: unknown;
+};
 
 export type GetProjectData = {
     body?: never;
@@ -1127,6 +1665,41 @@ export type RenameProjectResponses = {
 
 export type RenameProjectResponse = RenameProjectResponses[keyof RenameProjectResponses];
 
+export type SearchTasksData = {
+    body?: never;
+    path?: never;
+    query: {
+        labelId?: unknown;
+        canonicalStatus?: unknown;
+        priority?: unknown;
+        projectId?: unknown;
+        areaId?: unknown;
+        order?: unknown;
+        sort?: unknown;
+        limit?: unknown;
+        cursor?: unknown;
+        /**
+         * Search query (1-200 chars)
+         */
+        q: unknown;
+    };
+    url: '/api/v1/search/tasks';
+};
+
+export type SearchTasksErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+};
+
+export type SearchTasksResponses = {
+    /**
+     * Search results returned successfully.
+     */
+    200: unknown;
+};
+
 export type ListGlobalTasksData = {
     body?: never;
     path?: never;
@@ -1156,6 +1729,38 @@ export type ListGlobalTasksResponses = {
 };
 
 export type ListGlobalTasksResponse = ListGlobalTasksResponses[keyof ListGlobalTasksResponses];
+
+export type ArchiveTaskData = {
+    body?: never;
+    path: {
+        id: unknown;
+    };
+    query?: never;
+    url: '/api/v1/tasks/{id}/archive';
+};
+
+export type ArchiveTaskResponses = {
+    /**
+     * Archived.
+     */
+    200: unknown;
+};
+
+export type TrashTaskData = {
+    body?: never;
+    path: {
+        id: unknown;
+    };
+    query?: never;
+    url: '/api/v1/tasks/{id}/trash';
+};
+
+export type TrashTaskResponses = {
+    /**
+     * Trashed.
+     */
+    200: unknown;
+};
 
 export type GetTaskData = {
     body?: never;
@@ -1442,6 +2047,188 @@ export type ReorderChecklistResponses = {
 
 export type ReorderChecklistResponse = ReorderChecklistResponses[keyof ReorderChecklistResponses];
 
+export type StopTaskRecurrenceData = {
+    body?: never;
+    path: {
+        taskId: string;
+    };
+    query?: never;
+    url: '/api/v1/tasks/{taskId}/recurrence';
+};
+
+export type StopTaskRecurrenceErrors = {
+    /**
+     * Not found.
+     */
+    404: unknown;
+    /**
+     * Validation failed.
+     */
+    422: unknown;
+};
+
+export type StopTaskRecurrenceResponses = {
+    200: StopRecurrenceSuccessResponseDto;
+};
+
+export type StopTaskRecurrenceResponse = StopTaskRecurrenceResponses[keyof StopTaskRecurrenceResponses];
+
+export type GetTaskRecurrenceData = {
+    body?: never;
+    path: {
+        taskId: string;
+    };
+    query?: never;
+    url: '/api/v1/tasks/{taskId}/recurrence';
+};
+
+export type GetTaskRecurrenceErrors = {
+    /**
+     * Not found.
+     */
+    404: unknown;
+};
+
+export type GetTaskRecurrenceResponses = {
+    200: RecurrenceSuccessResponseDto;
+};
+
+export type GetTaskRecurrenceResponse = GetTaskRecurrenceResponses[keyof GetTaskRecurrenceResponses];
+
+export type SetTaskRecurrenceData = {
+    body: {
+        [key: string]: unknown;
+    };
+    path: {
+        taskId: string;
+    };
+    query?: never;
+    url: '/api/v1/tasks/{taskId}/recurrence';
+};
+
+export type SetTaskRecurrenceErrors = {
+    /**
+     * Not found.
+     */
+    404: unknown;
+    /**
+     * Validation failed.
+     */
+    422: unknown;
+};
+
+export type SetTaskRecurrenceResponses = {
+    200: RecurrenceSuccessResponseDto;
+};
+
+export type SetTaskRecurrenceResponse = SetTaskRecurrenceResponses[keyof SetTaskRecurrenceResponses];
+
+export type ListRemindersData = {
+    body?: never;
+    path: {
+        taskId: string;
+    };
+    query?: never;
+    url: '/api/v1/tasks/{taskId}/reminders';
+};
+
+export type ListRemindersErrors = {
+    /**
+     * Unauthorized.
+     */
+    401: unknown;
+};
+
+export type ListRemindersResponses = {
+    /**
+     * Reminders returned.
+     */
+    200: unknown;
+};
+
+export type CreateReminderData = {
+    body: {
+        [key: string]: unknown;
+    };
+    headers: {
+        'If-Match': string;
+    };
+    path: {
+        taskId: string;
+    };
+    query?: never;
+    url: '/api/v1/tasks/{taskId}/reminders';
+};
+
+export type CreateReminderErrors = {
+    /**
+     * Unauthorized.
+     */
+    401: unknown;
+};
+
+export type CreateReminderResponses = {
+    /**
+     * Reminder created.
+     */
+    201: unknown;
+};
+
+export type CancelReminderData = {
+    body?: never;
+    headers: {
+        'If-Match': string;
+    };
+    path: {
+        reminderId: string;
+        taskId: string;
+    };
+    query?: never;
+    url: '/api/v1/tasks/{taskId}/reminders/{reminderId}';
+};
+
+export type CancelReminderErrors = {
+    /**
+     * Unauthorized.
+     */
+    401: unknown;
+};
+
+export type CancelReminderResponses = {
+    /**
+     * Reminder cancelled.
+     */
+    204: void;
+};
+
+export type CancelReminderResponse = CancelReminderResponses[keyof CancelReminderResponses];
+
+export type ExecuteBulkActionsData = {
+    body: {
+        [key: string]: unknown;
+    };
+    headers: {
+        'Idempotency-Key': string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/v1/tasks/bulk-actions';
+};
+
+export type ExecuteBulkActionsErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+};
+
+export type ExecuteBulkActionsResponses = {
+    /**
+     * Bulk action results returned.
+     */
+    200: unknown;
+};
+
 export type ListKanbanTasksData = {
     body?: never;
     path?: never;
@@ -1515,6 +2302,110 @@ export type ListTodayTasksResponses = {
 };
 
 export type ListTodayTasksResponse = ListTodayTasksResponses[keyof ListTodayTasksResponses];
+
+export type ListTrashData = {
+    body?: never;
+    path?: never;
+    query?: {
+        limit?: number;
+        cursor?: string;
+    };
+    url: '/api/v1/trash';
+};
+
+export type ListTrashErrors = {
+    /**
+     * Unauthorized.
+     */
+    401: unknown;
+};
+
+export type ListTrashResponses = {
+    /**
+     * Trashed resources returned.
+     */
+    200: unknown;
+};
+
+export type GetTrashDetailData = {
+    body?: never;
+    path: {
+        id: unknown;
+        resourceType: 'areas' | 'projects' | 'tasks';
+    };
+    query?: never;
+    url: '/api/v1/trash/{resourceType}/{id}';
+};
+
+export type GetTrashDetailErrors = {
+    /**
+     * Not found.
+     */
+    404: unknown;
+};
+
+export type GetTrashDetailResponses = {
+    /**
+     * Trashed resource detail returned.
+     */
+    200: unknown;
+};
+
+export type PermanentlyDeleteTrashedData = {
+    body: {
+        confirmPermanentDelete?: boolean;
+    };
+    path: {
+        id: unknown;
+        resourceType: 'areas' | 'projects' | 'tasks';
+    };
+    query?: never;
+    url: '/api/v1/trash/{resourceType}/{id}/permanent-deletions';
+};
+
+export type PermanentlyDeleteTrashedErrors = {
+    /**
+     * Conflict/expired.
+     */
+    409: unknown;
+    /**
+     * Precondition failed.
+     */
+    422: unknown;
+};
+
+export type PermanentlyDeleteTrashedResponses = {
+    /**
+     * Permanently deleted.
+     */
+    204: void;
+};
+
+export type PermanentlyDeleteTrashedResponse = PermanentlyDeleteTrashedResponses[keyof PermanentlyDeleteTrashedResponses];
+
+export type RestoreTrashedData = {
+    body?: never;
+    path: {
+        id: unknown;
+        resourceType: 'areas' | 'projects' | 'tasks';
+    };
+    query?: never;
+    url: '/api/v1/trash/{resourceType}/{id}/restore';
+};
+
+export type RestoreTrashedErrors = {
+    /**
+     * Conflict/expired.
+     */
+    409: unknown;
+};
+
+export type RestoreTrashedResponses = {
+    /**
+     * Restored.
+     */
+    200: unknown;
+};
 
 export type GetCurrentUserData = {
     body?: never;

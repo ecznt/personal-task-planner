@@ -70,6 +70,7 @@ export class TrashController {
   @Header('Cache-Control', 'no-store')
   @ApiOperation({ operationId: 'getTrashDetail', summary: 'Get trashed resource detail' })
   @ApiParam({ name: 'resourceType', enum: ['areas', 'projects', 'tasks'] })
+  @ApiParam({ name: 'id', format: 'uuid', required: true })
   @ApiResponse({ status: 200, description: 'Trashed resource detail returned.' })
   @ApiResponse({ status: 404, description: 'Not found.' })
   async detail(
@@ -114,6 +115,7 @@ export class TrashController {
   @Header('Cache-Control', 'no-store')
   @ApiOperation({ operationId: 'restoreTrashed', summary: 'Restore a trashed resource' })
   @ApiParam({ name: 'resourceType', enum: ['areas', 'projects', 'tasks'] })
+  @ApiParam({ name: 'id', format: 'uuid', required: true })
   @ApiResponse({ status: 200, description: 'Restored.' })
   @ApiResponse({ status: 409, description: 'Conflict/expired.' })
   async restore(
@@ -168,6 +170,7 @@ export class TrashController {
     summary: 'Permanently delete a trashed resource',
   })
   @ApiParam({ name: 'resourceType', enum: ['areas', 'projects', 'tasks'] })
+  @ApiParam({ name: 'id', format: 'uuid', required: true })
   @ApiBody({
     schema: { type: 'object', properties: { confirmPermanentDelete: { type: 'boolean' } } },
   })

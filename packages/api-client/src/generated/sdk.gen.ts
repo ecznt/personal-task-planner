@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AddChecklistItemData, AddChecklistItemErrors, AddChecklistItemResponses, CompleteChecklistItemData, CompleteChecklistItemErrors, CompleteChecklistItemResponses, CompleteCurrentUserOnboardingData, CompleteCurrentUserOnboardingErrors, CompleteCurrentUserOnboardingResponses, CreateAreaData, CreateAreaErrors, CreateAreaResponses, CreateAuthSessionData, CreateAuthSessionErrors, CreateAuthSessionResponses, CreateLabelData, CreateLabelErrors, CreateLabelResponses, CreateProjectData, CreateProjectErrors, CreateProjectResponses, CreateTaskData, CreateTaskErrors, CreateTaskResponses, DeleteAuthSessionData, DeleteAuthSessionErrors, DeleteAuthSessionResponses, DeleteChecklistItemData, DeleteChecklistItemErrors, DeleteChecklistItemResponses, DeleteLabelData, DeleteLabelErrors, DeleteLabelResponses, EditChecklistItemData, EditChecklistItemErrors, EditChecklistItemResponses, EditTaskData, EditTaskErrors, EditTaskResponses, GetAreaData, GetAreaErrors, GetAreaResponses, GetAuthCsrfData, GetAuthCsrfResponses, GetAuthSessionData, GetAuthSessionResponses, GetCurrentUserData, GetCurrentUserErrors, GetCurrentUserResponses, GetLabelData, GetLabelErrors, GetLabelResponses, GetProjectData, GetProjectErrors, GetProjectResponses, GetTaskData, GetTaskErrors, GetTaskResponses, GetVersionData, GetVersionResponses, InitiateAccountDeletionData, InitiateAccountDeletionErrors, InitiateAccountDeletionResponses, ListAreasData, ListAreasErrors, ListAreasResponses, ListChecklistItemsData, ListChecklistItemsErrors, ListChecklistItemsResponses, ListGlobalTasksData, ListGlobalTasksErrors, ListGlobalTasksResponses, ListKanbanTasksData, ListKanbanTasksErrors, ListKanbanTasksResponses, ListLabelsData, ListLabelsErrors, ListLabelsResponses, ListProjectsData, ListProjectsErrors, ListProjectsResponses, ListTasksData, ListTasksErrors, ListTasksResponses, ListTodayTasksData, ListTodayTasksErrors, ListTodayTasksResponses, MoveKanbanTaskData, MoveKanbanTaskErrors, MoveKanbanTaskResponses, ReauthenticateData, ReauthenticateErrors, ReauthenticateResponses, RegisterAccountData, RegisterAccountErrors, RegisterAccountResponses, RenameAreaData, RenameAreaErrors, RenameAreaResponses, RenameLabelData, RenameLabelErrors, RenameLabelResponses, RenameProjectData, RenameProjectErrors, RenameProjectResponses, ReopenChecklistItemData, ReopenChecklistItemErrors, ReopenChecklistItemResponses, ReorderChecklistData, ReorderChecklistErrors, ReorderChecklistResponses, RequestEmailVerificationData, RequestEmailVerificationErrors, RequestEmailVerificationResponses, RequestPasswordResetData, RequestPasswordResetErrors, RequestPasswordResetResponses, ResetPasswordData, ResetPasswordErrors, ResetPasswordResponses, UpdateCurrentUserData, UpdateCurrentUserErrors, UpdateCurrentUserResponses, VerifyEmailData, VerifyEmailErrors, VerifyEmailResponses } from './types.gen';
+import type { ActivateAreaStatusData, ActivateAreaStatusErrors, ActivateAreaStatusResponses, AddChecklistItemData, AddChecklistItemErrors, AddChecklistItemResponses, ArchiveAreaData, ArchiveAreaResponses, ArchiveProjectData, ArchiveProjectResponses, ArchiveTaskData, ArchiveTaskResponses, CancelReminderData, CancelReminderErrors, CancelReminderResponses, CompleteChecklistItemData, CompleteChecklistItemErrors, CompleteChecklistItemResponses, CompleteCurrentUserOnboardingData, CompleteCurrentUserOnboardingErrors, CompleteCurrentUserOnboardingResponses, CreateAreaData, CreateAreaErrors, CreateAreaResponses, CreateAreaStatusData, CreateAreaStatusErrors, CreateAreaStatusResponses, CreateAuthSessionData, CreateAuthSessionErrors, CreateAuthSessionResponses, CreateLabelData, CreateLabelErrors, CreateLabelResponses, CreateProjectData, CreateProjectErrors, CreateProjectResponses, CreateReminderData, CreateReminderErrors, CreateReminderResponses, CreateTaskData, CreateTaskErrors, CreateTaskResponses, DeleteAuthSessionData, DeleteAuthSessionErrors, DeleteAuthSessionResponses, DeleteChecklistItemData, DeleteChecklistItemErrors, DeleteChecklistItemResponses, DeleteLabelData, DeleteLabelErrors, DeleteLabelResponses, EditChecklistItemData, EditChecklistItemErrors, EditChecklistItemResponses, EditTaskData, EditTaskErrors, EditTaskResponses, ExecuteBulkActionsData, ExecuteBulkActionsErrors, ExecuteBulkActionsResponses, GetArchiveDetailData, GetArchiveDetailErrors, GetArchiveDetailResponses, GetAreaData, GetAreaErrors, GetAreaResponses, GetAuthCsrfData, GetAuthCsrfResponses, GetAuthSessionData, GetAuthSessionResponses, GetCurrentUserData, GetCurrentUserErrors, GetCurrentUserResponses, GetLabelData, GetLabelErrors, GetLabelResponses, GetProjectData, GetProjectErrors, GetProjectResponses, GetSummaryData, GetSummaryErrors, GetSummaryResponses, GetTaskData, GetTaskErrors, GetTaskRecurrenceData, GetTaskRecurrenceErrors, GetTaskRecurrenceResponses, GetTaskResponses, GetTrashDetailData, GetTrashDetailErrors, GetTrashDetailResponses, GetVersionData, GetVersionResponses, InitiateAccountDeletionData, InitiateAccountDeletionErrors, InitiateAccountDeletionResponses, ListArchiveData, ListArchiveErrors, ListArchiveResponses, ListAreaKanbanTasksData, ListAreaKanbanTasksErrors, ListAreaKanbanTasksResponses, ListAreasData, ListAreasErrors, ListAreasResponses, ListChecklistItemsData, ListChecklistItemsErrors, ListChecklistItemsResponses, ListGlobalTasksData, ListGlobalTasksErrors, ListGlobalTasksResponses, ListKanbanTasksData, ListKanbanTasksErrors, ListKanbanTasksResponses, ListLabelsData, ListLabelsErrors, ListLabelsResponses, ListNotificationsData, ListNotificationsErrors, ListNotificationsResponses, ListProjectsData, ListProjectsErrors, ListProjectsResponses, ListRemindersData, ListRemindersErrors, ListRemindersResponses, ListTasksData, ListTasksErrors, ListTasksResponses, ListTodayTasksData, ListTodayTasksErrors, ListTodayTasksResponses, ListTrashData, ListTrashErrors, ListTrashResponses, MarkAsReadData, MarkAsReadErrors, MarkAsReadResponses, MarkMultipleAsReadData, MarkMultipleAsReadErrors, MarkMultipleAsReadResponses, MoveAreaKanbanTaskData, MoveAreaKanbanTaskErrors, MoveAreaKanbanTaskResponses, MoveKanbanTaskData, MoveKanbanTaskErrors, MoveKanbanTaskResponses, PermanentlyDeleteTrashedData, PermanentlyDeleteTrashedErrors, PermanentlyDeleteTrashedResponses, ReauthenticateData, ReauthenticateErrors, ReauthenticateResponses, RegisterAccountData, RegisterAccountErrors, RegisterAccountResponses, RenameAreaData, RenameAreaErrors, RenameAreaResponses, RenameLabelData, RenameLabelErrors, RenameLabelResponses, RenameProjectData, RenameProjectErrors, RenameProjectResponses, ReopenChecklistItemData, ReopenChecklistItemErrors, ReopenChecklistItemResponses, ReorderAreaStatusesData, ReorderAreaStatusesErrors, ReorderAreaStatusesResponses, ReorderChecklistData, ReorderChecklistErrors, ReorderChecklistResponses, RequestEmailVerificationData, RequestEmailVerificationErrors, RequestEmailVerificationResponses, RequestPasswordResetData, RequestPasswordResetErrors, RequestPasswordResetResponses, ResetPasswordData, ResetPasswordErrors, ResetPasswordResponses, RestoreArchivedData, RestoreArchivedErrors, RestoreArchivedResponses, RestoreTrashedData, RestoreTrashedErrors, RestoreTrashedResponses, RetireAreaStatusData, RetireAreaStatusErrors, RetireAreaStatusResponses, SearchTasksData, SearchTasksErrors, SearchTasksResponses, SetTaskRecurrenceData, SetTaskRecurrenceErrors, SetTaskRecurrenceResponses, StopTaskRecurrenceData, StopTaskRecurrenceErrors, StopTaskRecurrenceResponses, TrashAreaData, TrashAreaResponses, TrashProjectData, TrashProjectResponses, TrashTaskData, TrashTaskResponses, UpdateAreaStatusNameData, UpdateAreaStatusNameErrors, UpdateAreaStatusNameResponses, UpdateCurrentUserData, UpdateCurrentUserErrors, UpdateCurrentUserResponses, VerifyEmailData, VerifyEmailErrors, VerifyEmailResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -17,6 +17,21 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
      */
     meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;
 };
+
+/**
+ * List archived roots
+ */
+export const listArchive = <ThrowOnError extends boolean = false>(options?: Options<ListArchiveData, ThrowOnError>): RequestResult<ListArchiveResponses, ListArchiveErrors, ThrowOnError> => (options?.client ?? client).get<ListArchiveResponses, ListArchiveErrors, ThrowOnError>({ url: '/api/v1/archive', ...options });
+
+/**
+ * Get archived resource detail
+ */
+export const getArchiveDetail = <ThrowOnError extends boolean = false>(options: Options<GetArchiveDetailData, ThrowOnError>): RequestResult<GetArchiveDetailResponses, GetArchiveDetailErrors, ThrowOnError> => (options.client ?? client).get<GetArchiveDetailResponses, GetArchiveDetailErrors, ThrowOnError>({ url: '/api/v1/archive/{resourceType}/{id}', ...options });
+
+/**
+ * Restore an archived resource
+ */
+export const restoreArchived = <ThrowOnError extends boolean = false>(options: Options<RestoreArchivedData, ThrowOnError>): RequestResult<RestoreArchivedResponses, RestoreArchivedErrors, ThrowOnError> => (options.client ?? client).post<RestoreArchivedResponses, RestoreArchivedErrors, ThrowOnError>({ url: '/api/v1/archive/{resourceType}/{id}/restore', ...options });
 
 /**
  * List active Areas for the current user
@@ -53,6 +68,69 @@ export const renameArea = <ThrowOnError extends boolean = false>(options: Option
 });
 
 /**
+ * List Tasks in an Area as Kanban columns
+ */
+export const listAreaKanbanTasks = <ThrowOnError extends boolean = false>(options: Options<ListAreaKanbanTasksData, ThrowOnError>): RequestResult<ListAreaKanbanTasksResponses, ListAreaKanbanTasksErrors, ThrowOnError> => (options.client ?? client).get<ListAreaKanbanTasksResponses, ListAreaKanbanTasksErrors, ThrowOnError>({ url: '/api/v1/areas/{areaId}/kanban', ...options });
+
+/**
+ * Move a Task between area Kanban columns
+ */
+export const moveAreaKanbanTask = <ThrowOnError extends boolean = false>(options: Options<MoveAreaKanbanTaskData, ThrowOnError>): RequestResult<MoveAreaKanbanTaskResponses, MoveAreaKanbanTaskErrors, ThrowOnError> => (options.client ?? client).post<MoveAreaKanbanTaskResponses, MoveAreaKanbanTaskErrors, ThrowOnError>({
+    url: '/api/v1/areas/{areaId}/kanban-moves',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Create a new Status in an Area
+ */
+export const createAreaStatus = <ThrowOnError extends boolean = false>(options: Options<CreateAreaStatusData, ThrowOnError>): RequestResult<CreateAreaStatusResponses, CreateAreaStatusErrors, ThrowOnError> => (options.client ?? client).post<CreateAreaStatusResponses, CreateAreaStatusErrors, ThrowOnError>({
+    url: '/api/v1/areas/{areaId}/statuses',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Rename a Status in an Area
+ */
+export const updateAreaStatusName = <ThrowOnError extends boolean = false>(options: Options<UpdateAreaStatusNameData, ThrowOnError>): RequestResult<UpdateAreaStatusNameResponses, UpdateAreaStatusNameErrors, ThrowOnError> => (options.client ?? client).patch<UpdateAreaStatusNameResponses, UpdateAreaStatusNameErrors, ThrowOnError>({
+    url: '/api/v1/areas/{areaId}/statuses/{statusId}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Reactivate a retired Status
+ */
+export const activateAreaStatus = <ThrowOnError extends boolean = false>(options: Options<ActivateAreaStatusData, ThrowOnError>): RequestResult<ActivateAreaStatusResponses, ActivateAreaStatusErrors, ThrowOnError> => (options.client ?? client).post<ActivateAreaStatusResponses, ActivateAreaStatusErrors, ThrowOnError>({ url: '/api/v1/areas/{areaId}/statuses/{statusId}/activate', ...options });
+
+/**
+ * Retire a Status and migrate its Tasks to the default
+ */
+export const retireAreaStatus = <ThrowOnError extends boolean = false>(options: Options<RetireAreaStatusData, ThrowOnError>): RequestResult<RetireAreaStatusResponses, RetireAreaStatusErrors, ThrowOnError> => (options.client ?? client).post<RetireAreaStatusResponses, RetireAreaStatusErrors, ThrowOnError>({ url: '/api/v1/areas/{areaId}/statuses/{statusId}/retire', ...options });
+
+/**
+ * Reorder Statuses in an Area
+ */
+export const reorderAreaStatuses = <ThrowOnError extends boolean = false>(options: Options<ReorderAreaStatusesData, ThrowOnError>): RequestResult<ReorderAreaStatusesResponses, ReorderAreaStatusesErrors, ThrowOnError> => (options.client ?? client).put<ReorderAreaStatusesResponses, ReorderAreaStatusesErrors, ThrowOnError>({
+    url: '/api/v1/areas/{areaId}/statuses/reorder',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
  * List Tasks within an Area
  */
 export const listTasks = <ThrowOnError extends boolean = false>(options: Options<ListTasksData, ThrowOnError>): RequestResult<ListTasksResponses, ListTasksErrors, ThrowOnError> => (options.client ?? client).get<ListTasksResponses, ListTasksErrors, ThrowOnError>({ url: '/api/v1/areas/{areaId}/tasks', ...options });
@@ -68,6 +146,16 @@ export const createTask = <ThrowOnError extends boolean = false>(options: Option
         ...options.headers
     }
 });
+
+/**
+ * Archive an Area and its descendants
+ */
+export const archiveArea = <ThrowOnError extends boolean = false>(options: Options<ArchiveAreaData, ThrowOnError>): RequestResult<ArchiveAreaResponses, unknown, ThrowOnError> => (options.client ?? client).post<ArchiveAreaResponses, unknown, ThrowOnError>({ url: '/api/v1/areas/{id}/archive', ...options });
+
+/**
+ * Trash an Area and its descendants
+ */
+export const trashArea = <ThrowOnError extends boolean = false>(options: Options<TrashAreaData, ThrowOnError>): RequestResult<TrashAreaResponses, unknown, ThrowOnError> => (options.client ?? client).post<TrashAreaResponses, unknown, ThrowOnError>({ url: '/api/v1/areas/{id}/trash', ...options });
 
 /**
  * Issue a CSRF token for an anonymous authentication transaction
@@ -208,6 +296,33 @@ export const renameLabel = <ThrowOnError extends boolean = false>(options: Optio
 });
 
 /**
+ * List notifications
+ */
+export const listNotifications = <ThrowOnError extends boolean = false>(options?: Options<ListNotificationsData, ThrowOnError>): RequestResult<ListNotificationsResponses, ListNotificationsErrors, ThrowOnError> => (options?.client ?? client).get<ListNotificationsResponses, ListNotificationsErrors, ThrowOnError>({ url: '/api/v1/notifications', ...options });
+
+/**
+ * Mark notification as read
+ */
+export const markAsRead = <ThrowOnError extends boolean = false>(options: Options<MarkAsReadData, ThrowOnError>): RequestResult<MarkAsReadResponses, MarkAsReadErrors, ThrowOnError> => (options.client ?? client).patch<MarkAsReadResponses, MarkAsReadErrors, ThrowOnError>({ url: '/api/v1/notifications/{notificationId}', ...options });
+
+/**
+ * Mark multiple notifications as read
+ */
+export const markMultipleAsRead = <ThrowOnError extends boolean = false>(options: Options<MarkMultipleAsReadData, ThrowOnError>): RequestResult<MarkMultipleAsReadResponses, MarkMultipleAsReadErrors, ThrowOnError> => (options.client ?? client).post<MarkMultipleAsReadResponses, MarkMultipleAsReadErrors, ThrowOnError>({
+    url: '/api/v1/notifications/read-actions',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Get notification summary (unread count)
+ */
+export const getSummary = <ThrowOnError extends boolean = false>(options?: Options<GetSummaryData, ThrowOnError>): RequestResult<GetSummaryResponses, GetSummaryErrors, ThrowOnError> => (options?.client ?? client).get<GetSummaryResponses, GetSummaryErrors, ThrowOnError>({ url: '/api/v1/notifications/summary', ...options });
+
+/**
  * List active Projects in an Area
  */
 export const listProjects = <ThrowOnError extends boolean = false>(options: Options<ListProjectsData, ThrowOnError>): RequestResult<ListProjectsResponses, ListProjectsErrors, ThrowOnError> => (options.client ?? client).get<ListProjectsResponses, ListProjectsErrors, ThrowOnError>({ url: '/api/v1/projects', ...options });
@@ -223,6 +338,16 @@ export const createProject = <ThrowOnError extends boolean = false>(options: Opt
         ...options.headers
     }
 });
+
+/**
+ * Archive a Project and its Tasks
+ */
+export const archiveProject = <ThrowOnError extends boolean = false>(options: Options<ArchiveProjectData, ThrowOnError>): RequestResult<ArchiveProjectResponses, unknown, ThrowOnError> => (options.client ?? client).post<ArchiveProjectResponses, unknown, ThrowOnError>({ url: '/api/v1/projects/{id}/archive', ...options });
+
+/**
+ * Trash a Project and its Tasks
+ */
+export const trashProject = <ThrowOnError extends boolean = false>(options: Options<TrashProjectData, ThrowOnError>): RequestResult<TrashProjectResponses, unknown, ThrowOnError> => (options.client ?? client).post<TrashProjectResponses, unknown, ThrowOnError>({ url: '/api/v1/projects/{id}/trash', ...options });
 
 /**
  * Get Project detail
@@ -242,9 +367,24 @@ export const renameProject = <ThrowOnError extends boolean = false>(options: Opt
 });
 
 /**
+ * Search tasks by title and description
+ */
+export const searchTasks = <ThrowOnError extends boolean = false>(options: Options<SearchTasksData, ThrowOnError>): RequestResult<SearchTasksResponses, SearchTasksErrors, ThrowOnError> => (options.client ?? client).get<SearchTasksResponses, SearchTasksErrors, ThrowOnError>({ url: '/api/v1/search/tasks', ...options });
+
+/**
  * List active Tasks across all Areas
  */
 export const listGlobalTasks = <ThrowOnError extends boolean = false>(options?: Options<ListGlobalTasksData, ThrowOnError>): RequestResult<ListGlobalTasksResponses, ListGlobalTasksErrors, ThrowOnError> => (options?.client ?? client).get<ListGlobalTasksResponses, ListGlobalTasksErrors, ThrowOnError>({ url: '/api/v1/tasks', ...options });
+
+/**
+ * Archive a Task
+ */
+export const archiveTask = <ThrowOnError extends boolean = false>(options: Options<ArchiveTaskData, ThrowOnError>): RequestResult<ArchiveTaskResponses, unknown, ThrowOnError> => (options.client ?? client).post<ArchiveTaskResponses, unknown, ThrowOnError>({ url: '/api/v1/tasks/{id}/archive', ...options });
+
+/**
+ * Trash a Task
+ */
+export const trashTask = <ThrowOnError extends boolean = false>(options: Options<TrashTaskData, ThrowOnError>): RequestResult<TrashTaskResponses, unknown, ThrowOnError> => (options.client ?? client).post<TrashTaskResponses, unknown, ThrowOnError>({ url: '/api/v1/tasks/{id}/trash', ...options });
 
 /**
  * Get Task detail
@@ -320,6 +460,62 @@ export const reorderChecklist = <ThrowOnError extends boolean = false>(options: 
 });
 
 /**
+ * Stop recurrence on a Task
+ */
+export const stopTaskRecurrence = <ThrowOnError extends boolean = false>(options: Options<StopTaskRecurrenceData, ThrowOnError>): RequestResult<StopTaskRecurrenceResponses, StopTaskRecurrenceErrors, ThrowOnError> => (options.client ?? client).delete<StopTaskRecurrenceResponses, StopTaskRecurrenceErrors, ThrowOnError>({ url: '/api/v1/tasks/{taskId}/recurrence', ...options });
+
+/**
+ * Get recurrence info for a Task
+ */
+export const getTaskRecurrence = <ThrowOnError extends boolean = false>(options: Options<GetTaskRecurrenceData, ThrowOnError>): RequestResult<GetTaskRecurrenceResponses, GetTaskRecurrenceErrors, ThrowOnError> => (options.client ?? client).get<GetTaskRecurrenceResponses, GetTaskRecurrenceErrors, ThrowOnError>({ url: '/api/v1/tasks/{taskId}/recurrence', ...options });
+
+/**
+ * Set recurrence rule on a Task
+ */
+export const setTaskRecurrence = <ThrowOnError extends boolean = false>(options: Options<SetTaskRecurrenceData, ThrowOnError>): RequestResult<SetTaskRecurrenceResponses, SetTaskRecurrenceErrors, ThrowOnError> => (options.client ?? client).put<SetTaskRecurrenceResponses, SetTaskRecurrenceErrors, ThrowOnError>({
+    url: '/api/v1/tasks/{taskId}/recurrence',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List reminders for a Task
+ */
+export const listReminders = <ThrowOnError extends boolean = false>(options: Options<ListRemindersData, ThrowOnError>): RequestResult<ListRemindersResponses, ListRemindersErrors, ThrowOnError> => (options.client ?? client).get<ListRemindersResponses, ListRemindersErrors, ThrowOnError>({ url: '/api/v1/tasks/{taskId}/reminders', ...options });
+
+/**
+ * Create a reminder for a Task
+ */
+export const createReminder = <ThrowOnError extends boolean = false>(options: Options<CreateReminderData, ThrowOnError>): RequestResult<CreateReminderResponses, CreateReminderErrors, ThrowOnError> => (options.client ?? client).post<CreateReminderResponses, CreateReminderErrors, ThrowOnError>({
+    url: '/api/v1/tasks/{taskId}/reminders',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Cancel a reminder
+ */
+export const cancelReminder = <ThrowOnError extends boolean = false>(options: Options<CancelReminderData, ThrowOnError>): RequestResult<CancelReminderResponses, CancelReminderErrors, ThrowOnError> => (options.client ?? client).delete<CancelReminderResponses, CancelReminderErrors, ThrowOnError>({ url: '/api/v1/tasks/{taskId}/reminders/{reminderId}', ...options });
+
+/**
+ * Execute bulk actions on Tasks
+ */
+export const executeBulkActions = <ThrowOnError extends boolean = false>(options: Options<ExecuteBulkActionsData, ThrowOnError>): RequestResult<ExecuteBulkActionsResponses, ExecuteBulkActionsErrors, ThrowOnError> => (options.client ?? client).post<ExecuteBulkActionsResponses, ExecuteBulkActionsErrors, ThrowOnError>({
+    url: '/api/v1/tasks/bulk-actions',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
  * Get Global Kanban view
  */
 export const listKanbanTasks = <ThrowOnError extends boolean = false>(options?: Options<ListKanbanTasksData, ThrowOnError>): RequestResult<ListKanbanTasksResponses, ListKanbanTasksErrors, ThrowOnError> => (options?.client ?? client).get<ListKanbanTasksResponses, ListKanbanTasksErrors, ThrowOnError>({ url: '/api/v1/tasks/kanban', ...options });
@@ -340,6 +536,33 @@ export const moveKanbanTask = <ThrowOnError extends boolean = false>(options: Op
  * Get Today planning view
  */
 export const listTodayTasks = <ThrowOnError extends boolean = false>(options?: Options<ListTodayTasksData, ThrowOnError>): RequestResult<ListTodayTasksResponses, ListTodayTasksErrors, ThrowOnError> => (options?.client ?? client).get<ListTodayTasksResponses, ListTodayTasksErrors, ThrowOnError>({ url: '/api/v1/tasks/today', ...options });
+
+/**
+ * List retained Trash
+ */
+export const listTrash = <ThrowOnError extends boolean = false>(options?: Options<ListTrashData, ThrowOnError>): RequestResult<ListTrashResponses, ListTrashErrors, ThrowOnError> => (options?.client ?? client).get<ListTrashResponses, ListTrashErrors, ThrowOnError>({ url: '/api/v1/trash', ...options });
+
+/**
+ * Get trashed resource detail
+ */
+export const getTrashDetail = <ThrowOnError extends boolean = false>(options: Options<GetTrashDetailData, ThrowOnError>): RequestResult<GetTrashDetailResponses, GetTrashDetailErrors, ThrowOnError> => (options.client ?? client).get<GetTrashDetailResponses, GetTrashDetailErrors, ThrowOnError>({ url: '/api/v1/trash/{resourceType}/{id}', ...options });
+
+/**
+ * Permanently delete a trashed resource
+ */
+export const permanentlyDeleteTrashed = <ThrowOnError extends boolean = false>(options: Options<PermanentlyDeleteTrashedData, ThrowOnError>): RequestResult<PermanentlyDeleteTrashedResponses, PermanentlyDeleteTrashedErrors, ThrowOnError> => (options.client ?? client).post<PermanentlyDeleteTrashedResponses, PermanentlyDeleteTrashedErrors, ThrowOnError>({
+    url: '/api/v1/trash/{resourceType}/{id}/permanent-deletions',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Restore a trashed resource
+ */
+export const restoreTrashed = <ThrowOnError extends boolean = false>(options: Options<RestoreTrashedData, ThrowOnError>): RequestResult<RestoreTrashedResponses, RestoreTrashedErrors, ThrowOnError> => (options.client ?? client).post<RestoreTrashedResponses, RestoreTrashedErrors, ThrowOnError>({ url: '/api/v1/trash/{resourceType}/{id}/restore', ...options });
 
 /**
  * Read the current account profile resolved only from the active session

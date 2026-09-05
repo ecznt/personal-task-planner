@@ -68,6 +68,7 @@ export class ArchiveController {
   @Header('Cache-Control', 'no-store')
   @ApiOperation({ operationId: 'getArchiveDetail', summary: 'Get archived resource detail' })
   @ApiParam({ name: 'resourceType', enum: ['areas', 'projects', 'tasks'] })
+  @ApiParam({ name: 'id', format: 'uuid', required: true })
   @ApiResponse({ status: 200, description: 'Archived resource detail returned.' })
   @ApiResponse({ status: 404, description: 'Not found.' })
   async detail(
@@ -111,6 +112,7 @@ export class ArchiveController {
   @Header('Cache-Control', 'no-store')
   @ApiOperation({ operationId: 'restoreArchived', summary: 'Restore an archived resource' })
   @ApiParam({ name: 'resourceType', enum: ['areas', 'projects', 'tasks'] })
+  @ApiParam({ name: 'id', format: 'uuid', required: true })
   @ApiResponse({ status: 200, description: 'Restored.' })
   @ApiResponse({ status: 409, description: 'Conflict.' })
   @ApiResponse({ status: 422, description: 'Destination unavailable.' })

@@ -2,13 +2,13 @@
 
 | Field | Value |
 | --- | --- |
-| Status | L-010 and L-011 implemented and approved |
-| Revision date | 2026-08-21 |
+| Status | L-009 through L-021 implemented; L-022 hardening completed; L-023 next |
+| Revision date | 2026-09-05 |
 | Product scope | MVP, personal use only |
 | Document language | English |
 | Execution mode | Small vertical slices, but not one micro-story per technical concern |
-| Current completed baseline | EPIC-001; BL-007 through BL-011; BL-014; BL-015; BL-121; L-001; L-002; L-003; L-004; L-005; L-006; L-007; L-008; L-009; L-010; L-011 |
-| Next slice | L-012 — Area Kanban |
+| Current completed baseline | EPIC-001; BL-007 through BL-011; BL-014; BL-015; BL-121; L-001 through L-022 |
+| Next slice | L-023 — Release readiness |
 
 This document replaces the earlier over-granular execution queue. The approved PRD, UX, Domain, Data, API, Architecture, and ADR documents remain authoritative for product and technical rules. This backlog controls implementation order only.
 
@@ -50,6 +50,17 @@ These items are complete, published to `develop`, and CI-verified. Future slices
 | L-009 | User can use the global active List view. | Implemented, locally verified, and approved. |
 | L-010 | User can use Today planning. | Implemented, locally verified, and approved. |
 | L-011 | User can use basic Global Kanban. | Implemented, locally verified, and approved. |
+| L-012 | User can use Area Kanban. | Implemented, locally verified, committed `903a8de`. |
+| L-013 | User can view and edit Area statuses safely. | Implemented, locally verified, committed `c27501b`. |
+| L-014 | User can apply status changes consistently across views. | Implemented, locally verified, committed `2a3999d`. |
+| L-015 | User can create and complete recurring Tasks. | Implemented, locally verified, committed `043fb87`. |
+| L-016 | User can search and filter active work. | Implemented, locally verified, committed `10a825e`. |
+| L-017 | User can perform basic bulk actions. | Implemented, locally verified, committed `0fc3034`. |
+| L-018 | User receives in-app date notifications. | Implemented, locally verified, committed `51613e9`. |
+| L-019 | User can Archive and restore Areas, Projects, and Tasks. | Implemented, locally verified, committed `54c0479` (with L-020). |
+| L-020 | User can Trash and restore owned planning data. | Implemented, locally verified, committed `54c0479` (with L-019). |
+| L-021 | System completes durable permanent purge. | Implemented, locally verified, committed `e3a3f81`. |
+| L-022 | MVP responsive/accessibility hardening pass. | Implemented, committed `4ccb4d0`, pushed to `opencode/develop`; plan `docs/planning/L-022_HARDENING_PLAN.md`. |
 
 Reserved/deferred IDs `BL-012` and `BL-013` remain reserved for removed social-authentication work and must not be reused.
 
@@ -349,6 +360,20 @@ Before each slice, verify the exact requirement IDs from PRD and API/Domain/Data
 - Frontend: ProjectManager component (list, create, inline rename), integrated into AreaDetail.
 - Task detail view shows assigned project; edit form includes project selector dropdown.
 - Unit (12 tests), API integration (73 tests), component (32 tests), and contract tests.
+
+### L-009 through L-021 — Work views, power features, and lifecycle
+
+**Implementation status:** Each slice was implemented, locally verified, and approved on its own date; committed and pushed to `opencode/develop` as part of the batch-publish at L-022. Commits: `395fd1b` (L-009), `6d609ad` (L-010), `8e5ac4b` (L-011), `903a8de` (L-012, Area Kanban), `c27501b` (L-013, status editor with drag-and-drop reorder), `2a3999d` (L-014, consistent status changes), `043fb87` (L-015, recurrence), `10a825e` (L-016, search), `0fc3034` (L-017, bulk actions), `51613e9` (L-018, in-app notifications), `54c0479` (L-019/020, Archive and Trash), `e3a3f81` (L-021, durable permanent purge with privacy-minimized receipts). An intermediate UI polish pass (`980c6f9`) added Sonner toasts, press feedback, and entrance animations.
+
+### L-022 — MVP responsive/accessibility hardening pass
+
+**Implementation status:** Implemented, committed `4ccb4d0`, and pushed to `opencode/develop` on 2026-09-05.
+
+**Plan document:** `docs/planning/L-022_HARDENING_PLAN.md`
+
+**Implemented scope:** shared responsive `AppShell` in a single `app/app/layout.tsx` (SessionBoundary + shell) replacing per-page scaffolding; sticky header with search, notifications tooltips, and header quick-create sheet; mobile bottom tab bar with safe-area padding; new `sheet`/`tooltip` (delayed-open fade/zoom-in-95)/`dropdown-menu` primitives; short page metadata titles; `autoFocus` replaced with deterministic focus-on-open across status editor, search view, and quick-create; leftover lint/format/type failures repaired repo-wide (including seven non-null assertions in `area.repository.ts`); CI workflow now triggers on `opencode/develop` for both `pull_request` and `push`.
+
+**Known deferred gap:** `pnpm audit --audit-level high` still reports 10 advisories, all indirect transitive dev-tooling paths with zero direct production dependencies; owned by L-023 dependency hygiene.
 
 ## 7. Backlog maintenance policy
 

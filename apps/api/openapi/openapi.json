@@ -162,6 +162,79 @@
         ],
         "type": "object"
       },
+      "AreaKanbanColumnDto": {
+        "properties": {
+          "count": {
+            "type": "number"
+          },
+          "statusId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/TaskSummaryDto"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "statusId",
+          "count",
+          "tasks"
+        ],
+        "type": "object"
+      },
+      "AreaKanbanResponseDto": {
+        "properties": {
+          "columns": {
+            "items": {
+              "$ref": "#/components/schemas/AreaKanbanColumnDto"
+            },
+            "type": "array"
+          },
+          "statuses": {
+            "items": {
+              "$ref": "#/components/schemas/AreaKanbanStatusDto"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "statuses",
+          "columns"
+        ],
+        "type": "object"
+      },
+      "AreaKanbanStatusDto": {
+        "properties": {
+          "canonicalStatus": {
+            "enum": [
+              "TO_DO",
+              "IN_PROGRESS",
+              "COMPLETED"
+            ],
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "position": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "canonicalStatus",
+          "position"
+        ],
+        "type": "object"
+      },
       "AreaListMetaDto": {
         "properties": {
           "nextCursor": {
@@ -385,6 +458,27 @@
         },
         "required": [
           "name"
+        ],
+        "type": "object"
+      },
+      "CreateAreaStatusRequestDto": {
+        "properties": {
+          "canonicalStatus": {
+            "enum": [
+              "TO_DO",
+              "IN_PROGRESS",
+              "COMPLETED"
+            ],
+            "type": "string"
+          },
+          "name": {
+            "example": "İnceleme",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "canonicalStatus"
         ],
         "type": "object"
       },
@@ -773,6 +867,23 @@
         ],
         "type": "object"
       },
+      "MoveAreaKanbanTaskRequestDto": {
+        "properties": {
+          "targetAreaStatusId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "taskId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "taskId",
+          "targetAreaStatusId"
+        ],
+        "type": "object"
+      },
       "MoveKanbanTaskRequestDto": {
         "properties": {
           "targetCanonicalStatus": {
@@ -1039,6 +1150,114 @@
         ],
         "type": "object"
       },
+      "RecurrenceResponseDto": {
+        "properties": {
+          "activeRule": {
+            "$ref": "#/components/schemas/RecurrenceRuleDto"
+          },
+          "currentOpenTaskId": {
+            "type": "string"
+          },
+          "series": {
+            "$ref": "#/components/schemas/RecurrenceSeriesDto"
+          }
+        },
+        "required": [
+          "series",
+          "activeRule"
+        ],
+        "type": "object"
+      },
+      "RecurrenceRuleDto": {
+        "properties": {
+          "dayOfMonth": {
+            "type": "number"
+          },
+          "frequency": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "interval": {
+            "type": "number"
+          },
+          "localTime": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string"
+          },
+          "monthOfYear": {
+            "type": "number"
+          },
+          "selectedWeekdays": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          },
+          "state": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "mode",
+          "frequency",
+          "interval",
+          "selectedWeekdays",
+          "state"
+        ],
+        "type": "object"
+      },
+      "RecurrenceSeriesDto": {
+        "properties": {
+          "createdAt": {
+            "type": "string"
+          },
+          "currentOpenTaskId": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "nextOccurrenceNumber": {
+            "type": "number"
+          },
+          "state": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "state",
+          "nextOccurrenceNumber",
+          "createdAt",
+          "updatedAt"
+        ],
+        "type": "object"
+      },
+      "RecurrenceSuccessResponseDto": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/RecurrenceResponseDto"
+          },
+          "etag": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "data",
+          "etag"
+        ],
+        "type": "object"
+      },
       "RegisterAccountRequestDto": {
         "properties": {
           "email": {
@@ -1142,6 +1361,21 @@
         ],
         "type": "object"
       },
+      "ReorderAreaStatusesRequestDto": {
+        "properties": {
+          "statusIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "statusIds"
+        ],
+        "type": "object"
+      },
       "ReorderChecklistRequestDto": {
         "properties": {
           "orderedIds": {
@@ -1221,6 +1455,17 @@
         ],
         "type": "object"
       },
+      "StopRecurrenceSuccessResponseDto": {
+        "properties": {
+          "etag": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "etag"
+        ],
+        "type": "object"
+      },
       "TaskDataDto": {
         "properties": {
           "areaId": {
@@ -1285,6 +1530,9 @@
           "projectId": {
             "format": "uuid",
             "type": "string"
+          },
+          "recurrence": {
+            "type": "object"
           },
           "title": {
             "type": "string"
@@ -1503,6 +1751,18 @@
         ],
         "type": "object"
       },
+      "UpdateAreaStatusNameRequestDto": {
+        "properties": {
+          "name": {
+            "example": "Yeni Durum Adı",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
       "UpdateCurrentUserRequestDto": {
         "properties": {
           "timeZone": {
@@ -1590,6 +1850,124 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/archive": {
+      "get": {
+        "operationId": "listArchive",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Archived resources returned."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "summary": "List archived roots",
+        "tags": [
+          "Archive"
+        ]
+      }
+    },
+    "/api/v1/archive/{resourceType}/{id}": {
+      "get": {
+        "operationId": "getArchiveDetail",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "resourceType",
+            "required": true,
+            "schema": {
+              "enum": [
+                "areas",
+                "projects",
+                "tasks"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Archived resource detail returned."
+          },
+          "404": {
+            "description": "Not found."
+          }
+        },
+        "summary": "Get archived resource detail",
+        "tags": [
+          "Archive"
+        ]
+      }
+    },
+    "/api/v1/archive/{resourceType}/{id}/restore": {
+      "post": {
+        "operationId": "restoreArchived",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "resourceType",
+            "required": true,
+            "schema": {
+              "enum": [
+                "areas",
+                "projects",
+                "tasks"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Restored."
+          },
+          "409": {
+            "description": "Conflict."
+          },
+          "422": {
+            "description": "Destination unavailable."
+          }
+        },
+        "summary": "Restore an archived resource",
+        "tags": [
+          "Archive"
+        ]
+      }
+    },
     "/api/v1/areas": {
       "get": {
         "operationId": "listAreas",
@@ -1745,6 +2123,376 @@
         ]
       }
     },
+    "/api/v1/areas/{areaId}/kanban": {
+      "get": {
+        "operationId": "listAreaKanbanTasks",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "areaId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AreaKanbanResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "404": {
+            "description": "Area not found."
+          }
+        },
+        "summary": "List Tasks in an Area as Kanban columns",
+        "tags": [
+          "Areas",
+          "Tasks"
+        ]
+      }
+    },
+    "/api/v1/areas/{areaId}/kanban-moves": {
+      "post": {
+        "operationId": "moveAreaKanbanTask",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "areaId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MoveAreaKanbanTaskRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "404": {
+            "description": "Task or target status not found."
+          },
+          "409": {
+            "description": "Version conflict."
+          },
+          "422": {
+            "description": "Validation failed."
+          }
+        },
+        "summary": "Move a Task between area Kanban columns",
+        "tags": [
+          "Areas",
+          "Tasks"
+        ]
+      }
+    },
+    "/api/v1/areas/{areaId}/statuses": {
+      "post": {
+        "operationId": "createAreaStatus",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "areaId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAreaStatusRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AreaResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "404": {
+            "description": "Area not found."
+          },
+          "422": {
+            "description": "Validation failed."
+          }
+        },
+        "summary": "Create a new Status in an Area",
+        "tags": [
+          "Areas",
+          "Tasks"
+        ]
+      }
+    },
+    "/api/v1/areas/{areaId}/statuses/{statusId}": {
+      "patch": {
+        "operationId": "updateAreaStatusName",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "statusId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "areaId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAreaStatusNameRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AreaResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "404": {
+            "description": "Status not found."
+          },
+          "409": {
+            "description": "Version conflict."
+          },
+          "422": {
+            "description": "Validation failed."
+          }
+        },
+        "summary": "Rename a Status in an Area",
+        "tags": [
+          "Areas",
+          "Tasks"
+        ]
+      }
+    },
+    "/api/v1/areas/{areaId}/statuses/{statusId}/activate": {
+      "post": {
+        "operationId": "activateAreaStatus",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "statusId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "areaId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AreaResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "404": {
+            "description": "Status not found."
+          },
+          "409": {
+            "description": "Version conflict."
+          }
+        },
+        "summary": "Reactivate a retired Status",
+        "tags": [
+          "Areas",
+          "Tasks"
+        ]
+      }
+    },
+    "/api/v1/areas/{areaId}/statuses/{statusId}/retire": {
+      "post": {
+        "operationId": "retireAreaStatus",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "statusId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "areaId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AreaResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "404": {
+            "description": "Status not found."
+          },
+          "409": {
+            "description": "Version conflict."
+          },
+          "422": {
+            "description": "Validation failed."
+          }
+        },
+        "summary": "Retire a Status and migrate its Tasks to the default",
+        "tags": [
+          "Areas",
+          "Tasks"
+        ]
+      }
+    },
+    "/api/v1/areas/{areaId}/statuses/reorder": {
+      "put": {
+        "operationId": "reorderAreaStatuses",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "areaId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderAreaStatusesRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AreaResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "404": {
+            "description": "Area not found."
+          },
+          "409": {
+            "description": "Version conflict."
+          },
+          "422": {
+            "description": "Validation failed."
+          }
+        },
+        "summary": "Reorder Statuses in an Area",
+        "tags": [
+          "Areas",
+          "Tasks"
+        ]
+      }
+    },
     "/api/v1/areas/{areaId}/tasks": {
       "get": {
         "operationId": "listTasks",
@@ -1828,6 +2576,54 @@
         "tags": [
           "Areas",
           "Tasks"
+        ]
+      }
+    },
+    "/api/v1/areas/{id}/archive": {
+      "post": {
+        "operationId": "archiveArea",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Archived."
+          }
+        },
+        "summary": "Archive an Area and its descendants",
+        "tags": [
+          "Lifecycle Actions"
+        ]
+      }
+    },
+    "/api/v1/areas/{id}/trash": {
+      "post": {
+        "operationId": "trashArea",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Trashed."
+          }
+        },
+        "summary": "Trash an Area and its descendants",
+        "tags": [
+          "Lifecycle Actions"
         ]
       }
     },
@@ -2435,6 +3231,140 @@
         ]
       }
     },
+    "/api/v1/notifications": {
+      "get": {
+        "operationId": "listNotifications",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "readState",
+            "required": false,
+            "schema": {
+              "enum": [
+                "UNREAD",
+                "READ"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {}
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notifications returned."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "summary": "List notifications",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/api/v1/notifications/{notificationId}": {
+      "patch": {
+        "operationId": "markAsRead",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "If-Match",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "notificationId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notification marked as read."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "summary": "Mark notification as read",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/api/v1/notifications/read-actions": {
+      "post": {
+        "operationId": "markMultipleAsRead",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Notifications marked as read."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "summary": "Mark multiple notifications as read",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/api/v1/notifications/summary": {
+      "get": {
+        "operationId": "getSummary",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Summary returned."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "summary": "Get notification summary (unread count)",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
     "/api/v1/projects": {
       "get": {
         "operationId": "listProjects",
@@ -2523,6 +3453,54 @@
         "summary": "Create a new Project in an Area",
         "tags": [
           "Projects"
+        ]
+      }
+    },
+    "/api/v1/projects/{id}/archive": {
+      "post": {
+        "operationId": "archiveProject",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Archived."
+          }
+        },
+        "summary": "Archive a Project and its Tasks",
+        "tags": [
+          "Lifecycle Actions"
+        ]
+      }
+    },
+    "/api/v1/projects/{id}/trash": {
+      "post": {
+        "operationId": "trashProject",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Trashed."
+          }
+        },
+        "summary": "Trash a Project and its Tasks",
+        "tags": [
+          "Lifecycle Actions"
         ]
       }
     },
@@ -2616,6 +3594,86 @@
         "summary": "Rename a Project",
         "tags": [
           "Projects"
+        ]
+      }
+    },
+    "/api/v1/search/tasks": {
+      "get": {
+        "operationId": "searchTasks",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "labelId",
+            "required": false,
+            "schema": {}
+          },
+          {
+            "in": "query",
+            "name": "canonicalStatus",
+            "required": false,
+            "schema": {}
+          },
+          {
+            "in": "query",
+            "name": "priority",
+            "required": false,
+            "schema": {}
+          },
+          {
+            "in": "query",
+            "name": "projectId",
+            "required": false,
+            "schema": {}
+          },
+          {
+            "in": "query",
+            "name": "areaId",
+            "required": false,
+            "schema": {}
+          },
+          {
+            "in": "query",
+            "name": "order",
+            "required": false,
+            "schema": {}
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {}
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {}
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {}
+          },
+          {
+            "description": "Search query (1-200 chars)",
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results returned successfully."
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          }
+        },
+        "summary": "Search tasks by title and description",
+        "tags": [
+          "Search"
         ]
       }
     },
@@ -2718,6 +3776,54 @@
         "summary": "List active Tasks across all Areas",
         "tags": [
           "Tasks"
+        ]
+      }
+    },
+    "/api/v1/tasks/{id}/archive": {
+      "post": {
+        "operationId": "archiveTask",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Archived."
+          }
+        },
+        "summary": "Archive a Task",
+        "tags": [
+          "Lifecycle Actions"
+        ]
+      }
+    },
+    "/api/v1/tasks/{id}/trash": {
+      "post": {
+        "operationId": "trashTask",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Trashed."
+          }
+        },
+        "summary": "Trash a Task",
+        "tags": [
+          "Lifecycle Actions"
         ]
       }
     },
@@ -3159,6 +4265,277 @@
         ]
       }
     },
+    "/api/v1/tasks/{taskId}/recurrence": {
+      "delete": {
+        "operationId": "stopTaskRecurrence",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "taskId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StopRecurrenceSuccessResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "404": {
+            "description": "Not found."
+          },
+          "422": {
+            "description": "Validation failed."
+          }
+        },
+        "summary": "Stop recurrence on a Task",
+        "tags": [
+          "Recurrence"
+        ]
+      },
+      "get": {
+        "operationId": "getTaskRecurrence",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "taskId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecurrenceSuccessResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "404": {
+            "description": "Not found."
+          }
+        },
+        "summary": "Get recurrence info for a Task",
+        "tags": [
+          "Recurrence"
+        ]
+      },
+      "put": {
+        "operationId": "setTaskRecurrence",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "taskId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecurrenceSuccessResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "404": {
+            "description": "Not found."
+          },
+          "422": {
+            "description": "Validation failed."
+          }
+        },
+        "summary": "Set recurrence rule on a Task",
+        "tags": [
+          "Recurrence"
+        ]
+      }
+    },
+    "/api/v1/tasks/{taskId}/reminders": {
+      "get": {
+        "operationId": "listReminders",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "taskId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reminders returned."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "summary": "List reminders for a Task",
+        "tags": [
+          "Task Reminders"
+        ]
+      },
+      "post": {
+        "operationId": "createReminder",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "If-Match",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "taskId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Reminder created."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "summary": "Create a reminder for a Task",
+        "tags": [
+          "Task Reminders"
+        ]
+      }
+    },
+    "/api/v1/tasks/{taskId}/reminders/{reminderId}": {
+      "delete": {
+        "operationId": "cancelReminder",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "If-Match",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "reminderId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "taskId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Reminder cancelled."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "summary": "Cancel a reminder",
+        "tags": [
+          "Task Reminders"
+        ]
+      }
+    },
+    "/api/v1/tasks/bulk-actions": {
+      "post": {
+        "operationId": "executeBulkActions",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Bulk action results returned."
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          }
+        },
+        "summary": "Execute bulk actions on Tasks",
+        "tags": [
+          "Bulk Actions"
+        ]
+      }
+    },
     "/api/v1/tasks/kanban": {
       "get": {
         "operationId": "listKanbanTasks",
@@ -3259,6 +4636,179 @@
         "summary": "Get Today planning view",
         "tags": [
           "Tasks"
+        ]
+      }
+    },
+    "/api/v1/trash": {
+      "get": {
+        "operationId": "listTrash",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Trashed resources returned."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "summary": "List retained Trash",
+        "tags": [
+          "Trash"
+        ]
+      }
+    },
+    "/api/v1/trash/{resourceType}/{id}": {
+      "get": {
+        "operationId": "getTrashDetail",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "resourceType",
+            "required": true,
+            "schema": {
+              "enum": [
+                "areas",
+                "projects",
+                "tasks"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Trashed resource detail returned."
+          },
+          "404": {
+            "description": "Not found."
+          }
+        },
+        "summary": "Get trashed resource detail",
+        "tags": [
+          "Trash"
+        ]
+      }
+    },
+    "/api/v1/trash/{resourceType}/{id}/permanent-deletions": {
+      "post": {
+        "operationId": "permanentlyDeleteTrashed",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "resourceType",
+            "required": true,
+            "schema": {
+              "enum": [
+                "areas",
+                "projects",
+                "tasks"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "confirmPermanentDelete": {
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Permanently deleted."
+          },
+          "409": {
+            "description": "Conflict/expired."
+          },
+          "422": {
+            "description": "Precondition failed."
+          }
+        },
+        "summary": "Permanently delete a trashed resource",
+        "tags": [
+          "Trash"
+        ]
+      }
+    },
+    "/api/v1/trash/{resourceType}/{id}/restore": {
+      "post": {
+        "operationId": "restoreTrashed",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "resourceType",
+            "required": true,
+            "schema": {
+              "enum": [
+                "areas",
+                "projects",
+                "tasks"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Restored."
+          },
+          "409": {
+            "description": "Conflict/expired."
+          }
+        },
+        "summary": "Restore a trashed resource",
+        "tags": [
+          "Trash"
         ]
       }
     },

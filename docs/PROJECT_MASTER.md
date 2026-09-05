@@ -5,7 +5,7 @@
 | Repository | `ecznt/personal-task-planner` |
 | Document role | Authoritative planning index and decision record |
 | Document language | English |
-| Last updated | 2026-08-21 |
+| Last updated | 2026-09-05 |
 
 ## Product vision
 
@@ -203,6 +203,19 @@ Every stage requires explicit user approval before the next stage begins.
 | DEC-086 | 2026-08-19 | Implement L-006 as basic Task creation and editing under an Area: title, description, dates, priority, default status, owner isolation, optimistic concurrency, area-scoped listing, and no Projects, recurrence, reminders, or Kanban. | Implemented, locally verified, and approved | User-approved continuation; `docs/planning/L-006_TASK_CREATION_PLAN.md`; `docs/planning/BACKLOG.md` L-006 |
 | DEC-087 | 2026-08-19 | Implement L-007 as Checklist and Labels for Tasks: ordered checklist items with CRUD, owner-scoped labels with uniqueness, task-label assignment/removal, task detail integration with LabelManager and Checklist components, and no search, bulk labels, or advanced filtering. | Implemented, locally verified, and approved | User-approved continuation; commit `b89482f`; `docs/planning/BACKLOG.md` L-007 |
 | DEC-088 | 2026-08-20 | Implement L-008 as Project Management inside Areas: create/list/detail/rename Projects with name uniqueness per Area, assign Tasks to Projects with same-Area invariant, ProjectManager component with inline create/rename, task detail project selector, and no cross-Area moves or deletion. | Implemented, locally verified, and approved | User-approved continuation; `docs/planning/BACKLOG.md` L-008 |
+| DEC-089 | 2026-08-21 | Implement L-009 as the global active List view: `GET /api/v1/tasks` with owner-scoped filtering, sorting, and cursor pagination; frontend `/app/tasks` with sort/filter controls; no search, advanced filters, or archive/trash. | Implemented, locally verified, and approved | Commit `395fd1b`; `docs/planning/BACKLOG.md` L-009 |
+| DEC-090 | 2026-08-21 | Implement L-010 Today planning: `GET /api/v1/tasks/today` with timezone-aware buckets (overdue/planned/due/completed) and frontend `/app/today` with collapsible sections and reason badges. | Implemented, locally verified, and approved | Commit `6d609ad`; `docs/planning/BACKLOG.md` L-010 |
+| DEC-091 | 2026-08-21 | Implement L-011 Global Kanban: `GET /api/v1/tasks/kanban` in three canonical groups and `POST /tasks/kanban-moves`, frontend `/app/kanban` with move buttons. | Implemented, locally verified, and approved | Commit `8e5ac4b`; `docs/planning/BACKLOG.md` L-011 |
+| DEC-092 | 2026-08-21 | Implement L-012 Area Kanban: area-specific columns from configured statuses, independent Area rank, accessible move controls, owner isolation. | Implemented, locally verified, and approved | Commit `903a8de`; `docs/planning/BACKLOG.md` L-012 |
+| DEC-093 | 2026-08-21 | Implement L-013 Area status editor: active/retired statuses, canonical mapping, one default per canonical group, drag-and-drop reorder with optimistic list updates, stale-safe save. | Implemented, locally verified, and approved | Commit `c27501b`; `docs/planning/BACKLOG.md` L-013 |
+| DEC-094 | 2026-08-21 | Implement L-014 consistent status changes across views: exact Area status changes plus canonical global changes resolving to Area defaults. | Implemented, locally verified, and approved | Commit `2a3999d`; `docs/planning/BACKLOG.md` L-014 |
+| DEC-095 | 2026-08-21 | Implement L-015 recurring Tasks: fixed-calendar recurrence, one open occurrence, successor generation on completion, no backfill. | Implemented, locally verified, and approved | Commit `043fb87`; `docs/planning/BACKLOG.md` L-015 |
+| DEC-096 | 2026-08-21 | Implement L-016 search and filtering of active work: title/description search, basic filters, owner-leading query scope, stable pagination. | Implemented, locally verified, and approved | Commit `10a825e`; `docs/planning/BACKLOG.md` L-016 |
+| DEC-097 | 2026-08-21 | Implement L-017 basic bulk actions: selection mode, bulk status/label/date/lifecycle where already supported, partial-result feedback. | Implemented, locally verified, and approved | Commit `0fc3034`; `docs/planning/BACKLOG.md` L-017 |
+| DEC-098 | 2026-08-21 | Implement L-018 in-app date notifications: reminder preference, due-notification creation, read/unread list, durable worker idempotency. | Implemented, locally verified, and approved | Commit `51613e9`; `docs/planning/BACKLOG.md` L-018 |
+| DEC-099 | 2026-08-21 | Implement L-019/L-020 Archive and Trash lifecycle: archive state with cascade provenance and restore rules; trash with 30-day purgeAfter and restore-destination rules; no active-view leakage. | Implemented, locally verified, and approved | Commit `54c0479`; `docs/planning/BACKLOG.md` L-019/L-020 |
+| DEC-100 | 2026-08-21 | Implement L-021 durable permanent purge: planning-data purge jobs, idempotent deletion replay, receipts free of title/content, worker and scheduler wiring. | Implemented, locally verified, and approved | Commit `e3a3f81`; `docs/planning/BACKLOG.md` L-021 |
+| DEC-101 | 2026-09-05 | Implement L-022 MVP responsive/accessibility hardening: shared responsive AppShell in a single app layout, header quick-create sheet, tooltip delayed-open motion, safe-area padding, deterministic focus management replacing `autoFocus`, metadata titles, and repo-wide repair of lint/format/type failures. Enable CI on `opencode/develop` for branch push/PR verification. | Implemented, committed, and pushed to `opencode/develop` | Commit `4ccb4d0`; CI run `33989414398`; `docs/planning/L-022_HARDENING_PLAN.md` |
 
 ## Open questions
 
@@ -536,11 +549,13 @@ Update this section after every successful graph generation.
 | 2026-08-21 | Phase 3 — L-009 Global active List view | Implemented, locally verified, and approved | `GET /api/v1/tasks` endpoint with filtering/sorting/pagination, frontend `/app/tasks` route with sort/filter controls, task list component, full local verification. |
 | 2026-08-21 | Phase 3 — L-010 Today planning | Implemented, locally verified, and approved | `GET /api/v1/tasks/today` endpoint with timezone-aware bucketing (overdue/planned/due/completed), frontend `/app/today` route with collapsible sections, task cards with reason badges, full local verification. |
 | 2026-08-21 | Phase 3 — L-011 Global Kanban | Implemented, locally verified, and approved | `GET /api/v1/tasks/kanban` returning 3 canonical groups, `POST /tasks/kanban-moves` for moving tasks between groups, frontend `/app/kanban` 3-column board with move buttons, full local verification. |
+| 2026-09-05 | Phase 3 — L-012 through L-021 planning feature slices | Implemented, locally verified, and approved; batch-published to `opencode/develop` | Area Kanban (`903a8de`), status editor (`c27501b`), consistent status changes (`2a3999d`), recurrence (`043fb87`), search (`10a825e`), bulk actions (`0fc3034`), in-app notifications (`51613e9`), Archive and Trash (`54c0479`), durable purge (`e3a3f81`). CI on `develop` was not wired for branch pushes, so these were verified locally. |
+| 2026-09-05 | Phase 3 — L-022 MVP responsive/accessibility hardening | Implemented, committed, pushed to `opencode/develop`, CI started (run `33989414398`) | Shared responsive AppShell layout, header quick-create sheet, delayed-open tooltips, focus management, metadata titles, repo-wide lint/format/type repair, CI enabled on `opencode/develop`; see `docs/planning/L-022_HARDENING_PLAN.md`. |
 
 ## Current planning stage
 
-Phase 3 Implementation — L-011 Global Kanban. EPIC-001, BL-007 through BL-011, BL-014, BL-015, BL-121, the lean backlog refactor, L-001 through L-011 are implemented. L-011 is locally verified and queued for publication. Area Kanban, status management, recurrence, reminders, search, bulk actions, notifications, Archive, Trash, and full primary-data purge implementation have not started.
+Phase 3 Implementation — L-022 MVP responsive/accessibility hardening. EPIC-001; BL-007 through BL-011, BL-014, BL-015, BL-121; the lean backlog refactor; and L-001 through L-022 are implemented. L-009 through L-021 and L-022 are committed on `opencode/develop` (`4ccb4d0`) and CI has been enabled for that branch. The known release blockers are the `test:security` audit findings (all indirect dev-tooling transitive paths) and the pending L-023 release-readiness evidence set.
 
 ## Next required action
 
-Run quality gates, verify CI, and publish L-011. Then plan next slice (Area Kanban or status management).
+Run the L-023 release-readiness plan: confirm CI green on `opencode/develop` (run `33989414398`), resolve the `pnpm audit` dependency gap, rehearse migration deploy on a disposable database, complete final traceability, and mark `docs/planning/L-023_RELEASE_READINESS_PLAN.md` implemented.
