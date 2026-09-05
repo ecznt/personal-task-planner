@@ -43,6 +43,7 @@ export function QuickCreateDialog() {
     queryKey: csrfQueryKey,
     queryFn: fetchCsrf,
     staleTime: 20 * 60 * 1_000,
+    enabled: open,
   });
   const areas = useQuery({
     queryKey: ['areas'],
@@ -53,6 +54,7 @@ export function QuickCreateDialog() {
       }
       return (result.data as { data: AreaOption[] })?.data ?? [];
     },
+    enabled: open,
   });
 
   const form = useForm<QuickValues>({

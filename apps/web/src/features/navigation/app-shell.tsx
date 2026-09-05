@@ -6,6 +6,7 @@ import { useState } from 'react';
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { SignOutButton } from '@/features/auth/sign-out-button';
 import { NotificationBell } from '@/features/notifications/notification-bell';
 import { QuickCreateDialog } from '@/features/tasks/quick-create-dialog';
 
@@ -80,6 +81,9 @@ function MoreSheet() {
             <NavLink key={item.key} item={item} onNavigate={() => setOpen(false)} />
           ))}
         </nav>
+        <div className="flex justify-center px-4 pt-4">
+          <SignOutButton />
+        </div>
       </SheetContent>
     </Sheet>
   );
@@ -150,6 +154,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
         <div className="flex-1 overflow-y-auto px-3 pb-4">
           <SidebarNav />
+        </div>
+        <div className="border-t px-3 py-3">
+          <SignOutButton />
         </div>
       </aside>
 

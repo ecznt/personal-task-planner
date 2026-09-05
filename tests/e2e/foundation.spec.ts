@@ -193,6 +193,19 @@ test('signs in and idempotently ends only the current browser session', async ({
       status: 200,
     });
   });
+  await page.route('**/api/v1/tasks/today**', async (route) => {
+    await route.fulfill({
+      json: {
+        completedToday: { count: 0, tasks: [] },
+        dueToday: { count: 0, tasks: [] },
+        overdue: { count: 0, tasks: [] },
+        plannedToday: { count: 0, tasks: [] },
+        timezone: 'UTC',
+        today: '2026-09-05',
+      },
+      status: 200,
+    });
+  });
 
   await page.goto('/login?returnTo=%2Fapp%2Ftoday');
   await page.getByLabel('E-posta').fill('user@example.com');
@@ -200,8 +213,8 @@ test('signs in and idempotently ends only the current browser session', async ({
   await page.getByRole('button', { name: 'Oturum aç' }).click();
 
   await expect(page).toHaveURL(/\/app\/today$/);
-  await expect(page.getByRole('heading', { name: 'Oturumunuz açık' })).toBeVisible();
-  await expect(page.getByText('user@example.com')).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: /Bugün/ })).toBeVisible();
+  await expect(page.getByText(/Bugün için planlanmış, gecikmiş veya bitiş/)).toBeVisible();
 
   await page.getByRole('button', { name: 'Oturumu kapat' }).click();
 
@@ -483,6 +496,19 @@ test('reauthenticates and starts account deletion from the danger area', async (
         data: {
           expiresAt: '2099-01-01T00:00:00.000Z',
           token: 'e2e-csrf-token',
+        },
+      },
+      status: 200,
+    });
+  });
+  await page.route('**/api/v1/auth/session', async (route) => {
+    await route.fulfill({
+      json: {
+        data: {
+          absoluteExpiresAt: '2099-01-07T00:00:00.000Z',
+          authenticated: true,
+          email: 'user@example.com',
+          idleExpiresAt: '2099-01-01T12:00:00.000Z',
         },
       },
       status: 200,

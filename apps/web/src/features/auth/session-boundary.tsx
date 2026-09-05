@@ -2,6 +2,7 @@
 
 import { apiClient, getAuthSession } from '@planner/api-client';
 import { useQuery } from '@tanstack/react-query';
+import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { useEffect } from 'react';
 
@@ -16,7 +17,8 @@ type SessionBoundaryProps = {
   returnTo?: string;
 };
 
-export function SessionBoundary({ children, returnTo = '/app/today' }: SessionBoundaryProps) {
+export function SessionBoundary({ children }: SessionBoundaryProps) {
+  const pathname = usePathname();
   const session = useQuery({
     queryKey: ['auth', 'session'],
     queryFn: async () => {
@@ -30,9 +32,9 @@ export function SessionBoundary({ children, returnTo = '/app/today' }: SessionBo
 
   useEffect(() => {
     if (session.data?.authenticated === false) {
-      window.location.replace(`/login?returnTo=${encodeURIComponent(returnTo)}`);
+      window.location.replace(`/login?returnTo=${encodeURIComponent(pathname)}`);
     }
-  }, [returnTo, session.data?.authenticated]);
+  }, [pathname, session.data?.authenticated]);
 
   if (session.isPending || session.data?.authenticated === false) {
     return (

@@ -1,7 +1,24 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+
+async function mockAuthenticatedSession(page: Page) {
+  await page.route('**/api/v1/auth/session', async (route) => {
+    await route.fulfill({
+      json: {
+        data: {
+          absoluteExpiresAt: '2099-01-07T00:00:00.000Z',
+          authenticated: true,
+          email: 'user@example.com',
+          idleExpiresAt: '2099-01-01T12:00:00.000Z',
+        },
+      },
+      status: 200,
+    });
+  });
+}
 
 test.describe('Area management', () => {
   test('shows empty state when no areas exist', async ({ page }) => {
+    await mockAuthenticatedSession(page);
     await page.route('**/api/v1/areas', async (route) => {
       await route.fulfill({
         json: { data: [], meta: {} },
@@ -17,6 +34,7 @@ test.describe('Area management', () => {
   });
 
   test('shows area list with counts', async ({ page }) => {
+    await mockAuthenticatedSession(page);
     await page.route('**/api/v1/areas', async (route) => {
       await route.fulfill({
         json: {
@@ -46,15 +64,33 @@ test.describe('Area management', () => {
   });
 
   test('creates a new area', async ({ page }) => {
+    let created = false;
+
+    await mockAuthenticatedSession(page);
     await page.route('**/api/v1/areas', async (route) => {
       if (route.request().method() === 'GET') {
         await route.fulfill({
-          json: { data: [], meta: {} },
+          json: {
+            data: created
+              ? [
+                  {
+                    id: 'new-area-id',
+                    name: 'Yeni Alan',
+                    lifecycleState: 'ACTIVE',
+                    taskCount: 0,
+                    projectCount: 0,
+                    overdueTaskCount: 0,
+                  },
+                ]
+              : [],
+            meta: {},
+          },
           status: 200,
         });
         return;
       }
 
+      created = true;
       await route.fulfill({
         json: {
           data: {
@@ -109,15 +145,17 @@ test.describe('Area management', () => {
     await page.goto('/app/areas');
 
     await page.getByRole('button', { name: 'Yeni Alan' }).click();
-    await page.getByLabelText('Alan Adı').fill('Yeni Alan');
-    await page.getByRole('button', { name: 'Oluştur' }).click();
+    await page.getByLabel('Alan Adı').fill('Yeni Alan');
+    await page.getByRole('button', { name: 'Oluştur', exact: true }).click();
 
-    await expect(page.getByRole('heading', { level: 1, name: 'Yeni Alan' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Alanlar' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Yeni Alan' })).toBeVisible();
   });
 
   test('shows area detail', async ({ page }) => {
     const areaId = '123e4567-e89b-12d3-a456-426614174000';
 
+    await mockAuthenticatedSession(page);
     await page.route(`**/api/v1/areas/${areaId}`, async (route) => {
       await route.fulfill({
         json: {
@@ -147,9 +185,11 @@ test.describe('Area management', () => {
     await page.goto(`/app/areas/${areaId}`);
 
     await expect(page.getByRole('heading', { level: 1, name: 'Kişisel Planlama' })).toBeVisible();
-    await expect(page.getByText('5 görev')).toBeVisible();
-    await expect(page.getByText('2 proje')).toBeVisible();
-    await expect(page.getByText('Yapılacak')).toBeVisible();
+    await expect(page.getByText('Görevler').first()).toBeVisible();
+    await expect(page.getByText('Projeler').first()).toBeVisible();
+    await expect(page.getByText('5', { exact: true })).toBeVisible();
+    await expect(page.getByText('2', { exact: true })).toBeVisible();
+    await expect(page.getByText(/Yapılacak/).first()).toBeVisible();
     await expect(page.getByRole('link', { name: '← Alanlara dön' })).toBeVisible();
   });
 });
