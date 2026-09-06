@@ -4,7 +4,7 @@
 | --- | --- |
 | Slice | L-023 |
 | Goal | Final traceability, CI evidence, migration/deploy rehearsal, known risks, rollback note |
-| Status | In progress (2.1, 2.2 complete) |
+| Status | Implemented (commits `b0518df`, `942bfc6`) |
 | Created | 2026-09-05 |
 | Dependencies | L-022 (completed, commits `4ccb4d0`, `608febe`) |
 
@@ -26,23 +26,31 @@ Prepare the MVP for release. L-023 adds no product functionality; it closes the 
 
 ### 2.3 Final traceability
 
-- Complete the decision log through L-022 and update the phase-approval history in `docs/PROJECT_MASTER.md`.
-- Confirm `docs/planning/BACKLOG.md` status, completed baseline, and next-slice pointer (L-023) are current.
-- Verify Graphify incremental update reflects the L-009–L-022 source state (see section 6).
+- **Done**: decision log extended through L-023 (DEC-102 in `docs/PROJECT_MASTER.md`), phase-approval history current, `docs/planning/BACKLOG.md` baseline and next-slice pointer current.
+- **Done**: Graphify incremental update executed per section 6 — one bounded depth-2 query scope, one incremental update (no full rebuild) shipped as commit `942bfc6` (2775 nodes / 5479 edges / 195 labeled communities; manifest advanced).
 
 ### 2.4 Migration and deploy rehearsal
 
-- Record the exact migration list from `apps/api/prisma/migrations` and rehearsal steps:
-  1. `prisma validate`
-  2. `prisma migrate deploy` against a disposable database
-  3. `pnpm build` for api + web (standalone) artifacts
-  4. `pnpm test:contract` against the generated OpenAPI and client
-- Verify deploy env expectations: `NODE_ENV=production`, session/CSRF cookie settings, SMTP worker env, DATABASE_URL, trusted-proxy/rate-limit settings.
+- **Rehearsal is automated in CI on every `opencode/develop` push** (run `33992498866` verified): against a disposable `postgres:18.3` service container with `DATABASE_URL=postgresql://planner:planner_test@127.0.0.1:5432/personal_task_planner_test`, CI executes the exact release-deploy sequence:
+  1. `pnpm prisma:validate`
+  2. `pnpm prisma:migrate:deploy` (applies all 10 `apps/api/prisma/migrations/*` in order)
+  3. `pnpm test:db` (DB-backed specs on the migrated schema)
+  4. `pnpm build` (API nest build + web standalone, incl. `prepare-standalone.mjs`)
+  5. `pnpm test:contract` (redocly lint + generated-client regression + OpenAPI determinism)
+- The migration list (oldest first): `20260723120000_foundation_jobs`, `20260725143000_email_password_registration`, `20260725170000_email_verification`, `20260726120000_login_sessions`, `20260728120000_password_reset`, `20260730090000_account_deletion_initiation`, `20260817090000_start_empty_onboarding`, `20260817100000_private_sample_data`, `20260820183043_add_label_version`, `20260826120000_add_recurrence_models`, `20260827120000_add_reminder_notification_models`, `20260828120000_add_lifecycle_operations`, `20260829120000_add_deletion_receipts`.
+- **Deploy env expectations**: `NODE_ENV=production`; `DATABASE_URL` (privileged migration user for deploy, runtime role for apps); session cookie `__Host-` secure + HttpOnly; CSRF double-submit with strict same-origin; AMBER_SMTP_HOST/PORT/USER/PASS for the email/SMTP worker; worker and API share the same DMZ origin behind a trusted proxy (cookie+rate-limit trust). Local rehearsal of the full DB path is not possible on this host (no running Postgres); CI is the authoritative rehearsal.
 
 ### 2.5 Release checklist and rollback note
 
-- Produce the release checklist (build → migrate → deploy api → deploy worker → deploy web → smoke `/login` → smoke `/app/today`).
-- Rollback note: primary data migration is additive; rollback is database-schema rewind plus redeploy prior artifacts. Since the MVP is personal-use with no committed SLAs, a documented 30-day re-audit window applies.
+- **Release checklist** (artifact order, all verified green in CI run `33992498866`):
+  1. `pnpm build` → API (`dist/`) + web standalone artifacts (web runs `prepare-standalone.mjs`).
+  2. `DATABASE_URL=$(migrate-role) pnpm prisma:migrate:deploy` → apply migrations idempotently.
+  3. Deploy API (port 3001) with `NODE_ENV=production` + env block from 2.4.
+  4. Deploy worker (same bundle, worker entrypoint) with SMTP env.
+  5. Deploy web standalone (port 3000), route `/api/*` to the API, same origin.
+  6. Smoke `/login` (email/password + CSRF cookie round-trip), `/verify-email` manual flow, `/forgot-password`.
+  7. Smoke `/app/today` (session-boundary redirect → login → workspace load), quick-create sheet, sign-out.
+- **Rollback note**: the primary data migration is additive (new columns/tables; no destructive rewrite). Rollback = schema rewind to the prior migration + redeploy the previous artifacts; the planner is personal-use with no committed SLAs, so a **30-day re-audit window** applies to post-release findings. Account-deletion/trash purges are the only destructively privileged paths and are gated behind re-authentication + `purgeAfter`.
 
 ## 3. Out of Scope
 
@@ -73,8 +81,8 @@ Prepare the MVP for release. L-023 adds no product functionality; it closes the 
 
 ## 7. Definition of Done
 
-1. CI green on `opencode/develop` including all suites.
-2. `pnpm audit --audit-level high` passes or accepted-risk record exists.
-3. Migration deploy rehearsal succeeds on a disposable database.
-4. Decision log + phase history + backlog reflect L-009 through L-022 implemented and L-023 current.
-5. Self-review cover: no secrets, no `develop`/`main` push, no bypassed gates.
+1. CI green on `opencode/develop` including all suites. **Done** — runs `33992498866`, `33992751977`, `33997579621` all `success`.
+2. `pnpm audit --audit-level high` passes or accepted-risk record exists. **Done** — passes (0 high, 3 moderate).
+3. Migration deploy rehearsal succeeds on a disposable database. **Done in CI** — `prisma:validate` + `prisma:migrate:deploy` + `test:db` against disposable `postgres:18.3` (run `33992498866`).
+4. Decision log + phase history + backlog reflect L-009 through L-022 implemented and L-023 current. **Done** — DEC-102, backlog L-022 entry updated, L-022/L-023 plans updated.
+5. Self-review cover: no secrets, no `develop`/`main` push, no bypassed gates. **Done** — all pushes confined to `opencode/develop`; `test:security` gated by real override fix, not suppression.
