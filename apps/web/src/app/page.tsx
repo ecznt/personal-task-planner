@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AmbientBackground } from '@/components/ambient-background';
 import { foundationMessages } from '@/i18n/messages/tr';
 
 export const metadata: Metadata = {
@@ -11,7 +12,8 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <main className="block min-h-screen bg-muted/40 px-4 py-8 sm:py-12">
+    <main className="block min-h-screen bg-transparent px-4 py-8 sm:py-12">
+      <AmbientBackground />
       <section
         className="mx-auto flex w-full max-w-5xl flex-col gap-8"
         aria-labelledby="foundation-title"

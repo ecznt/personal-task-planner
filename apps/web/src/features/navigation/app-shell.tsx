@@ -6,6 +6,7 @@ import { useState } from 'react';
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { AmbientBackground } from '@/components/ambient-background';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { SignOutButton } from '@/features/auth/sign-out-button';
 import { NotificationBell } from '@/features/notifications/notification-bell';
@@ -147,10 +148,12 @@ function SearchLink() {
 export function AppShell({ children }: { children: React.ReactNode }) {
   useSearchShortcut();
   return (
-    <div className="min-h-screen bg-muted/40">
+    <div className="min-h-screen bg-background">
       <a href="#main-content" className="skip-link">
         İçeriğe geç
       </a>
+
+      <AmbientBackground subtle />
 
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r bg-background md:flex">
         <div className="flex h-14 items-center gap-2 px-4 text-sm font-semibold">
