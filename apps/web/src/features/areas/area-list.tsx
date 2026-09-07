@@ -6,6 +6,7 @@ import Link from 'next/link';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { PageHeader } from '@/components/page-header';
 import { Spinner } from '@/components/ui/spinner';
 
 import { CreateAreaForm } from './create-area-form';
@@ -57,12 +58,11 @@ export function AreaList() {
   if (areaList.length === 0) {
     return (
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Alanlar</h1>
-          <p className="text-muted-foreground">
-            Her görevin bir alana ihtiyacı vardır. İlk alanınızı oluşturun.
-          </p>
-        </div>
+        <PageHeader
+          title="Alanlar"
+          eyebrow="Alanlar"
+          description="Her görevin bir alana ihtiyacı vardır. İlk alanınızı oluşturun."
+        />
         <CreateAreaForm />
       </div>
     );
@@ -70,13 +70,12 @@ export function AreaList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Alanlar</h1>
-          <p className="text-muted-foreground">
-            Görevlerinizi düzenlemek için alanlarınızı yönetin.
-          </p>
-        </div>
+      <div className="flex items-center justify-between gap-4">
+        <PageHeader
+          title="Alanlar"
+          eyebrow="Alanlar"
+          description="Görevlerinizi düzenlemek için alanlarınızı yönetin."
+        />
         <CreateAreaForm />
       </div>
       <div className="grid gap-4">
@@ -87,7 +86,7 @@ export function AreaList() {
             className="animate-fade-slide-in"
             style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
           >
-            <Card className="transition-colors duration-150 active:scale-[0.97] hover:bg-muted/50">
+            <Card className="transition-all duration-150 active:scale-[0.97] hover:border-border hover:shadow-surface-hover">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg">{area.name}</CardTitle>
               </CardHeader>

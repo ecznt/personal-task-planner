@@ -2,14 +2,16 @@
 
 import { apiClient } from '@planner/api-client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { CheckCircle2, PlayCircle, CircleDot } from 'lucide-react';
+import { CheckCircle2, PlayCircle, CircleDot, CalendarX2 } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { EmptyState } from '@/components/empty-state';
 import { ListSkeleton } from '@/components/list-skeleton';
+import { PageHeader } from '@/components/page-header';
 import { TaskPriorityBadge } from '@/features/tasks/task-badge';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
 
@@ -111,7 +113,7 @@ function TaskCard({
 
   return (
     <div
-      className="animate-fade-slide-in flex items-center gap-3 rounded-lg border bg-card p-3 transition-colors duration-150 hover:bg-accent"
+      className="card-surface animate-fade-slide-in flex items-center gap-3 rounded-xl border border-border/70 bg-card p-3 shadow-surface transition-all duration-150 hover:border-border hover:shadow-surface-hover"
       style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
     >
       <Link href={`/app/areas/tasks/${task.id}`} className="min-w-0 flex-1">
@@ -259,30 +261,30 @@ export function TodayView() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">
-          Bugün ·{' '}
-          {new Date(data.today + 'T00:00:00').toLocaleDateString('tr-TR', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-          })}
-        </h1>
-        <p className="text-sm text-muted-foreground">{data.timezone}</p>
-      </div>
+      <PageHeader
+        title="Bugün"
+        eyebrow="Bugün"
+        description={`${new Date(data.today + 'T00:00:00').toLocaleDateString('tr-TR', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        })} · ${data.timezone}`}
+      />
 
       {!hasAnyTasks ? (
-        <div className="rounded-lg border bg-card p-6 text-center text-muted-foreground">
-          <p>Bugün için planlanmış, gecikmiş veya bitiş tarihi olan görev yok.</p>
-          <div className="mt-3 flex justify-center gap-3">
+        <EmptyState
+          icon={<CalendarX2 className="size-5" aria-hidden="true" />}
+          title="Bugün görev yok"
+          description="Bugün için planlanmış, gecikmiş veya bitiş tarihi olan görev bulunmuyor."
+          action={
             <Link
               href="/app/tasks"
-              className="inline-flex items-center rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors duration-150 active:scale-[0.97] hover:bg-primary/90"
+              className="inline-flex items-center rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground shadow-glow transition-all duration-150 active:scale-[0.97] hover:bg-primary/90"
             >
               Görevlere Git
             </Link>
-          </div>
-        </div>
+          }
+        />
       ) : (
         <div className="space-y-4">
           {data.overdue.count > 0 && (

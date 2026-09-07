@@ -2,10 +2,13 @@
 
 import { apiClient } from '@planner/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Archive } from 'lucide-react';
 import { useState } from 'react';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/empty-state';
+import { PageHeader } from '@/components/page-header';
 import { Spinner } from '@/components/ui/spinner';
 import { apiError } from '@/features/auth/auth-api';
 import {
@@ -118,15 +121,14 @@ export function LifecycleListView({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-        <p className="text-sm text-muted-foreground">{description}</p>
-      </div>
+      <PageHeader title={title} description={description} />
 
       {entries.length === 0 ? (
-        <div className="rounded-lg border bg-card p-8 text-center">
-          <div className="text-muted-foreground">Öğe yok</div>
-        </div>
+        <EmptyState
+          icon={<Archive className="size-5" aria-hidden="true" />}
+          title="Öğe yok"
+          description="Bu bölüm şu an boş. Öğeler taşındığında burada görünür."
+        />
       ) : (
         <div className="space-y-2">
           {entries.map((entry) => (

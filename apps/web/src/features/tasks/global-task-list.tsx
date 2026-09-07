@@ -2,11 +2,14 @@
 
 import { apiClient } from '@planner/api-client';
 import { useQuery } from '@tanstack/react-query';
+import { Inbox } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { EmptyState } from '@/components/empty-state';
 import { ListSkeleton } from '@/components/list-skeleton';
+import { PageHeader } from '@/components/page-header';
 import { Select } from '@/components/ui/select';
 import { TaskPriorityBadge } from './task-badge';
 import { BulkActionBar } from './bulk-action-bar';
@@ -123,10 +126,11 @@ export function GlobalTaskList() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Görevler</h1>
-        <p className="text-sm text-muted-foreground">Tüm alanlardaki aktif görevler</p>
-      </div>
+      <PageHeader
+        title="Görevler"
+        eyebrow="Görevler"
+        description="Tüm alanlardaki aktif görevler"
+      />
 
       {bulkResult && (
         <Alert variant={bulkResult.failed > 0 ? 'destructive' : 'default'}>
@@ -138,7 +142,7 @@ export function GlobalTaskList() {
         </Alert>
       )}
 
-      <div className="flex flex-wrap items-center gap-3 rounded-lg border bg-card p-3">
+      <div className="card-surface flex flex-wrap items-center gap-3 rounded-xl border border-border/70 bg-card p-3 shadow-surface">
         <div className="flex items-center gap-2">
           <label className="text-sm text-muted-foreground" htmlFor="sort">
             Sırala:
@@ -216,20 +220,26 @@ export function GlobalTaskList() {
       </div>
 
       {taskData.length === 0 ? (
-        <div className="rounded-lg border bg-card p-6 text-center text-muted-foreground">
-          {statusFilter || priorityFilter ? 'Filtrelere uyan görev yok.' : 'Henüz görev yok.'}
-        </div>
+        <EmptyState
+          icon={<Inbox className="size-5" aria-hidden="true" />}
+          title={statusFilter || priorityFilter ? 'Filtrelere uyan görev yok.' : 'Henüz görev yok.'}
+          description={
+            statusFilter || priorityFilter
+              ? 'Filtreleri temizleyip tekrar deneyin.'
+              : 'İlk görevinizi oluşturduğunuzda burada görünür.'
+          }
+        />
       ) : (
         <div className="space-y-2">
           {taskData.map((task, index) => (
             <div
               key={task.id}
-              className={`animate-fade-slide-in flex items-center rounded-lg border bg-card p-3 transition-colors duration-150 active:scale-[0.97] ${
+              className={`card-surface animate-fade-slide-in flex items-center rounded-xl border p-3 shadow-surface transition-all duration-150 active:scale-[0.97] ${
                 selectionMode
                   ? selectedTaskIds.has(task.id)
                     ? 'border-primary bg-primary/5'
-                    : 'hover:bg-accent'
-                  : 'hover:bg-accent'
+                    : 'border-border/70 hover:border-border hover:shadow-surface-hover'
+                  : 'border-border/70 hover:border-border hover:shadow-surface-hover'
               }`}
               style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
             >

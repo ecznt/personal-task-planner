@@ -3,10 +3,12 @@
 import { apiClient } from '@planner/api-client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Kanban } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { EmptyState } from '@/components/empty-state';
+import { PageHeader } from '@/components/page-header';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TaskPriorityBadge } from '@/features/tasks/task-badge';
 
@@ -43,7 +45,7 @@ function TaskCard({ task, index }: { task: TaskSummary; index: number }) {
   return (
     <Link
       href={`/app/areas/tasks/${task.id}`}
-      className="animate-fade-slide-in block rounded-lg border bg-card p-3 transition-colors duration-150 active:scale-[0.97] hover:bg-accent"
+      className="card-surface animate-fade-slide-in block rounded-xl border border-border/70 bg-card p-3 shadow-surface transition-all duration-150 active:scale-[0.97] hover:border-border hover:shadow-surface-hover"
       style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
     >
       <div className="truncate text-sm font-medium">{task.title}</div>
@@ -69,7 +71,7 @@ function KanbanColumnView({
   onMove: (taskId: string, target: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED', version: number) => void;
 }) {
   return (
-    <div className="flex min-w-[260px] flex-1 flex-col rounded-lg border bg-muted/50 p-3">
+    <div className="flex min-w-[260px] flex-1 flex-col rounded-xl border border-border/70 bg-muted/40 p-3 backdrop-blur-sm">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-sm font-semibold">{COLUMN_LABELS[columnKey]}</h2>
         <span
@@ -208,10 +210,7 @@ export function KanbanBoard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Kanban</h1>
-        <p className="text-sm text-muted-foreground">Tüm alanlardaki görevler</p>
-      </div>
+      <PageHeader title="Kanban" eyebrow="Görevler" description="Tüm alanlardaki görevler" />
 
       <div
         className="flex gap-4 overflow-x-auto pb-4"
@@ -224,17 +223,19 @@ export function KanbanBoard() {
       </div>
 
       {data.todo.count === 0 && data.inProgress.count === 0 && data.completed.count === 0 && (
-        <div className="rounded-lg border bg-card p-6 text-center text-muted-foreground">
-          <p>Henüz Kanban&apos;da görev yok.</p>
-          <div className="mt-3 flex justify-center gap-3">
+        <EmptyState
+          icon={<Kanban className="size-5" aria-hidden="true" />}
+          title="Henüz Kanban'da görev yok"
+          description="Görev oluşturduğunuzda panoda burada görünür."
+          action={
             <Link
               href="/app/tasks"
-              className="inline-flex items-center rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors duration-150 active:scale-[0.97] hover:bg-primary/90"
+              className="inline-flex items-center rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground shadow-glow transition-all duration-150 active:scale-[0.97] hover:bg-primary/90"
             >
               Görevlere Git
             </Link>
-          </div>
-        </div>
+          }
+        />
       )}
     </div>
   );

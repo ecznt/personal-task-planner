@@ -9,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PageHeader } from '@/components/page-header';
 import { Spinner } from '@/components/ui/spinner';
 import { TaskPriorityBadge } from '@/features/tasks/task-badge';
 
@@ -100,10 +101,11 @@ export function SearchView() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Arama</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Görev başlıklarında ve açıklamalarında arama yapın
-        </p>
+        <PageHeader
+          title="Arama"
+          eyebrow="Arama"
+          description="Görev başlıklarında ve açıklamalarında arama yapın"
+        />
       </div>
 
       <div className="relative">

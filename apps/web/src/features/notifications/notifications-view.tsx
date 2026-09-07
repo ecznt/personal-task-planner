@@ -2,10 +2,13 @@
 
 import { apiClient } from '@planner/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Bell } from 'lucide-react';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/empty-state';
 import { ListSkeleton } from '@/components/list-skeleton';
+import { PageHeader } from '@/components/page-header';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
 
 type NotificationItem = {
@@ -134,10 +137,16 @@ export function NotificationsView() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Bildirimler</h1>
-          <p className="text-sm text-muted-foreground" aria-live="polite">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <PageHeader
+            title="Bildirimler"
+            eyebrow="Bildirimler"
+            description={
+              unreadCount > 0 ? `${unreadCount} okunmamış bildirim` : 'Tüm bildirimler okundu'
+            }
+          />
+          <p className="sr-only" role="status" aria-live="polite">
             {unreadCount > 0 ? `${unreadCount} okunmamış bildirim` : 'Tüm bildirimler okundu'}
           </p>
         </div>
@@ -147,7 +156,7 @@ export function NotificationsView() {
             size="sm"
             onClick={() => markAllAsRead.mutate()}
             disabled={markAllAsRead.isPending}
-            className="transition-transform duration-150 active:scale-[0.97]"
+            className="shrink-0 transition-transform duration-150 active:scale-[0.97]"
           >
             {markAllAsRead.isPending ? 'İşleniyor...' : 'Tümünü Okundu İşaretle'}
           </Button>
@@ -155,16 +164,20 @@ export function NotificationsView() {
       </div>
 
       {data.length === 0 ? (
-        <div className="rounded-lg border bg-card p-8 text-center">
-          <div className="text-muted-foreground">Henüz bildirim yok</div>
-        </div>
+        <EmptyState
+          icon={<Bell className="size-5" aria-hidden="true" />}
+          title="Henüz bildirim yok"
+          description="Bitiş ve plan yaklaşan görevlerle ilgili bildirimler burada görünür."
+        />
       ) : (
         <div className="space-y-2">
           {data.map((notification) => (
             <div
               key={notification.id}
-              className={`rounded-lg border p-4 transition-colors duration-150 ${
-                notification.readState === 'UNREAD' ? 'bg-card border-primary/20' : 'bg-muted/30'
+              className={`rounded-xl border p-4 transition-all duration-150 ${
+                notification.readState === 'UNREAD'
+                  ? 'card-surface border-primary/25 bg-card shadow-surface'
+                  : 'border-border/70 bg-muted/20 backdrop-blur-sm'
               }`}
             >
               <div className="flex items-start justify-between gap-3">
