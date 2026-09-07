@@ -7,7 +7,8 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Spinner } from '@/components/ui/spinner';
+import { Skeleton } from '@/components/ui/skeleton';
+import { TaskPriorityBadge } from '@/features/tasks/task-badge';
 
 type TaskSummary = {
   readonly id: string;
@@ -32,12 +33,6 @@ type KanbanResponse = {
   completed: KanbanColumn;
 };
 
-const PRIORITY_LABELS: Record<string, string> = {
-  LOW: 'Düşük',
-  MEDIUM: 'Orta',
-  HIGH: 'Yüksek',
-};
-
 const COLUMN_LABELS: Record<string, string> = {
   todo: 'Yapılacak',
   inProgress: 'Devam Ediyor',
@@ -53,17 +48,7 @@ function TaskCard({ task, index }: { task: TaskSummary; index: number }) {
     >
       <div className="truncate text-sm font-medium">{task.title}</div>
       <div className="mt-1.5 flex items-center gap-1.5">
-        <span
-          className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-            task.priority === 'HIGH'
-              ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-              : task.priority === 'LOW'
-                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-          }`}
-        >
-          {PRIORITY_LABELS[task.priority]}
-        </span>
+        <TaskPriorityBadge priority={task.priority} />
         {task.dueAt && (
           <span className="text-xs text-muted-foreground">
             {new Date(task.dueAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
@@ -87,7 +72,10 @@ function KanbanColumnView({
     <div className="flex min-w-[260px] flex-1 flex-col rounded-lg border bg-muted/50 p-3">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-sm font-semibold">{COLUMN_LABELS[columnKey]}</h2>
-        <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+        <span
+          className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground"
+          aria-live="polite"
+        >
           {column.count}
         </span>
       </div>
@@ -185,8 +173,16 @@ export function KanbanBoard() {
 
   if (kanban.isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Spinner />
+      <div className="grid gap-3 md:grid-cols-3" role="status" aria-label="Yükleniyor">
+        {[0, 1, 2].map((col) => (
+          <div key={col} className="space-y-2 rounded-lg border bg-muted/50 p-3">
+            <Skeleton className="h-4 w-1/2" />
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-20 w-full" />
+          </div>
+        ))}
+        <span className="sr-only">Yükleniyor</span>
       </div>
     );
   }

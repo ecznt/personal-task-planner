@@ -2,13 +2,13 @@
 
 | Field | Value |
 | --- | --- |
-| Status | L-009 through L-021 implemented; L-022 hardening completed; L-023 next |
-| Revision date | 2026-09-05 |
+| Status | L-009 through L-023 implemented — MVP complete |
+| Revision date | 2026-09-07 |
 | Product scope | MVP, personal use only |
 | Document language | English |
 | Execution mode | Small vertical slices, but not one micro-story per technical concern |
-| Current completed baseline | EPIC-001; BL-007 through BL-011; BL-014; BL-015; BL-121; L-001 through L-022 |
-| Next slice | L-023 — Release readiness |
+| Current completed baseline | EPIC-001; BL-007 through BL-011; BL-014; BL-015; BL-121; L-001 through L-023 |
+| Next slice | None — MVP fully delivered; no next slice defined |
 
 This document replaces the earlier over-granular execution queue. The approved PRD, UX, Domain, Data, API, Architecture, and ADR documents remain authoritative for product and technical rules. This backlog controls implementation order only.
 
@@ -374,6 +374,21 @@ Before each slice, verify the exact requirement IDs from PRD and API/Domain/Data
 **Implemented scope:** shared responsive `AppShell` in a single `app/app/layout.tsx` (SessionBoundary + shell) replacing per-page scaffolding; sticky header with search, notifications tooltips, and header quick-create sheet; mobile bottom tab bar with safe-area padding; new `sheet`/`tooltip` (delayed-open fade/zoom-in-95)/`dropdown-menu` primitives; short page metadata titles; `autoFocus` replaced with deterministic focus-on-open across status editor, search view, and quick-create; leftover lint/format/type failures repaired repo-wide (including seven non-null assertions in `area.repository.ts`); CI workflow now triggers on `opencode/develop` for both `pull_request` and `push`.
 
 **E2E/security repair (commit `608febe`, run `33992498866`, all green):** restored sign-out UI in the shell (SignOutButton in sidebar + More sheet), gated quick-create csrf/areas fetches on dialog open, derived the session-boundary login return target from `usePathname()`, refit stale e2e specs to the shell-era UI (authenticated session + raw `tasks/today` mocks, exact button-name matching, detail-page count/label assertions), and closed the audit gap via `pnpm-workspace.yaml` overrides (`fast-uri` 3.1.6, `mysql2 >=3.22.0`, `deepmerge-ts >=8.0.0`). `pnpm audit --audit-level high` now exits clean (0 high, 3 moderate); no accepted-risk record required.
+
+### L-023 — Release readiness
+
+**Implementation status:** Implemented, committed, and CI-verified on 2026-09-06. Commits `b0518df` and `942bfc6`; CI runs `33992751977` and `33997579621` both succeeded.
+
+**Plan document:** `docs/planning/L-023_RELEASE_READINESS_PLAN.md`
+
+**Implemented scope:** Final traceability update (decision log extended through DEC-103); CI evidence recorded (all suites green on `opencode/develop`); migration and deploy rehearsal automated in CI against disposable `postgres:18.3` (prisma validate, migrate deploy, test:db, build, contract); `pnpm audit` gap closed via reviewed overrides (0 high, 3 moderate); release checklist and rollback note formalized; Graphify incremental update shipped (`942bfc6`, 2775 nodes / 5479 edges / 195 communities). No new product functionality.
+
+**Definition of Done (all met):**
+1. CI green on `opencode/develop` including all suites.
+2. `pnpm audit --audit-level high` passes (0 high, 3 moderate).
+3. Migration deploy rehearsal succeeds on disposable database in CI.
+4. Decision log + phase history + backlog reflect L-001 through L-023 all implemented.
+5. Self-review: no secrets, no `develop`/`main` push, no bypassed gates.
 
 ## 7. Backlog maintenance policy
 

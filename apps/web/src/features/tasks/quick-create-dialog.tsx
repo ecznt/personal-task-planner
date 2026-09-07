@@ -20,6 +20,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { Select } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
 
@@ -134,9 +135,8 @@ export function QuickCreateDialog() {
             {areas.isLoading ? (
               <Spinner />
             ) : (
-              <select
+              <Select
                 id="quick-area"
-                className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
                 aria-invalid={Boolean(form.formState.errors.areaId)}
                 {...form.register('areaId')}
               >
@@ -146,7 +146,7 @@ export function QuickCreateDialog() {
                     {area.name}
                   </option>
                 ))}
-              </select>
+              </Select>
             )}
             {form.formState.errors.areaId && (
               <FieldError>{form.formState.errors.areaId.message}</FieldError>

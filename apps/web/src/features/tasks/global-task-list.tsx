@@ -6,7 +6,9 @@ import { useState } from 'react';
 import Link from 'next/link';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Spinner } from '@/components/ui/spinner';
+import { ListSkeleton } from '@/components/list-skeleton';
+import { Select } from '@/components/ui/select';
+import { TaskPriorityBadge } from './task-badge';
 import { BulkActionBar } from './bulk-action-bar';
 
 type TaskSummary = {
@@ -18,12 +20,6 @@ type TaskSummary = {
   readonly plannedAt: string | null;
   readonly lifecycleState: string;
   readonly version: number;
-};
-
-const PRIORITY_LABELS: Record<string, string> = {
-  LOW: 'Düşük',
-  MEDIUM: 'Orta',
-  HIGH: 'Yüksek',
 };
 
 const SORT_OPTIONS = [
@@ -76,11 +72,8 @@ export function GlobalTaskList() {
       if (statusFilter) params.canonicalStatus = statusFilter;
       if (priorityFilter) params.priority = priorityFilter;
 
-      const queryString = new URLSearchParams(params).toString();
-      const url = `/api/v1/tasks?${queryString}` as '/api/v1/tasks';
-
       const result = await apiClient.get({
-        url,
+        url: '/api/v1/tasks',
         query: params,
       });
 
@@ -114,11 +107,7 @@ export function GlobalTaskList() {
     .map((t) => ({ id: t.id, version: t.version }));
 
   if (tasks.isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Spinner />
-      </div>
-    );
+    return <ListSkeleton rows={6} />;
   }
 
   if (tasks.isError) {
@@ -149,27 +138,22 @@ export function GlobalTaskList() {
         </Alert>
       )}
 
-      <div className="flex flex-wrap gap-3 rounded-lg border bg-card p-3">
+      <div className="flex flex-wrap items-center gap-3 rounded-lg border bg-card p-3">
         <div className="flex items-center gap-2">
           <label className="text-sm text-muted-foreground" htmlFor="sort">
             Sırala:
           </label>
-          <select
-            id="sort"
-            value={sort}
-            onChange={(e) => setSort(e.target.value)}
-            className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm outline-none transition-transform duration-150 active:scale-[0.97] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-          >
+          <Select id="sort" value={sort} onChange={(e) => setSort(e.target.value)}>
             {SORT_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>
             ))}
-          </select>
+          </Select>
           <button
             type="button"
             onClick={() => setOrder(order === 'asc' ? 'desc' : 'asc')}
-            className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm transition-transform duration-150 hover:bg-accent active:scale-[0.97]"
+            className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm transition-transform duration-150 hover:bg-accent active:scale-[0.97] focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
           >
             {order === 'asc' ? '↑' : '↓'}
           </button>
@@ -179,11 +163,10 @@ export function GlobalTaskList() {
           <label className="text-sm text-muted-foreground" htmlFor="statusFilter">
             Durum:
           </label>
-          <select
+          <Select
             id="statusFilter"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm outline-none transition-transform duration-150 active:scale-[0.97] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           >
             <option value="">Tümü</option>
             {STATUS_OPTIONS.map((opt) => (
@@ -191,18 +174,17 @@ export function GlobalTaskList() {
                 {opt.label}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
         <div className="flex items-center gap-2">
           <label className="text-sm text-muted-foreground" htmlFor="priorityFilter">
             Öncelik:
           </label>
-          <select
+          <Select
             id="priorityFilter"
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
-            className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm outline-none transition-transform duration-150 active:scale-[0.97] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           >
             <option value="">Tümü</option>
             {PRIORITY_OPTIONS.map((opt) => (
@@ -210,7 +192,7 @@ export function GlobalTaskList() {
                 {opt.label}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
         <div className="ml-auto">
@@ -283,17 +265,7 @@ export function GlobalTaskList() {
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-medium">{task.title}</div>
                   <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                        task.priority === 'HIGH'
-                          ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                          : task.priority === 'LOW'
-                            ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                            : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-                      }`}
-                    >
-                      {PRIORITY_LABELS[task.priority]}
-                    </span>
+                    <TaskPriorityBadge priority={task.priority} />
                     {task.plannedAt && <span>Plan: {formatDate(task.plannedAt)}</span>}
                     {task.dueAt && <span>Bitiş: {formatDate(task.dueAt)}</span>}
                   </div>
@@ -302,17 +274,7 @@ export function GlobalTaskList() {
                 <Link href={`/app/areas/tasks/${task.id}`} className="min-w-0 flex-1">
                   <div className="truncate font-medium">{task.title}</div>
                   <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                        task.priority === 'HIGH'
-                          ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                          : task.priority === 'LOW'
-                            ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                            : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-                      }`}
-                    >
-                      {PRIORITY_LABELS[task.priority]}
-                    </span>
+                    <TaskPriorityBadge priority={task.priority} />
                     {task.plannedAt && <span>Plan: {formatDate(task.plannedAt)}</span>}
                     {task.dueAt && <span>Bitiş: {formatDate(task.dueAt)}</span>}
                   </div>

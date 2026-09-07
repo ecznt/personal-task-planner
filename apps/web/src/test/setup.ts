@@ -14,6 +14,19 @@ vi.stubGlobal(
   },
 );
 
+vi.stubGlobal(
+  'matchMedia',
+  vi.fn(() => ({
+    matches: false,
+    media: '',
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+);
+
 Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
   configurable: true,
   value: vi.fn(() => null),

@@ -10,6 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
 
 import { createTaskSchema, type CreateTaskFormValues } from './task-schema';
@@ -127,15 +128,11 @@ export function CreateTaskForm({ areaId, onSuccess }: CreateTaskFormProps) {
         </div>
         <Field>
           <FieldLabel htmlFor="priority">Öncelik</FieldLabel>
-          <select
-            id="priority"
-            className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base outline-none transition-transform duration-150 active:scale-[0.97] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm"
-            {...form.register('priority')}
-          >
+          <Select id="priority" {...form.register('priority')}>
             <option value="LOW">Düşük</option>
             <option value="MEDIUM">Orta</option>
             <option value="HIGH">Yüksek</option>
-          </select>
+          </Select>
         </Field>
         <div className="flex gap-2">
           <Button

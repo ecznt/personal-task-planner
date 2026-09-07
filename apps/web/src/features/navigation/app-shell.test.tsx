@@ -4,6 +4,8 @@ import userEvent from '@testing-library/user-event';
 import { axe } from 'vitest-axe';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { ThemeProvider } from '@/components/theme/theme-provider';
+
 const mocks = vi.hoisted(() => ({
   pathname: '/app/today',
   apiGet: vi.fn(),
@@ -26,9 +28,11 @@ import { AppShell } from './app-shell';
 function renderShell() {
   return render(
     <QueryClientProvider client={new QueryClient()}>
-      <AppShell>
-        <p>Page content</p>
-      </AppShell>
+      <ThemeProvider>
+        <AppShell>
+          <p>Page content</p>
+        </AppShell>
+      </ThemeProvider>
     </QueryClientProvider>,
   );
 }

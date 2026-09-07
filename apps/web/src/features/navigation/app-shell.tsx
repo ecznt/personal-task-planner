@@ -6,6 +6,7 @@ import { useState } from 'react';
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { SignOutButton } from '@/features/auth/sign-out-button';
 import { NotificationBell } from '@/features/notifications/notification-bell';
 import { QuickCreateDialog } from '@/features/tasks/quick-create-dialog';
@@ -94,7 +95,7 @@ function MobileBottomNav() {
   return (
     <nav
       aria-label="Ana menü (mobil)"
-      className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t bg-background pb-[env(safe-area-inset-bottom)] md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t bg-nav-bg backdrop-blur pb-[env(safe-area-inset-bottom)] md:hidden"
     >
       {MOBILE_PRIMARY.map((item) => {
         const active = isActive(pathname, item.href);
@@ -147,6 +148,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   useSearchShortcut();
   return (
     <div className="min-h-screen bg-muted/40">
+      <a href="#main-content" className="skip-link">
+        İçeriğe geç
+      </a>
+
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r bg-background md:flex">
         <div className="flex h-14 items-center gap-2 px-4 text-sm font-semibold">
           <span className="size-2 rounded-full bg-primary" aria-hidden="true" />
@@ -161,9 +166,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <div className="md:pl-60">
-        <div className="sticky top-0 z-20 flex h-14 items-center justify-between gap-2 border-b bg-background/80 px-4 backdrop-blur md:px-6">
+        <div className="sticky top-0 z-20 flex h-14 items-center justify-between gap-2 border-b bg-header-bg px-4 backdrop-blur md:px-6">
           <div className="text-sm font-semibold md:hidden">Kişisel İş Planlayıcı</div>
           <div className="flex items-center gap-2 md:ml-auto">
+            <ThemeToggle />
             <QuickCreateDialog />
             <SearchLink />
             <Tooltip>
@@ -175,7 +181,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        <main className="px-4 py-6 pb-24 md:px-8 md:py-8 md:pb-8">{children}</main>
+        <main
+          id="main-content"
+          className="mx-auto w-full max-w-6xl px-4 py-6 pb-24 md:px-8 md:py-8 md:pb-8"
+        >
+          {children}
+        </main>
       </div>
 
       <MobileBottomNav />

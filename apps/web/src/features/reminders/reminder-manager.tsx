@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
 
@@ -194,14 +195,13 @@ export function ReminderManager({ taskId, plannedAt, dueAt, version }: ReminderM
 
           <Field>
             <FieldLabel>Ana Hat</FieldLabel>
-            <select
+            <Select
               value={anchorType}
               onChange={(e) => setAnchorType(e.target.value as 'PLANNED' | 'DUE')}
-              className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base outline-none transition-transform duration-150 active:scale-[0.97] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm"
             >
               {plannedAt && <option value="PLANNED">Başlangıç</option>}
               {dueAt && <option value="DUE">Bitiş</option>}
-            </select>
+            </Select>
           </Field>
 
           <Field>

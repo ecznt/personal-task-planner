@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner';
+import { ListSkeleton } from '@/components/list-skeleton';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
 
 type NotificationItem = {
@@ -115,11 +115,7 @@ export function NotificationsView() {
   });
 
   if (notifications.isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Spinner />
-      </div>
-    );
+    return <ListSkeleton rows={6} />;
   }
 
   if (notifications.isError) {
@@ -141,7 +137,7 @@ export function NotificationsView() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Bildirimler</h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground" aria-live="polite">
             {unreadCount > 0 ? `${unreadCount} okunmamış bildirim` : 'Tüm bildirimler okundu'}
           </p>
         </div>

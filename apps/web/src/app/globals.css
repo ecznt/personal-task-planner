@@ -26,6 +26,8 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --color-header-bg: var(--header-bg);
+  --color-nav-bg: var(--nav-bg);
 }
 
 :root {
@@ -33,6 +35,9 @@
   --radius: 0.75rem;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 280ms;
   --background: oklch(0.985 0.002 247.839);
   --foreground: oklch(0.208 0.042 265.755);
   --card: oklch(1 0 0);
@@ -51,6 +56,8 @@
   --border: oklch(0.929 0.013 255.508);
   --input: oklch(0.929 0.013 255.508);
   --ring: oklch(0.623 0.214 259.815);
+  --header-bg: oklch(0.985 0.002 247.839 / 0.72);
+  --nav-bg: oklch(1 0 0 / 0.72);
   font-family:
     Inter,
     ui-sans-serif,
@@ -59,8 +66,32 @@
     BlinkMacSystemFont,
     'Segoe UI',
     sans-serif;
-  background: #f8fafc;
-  color: #0f172a;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.dark {
+  color-scheme: dark;
+  --background: oklch(0.183 0.022 264.4);
+  --foreground: oklch(0.928 0.013 265.755);
+  --card: oklch(0.229 0.022 264.4);
+  --card-foreground: oklch(0.928 0.013 265.755);
+  --popover: oklch(0.229 0.022 264.4);
+  --popover-foreground: oklch(0.928 0.013 265.755);
+  --primary: oklch(0.691 0.168 260.47);
+  --primary-foreground: oklch(0.183 0.022 264.4);
+  --secondary: oklch(0.279 0.027 259.575);
+  --secondary-foreground: oklch(0.928 0.013 265.755);
+  --muted: oklch(0.279 0.027 259.575);
+  --muted-foreground: oklch(0.629 0.038 258.291);
+  --accent: oklch(0.279 0.027 259.575);
+  --accent-foreground: oklch(0.928 0.013 265.755);
+  --destructive: oklch(0.644 0.225 20.079);
+  --border: oklch(0.31 0.028 259.302);
+  --input: oklch(0.31 0.028 259.302);
+  --ring: oklch(0.691 0.168 260.47);
+  --header-bg: oklch(0.183 0.022 264.4 / 0.72);
+  --nav-bg: oklch(0.229 0.022 264.4 / 0.72);
 }
 
 * {
@@ -72,13 +103,6 @@ body {
   margin: 0;
   background: var(--background);
   color: var(--foreground);
-}
-
-main {
-  display: grid;
-  min-height: 100vh;
-  place-items: center;
-  padding: 2rem;
 }
 
 .foundation-card {
@@ -103,6 +127,30 @@ main {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .backdrop-blur {
+    backdrop-filter: blur(0) !important;
+  }
+}
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  z-index: 100;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 12%);
+  transition: top var(--duration-fast) var(--ease-out);
+}
+.skip-link:focus {
+  top: 0.75rem;
 }
 
 .accordion-content {

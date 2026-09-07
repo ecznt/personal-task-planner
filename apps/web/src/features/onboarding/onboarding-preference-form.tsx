@@ -16,6 +16,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { Select } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
 
@@ -178,9 +179,9 @@ export function OnboardingPreferenceForm() {
           <FieldGroup>
             <Field data-invalid={Boolean(form.formState.errors.choice)}>
               <FieldLabel htmlFor="onboarding-choice">Başlangıç tercihi</FieldLabel>
-              <select
+              <Select
                 id="onboarding-choice"
-                className="h-9 rounded-lg border border-input bg-background px-3 text-sm transition-transform duration-150 active:scale-[0.97] focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+                className="h-9"
                 aria-invalid={Boolean(form.formState.errors.choice)}
                 aria-describedby={
                   form.formState.errors.choice ? 'onboarding-choice-error' : undefined
@@ -189,15 +190,15 @@ export function OnboardingPreferenceForm() {
               >
                 <option value="START_EMPTY">Boş başla</option>
                 <option value="CREATE_SAMPLE_DATA">Örnek veri oluştur</option>
-              </select>
+              </Select>
               <FieldError id="onboarding-choice-error" errors={[form.formState.errors.choice]} />
             </Field>
 
             <Field data-invalid={Boolean(form.formState.errors.timeZone)}>
               <FieldLabel htmlFor="onboarding-time-zone">Saat dilimi</FieldLabel>
-              <select
+              <Select
                 id="onboarding-time-zone"
-                className="h-9 rounded-lg border border-input bg-background px-3 text-sm transition-transform duration-150 active:scale-[0.97] focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+                className="h-9"
                 aria-invalid={Boolean(form.formState.errors.timeZone)}
                 aria-describedby={
                   form.formState.errors.timeZone ? 'onboarding-time-zone-error' : undefined
@@ -209,7 +210,7 @@ export function OnboardingPreferenceForm() {
                     {timeZone}
                   </option>
                 ))}
-              </select>
+              </Select>
               <FieldError
                 id="onboarding-time-zone-error"
                 errors={[form.formState.errors.timeZone]}

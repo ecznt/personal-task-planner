@@ -4,7 +4,8 @@ import { apiClient } from '@planner/api-client';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 
-import { Spinner } from '@/components/ui/spinner';
+import { ListSkeleton } from '@/components/list-skeleton';
+import { TaskPriorityBadge } from '@/features/tasks/task-badge';
 
 type TaskSummary = {
   readonly id: string;
@@ -14,12 +15,6 @@ type TaskSummary = {
   readonly dueAt: string | null;
   readonly plannedAt: string | null;
   readonly lifecycleState: string;
-};
-
-const PRIORITY_LABELS: Record<string, string> = {
-  LOW: 'Düşük',
-  MEDIUM: 'Orta',
-  HIGH: 'Yüksek',
 };
 
 type TaskListProps = {
@@ -44,11 +39,7 @@ export function TaskList({ areaId }: TaskListProps) {
   });
 
   if (tasks.isLoading) {
-    return (
-      <div className="flex items-center justify-center py-6">
-        <Spinner />
-      </div>
-    );
+    return <ListSkeleton rows={4} />;
   }
 
   if (tasks.isError) {
@@ -77,17 +68,7 @@ export function TaskList({ areaId }: TaskListProps) {
           <div className="min-w-0 flex-1">
             <div className="truncate font-medium">{task.title}</div>
             <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-              <span
-                className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                  task.priority === 'HIGH'
-                    ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                    : task.priority === 'LOW'
-                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                      : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-                }`}
-              >
-                {PRIORITY_LABELS[task.priority]}
-              </span>
+              <TaskPriorityBadge priority={task.priority} />
               {task.dueAt && <span>Bitiş: {new Date(task.dueAt).toLocaleDateString('tr-TR')}</span>}
             </div>
           </div>

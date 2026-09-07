@@ -5,7 +5,7 @@
 | Repository | `ecznt/personal-task-planner` |
 | Document role | Authoritative planning index and decision record |
 | Document language | English |
-| Last updated | 2026-09-05 |
+| Last updated | 2026-09-07 |
 
 ## Product vision
 
@@ -553,11 +553,12 @@ Update this section after every successful graph generation.
 | 2026-08-21 | Phase 3 — L-011 Global Kanban | Implemented, locally verified, and approved | `GET /api/v1/tasks/kanban` returning 3 canonical groups, `POST /tasks/kanban-moves` for moving tasks between groups, frontend `/app/kanban` 3-column board with move buttons, full local verification. |
 | 2026-09-05 | Phase 3 — L-012 through L-021 planning feature slices | Implemented, locally verified, and approved; batch-published to `opencode/develop` | Area Kanban (`903a8de`), status editor (`c27501b`), consistent status changes (`2a3999d`), recurrence (`043fb87`), search (`10a825e`), bulk actions (`0fc3034`), in-app notifications (`51613e9`), Archive and Trash (`54c0479`), durable purge (`e3a3f81`). CI on `develop` was not wired for branch pushes, so these were verified locally. |
 | 2026-09-05 | Phase 3 — L-022 MVP responsive/accessibility hardening | Implemented, committed, pushed to `opencode/develop`, CI started (run `33989414398`) | Shared responsive AppShell layout, header quick-create sheet, delayed-open tooltips, focus management, metadata titles, repo-wide lint/format/type repair, CI enabled on `opencode/develop`; see `docs/planning/L-022_HARDENING_PLAN.md`. |
+| 2026-09-06 | Phase 3 — L-023 release readiness | Completed, committed, pushed to `opencode/develop`; plan implemented; CI-verified green | Commits `b0518df`, `942bfc6`; CI runs `33992751977`, `33997579621`; `docs/planning/L-023_RELEASE_READINESS_PLAN.md` |
 
 ## Current planning stage
 
-Phase 3 Implementation — L-022 MVP responsive/accessibility hardening. EPIC-001; BL-007 through BL-011, BL-014, BL-015, BL-121; the lean backlog refactor; and L-001 through L-022 are implemented. L-009 through L-021 and L-022 are committed on `opencode/develop` (`4ccb4d0`) and CI has been enabled for that branch. The known release blockers are the `test:security` audit findings (all indirect dev-tooling transitive paths) and the pending L-023 release-readiness evidence set.
+Phase 3 Implementation — MVP complete. EPIC-001; BL-007 through BL-011, BL-014, BL-015, BL-121; the lean backlog refactor; and L-001 through L-023 are all implemented, committed on `opencode/develop`, and CI-verified green. The MVP is release-ready per the L-023 rehearsal evidence.
 
 ## Next required action
 
-Run the L-023 release-readiness plan: confirm CI green on `opencode/develop` (run `33989414398`), resolve the `pnpm audit` dependency gap, rehearse migration deploy on a disposable database, complete final traceability, and mark `docs/planning/L-023_RELEASE_READINESS_PLAN.md` implemented.
+MVP fully delivered — no next slice defined. All 23 lean implementation slices (L-001 through L-023) are implemented and CI-verified; the backlog is exhausted. Production deployment remains an explicit user-directed decision and is not automatically triggered by backlog completion.

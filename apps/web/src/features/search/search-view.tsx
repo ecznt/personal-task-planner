@@ -6,9 +6,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
+import { TaskPriorityBadge } from '@/features/tasks/task-badge';
 
 type SearchResult = {
   readonly id: string;
@@ -29,12 +31,6 @@ type SearchPageData = {
     readonly nextCursor?: string;
     readonly hasMore: boolean;
   };
-};
-
-const PRIORITY_LABELS: Record<string, string> = {
-  LOW: 'Düşük',
-  MEDIUM: 'Orta',
-  HIGH: 'Yüksek',
 };
 
 function formatDate(iso: string | null): string {
@@ -170,16 +166,14 @@ export function SearchView() {
                   )}
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs">
-                    {PRIORITY_LABELS[result.priority]}
-                  </span>
-                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs">
+                  <TaskPriorityBadge priority={result.priority} />
+                  <Badge variant="neutral">
                     {result.canonicalStatus === 'TO_DO'
                       ? 'Yapılacak'
                       : result.canonicalStatus === 'IN_PROGRESS'
                         ? 'Devam Ediyor'
                         : 'Tamamlandı'}
-                  </span>
+                  </Badge>
                 </div>
               </div>
               <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">

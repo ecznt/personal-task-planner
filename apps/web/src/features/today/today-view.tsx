@@ -8,7 +8,9 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Spinner } from '@/components/ui/spinner';
+import { Badge } from '@/components/ui/badge';
+import { ListSkeleton } from '@/components/list-skeleton';
+import { TaskPriorityBadge } from '@/features/tasks/task-badge';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
 
 type TodayTask = {
@@ -36,12 +38,6 @@ type TodayResponse = {
   plannedToday: TodaySection;
   dueToday: TodaySection;
   completedToday: TodaySection;
-};
-
-const PRIORITY_LABELS: Record<string, string> = {
-  LOW: 'Düşük',
-  MEDIUM: 'Orta',
-  HIGH: 'Yüksek',
 };
 
 const REASON_LABELS: Record<string, string> = {
@@ -122,30 +118,16 @@ function TaskCard({
         <div className="truncate font-medium">{task.title}</div>
         <div className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
           {task.reasons.map((reason) => (
-            <span
+            <Badge
               key={reason}
-              className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                reason === 'overdue'
-                  ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                  : reason === 'completedToday'
-                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                    : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-              }`}
+              variant={
+                reason === 'overdue' ? 'danger' : reason === 'completedToday' ? 'success' : 'info'
+              }
             >
               {REASON_LABELS[reason] ?? reason}
-            </span>
+            </Badge>
           ))}
-          <span
-            className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-              task.priority === 'HIGH'
-                ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                : task.priority === 'LOW'
-                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                  : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-            }`}
-          >
-            {PRIORITY_LABELS[task.priority]}
-          </span>
+          <TaskPriorityBadge priority={task.priority} />
           {task.plannedAt && <span>Plan: {formatTime(task.plannedAt)}</span>}
           {task.dueAt && (
             <span>
@@ -176,10 +158,10 @@ function TaskCard({
           </button>
         )}
         {isCompleted && (
-          <span className="flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400">
+          <Badge variant="success" className="gap-1">
             <CircleDot className="size-3" />
             Tamamlandı
-          </span>
+          </Badge>
         )}
       </div>
     </div>
@@ -256,11 +238,7 @@ export function TodayView() {
   };
 
   if (today.isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Spinner />
-      </div>
-    );
+    return <ListSkeleton rows={6} />;
   }
 
   if (today.isError || !today.data) {
@@ -386,7 +364,7 @@ export function TodayView() {
                 onClick={() => setShowCompleted(!showCompleted)}
                 aria-expanded={showCompleted}
                 aria-controls="today-section-completed"
-                className="flex w-full items-center justify-between rounded-lg border bg-card px-3 py-2 text-left text-sm font-medium transition-colors duration-150 active:scale-[0.97] hover:bg-accent"
+                className="flex w-full items-center justify-between rounded-lg border bg-card px-3 py-2 text-left text-sm font-medium transition-colors duration-150 active:scale-[0.97] hover:bg-accent focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
               >
                 <span>Tamamlanan ({data.completedToday.count})</span>
                 <span aria-hidden="true" className="text-muted-foreground">

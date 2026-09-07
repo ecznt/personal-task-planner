@@ -10,6 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
 import { Checklist } from '@/features/checklist/checklist';
@@ -274,16 +275,11 @@ export function TaskDetail({ taskId }: TaskDetailProps) {
           </div>
           <Field>
             <FieldLabel htmlFor="priority">Öncelik</FieldLabel>
-            <select
-              id="priority"
-              defaultValue={taskData.priority}
-              className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base outline-none transition-transform duration-150 active:scale-[0.97] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm"
-              {...form.register('priority')}
-            >
+            <Select id="priority" defaultValue={taskData.priority} {...form.register('priority')}>
               <option value="LOW">Düşük</option>
               <option value="MEDIUM">Orta</option>
               <option value="HIGH">Yüksek</option>
-            </select>
+            </Select>
           </Field>
           <LabelManager
             selectedLabelIds={selectedLabelIds}
@@ -295,10 +291,9 @@ export function TaskDetail({ taskId }: TaskDetailProps) {
           />
           <Field>
             <FieldLabel htmlFor="projectId">Proje</FieldLabel>
-            <select
+            <Select
               id="projectId"
               defaultValue={taskData.projectId ?? ''}
-              className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base outline-none transition-transform duration-150 active:scale-[0.97] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm"
               {...form.register('projectId')}
             >
               <option value="">Proje yok</option>
@@ -307,7 +302,7 @@ export function TaskDetail({ taskId }: TaskDetailProps) {
                   {project.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
           <div className="flex gap-2">
             <Button
@@ -638,7 +633,7 @@ function RecurrenceForm({
 
       <Field>
         <FieldLabel>Sıklık</FieldLabel>
-        <select
+        <Select
           value={frequency}
           onChange={(e) => {
             setFrequency(e.target.value);
@@ -646,14 +641,13 @@ function RecurrenceForm({
             setDayOfMonth(null);
             setMonthOfYear(null);
           }}
-          className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base outline-none transition-transform duration-150 active:scale-[0.97] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm"
         >
           <option value="DAILY">Her gün</option>
           <option value="WEEKDAYS">Her iş günü</option>
           <option value="WEEKLY">Her hafta</option>
           <option value="MONTHLY">Her ay</option>
           <option value="YEARLY">Her yıl</option>
-        </select>
+        </Select>
       </Field>
 
       {frequency !== 'WEEKDAYS' && (
