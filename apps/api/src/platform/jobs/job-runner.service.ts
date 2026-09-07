@@ -38,7 +38,6 @@ export class JobRunnerService implements OnApplicationBootstrap, OnApplicationSh
     this.interval = setInterval(() => {
       void this.runOnce();
     }, this.environment.WORKER_POLL_INTERVAL_MS);
-    this.interval.unref();
   }
 
   onApplicationShutdown(): void {

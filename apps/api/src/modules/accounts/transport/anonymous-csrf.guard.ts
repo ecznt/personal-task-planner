@@ -2,10 +2,12 @@ import type { CanActivate, ExecutionContext } from '@nestjs/common';
 import { Inject, Injectable } from '@nestjs/common';
 import type { Request } from 'express';
 
-import { parseApiEnvironment } from '../../../platform/config/environment';
+import { parseApiEnvironment, type ApiEnvironment } from '../../../platform/config/environment';
 import { ApiProblemException } from '../../../platform/http/api-problem.exception';
 import { CsrfService } from '../application/csrf.service';
 import { anonymousCsrfCookieName, parseCookieValue } from './auth-cookie';
+
+const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1']);
 
 @Injectable()
 export class AnonymousCsrfGuard implements CanActivate {
@@ -21,7 +23,7 @@ export class AnonymousCsrfGuard implements CanActivate {
 
     if (
       typeof origin !== 'string' ||
-      safeOrigin(origin) !== new URL(this.environment.PUBLIC_ORIGIN).origin ||
+      !isAllowedOrigin(origin, this.environment.PUBLIC_ORIGIN, this.environment.NODE_ENV) ||
       typeof csrfToken !== 'string' ||
       browserToken === undefined ||
       !(await this.csrf.isValid(browserToken, csrfToken))
@@ -37,12 +39,34 @@ export class AnonymousCsrfGuard implements CanActivate {
   }
 }
 
-function safeOrigin(value: string): string | undefined {
+function isAllowedOrigin(
+  rawOrigin: string,
+  publicOrigin: string,
+  nodeEnv: ApiEnvironment['NODE_ENV'],
+): boolean {
+  let value: URL;
   try {
-    return new URL(value).origin;
+    value = new URL(rawOrigin);
   } catch {
-    return undefined;
+    return false;
   }
+
+  const expected = new URL(publicOrigin);
+
+  if (value.origin === expected.origin) {
+    return true;
+  }
+
+  if (nodeEnv === 'production') {
+    return false;
+  }
+
+  return (
+    value.protocol === expected.protocol &&
+    value.port === expected.port &&
+    LOCAL_HOSTNAMES.has(value.hostname) &&
+    LOCAL_HOSTNAMES.has(expected.hostname)
+  );
 }
 
 export { anonymousCsrfCookieName } from './auth-cookie';

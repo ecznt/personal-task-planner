@@ -26,7 +26,6 @@ export class PurgeSchedulerService implements OnApplicationBootstrap, OnApplicat
     this.interval = setInterval(() => {
       void this.enqueueIfIdle();
     }, 60_000);
-    this.interval.unref();
   }
 
   onApplicationShutdown(): void {

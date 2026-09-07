@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+
 import { Inject, Injectable } from '@nestjs/common';
 
 import { PrismaService } from '../../../platform/database/prisma.service';
@@ -25,17 +27,20 @@ export class RecurrenceRepository {
     },
   ): Promise<RecurrenceSeriesDetail> {
     return this.prisma.$transaction(async (tx) => {
+      const ruleVersionId = randomUUID();
+
       const series = await tx.recurrenceSeries.create({
         data: {
           userId,
           currentOpenTaskId: taskId,
           nextOccurrenceNumber: 2,
-          activeRuleVersionId: '', // will update after rule creation
+          activeRuleVersionId: ruleVersionId,
         },
       });
 
       const ruleVersion = await tx.recurrenceRuleVersion.create({
         data: {
+          id: ruleVersionId,
           userId,
           seriesId: series.id,
           versionNumber: 1,
@@ -47,11 +52,6 @@ export class RecurrenceRepository {
           monthOfYear: rule.monthOfYear,
           localTime: rule.localTime,
         },
-      });
-
-      await tx.recurrenceSeries.update({
-        where: { id: series.id },
-        data: { activeRuleVersionId: ruleVersion.id },
       });
 
       await tx.task.update({
