@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AuthPage } from '@/components/auth-page';
 
 export const metadata: Metadata = {
   title: 'Kullanım Koşulları | Kişisel İş Planlayıcı',
@@ -10,9 +11,9 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <main className="block min-h-screen bg-muted/40 px-4 py-8 sm:py-12">
-      <article className="mx-auto flex w-full max-w-3xl flex-col gap-6">
-        <Card>
+    <AuthPage width="xl">
+      <article>
+        <Card interactive={false}>
           <CardHeader>
             <CardTitle className="text-3xl" role="heading" aria-level={1}>
               Kullanım koşulları
@@ -72,6 +73,6 @@ export default function TermsPage() {
           </CardContent>
         </Card>
       </article>
-    </main>
+    </AuthPage>
   );
 }

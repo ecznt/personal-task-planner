@@ -2,6 +2,7 @@ import { ShieldCheck } from 'lucide-react';
 import type { Metadata } from 'next';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AuthPage } from '@/components/auth-page';
 import { ResetPasswordForm } from '@/features/auth/reset-password-form';
 
 export const metadata: Metadata = {
@@ -11,10 +12,10 @@ export const metadata: Metadata = {
 
 export default function ResetPasswordPage() {
   return (
-    <main className="min-h-screen bg-muted/40 px-4 py-10 sm:py-16">
-      <Card className="mx-auto w-full max-w-md">
+    <AuthPage>
+      <Card interactive={false}>
         <CardHeader>
-          <div className="mb-2 flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <div className="mb-2 flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary shadow-inner-edge ring-1 ring-primary/20">
             <ShieldCheck aria-hidden="true" />
           </div>
           <CardTitle role="heading" aria-level={1}>
@@ -28,6 +29,6 @@ export default function ResetPasswordPage() {
           <ResetPasswordForm />
         </CardContent>
       </Card>
-    </main>
+    </AuthPage>
   );
 }

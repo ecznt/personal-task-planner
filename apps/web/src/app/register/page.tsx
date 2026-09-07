@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AuthPage } from '@/components/auth-page';
 import { RegistrationForm } from '@/features/auth/registration-form';
 
 export const metadata: Metadata = {
@@ -10,8 +11,8 @@ export const metadata: Metadata = {
 
 export default function RegisterPage() {
   return (
-    <main className="min-h-screen bg-muted/40 px-4 py-10 sm:py-16">
-      <Card className="mx-auto w-full max-w-md">
+    <AuthPage>
+      <Card interactive={false}>
         <CardHeader>
           <CardTitle className="text-2xl">Hesap oluştur</CardTitle>
           <CardDescription>
@@ -22,6 +23,6 @@ export default function RegisterPage() {
           <RegistrationForm />
         </CardContent>
       </Card>
-    </main>
+    </AuthPage>
   );
 }

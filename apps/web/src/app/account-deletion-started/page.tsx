@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AuthPage } from '@/components/auth-page';
 
 export const metadata: Metadata = {
   title: 'Hesap Silme Başlatıldı | Kişisel İş Planlayıcı',
@@ -9,8 +10,8 @@ export const metadata: Metadata = {
 
 export default function AccountDeletionStartedPage() {
   return (
-    <main className="min-h-screen bg-muted/40 px-4 py-10 sm:py-16">
-      <Card className="mx-auto w-full max-w-xl">
+    <AuthPage width="xl">
+      <Card interactive={false}>
         <CardHeader>
           <CardTitle role="heading" aria-level={1}>
             Hesap silme başlatıldı
@@ -30,6 +31,6 @@ export default function AccountDeletionStartedPage() {
           </Link>
         </CardContent>
       </Card>
-    </main>
+    </AuthPage>
   );
 }

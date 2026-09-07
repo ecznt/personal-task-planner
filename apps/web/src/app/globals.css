@@ -195,7 +195,6 @@ body {
 }
 
 .card-surface {
-  background-color: var(--card);
   background-image: linear-gradient(to bottom, var(--surface-highlight), transparent 55%);
 }
 

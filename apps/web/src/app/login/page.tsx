@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AuthPage } from '@/components/auth-page';
 import { LoginForm } from '@/features/auth/login-form';
 
 export const metadata: Metadata = {
@@ -12,8 +13,8 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <main className="min-h-screen bg-muted/40 px-4 py-10 sm:py-16">
-      <Card className="mx-auto w-full max-w-md">
+    <AuthPage>
+      <Card interactive={false}>
         <CardHeader>
           <CardTitle className="text-2xl" role="heading" aria-level={1}>
             Oturum aç
@@ -35,6 +36,6 @@ export default function LoginPage() {
           </p>
         </CardContent>
       </Card>
-    </main>
+    </AuthPage>
   );
 }
