@@ -31,7 +31,7 @@ export function NotificationBell() {
     <Link
       href="/app/notifications"
       aria-label={unreadCount > 0 ? `Bildirimler, ${unreadCount} okunmamış` : 'Bildirimler'}
-      className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-input bg-transparent transition-colors duration-150 hover:bg-accent active:scale-[0.97]"
+      className="relative flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none active:scale-[0.97]"
     >
       <svg
         className="h-4 w-4 text-muted-foreground"
