@@ -102,48 +102,48 @@
 .dark {
   color-scheme: dark;
 
-  --background: #050506;
-  --foreground: #ededef;
-  --card: #0b0b0e;
-  --card-foreground: #ededef;
-  --popover: #0a0a0c;
-  --popover-foreground: #ededef;
+  --background: #0e0e13;
+  --foreground: #e8e8ed;
+  --card: #15151b;
+  --card-foreground: #e8e8ed;
+  --popover: #14141a;
+  --popover-foreground: #e8e8ed;
 
-  --primary: #5e6ad2;
+  --primary: #7c86d8;
   --primary-foreground: #ffffff;
-  --secondary: #16161b;
-  --secondary-foreground: #ededef;
-  --muted: #0f0f13;
-  --muted-foreground: #8a8f98;
-  --accent: #18181e;
-  --accent-foreground: #ededef;
-  --destructive: #ef5350;
+  --secondary: #1d1d25;
+  --secondary-foreground: #eceaf2;
+  --muted: #1a1a21;
+  --muted-foreground: #9ba1ad;
+  --accent: #20202a;
+  --accent-foreground: #eceaf2;
+  --destructive: #f0625a;
 
-  --border: rgb(255 255 255 / 0.06);
-  --input: rgb(255 255 255 / 0.1);
-  --ring: #5e6ad2;
+  --border: rgb(255 255 255 / 0.12);
+  --input: rgb(255 255 255 / 0.16);
+  --ring: #8b93dc;
 
-  --header-bg: rgb(8 8 10 / 0.72);
-  --nav-bg: rgb(10 10 12 / 0.8);
+  --header-bg: rgb(15 15 21 / 0.75);
+  --nav-bg: rgb(18 18 25 / 0.8);
 
-  --shadow-halo: rgb(255 255 255 / 0.06);
-  --shadow-halo-strong: rgb(255 255 255 / 0.1);
-  --shadow-ambient: rgb(0 0 0 / 0.45);
-  --shadow-deep: rgb(0 0 0 / 0.28);
-  --shadow-glow: rgb(94 106 210 / 0.18);
-  --shadow-edge: rgb(255 255 255 / 0.08);
+  --shadow-halo: rgb(255 255 255 / 0.08);
+  --shadow-halo-strong: rgb(255 255 255 / 0.14);
+  --shadow-ambient: rgb(0 0 0 / 0.4);
+  --shadow-deep: rgb(0 0 0 / 0.3);
+  --shadow-glow: rgb(124 134 216 / 0.32);
+  --shadow-edge: rgb(255 255 255 / 0.1);
 
-  --surface-highlight: rgb(255 255 255 / 0.05);
+  --surface-highlight: rgb(255 255 255 / 0.07);
   --ambient-base: radial-gradient(
     ellipse 120% 58% at 50% -12%,
-    #0a0a0f 0%,
+    #13131b 0%,
     var(--background) 48%,
-    #020203 100%
+    #050508 100%
   );
-  --ambient-line: rgb(255 255 255 / 0.05);
-  --ambient-blobs-opacity: 1;
+  --ambient-line: rgb(255 255 255 / 0.07);
+  --ambient-blobs-opacity: 0.7;
 
-  scrollbar-color: rgb(255 255 255 / 0.14) transparent;
+  scrollbar-color: rgb(255 255 255 / 0.16) transparent;
 }
 
 html {
