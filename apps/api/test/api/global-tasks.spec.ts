@@ -100,6 +100,50 @@ describe('global task list HTTP contract', () => {
       });
     });
 
+    it('passes dateState and timezone parameters', async () => {
+      taskService.listGlobalTasks.mockResolvedValue({ outcome: 'SUCCESS', tasks: [] });
+
+      await request(app.getHttpServer())
+        .get('/tasks')
+        .query({ dateState: 'upcoming', timezone: 'America/New_York' })
+        .set('Cookie', 'planner-session=token')
+        .expect(200);
+
+      expect(taskService.listGlobalTasks).toHaveBeenCalledWith('user-id', {
+        sort: 'plannedDate',
+        order: 'asc',
+        limit: 20,
+        dateState: 'upcoming',
+        timezone: 'America/New_York',
+      });
+    });
+
+    it('defaults timezone when dateState is present', async () => {
+      taskService.listGlobalTasks.mockResolvedValue({ outcome: 'SUCCESS', tasks: [] });
+
+      await request(app.getHttpServer())
+        .get('/tasks')
+        .query({ dateState: 'dueToday' })
+        .set('Cookie', 'planner-session=token')
+        .expect(200);
+
+      expect(taskService.listGlobalTasks).toHaveBeenCalledWith('user-id', {
+        sort: 'plannedDate',
+        order: 'asc',
+        limit: 20,
+        dateState: 'dueToday',
+        timezone: 'Europe/Istanbul',
+      });
+    });
+
+    it('returns 422 for invalid dateState parameter', async () => {
+      await request(app.getHttpServer())
+        .get('/tasks')
+        .query({ dateState: 'invalid' })
+        .set('Cookie', 'planner-session=token')
+        .expect(422);
+    });
+
     it('returns 401 without session', async () => {
       accountsRepository.findAuthenticatedSession.mockResolvedValue(null);
 

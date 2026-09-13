@@ -3,7 +3,13 @@ import { randomUUID } from 'node:crypto';
 import { Inject, Injectable } from '@nestjs/common';
 
 import { PrismaService } from '../../../platform/database/prisma.service';
-import type { RecurrenceSeriesDetail, Task, TaskDetail, TaskSummary } from '../domain/task.entity';
+import type {
+  DateStateValue,
+  RecurrenceSeriesDetail,
+  Task,
+  TaskDetail,
+  TaskSummary,
+} from '../domain/task.entity';
 
 @Injectable()
 export class TaskRepository {
@@ -376,9 +382,30 @@ export class TaskRepository {
       readonly priority?: string;
       readonly canonicalStatus?: string;
       readonly labelId?: string;
+      readonly dateState?: DateStateValue;
+      readonly todayStart?: Date;
+      readonly todayEnd?: Date;
     },
   ): Promise<{ tasks: readonly TaskSummary[]; nextCursor?: string }> {
     const orderBy = buildGlobalSort(options.sort, options.order);
+
+    const andConstraints: Record<string, unknown>[] = [];
+
+    if (options.canonicalStatus !== undefined) {
+      andConstraints.push({ areaStatus: { canonicalStatus: options.canonicalStatus } });
+    }
+
+    const dateStateConstraint =
+      options.dateState !== undefined &&
+      options.todayStart !== undefined &&
+      options.todayEnd !== undefined
+        ? buildDateStateConstraint(options.dateState, options.todayStart, options.todayEnd)
+        : undefined;
+
+    if (dateStateConstraint !== undefined) {
+      andConstraints.push({ areaStatus: { canonicalStatus: { not: 'COMPLETED' } } });
+      andConstraints.push(dateStateConstraint);
+    }
 
     const where: Record<string, unknown> = {
       userId,
@@ -397,12 +424,12 @@ export class TaskRepository {
       where.priority = options.priority;
     }
 
-    if (options.canonicalStatus !== undefined) {
-      where.areaStatus = { canonicalStatus: options.canonicalStatus };
-    }
-
     if (options.labelId !== undefined) {
       where.taskLabels = { some: { labelId: options.labelId } };
+    }
+
+    if (andConstraints.length > 0) {
+      where.AND = andConstraints;
     }
 
     const tasks = await this.prisma.task.findMany({
@@ -767,6 +794,9 @@ export class TaskRepository {
       readonly priority?: string;
       readonly canonicalStatus?: string;
       readonly labelId?: string;
+      readonly dateState?: DateStateValue;
+      readonly todayStart?: Date;
+      readonly todayEnd?: Date;
     },
   ): Promise<{
     readonly tasks: readonly (TaskSummary & {
@@ -806,12 +836,30 @@ export class TaskRepository {
       where.priority = options.priority;
     }
 
+    const andConstraints: Record<string, unknown>[] = [];
+
     if (options.canonicalStatus !== undefined) {
-      where.areaStatus = { canonicalStatus: options.canonicalStatus };
+      andConstraints.push({ areaStatus: { canonicalStatus: options.canonicalStatus } });
+    }
+
+    const dateStateConstraint =
+      options.dateState !== undefined &&
+      options.todayStart !== undefined &&
+      options.todayEnd !== undefined
+        ? buildDateStateConstraint(options.dateState, options.todayStart, options.todayEnd)
+        : undefined;
+
+    if (dateStateConstraint !== undefined) {
+      andConstraints.push({ areaStatus: { canonicalStatus: { not: 'COMPLETED' } } });
+      andConstraints.push(dateStateConstraint);
     }
 
     if (options.labelId !== undefined) {
       where.taskLabels = { some: { labelId: options.labelId } };
+    }
+
+    if (andConstraints.length > 0) {
+      where.AND = andConstraints;
     }
 
     const orderBy =
@@ -1157,6 +1205,27 @@ function buildGlobalSort(
   const field = SORT_FIELDS[sort] ?? 'plannedAt';
 
   return [{ [field]: order }, { id: 'asc' }];
+}
+
+function buildDateStateConstraint(
+  dateState: DateStateValue,
+  todayStart: Date,
+  todayEnd: Date,
+): Record<string, unknown> {
+  switch (dateState) {
+    case 'overdue':
+      return { dueAt: { lt: todayStart } };
+    case 'dueToday':
+      return { dueAt: { gte: todayStart, lt: todayEnd } };
+    case 'plannedToday':
+      return { plannedAt: { gte: todayStart, lt: todayEnd } };
+    case 'upcoming':
+      return {
+        OR: [{ plannedAt: { gte: todayEnd } }, { dueAt: { gte: todayEnd } }],
+      };
+    case 'noDate':
+      return { plannedAt: null, dueAt: null };
+  }
 }
 
 function extractSnippet(description: string, searchTerms: readonly string[]): string | null {

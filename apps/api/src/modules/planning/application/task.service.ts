@@ -2,8 +2,9 @@ import { Inject, Injectable } from '@nestjs/common';
 
 import { AreaService } from './area.service';
 import { TaskRepository } from '../infrastructure/task.repository';
-import type { Task, TaskDetail, TaskSummary } from '../domain/task.entity';
+import type { DateStateValue, Task, TaskDetail, TaskSummary } from '../domain/task.entity';
 import { RecurrenceService } from './recurrence.service';
+import { parseTodayRange } from './date-range';
 
 export type CreateTaskChecklistItemInput = {
   readonly text: string;
@@ -97,6 +98,8 @@ export type ListGlobalTasksQuery = {
   readonly priority?: string;
   readonly canonicalStatus?: string;
   readonly labelId?: string;
+  readonly dateState?: DateStateValue;
+  readonly timezone?: string;
 };
 
 export type ListGlobalTasksResult = {
@@ -405,6 +408,11 @@ export class TaskService {
     const order = query.order ?? 'asc';
     const limit = query.limit ?? 20;
 
+    const range =
+      query.dateState !== undefined
+        ? parseTodayRange(query.timezone ?? 'Europe/Istanbul')
+        : undefined;
+
     const { tasks, nextCursor } = await this.taskRepository.listGlobal(userId, {
       ...(query.cursor !== undefined && { cursor: query.cursor }),
       limit,
@@ -415,6 +423,12 @@ export class TaskService {
       ...(query.priority !== undefined && { priority: query.priority }),
       ...(query.canonicalStatus !== undefined && { canonicalStatus: query.canonicalStatus }),
       ...(query.labelId !== undefined && { labelId: query.labelId }),
+      ...(query.dateState !== undefined &&
+        range !== undefined && {
+          dateState: query.dateState,
+          todayStart: range.todayStart,
+          todayEnd: range.todayEnd,
+        }),
     });
 
     return {
@@ -472,8 +486,12 @@ export class TaskService {
   ): Promise<ListUpcomingTasksResult> {
     const days = Math.min(31, Math.max(1, query.days ?? 14));
     const ranges = buildDayRangesInTimeZone(query.timezone, days);
-    const rangeStart = ranges[0]!.start;
-    const rangeEnd = ranges[ranges.length - 1]!.end;
+    const rangeStart = ranges[0]?.start;
+    const rangeEnd = ranges[ranges.length - 1]?.end;
+
+    if (rangeStart === undefined || rangeEnd === undefined) {
+      return { outcome: 'SUCCESS', timezone: query.timezone, overdue: [], days: [] };
+    }
 
     const tasks = await this.taskRepository.findUpcomingTasks(userId, rangeStart, rangeEnd);
 
@@ -748,31 +766,6 @@ export class TaskService {
       canonicalStatus: canonicalStatus ?? 'TO_DO',
     };
   }
-}
-
-function parseTodayRange(timezone: string): {
-  todayStart: Date;
-  todayEnd: Date;
-  todayStr: string;
-} {
-  const now = new Date();
-  const formatter = new Intl.DateTimeFormat('en-CA', {
-    timeZone: timezone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
-
-  const todayStr = formatter.format(now);
-  const parts = todayStr.split('-');
-  const year = Number(parts[0]);
-  const month = Number(parts[1]);
-  const day = Number(parts[2]);
-
-  const todayStart = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
-  const todayEnd = new Date(Date.UTC(year, month - 1, day + 1, 0, 0, 0, 0));
-
-  return { todayStart, todayEnd, todayStr };
 }
 
 function buildDayRangesInTimeZone(

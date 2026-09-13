@@ -1,6 +1,6 @@
 import { describe, expect, it, jest } from '@jest/globals';
 
-import { AreaService } from '../../src/modules/planning/application/area.service';
+import type { AreaService } from '../../src/modules/planning/application/area.service';
 import { TaskService, type CreateTaskCommand } from '../../src/modules/planning/application/task.service';
 import type { RecurrenceService } from '../../src/modules/planning/application/recurrence.service';
 import type { TaskRepository } from '../../src/modules/planning/infrastructure/task.repository';

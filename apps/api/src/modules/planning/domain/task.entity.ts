@@ -3,6 +3,8 @@ import type { LabelSummary } from './label.entity';
 
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH';
 
+export type DateStateValue = 'overdue' | 'dueToday' | 'plannedToday' | 'upcoming' | 'noDate';
+
 export type RecurrenceSeriesState = 'ACTIVE' | 'PAUSED' | 'STOPPED';
 export type RecurrenceMode = 'CALENDAR_BASED' | 'COMPLETION_BASED';
 export type RecurrenceFrequency = 'DAILY' | 'WEEKDAYS' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';

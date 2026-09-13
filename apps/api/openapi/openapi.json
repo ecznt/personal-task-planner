@@ -3810,6 +3810,18 @@
         "parameters": [
           {
             "in": "query",
+            "name": "timezone",
+            "required": false,
+            "schema": {}
+          },
+          {
+            "in": "query",
+            "name": "dateState",
+            "required": false,
+            "schema": {}
+          },
+          {
+            "in": "query",
             "name": "labelId",
             "required": false,
             "schema": {}
@@ -3888,6 +3900,22 @@
       "get": {
         "operationId": "listGlobalTasks",
         "parameters": [
+          {
+            "in": "query",
+            "name": "timezone",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "dateState",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "in": "query",
             "name": "labelId",

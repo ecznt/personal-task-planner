@@ -19,6 +19,8 @@ export const searchTasksQuerySchema = z.object({
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
   canonicalStatus: z.enum(['TO_DO', 'IN_PROGRESS', 'COMPLETED']).optional(),
   labelId: z.string().uuid().optional(),
+  dateState: z.enum(['overdue', 'dueToday', 'plannedToday', 'upcoming', 'noDate']).optional(),
+  timezone: z.string().min(1).default('Europe/Istanbul'),
 });
 
 export type SearchTasksQueryInput = z.infer<typeof searchTasksQuerySchema>;

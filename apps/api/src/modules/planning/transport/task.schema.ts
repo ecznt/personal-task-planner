@@ -5,6 +5,10 @@ import {
   type ValidationProblemItem,
 } from '../../../platform/http/api-problem.exception';
 
+import type { DateStateValue } from '../domain/task.entity';
+
+export type { DateStateValue };
+
 const createTaskChecklistItemSchema = z.strictObject({
   text: z
     .string()
@@ -146,6 +150,8 @@ export function parseListTasksQuery(value: unknown): ListTasksQueryInput {
   });
 }
 
+const dateStateSchema = z.enum(['overdue', 'dueToday', 'plannedToday', 'upcoming', 'noDate']);
+
 const listGlobalTasksQuerySchema = z.object({
   cursor: z.string().uuid().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(20),
@@ -166,6 +172,8 @@ const listGlobalTasksQuerySchema = z.object({
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
   canonicalStatus: z.enum(['TO_DO', 'IN_PROGRESS', 'COMPLETED']).optional(),
   labelId: z.string().uuid().optional(),
+  dateState: dateStateSchema.optional(),
+  timezone: z.string().min(1).default('Europe/Istanbul'),
 });
 
 export type ListGlobalTasksQueryInput = z.infer<typeof listGlobalTasksQuerySchema>;

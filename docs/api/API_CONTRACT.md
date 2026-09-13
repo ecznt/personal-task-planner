@@ -200,6 +200,7 @@ Rejected password/token values are never echoed. A foreign identifier is not rep
 - Project filters are valid only with compatible owned Area context. An incompatible owned combination returns an empty collection rather than revealing a foreign relationship; malformed combinations return `422`.
 - Filter values are allowlisted. Arbitrary field names, raw database predicates, SQL-like expressions, and owner selectors are forbidden.
 - Date filters use the authenticated User's confirmed account time zone and approved date-only/instant semantics.
+- The `dateState` facet filters active Tasks by their calendar relation in the caller-provided `timezone` (default `Europe/Istanbul`): `overdue` (due before today), `dueToday`, `plannedToday`, `upcoming` (planned or due on/after tomorrow), and `noDate` (neither planned nor due). Date facets exclude completed Tasks; combining with `canonicalStatus` applies normal AND semantics.
 
 ### 7.3 Sorting
 
@@ -368,7 +369,7 @@ Project lifecycle endpoints are defined in Sections 21 and 22. There is no ordin
 
 | Method and route | Auth / preconditions | Ownership rule | Conceptual input | Successful output | Expected errors | Requirements |
 | --- | --- | --- | --- | --- | --- | --- |
-| `GET /tasks` | Session | Current User active Tasks only. | Cursor, limit, approved filters, List sort/order. | `200` Task summaries and page metadata. | `400` query/cursor, `401`, `422` incoherent owned filters, `429`. | FR-059, FR-063–FR-069, UXF-015 |
+| `GET /tasks` | Session | Current User active Tasks only. | Cursor, limit, approved filters including `dateState`+`timezone`, List sort/order. | `200` Task summaries and page metadata. | `400` query/cursor, `401`, `422` incoherent owned filters, `429`. | FR-059, FR-063–FR-069, UXF-015 |
 | `GET /tasks/today` | Session | Current User active eligible Tasks only. | Cursor/limit per section or bounded section options, approved filters/sort. | `200` account-local date/time zone and Overdue, Planned Today, Due Today, Completed Today projections with unique Task inclusion/reason badges. | `400`, `401`, `422`, `429`. | FR-041–FR-046, FR-061–FR-062, AC-009, UXF-006 |
 | `GET /tasks/kanban` | Session | Current User active Tasks only. | Per-group cursor/limit and approved filters. | `200` exactly three canonical groups; cards ordered by Global rank then Task ID. | `400`, `401`, `422`, `429`. | FR-060, FR-067–FR-069, UXF-016 |
 | `GET /areas/{areaId}/tasks` | Session | Owned active Area and its current User Tasks only. | Cursor, limit, Project/status/Label/date filters, List sort. | `200` Area-scoped Task summaries and page metadata. | `400`, `401`, `404`, `422`, `429`. | FR-017–FR-024, FR-059, UXF-008 |
@@ -487,7 +488,7 @@ Automatic Trash expiry is internal processing with the same permanent-delete eff
 
 | Method and route | Auth / preconditions | Ownership rule | Conceptual input | Successful output | Expected errors | Requirements |
 | --- | --- | --- | --- | --- | --- | --- |
-| `GET /search/tasks` | Session | Current User active Tasks only by default; no cross-user suggestions/counts. | Bounded `q`, cursor, limit, supported Task filters, relevance or allowed deterministic sort. | `200` Task search results with safe owned snippets/context and page metadata. | `400` query/cursor, `401`, `422` invalid filter combination, `429`, `503`. | FR-065–FR-069, PRV-001–PRV-002, UXF-018–UXF-019 |
+| `GET /search/tasks` | Session | Current User active Tasks only by default; no cross-user suggestions/counts. | Bounded `q`, cursor, limit, supported Task filters including `dateState`+`timezone`, relevance or allowed deterministic sort. | `200` Task search results with safe owned snippets/context and page metadata. | `400` query/cursor, `401`, `422` invalid filter combination, `429`, `503`. | FR-065–FR-069, PRV-001–PRV-002, UXF-018–UXF-019 |
 
 Archive and Trash searches use their dedicated collection endpoints and explicit lifecycle filters; the global search endpoint never silently broadens into those scopes.
 

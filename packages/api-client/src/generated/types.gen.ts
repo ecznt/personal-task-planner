@@ -1738,6 +1738,8 @@ export type SearchTasksData = {
     body?: never;
     path?: never;
     query: {
+        timezone?: unknown;
+        dateState?: unknown;
         labelId?: unknown;
         canonicalStatus?: unknown;
         priority?: unknown;
@@ -1773,6 +1775,8 @@ export type ListGlobalTasksData = {
     body?: never;
     path?: never;
     query?: {
+        timezone?: string;
+        dateState?: string;
         labelId?: string;
         canonicalStatus?: string;
         priority?: string;

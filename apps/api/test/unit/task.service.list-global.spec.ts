@@ -71,6 +71,40 @@ describe('task service — listGlobalTasks', () => {
       nextCursor: 'cursor-123',
     });
   });
+
+  it('passes dateState bounds to repository', async () => {
+    const repository = repositoryMock();
+    repository.listGlobal.mockResolvedValue({ tasks: [] });
+
+    const service = new TaskService(repository, recurrenceServiceMock());
+    await service.listGlobalTasks('user-id', {
+      dateState: 'dueToday',
+      timezone: 'UTC',
+    });
+
+    expect(repository.listGlobal).toHaveBeenCalledWith('user-id', {
+      limit: 20,
+      sort: 'plannedDate',
+      order: 'asc',
+      dateState: 'dueToday',
+      todayStart: new Date('2026-09-13T00:00:00.000Z'),
+      todayEnd: new Date('2026-09-14T00:00:00.000Z'),
+    });
+  });
+
+  it('does not pass date bounds when dateState is absent', async () => {
+    const repository = repositoryMock();
+    repository.listGlobal.mockResolvedValue({ tasks: [] });
+
+    const service = new TaskService(repository, recurrenceServiceMock());
+    await service.listGlobalTasks('user-id', { timezone: 'UTC' });
+
+    expect(repository.listGlobal).toHaveBeenCalledWith('user-id', {
+      limit: 20,
+      sort: 'plannedDate',
+      order: 'asc',
+    });
+  });
 });
 
 function repositoryMock(): jest.Mocked<TaskRepository> {

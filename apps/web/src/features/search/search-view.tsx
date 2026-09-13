@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageHeader } from '@/components/page-header';
 import { Spinner } from '@/components/ui/spinner';
+import { TaskFilterBar } from '@/features/filters/task-filter-bar';
+import { useUrlTaskFilters } from '@/features/filters/url-task-filters';
 import { TaskPriorityBadge } from '@/features/tasks/task-badge';
 
 type SearchResult = {
@@ -46,6 +48,7 @@ function formatDate(iso: string | null): string {
 export function SearchView() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const urlFilters = useUrlTaskFilters('/app/search');
   const initialQuery = searchParams.get('q') ?? '';
   const [query, setQuery] = useState(initialQuery);
   const [debouncedQuery, setDebouncedQuery] = useState(initialQuery);
@@ -65,21 +68,49 @@ export function SearchView() {
   }, []);
 
   useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+
     if (debouncedQuery) {
-      router.replace(`/app/search?q=${encodeURIComponent(debouncedQuery)}`, { scroll: false });
+      params.set('q', debouncedQuery);
     } else {
-      router.replace('/app/search', { scroll: false });
+      params.delete('q');
     }
-  }, [debouncedQuery, router]);
+
+    const qs = params.toString();
+    router.replace(qs.length > 0 ? `/app/search?${qs}` : '/app/search', { scroll: false });
+  }, [debouncedQuery, router, searchParams]);
+
+  const filterKey = JSON.stringify(urlFilters.filters);
 
   const search = useQuery({
-    queryKey: ['search', 'tasks', debouncedQuery],
+    queryKey: ['search', 'tasks', debouncedQuery, filterKey],
     queryFn: async () => {
       if (!debouncedQuery.trim()) return null;
 
+      const queryParams: Record<string, string> = { q: debouncedQuery, limit: '20' };
+
+      for (const [key, value] of Object.entries(urlFilters.filters) as [
+        string,
+        string,
+      ][]) {
+        if (value.length > 0) {
+          if (key === 'canonicalStatus') {
+            queryParams.canonicalStatus = value;
+          } else if (key === 'labelId') {
+            queryParams.labelId = value;
+          } else {
+            queryParams[key] = value;
+          }
+        }
+      }
+
+      if (urlFilters.filters.dateState !== undefined) {
+        queryParams.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      }
+
       const result = await apiClient.get({
         url: '/api/v1/search/tasks',
-        query: { q: debouncedQuery, limit: 20 },
+        query: queryParams,
       });
 
       if (result.error !== undefined) {
@@ -121,6 +152,14 @@ export function SearchView() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="h-10 pl-4"
+        />
+      </div>
+
+      <div className="card-surface rounded-xl border border-border/70 bg-card p-3 shadow-surface">
+        <TaskFilterBar
+          filters={urlFilters.filters}
+          onChange={urlFilters.setFilter}
+          onClearAll={urlFilters.clearAll}
         />
       </div>
 

@@ -75,6 +75,8 @@ export class TaskController {
   @ApiQuery({ name: 'priority', type: String, required: false })
   @ApiQuery({ name: 'canonicalStatus', type: String, required: false })
   @ApiQuery({ name: 'labelId', type: String, format: 'uuid', required: false })
+  @ApiQuery({ name: 'dateState', type: String, required: false })
+  @ApiQuery({ name: 'timezone', type: String, required: false })
   @ApiResponse({
     status: 200,
     type: TaskListResponseDto,
@@ -101,6 +103,10 @@ export class TaskController {
       ...(input.priority !== undefined && { priority: input.priority }),
       ...(input.canonicalStatus !== undefined && { canonicalStatus: input.canonicalStatus }),
       ...(input.labelId !== undefined && { labelId: input.labelId }),
+      ...(input.dateState !== undefined && {
+        dateState: input.dateState,
+        timezone: input.timezone,
+      }),
     });
 
     return this.handleListGlobalTasksResult(result);

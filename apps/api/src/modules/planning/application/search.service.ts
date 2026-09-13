@@ -1,7 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 
 import { TaskRepository } from '../infrastructure/task.repository';
-import type { TaskSummary } from '../domain/task.entity';
+import type { DateStateValue, TaskSummary } from '../domain/task.entity';
+import { parseTodayRange } from './date-range';
 
 export type SearchTasksQuery = {
   readonly userId: string;
@@ -15,6 +16,8 @@ export type SearchTasksQuery = {
   readonly priority?: string;
   readonly canonicalStatus?: string;
   readonly labelId?: string;
+  readonly dateState?: DateStateValue;
+  readonly timezone?: string;
 };
 
 export type SearchResult = TaskSummary & {
@@ -34,6 +37,11 @@ export class SearchService {
   constructor(@Inject(TaskRepository) private readonly taskRepository: TaskRepository) {}
 
   async searchTasks(query: SearchTasksQuery): Promise<SearchTasksResult> {
+    const range =
+      query.dateState !== undefined
+        ? parseTodayRange(query.timezone ?? 'Europe/Istanbul')
+        : undefined;
+
     const result = await this.taskRepository.searchTasks(query.userId, query.q, {
       limit: query.limit,
       sort: query.sort,
@@ -44,6 +52,12 @@ export class SearchService {
       ...(query.priority !== undefined && { priority: query.priority }),
       ...(query.canonicalStatus !== undefined && { canonicalStatus: query.canonicalStatus }),
       ...(query.labelId !== undefined && { labelId: query.labelId }),
+      ...(query.dateState !== undefined &&
+        range !== undefined && {
+          dateState: query.dateState,
+          todayStart: range.todayStart,
+          todayEnd: range.todayEnd,
+        }),
     });
 
     return {

@@ -11,6 +11,8 @@ import { EmptyState } from '@/components/empty-state';
 import { ListSkeleton } from '@/components/list-skeleton';
 import { PageHeader } from '@/components/page-header';
 import { Select } from '@/components/ui/select';
+import { TaskFilterBar } from '@/features/filters/task-filter-bar';
+import { useUrlTaskFilters } from '@/features/filters/url-task-filters';
 import { TaskPriorityBadge } from './task-badge';
 import { BulkActionBar } from './bulk-action-bar';
 
@@ -63,16 +65,24 @@ export function GlobalTaskList({
   projectId,
   embedded = false,
 }: GlobalTaskListProps) {
+  const standalone = projectId === undefined;
+  const urlFilters = useUrlTaskFilters('/app/tasks');
+  const [localStatusFilter, setLocalStatusFilter] = useState('');
+  const [localPriorityFilter, setLocalPriorityFilter] = useState('');
   const [sort, setSort] = useState('plannedDate');
   const [order, setOrder] = useState<'asc' | 'desc'>('asc');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [priorityFilter, setPriorityFilter] = useState('');
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
   const [bulkResult, setBulkResult] = useState<{ succeeded: number; failed: number } | null>(null);
 
+  const statusFilter = standalone ? (urlFilters.filters.canonicalStatus ?? '') : localStatusFilter;
+  const priorityFilter = standalone ? (urlFilters.filters.priority ?? '') : localPriorityFilter;
+  const filterKey = standalone
+    ? JSON.stringify(urlFilters.filters)
+    : JSON.stringify({ projectId: projectId ?? 'all' });
+
   const tasks = useQuery({
-    queryKey: ['tasks', 'global', sort, order, statusFilter, priorityFilter, projectId ?? 'all'],
+    queryKey: ['tasks', 'global', sort, order, statusFilter, priorityFilter, filterKey],
     queryFn: async () => {
       const params: Record<string, string> = {
         sort,
@@ -83,6 +93,19 @@ export function GlobalTaskList({
       if (projectId) params.projectId = projectId;
       if (statusFilter) params.canonicalStatus = statusFilter;
       if (priorityFilter) params.priority = priorityFilter;
+
+      if (standalone) {
+        const { areaId, projectId: urlProjectId, labelId, dateState } = urlFilters.filters;
+
+        if (areaId) params.areaId = areaId;
+        if (urlProjectId) params.projectId = urlProjectId;
+        if (labelId) params.labelId = labelId;
+
+        if (dateState) {
+          params.dateState = dateState;
+          params.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        }
+      }
 
       const result = await apiClient.get({
         url: '/api/v1/tasks',
@@ -132,6 +155,11 @@ export function GlobalTaskList({
   }
 
   const taskData = tasks.data ?? [];
+  const hasActiveFilters =
+    statusFilter.length > 0 ||
+    priorityFilter.length > 0 ||
+    (standalone &&
+      (Object.values(urlFilters.filters) as readonly string[]).some((value) => value.length > 0));
 
   return (
     <div className="space-y-6">
@@ -174,41 +202,53 @@ export function GlobalTaskList({
           </button>
         </div>
 
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-muted-foreground" htmlFor="statusFilter">
-            Durum:
-          </label>
-          <Select
-            id="statusFilter"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="">Tümü</option>
-            {STATUS_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </Select>
-        </div>
+        {standalone && (
+          <TaskFilterBar
+            filters={urlFilters.filters}
+            onChange={urlFilters.setFilter}
+            onClearAll={urlFilters.clearAll}
+          />
+        )}
 
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-muted-foreground" htmlFor="priorityFilter">
-            Öncelik:
-          </label>
-          <Select
-            id="priorityFilter"
-            value={priorityFilter}
-            onChange={(e) => setPriorityFilter(e.target.value)}
-          >
-            <option value="">Tümü</option>
-            {PRIORITY_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </Select>
-        </div>
+        {!standalone && (
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-muted-foreground" htmlFor="statusFilter">
+              Durum:
+            </label>
+            <Select
+              id="statusFilter"
+              value={localStatusFilter}
+              onChange={(e) => setLocalStatusFilter(e.target.value)}
+            >
+              <option value="">Tümü</option>
+              {STATUS_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </Select>
+          </div>
+        )}
+
+        {!standalone && (
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-muted-foreground" htmlFor="priorityFilter">
+              Öncelik:
+            </label>
+            <Select
+              id="priorityFilter"
+              value={localPriorityFilter}
+              onChange={(e) => setLocalPriorityFilter(e.target.value)}
+            >
+              <option value="">Tümü</option>
+              {PRIORITY_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </Select>
+          </div>
+        )}
 
         <div className="ml-auto">
           <button
@@ -234,14 +274,14 @@ export function GlobalTaskList({
         <EmptyState
           icon={<Inbox className="size-5" aria-hidden="true" />}
           title={
-            statusFilter || priorityFilter
+            hasActiveFilters
               ? 'Filtrelere uyan görev yok.'
               : projectId
                 ? 'Bu projede henüz görev yok.'
                 : 'Henüz görev yok.'
           }
           description={
-            statusFilter || priorityFilter
+            hasActiveFilters
               ? 'Filtreleri temizleyip tekrar deneyin.'
               : 'İlk görevinizi oluşturduğunuzda burada görünür.'
           }

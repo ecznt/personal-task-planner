@@ -16,6 +16,16 @@ vi.mock('@/features/auth/auth-api', () => ({
   fetchCsrf: vi.fn().mockResolvedValue({ token: 'csrf-token' }),
 }));
 
+const mocks = vi.hoisted(() => ({
+  searchParams: new URLSearchParams(''),
+  replace: vi.fn(),
+}));
+
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => mocks.searchParams,
+  useRouter: () => ({ replace: mocks.replace }),
+}));
+
 import { apiClient } from '@planner/api-client';
 import { ProjectDetail } from './project-detail';
 

@@ -32,6 +32,8 @@ export class SearchController {
   @ApiQuery({ name: 'priority', required: false })
   @ApiQuery({ name: 'canonicalStatus', required: false })
   @ApiQuery({ name: 'labelId', required: false })
+  @ApiQuery({ name: 'dateState', required: false })
+  @ApiQuery({ name: 'timezone', required: false })
   @ApiResponse({
     status: 200,
     description: 'Search results returned successfully.',
@@ -72,6 +74,10 @@ export class SearchController {
         canonicalStatus: parsed.data.canonicalStatus,
       }),
       ...(parsed.data.labelId !== undefined && { labelId: parsed.data.labelId }),
+      ...(parsed.data.dateState !== undefined && {
+        dateState: parsed.data.dateState,
+        timezone: parsed.data.timezone,
+      }),
     });
 
     const body: SearchTasksResponseDto = {
