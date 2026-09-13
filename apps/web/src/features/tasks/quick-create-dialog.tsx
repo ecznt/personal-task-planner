@@ -1,21 +1,17 @@
 'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod';
 import { apiClient } from '@planner/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import {
   Sheet,
-  SheetClose,
   SheetContent,
   SheetDescription,
-  SheetFooter,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -24,155 +20,47 @@ import { Select } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
 
+import { CreateTaskFields } from './create-task-fields';
+import { parseQuickCapture, type ParsedQuickCapture } from './natural-language';
+
 type AreaOption = {
   readonly id: string;
   readonly name: string;
+  readonly isInbox: boolean;
 };
 
-const quickSchema = z.object({
-  title: z.string().trim().min(1, 'Görev başlığı zorunludur.'),
-  areaId: z.string().min(1, 'Bir alan seçin.'),
-});
+function describeParsed(parsed: ParsedQuickCapture): string | undefined {
+  const labels: string[] = [];
 
-type QuickValues = z.infer<typeof quickSchema>;
+  if (parsed.dueAt) {
+    labels.push(
+      new Intl.DateTimeFormat('tr-TR', {
+        day: 'numeric',
+        month: 'short',
+        hour: parsed.dueAt.getHours() === 23 && parsed.dueAt.getMinutes() === 59 ? undefined : '2-digit',
+        minute: parsed.dueAt.getHours() === 23 && parsed.dueAt.getMinutes() === 59 ? undefined : '2-digit',
+      }).format(parsed.dueAt),
+    );
+  }
 
-export function QuickCreateDialog() {
-  const [open, setOpen] = useState(false);
-  const queryClient = useQueryClient();
+  if (parsed.priority === 'HIGH') {
+    labels.push('Önemli');
+  }
+  if (parsed.priority === 'LOW') {
+    labels.push('Düşük öncelik');
+  }
+  if (parsed.recurrence !== undefined) {
+    const frequency = {
+      DAILY: 'Her gün',
+      WEEKDAYS: 'Her iş günü',
+      WEEKLY: 'Her hafta',
+      MONTHLY: 'Her ay',
+      YEARLY: 'Her yıl',
+    }[parsed.recurrence.frequency];
+    labels.push(frequency ?? 'Tekrarlı');
+  }
 
-  const csrfQuery = useQuery({
-    queryKey: csrfQueryKey,
-    queryFn: fetchCsrf,
-    staleTime: 20 * 60 * 1_000,
-    enabled: open,
-  });
-  const areas = useQuery({
-    queryKey: ['areas'],
-    queryFn: async () => {
-      const result = await apiClient.get({ url: '/api/v1/areas' });
-      if (result.error !== undefined) {
-        throw new Error('Alanlar yüklenemedi.');
-      }
-      return (result.data as { data: AreaOption[] })?.data ?? [];
-    },
-    enabled: open,
-  });
-
-  const form = useForm<QuickValues>({
-    defaultValues: { title: '', areaId: '' },
-    resolver: zodResolver(quickSchema),
-  });
-  const { setFocus } = form;
-
-  useEffect(() => {
-    if (open) {
-      setFocus('title');
-    }
-  }, [open, setFocus]);
-
-  const create = useMutation({
-    mutationFn: async (values: QuickValues) => {
-      const csrf = csrfQuery.data ?? (await fetchCsrf());
-      queryClient.setQueryData(csrfQueryKey, csrf);
-      const result = await apiClient.post({
-        url: '/api/v1/areas/{areaId}/tasks',
-        path: { areaId: values.areaId },
-        body: {
-          title: values.title,
-          description: null,
-          plannedAt: null,
-          dueAt: null,
-          priority: 'MEDIUM',
-        },
-        headers: { 'X-CSRF-Token': csrf.token, 'Idempotency-Key': crypto.randomUUID() },
-      });
-      if (result.error !== undefined) {
-        throw apiError(result);
-      }
-      return result.data;
-    },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      void queryClient.invalidateQueries({ queryKey: ['areas'] });
-      void queryClient.invalidateQueries({ queryKey: ['today'] });
-      setOpen(false);
-      form.reset();
-    },
-  });
-
-  const areaOptions = Array.isArray(areas.data) ? areas.data : [];
-
-  return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <Button variant="default" size="icon" aria-label="Yeni görev oluştur">
-          <PlusIcon />
-        </Button>
-      </SheetTrigger>
-      <SheetContent side="right" className="w-full sm:max-w-sm">
-        <SheetHeader>
-          <SheetTitle>Yeni görev</SheetTitle>
-          <SheetDescription>Görevin başlığını ve alanını seçin.</SheetDescription>
-        </SheetHeader>
-        <form
-          className="flex flex-1 flex-col gap-4 px-4"
-          onSubmit={form.handleSubmit((values) => create.mutate(values))}
-        >
-          <Field>
-            <FieldLabel htmlFor="quick-title">Başlık</FieldLabel>
-            <Input
-              id="quick-title"
-              {...form.register('title')}
-              aria-invalid={Boolean(form.formState.errors.title)}
-            />
-            {form.formState.errors.title && (
-              <FieldError>{form.formState.errors.title.message}</FieldError>
-            )}
-          </Field>
-
-          <Field>
-            <FieldLabel htmlFor="quick-area">Alan</FieldLabel>
-            {areas.isLoading ? (
-              <Spinner />
-            ) : (
-              <Select
-                id="quick-area"
-                aria-invalid={Boolean(form.formState.errors.areaId)}
-                {...form.register('areaId')}
-              >
-                <option value="">Alan seçin</option>
-                {areaOptions.map((area) => (
-                  <option key={area.id} value={area.id}>
-                    {area.name}
-                  </option>
-                ))}
-              </Select>
-            )}
-            {form.formState.errors.areaId && (
-              <FieldError>{form.formState.errors.areaId.message}</FieldError>
-            )}
-          </Field>
-
-          {create.isError && (
-            <p role="alert" className="text-sm text-destructive">
-              {create.error.message}
-            </p>
-          )}
-
-          <SheetFooter>
-            <SheetClose asChild>
-              <Button type="button" variant="outline">
-                İptal
-              </Button>
-            </SheetClose>
-            <Button type="submit" disabled={create.isPending}>
-              {create.isPending ? <Spinner /> : 'Oluştur'}
-            </Button>
-          </SheetFooter>
-        </form>
-      </SheetContent>
-    </Sheet>
-  );
+  return labels.length > 0 ? labels.join(' · ') : undefined;
 }
 
 function PlusIcon() {
@@ -187,5 +75,221 @@ function PlusIcon() {
     >
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14m-7-7h14" />
     </svg>
+  );
+}
+
+export function QuickCreateDialog() {
+  const [open, setOpen] = useState(false);
+  const [areaId, setAreaId] = useState('');
+  const [text, setText] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [quickError, setQuickError] = useState<string | undefined>(undefined);
+  const queryClient = useQueryClient();
+  const csrfQuery = useQuery({
+    queryKey: csrfQueryKey,
+    queryFn: fetchCsrf,
+    staleTime: 20 * 60 * 1_000,
+  });
+
+  const areas = useQuery({
+    queryKey: ['areas'],
+    queryFn: async () => {
+      const result = await apiClient.get({ url: '/api/v1/areas' });
+      if (result.error !== undefined) {
+        throw new Error('Alanlar yüklenemedi.');
+      }
+      return (result.data as { data: AreaOption[] })?.data ?? [];
+    },
+    enabled: open,
+  });
+
+  const quickAdd = useMutation({
+    mutationFn: async (payload: { title: string; parsed: ParsedQuickCapture }) => {
+      const csrf = csrfQuery.data ?? (await fetchCsrf());
+      queryClient.setQueryData(csrfQueryKey, csrf);
+
+      const body: Record<string, unknown> = {
+        title: payload.title,
+        ...(areaId !== '' && { areaId }),
+        ...(payload.parsed.dueAt !== undefined && { dueAt: payload.parsed.dueAt.toISOString() }),
+        ...(payload.parsed.priority !== undefined && { priority: payload.parsed.priority }),
+        ...(payload.parsed.recurrence !== undefined && { recurrence: payload.parsed.recurrence }),
+      };
+
+      const result = await apiClient.post({
+        url: '/api/v1/tasks',
+        body,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrf.token,
+          'Idempotency-Key': crypto.randomUUID(),
+        },
+      });
+
+      if (result.error !== undefined) {
+        throw apiError(result.error);
+      }
+
+      return result.data;
+    },
+    onSuccess: () => {
+      toast.success('Görev eklendi');
+      setText('');
+      setQuickError(undefined);
+      queryClient.invalidateQueries({ queryKey: ['areas'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks', 'today'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks', 'upcoming'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks', 'kanban'] });
+      if (areaId !== '') {
+        queryClient.invalidateQueries({ queryKey: ['areas', areaId] });
+        queryClient.invalidateQueries({ queryKey: ['areas', areaId, 'tasks'] });
+      }
+    },
+    onError: (error) => {
+      setQuickError(error instanceof Error ? error.message : 'Görev eklenemedi.');
+    },
+  });
+
+  const handleOpenChange = (next: boolean) => {
+    if (!next) {
+      setAreaId('');
+      setText('');
+      setShowAdvanced(false);
+      setQuickError(undefined);
+    }
+    setOpen(next);
+  };
+
+  const handleQuickSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    setQuickError(undefined);
+
+    const trimmed = text.trim();
+
+    if (trimmed.length === 0) {
+      setQuickError('Görev başlığı girin.');
+      return;
+    }
+
+    const parsed = parseQuickCapture(trimmed);
+
+    if (parsed.title.length === 0) {
+      setQuickError('Görev başlığı girin.');
+      return;
+    }
+
+    quickAdd.mutate({ title: parsed.title, parsed });
+  };
+
+  const areaOptions = Array.isArray(areas.data) ? areas.data : [];
+  const sortedOptions = [...areaOptions].sort((left, right) => {
+    if (left.isInbox === right.isInbox) {
+      return 0;
+    }
+    return left.isInbox ? -1 : 1;
+  });
+  const inboxArea = areaOptions.find((area) => area.isInbox);
+  const effectiveAreaId = areaId !== '' ? areaId : inboxArea?.id ?? '';
+  const parsedPreview = text.trim().length > 0 ? parseQuickCapture(text) : undefined;
+
+  return (
+    <Sheet open={open} onOpenChange={handleOpenChange}>
+      <SheetTrigger asChild>
+        <Button variant="default" size="icon" aria-label="Yeni görev oluştur">
+          <PlusIcon />
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-md">
+        <SheetHeader>
+          <SheetTitle>Yeni görev</SheetTitle>
+          <SheetDescription>
+            Tek satırda hızlıca ekleyin — tarih, saat, tekrar ve önceliği yazıyla tanıyabilirim.
+          </SheetDescription>
+        </SheetHeader>
+        <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-4">
+          {!showAdvanced && (
+            <form onSubmit={handleQuickSubmit} className="space-y-3">
+              <Field>
+                <FieldLabel htmlFor="quick-capture">Hızlı ekle</FieldLabel>
+                <div className="flex gap-2">
+                  <Input
+                    id="quick-capture"
+                    value={text}
+                    onChange={(event) => setText(event.target.value)}
+                    placeholder='Ör: "Pazartesi 09:00 önemli toplantı"'
+                  />
+                  <Button
+                    type="submit"
+                    disabled={quickAdd.isPending || csrfQuery.isLoading}
+                    aria-busy={quickAdd.isPending}
+                  >
+                    Ekle
+                  </Button>
+                </div>
+              </Field>
+
+              {quickError && <FieldError>{quickError}</FieldError>}
+
+              {parsedPreview && parsedPreview.title.length > 0 && parsedPreview.title !== text.trim() && (
+                <p className="text-sm text-muted-foreground">
+                  Başlık: <span className="font-medium text-foreground">{parsedPreview.title}</span>
+                </p>
+              )}
+              {parsedPreview && describeParsed(parsedPreview) !== undefined && (
+                <p className="text-sm text-muted-foreground">{describeParsed(parsedPreview)}</p>
+              )}
+              {parsedPreview && parsedPreview.title !== text.trim() && (
+                <p className="text-xs text-muted-foreground/70">
+                  Girdiğiniz metin tarih ve zaman bilgisi içeriyor — aldığım değerler daha yukarıda görünür, düzeltmek için detaylı formu kullanın.
+                </p>
+              )}
+            </form>
+          )}
+
+          <Field>
+            <FieldLabel htmlFor="quick-area">Alan</FieldLabel>
+            {areas.isLoading ? (
+              <Spinner />
+            ) : (
+              <Select
+                id="quick-area"
+                value={effectiveAreaId}
+                onChange={(event) => setAreaId(event.target.value)}
+              >
+                <option value="">Gelen Kutusu</option>
+                {sortedOptions.map((area) => (
+                  <option key={area.id} value={area.id}>
+                    {area.isInbox ? 'Gelen Kutusu' : area.name}
+                  </option>
+                ))}
+              </Select>
+            )}
+          </Field>
+
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowAdvanced((current) => !current)}
+              className="w-full"
+            >
+              {showAdvanced ? 'Hızlı eklemeye dön' : 'Detaylı form kullan'}
+            </Button>
+          </div>
+
+          {showAdvanced && open && effectiveAreaId !== '' && (
+            <CreateTaskFields
+              key={effectiveAreaId}
+              areaId={effectiveAreaId}
+              onCancel={() => setShowAdvanced(false)}
+              onSuccess={() => {
+                setText('');
+                setShowAdvanced(false);
+              }}
+            />
+          )}
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }

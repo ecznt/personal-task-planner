@@ -2,6 +2,7 @@
 
 import {
   ArchiveIcon,
+  CalendarCheck2Icon,
   CalendarDaysIcon,
   CircleIcon,
   FolderTreeIcon,
@@ -16,6 +17,7 @@ import type { NavItem } from './app-nav';
 
 const ICONS: Record<NavItem['icon'], typeof CalendarDaysIcon> = {
   today: CalendarDaysIcon,
+  upcoming: CalendarCheck2Icon,
   tasks: ListTodoIcon,
   kanban: KanbanSquareIcon,
   areas: LayoutGridIcon,
