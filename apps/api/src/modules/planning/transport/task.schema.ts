@@ -5,6 +5,24 @@ import {
   type ValidationProblemItem,
 } from '../../../platform/http/api-problem.exception';
 
+const createTaskChecklistItemSchema = z.strictObject({
+  text: z
+    .string()
+    .trim()
+    .min(1, 'Madde metni zorunludur.')
+    .max(1000, 'Madde metni en fazla 1000 karakter olabilir.'),
+});
+
+const createTaskRecurrenceSchema = z.strictObject({
+  mode: z.enum(['CALENDAR_BASED', 'COMPLETION_BASED']),
+  frequency: z.enum(['DAILY', 'WEEKDAYS', 'WEEKLY', 'MONTHLY', 'YEARLY']),
+  interval: z.number().int().min(1).default(1),
+  selectedWeekdays: z.array(z.number().int().min(1).max(7)).default([]),
+  dayOfMonth: z.number().int().min(1).max(31).nullable().optional(),
+  monthOfYear: z.number().int().min(1).max(12).nullable().optional(),
+  localTime: z.string().nullable().optional(),
+});
+
 const createTaskSchema = z.strictObject({
   title: z
     .string()
@@ -19,12 +37,43 @@ const createTaskSchema = z.strictObject({
   plannedAt: z.coerce.date().nullable().optional(),
   dueAt: z.coerce.date().nullable().optional(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).default('MEDIUM'),
+  projectId: z.string().uuid().nullable().optional(),
+  labelIds: z.array(z.string().uuid()).optional(),
+  checklistItems: z
+    .array(createTaskChecklistItemSchema)
+    .max(100, 'En fazla 100 kontrol maddesi eklenebilir.')
+    .optional(),
+  recurrence: createTaskRecurrenceSchema.nullable().optional(),
 });
+
+export type CreateTaskChecklistItemInput = z.infer<typeof createTaskChecklistItemSchema>;
+export type CreateTaskRecurrenceInput = z.infer<typeof createTaskRecurrenceSchema>;
 
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 
 export function parseCreateTaskInput(value: unknown): CreateTaskInput {
   const result = createTaskSchema.safeParse(value);
+
+  if (result.success) {
+    return result.data;
+  }
+
+  throw new ApiProblemException({
+    status: 422,
+    code: 'VALIDATION_FAILED',
+    detail: 'Görev bilgilerini kontrol edin.',
+    errors: result.error.issues.map(toValidationProblem),
+  });
+}
+
+const createTaskRequestSchema = createTaskSchema.extend({
+  areaId: z.string().uuid().nullable().optional(),
+});
+
+export type CreateTaskRequestInput = z.infer<typeof createTaskRequestSchema>;
+
+export function parseCreateTaskRequestInput(value: unknown): CreateTaskRequestInput {
+  const result = createTaskRequestSchema.safeParse(value);
 
   if (result.success) {
     return result.data;
@@ -144,6 +193,28 @@ export type ListTodayTasksQueryInput = z.infer<typeof listTodayTasksQuerySchema>
 
 export function parseListTodayTasksQuery(value: unknown): ListTodayTasksQueryInput {
   const result = listTodayTasksQuerySchema.safeParse(value);
+
+  if (result.success) {
+    return result.data;
+  }
+
+  throw new ApiProblemException({
+    status: 422,
+    code: 'VALIDATION_FAILED',
+    detail: 'Sorgu parametrelerini kontrol edin.',
+    errors: result.error.issues.map(toValidationProblem),
+  });
+}
+
+const listUpcomingTasksQuerySchema = z.object({
+  timezone: z.string().min(1).default('Europe/Istanbul'),
+  days: z.coerce.number().int().min(1).max(31).default(14),
+});
+
+export type ListUpcomingTasksQueryInput = z.infer<typeof listUpcomingTasksQuerySchema>;
+
+export function parseListUpcomingTasksQuery(value: unknown): ListUpcomingTasksQueryInput {
+  const result = listUpcomingTasksQuerySchema.safeParse(value);
 
   if (result.success) {
     return result.data;

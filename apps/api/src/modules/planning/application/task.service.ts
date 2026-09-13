@@ -1,16 +1,35 @@
 import { Inject, Injectable } from '@nestjs/common';
 
+import { AreaService } from './area.service';
 import { TaskRepository } from '../infrastructure/task.repository';
 import type { Task, TaskDetail, TaskSummary } from '../domain/task.entity';
 import { RecurrenceService } from './recurrence.service';
 
+export type CreateTaskChecklistItemInput = {
+  readonly text: string;
+};
+
+export type CreateTaskRecurrenceInput = {
+  readonly mode: 'CALENDAR_BASED' | 'COMPLETION_BASED';
+  readonly frequency: 'DAILY' | 'WEEKDAYS' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
+  readonly interval: number;
+  readonly selectedWeekdays: readonly number[];
+  readonly dayOfMonth: number | null;
+  readonly monthOfYear: number | null;
+  readonly localTime: string | null;
+};
+
 export type CreateTaskCommand = {
-  readonly areaId: string;
+  readonly areaId?: string;
   readonly title: string;
   readonly description: string | null;
   readonly plannedAt: Date | null;
   readonly dueAt: Date | null;
   readonly priority: 'LOW' | 'MEDIUM' | 'HIGH';
+  readonly projectId?: string | null;
+  readonly labelIds?: readonly string[];
+  readonly checklistItems?: readonly CreateTaskChecklistItemInput[];
+  readonly recurrence?: CreateTaskRecurrenceInput | null;
 };
 
 export type CreateTaskResult =
@@ -111,6 +130,24 @@ export type ListKanbanTasksResult = {
   readonly completed: readonly TaskSummary[];
 };
 
+export type ListUpcomingTasksQuery = {
+  readonly timezone: string;
+  readonly days?: number;
+};
+
+export type UpcomingDayGroup = {
+  readonly date: string;
+  readonly planned: readonly TaskSummary[];
+  readonly due: readonly TaskSummary[];
+};
+
+export type ListUpcomingTasksResult = {
+  readonly outcome: 'SUCCESS';
+  readonly timezone: string;
+  readonly overdue: readonly TaskSummary[];
+  readonly days: readonly UpcomingDayGroup[];
+};
+
 export type MoveKanbanTaskCommand = {
   readonly taskId: string;
   readonly targetCanonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
@@ -174,6 +211,7 @@ export class TaskService {
   constructor(
     @Inject(TaskRepository) private readonly taskRepository: TaskRepository,
     @Inject(RecurrenceService) private readonly recurrenceService: RecurrenceService,
+    @Inject(AreaService) private readonly areaService?: AreaService,
   ) {}
 
   async createTask(userId: string, command: CreateTaskCommand): Promise<CreateTaskResult> {
@@ -210,13 +248,87 @@ export class TaskService {
       }
     }
 
-    const areaExists = await this.taskRepository.areaExists(userId, command.areaId);
+    const areaId = command.areaId
+      ?? (await this.ensureInboxAreaId(userId));
+
+    const areaExists = await this.taskRepository.areaExists(userId, areaId);
 
     if (!areaExists) {
       return { outcome: 'NOT_FOUND' };
     }
 
-    const defaultStatus = await this.taskRepository.findDefaultToDoStatus(userId, command.areaId);
+    if (command.projectId !== undefined && command.projectId !== null) {
+      const projectBelongs = await this.taskRepository.projectBelongsToArea(
+        userId,
+        command.projectId,
+        areaId,
+      );
+
+      if (!projectBelongs) {
+        return {
+          outcome: 'VALIDATION_ERROR',
+          detail: 'Proje aynı alanda bulunamadı.',
+        };
+      }
+    }
+
+    if (command.labelIds !== undefined && command.labelIds.length > 0) {
+      const labelsBelong = await this.taskRepository.labelsBelongToUser(userId, command.labelIds);
+
+      if (!labelsBelong) {
+        return {
+          outcome: 'VALIDATION_ERROR',
+          detail: 'Seçilen etiketlerden biri veya birkaçı geçersiz.',
+        };
+      }
+    }
+
+    if (command.recurrence !== undefined && command.recurrence !== null) {
+      if (command.recurrence.interval < 1) {
+        return {
+          outcome: 'VALIDATION_ERROR',
+          detail: 'Aralık 1 veya daha büyük olmalıdır.',
+        };
+      }
+
+      if (
+        command.recurrence.frequency === 'WEEKLY' &&
+        command.recurrence.selectedWeekdays.length === 0
+      ) {
+        return {
+          outcome: 'VALIDATION_ERROR',
+          detail: 'Haftalık tekrarlama için en az bir gün seçmelisiniz.',
+        };
+      }
+
+      if (command.recurrence.frequency === 'MONTHLY' && command.recurrence.dayOfMonth === null) {
+        return {
+          outcome: 'VALIDATION_ERROR',
+          detail: 'Aylık tekrarlama için gün seçmelisiniz.',
+        };
+      }
+
+      if (
+        command.recurrence.frequency === 'YEARLY' &&
+        (command.recurrence.monthOfYear === null || command.recurrence.dayOfMonth === null)
+      ) {
+        return {
+          outcome: 'VALIDATION_ERROR',
+          detail: 'Yıllık tekrarlama için ay ve gün seçmelisiniz.',
+        };
+      }
+
+      const anchor = command.plannedAt ?? command.dueAt;
+
+      if (!anchor) {
+        return {
+          outcome: 'VALIDATION_ERROR',
+          detail: 'Tekrarlayan görev için planlama veya bitiş tarihi gereklidir.',
+        };
+      }
+    }
+
+    const defaultStatus = await this.taskRepository.findDefaultToDoStatus(userId, areaId);
 
     if (!defaultStatus) {
       return {
@@ -227,18 +339,31 @@ export class TaskService {
 
     const task = await this.taskRepository.createTask(
       userId,
-      command.areaId,
+      areaId,
       {
         title,
         description: command.description,
         plannedAt: command.plannedAt,
         dueAt: command.dueAt,
         priority: command.priority,
+        projectId: command.projectId ?? null,
+        labelIds: command.labelIds ?? [],
+        checklistItems: command.checklistItems ?? [],
+        recurrence: command.recurrence ?? null,
       },
       defaultStatus.id,
     );
 
     return { outcome: 'SUCCESS', task, etag: task.version };
+  }
+
+  private async ensureInboxAreaId(userId: string): Promise<string> {
+    if (!this.areaService) {
+      throw new Error('AreaService is not available.');
+    }
+
+    const inbox = await this.areaService.ensureInbox(userId);
+    return inbox.id;
   }
 
   async getTask(userId: string, query: GetTaskQuery): Promise<GetTaskResult> {
@@ -338,6 +463,62 @@ export class TaskService {
       plannedToday,
       dueToday,
       completedToday,
+    };
+  }
+
+  async listUpcomingTasks(
+    userId: string,
+    query: ListUpcomingTasksQuery,
+  ): Promise<ListUpcomingTasksResult> {
+    const days = Math.min(31, Math.max(1, query.days ?? 14));
+    const ranges = buildDayRangesInTimeZone(query.timezone, days);
+    const rangeStart = ranges[0]!.start;
+    const rangeEnd = ranges[ranges.length - 1]!.end;
+
+    const tasks = await this.taskRepository.findUpcomingTasks(userId, rangeStart, rangeEnd);
+
+    const overdue: TaskSummary[] = [];
+    const dayGroups: Map<string, { planned: TaskSummary[]; due: TaskSummary[] }> = new Map();
+
+    for (const range of ranges) {
+      dayGroups.set(range.date, { planned: [], due: [] });
+    }
+
+    for (const task of tasks) {
+      if (task.plannedAt !== null && task.plannedAt >= rangeStart) {
+        const day = ranges.find(
+          (r) => task.plannedAt !== null && task.plannedAt >= r.start && task.plannedAt < r.end,
+        );
+
+        if (day) {
+          dayGroups.get(day.date)?.planned.push(task);
+          continue;
+        }
+      }
+
+      if (task.dueAt !== null && task.dueAt >= rangeStart) {
+        const day = ranges.find(
+          (r) => task.dueAt !== null && task.dueAt >= r.start && task.dueAt < r.end,
+        );
+
+        if (day) {
+          dayGroups.get(day.date)?.due.push(task);
+          continue;
+        }
+      }
+
+      overdue.push(task);
+    }
+
+    return {
+      outcome: 'SUCCESS',
+      timezone: query.timezone,
+      overdue,
+      days: Array.from(dayGroups.entries()).map(([date, group]) => ({
+        date,
+        planned: group.planned,
+        due: group.due,
+      })),
     };
   }
 
@@ -592,4 +773,37 @@ function parseTodayRange(timezone: string): {
   const todayEnd = new Date(Date.UTC(year, month - 1, day + 1, 0, 0, 0, 0));
 
   return { todayStart, todayEnd, todayStr };
+}
+
+function buildDayRangesInTimeZone(
+  timezone: string,
+  days: number,
+): { date: string; start: Date; end: Date }[] {
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+
+  const todayParts = formatter.format(now).split('-');
+  const startBase = Date.UTC(Number(todayParts[0]), Number(todayParts[1]) - 1, Number(todayParts[2]));
+
+  const ranges: { date: string; start: Date; end: Date }[] = [];
+
+  for (let i = 0; i < days; i += 1) {
+    const start = new Date(startBase + i * 86_400_000);
+    const end = new Date(start.getTime() + 86_400_000);
+    const dateFormatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'UTC',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+
+    ranges.push({ date: dateFormatter.format(start), start, end });
+  }
+
+  return ranges;
 }

@@ -3,6 +3,7 @@ export type Area = {
   readonly userId: string;
   readonly name: string;
   readonly normalizedName: string;
+  readonly isInbox: boolean;
   readonly lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
   readonly version: number;
   readonly createdAt: Date;
@@ -26,6 +27,7 @@ export type AreaStatus = {
 export type AreaSummary = {
   readonly id: string;
   readonly name: string;
+  readonly isInbox: boolean;
   readonly lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
   readonly taskCount: number;
   readonly projectCount: number;

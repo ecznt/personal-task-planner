@@ -316,6 +316,10 @@
             "format": "uuid",
             "type": "string"
           },
+          "isInbox": {
+            "description": "Gelen Kutusu flag; at most one per user.",
+            "type": "boolean"
+          },
           "lifecycleState": {
             "enum": [
               "ACTIVE",
@@ -343,7 +347,8 @@
           "lifecycleState",
           "taskCount",
           "projectCount",
-          "overdueTaskCount"
+          "overdueTaskCount",
+          "isInbox"
         ],
         "type": "object"
       },
@@ -511,14 +516,40 @@
         ],
         "type": "object"
       },
+      "CreateTaskChecklistItemRequestDto": {
+        "properties": {
+          "text": {
+            "example": "Süt al",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "type": "object"
+      },
       "CreateTaskRequestDto": {
         "properties": {
+          "checklistItems": {
+            "description": "Checklist items to create with the task",
+            "items": {
+              "$ref": "#/components/schemas/CreateTaskChecklistItemRequestDto"
+            },
+            "type": "array"
+          },
           "description": {
             "type": "string"
           },
           "dueAt": {
             "format": "date-time",
             "type": "string"
+          },
+          "labelIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
           },
           "plannedAt": {
             "format": "date-time",
@@ -532,6 +563,14 @@
               "HIGH"
             ],
             "type": "string"
+          },
+          "projectId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "recurrence": {
+            "description": "Recurrence rule to attach to the task",
+            "type": "object"
           },
           "title": {
             "example": "Marketten süt al",
@@ -715,6 +754,65 @@
         },
         "required": [
           "email"
+        ],
+        "type": "object"
+      },
+      "GlobalCreateTaskRequestDto": {
+        "properties": {
+          "areaId": {
+            "description": "Inbox (Gelen Kutusu) is used when omitted.",
+            "format": "uuid",
+            "type": "string"
+          },
+          "checklistItems": {
+            "description": "Checklist items to create with the task",
+            "items": {
+              "$ref": "#/components/schemas/CreateTaskChecklistItemRequestDto"
+            },
+            "type": "array"
+          },
+          "description": {
+            "type": "string"
+          },
+          "dueAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "labelIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "plannedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "priority": {
+            "default": "MEDIUM",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ],
+            "type": "string"
+          },
+          "projectId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "recurrence": {
+            "description": "Recurrence rule to attach to the task",
+            "type": "object"
+          },
+          "title": {
+            "example": "Marketten süt al",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title"
         ],
         "type": "object"
       },
@@ -1748,6 +1846,109 @@
           "canonicalStatus",
           "lifecycleState",
           "reasons"
+        ],
+        "type": "object"
+      },
+      "UpcomingDayGroupDto": {
+        "properties": {
+          "date": {
+            "example": "2026-09-12",
+            "format": "date",
+            "type": "string"
+          },
+          "due": {
+            "items": {
+              "$ref": "#/components/schemas/UpcomingTaskSummaryDto"
+            },
+            "type": "array"
+          },
+          "planned": {
+            "items": {
+              "$ref": "#/components/schemas/UpcomingTaskSummaryDto"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "date",
+          "planned",
+          "due"
+        ],
+        "type": "object"
+      },
+      "UpcomingResponseDto": {
+        "properties": {
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/UpcomingDayGroupDto"
+            },
+            "type": "array"
+          },
+          "overdue": {
+            "items": {
+              "$ref": "#/components/schemas/UpcomingTaskSummaryDto"
+            },
+            "type": "array"
+          },
+          "timezone": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "timezone",
+          "overdue",
+          "days"
+        ],
+        "type": "object"
+      },
+      "UpcomingTaskSummaryDto": {
+        "properties": {
+          "canonicalStatus": {
+            "enum": [
+              "TO_DO",
+              "IN_PROGRESS",
+              "COMPLETED"
+            ],
+            "type": "string"
+          },
+          "dueAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "lifecycleState": {
+            "enum": [
+              "ACTIVE",
+              "ARCHIVED",
+              "TRASHED"
+            ],
+            "type": "string"
+          },
+          "plannedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "priority": {
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "priority",
+          "canonicalStatus",
+          "lifecycleState"
         ],
         "type": "object"
       },
@@ -3777,6 +3978,45 @@
         "tags": [
           "Tasks"
         ]
+      },
+      "post": {
+        "operationId": "createGlobalTask",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GlobalCreateTaskRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "404": {
+            "description": "Area not found."
+          },
+          "422": {
+            "description": "Validation failed."
+          }
+        },
+        "summary": "Create a Task anywhere, or in the Inbox when areaId is omitted",
+        "tags": [
+          "Tasks"
+        ]
       }
     },
     "/api/v1/tasks/{id}/archive": {
@@ -4634,6 +4874,48 @@
           }
         },
         "summary": "Get Today planning view",
+        "tags": [
+          "Tasks"
+        ]
+      }
+    },
+    "/api/v1/tasks/upcoming": {
+      "get": {
+        "operationId": "listUpcomingTasks",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "days",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "timezone",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpcomingResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          }
+        },
+        "summary": "Get upcoming Tasks grouped by day",
         "tags": [
           "Tasks"
         ]

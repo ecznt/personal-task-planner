@@ -34,6 +34,7 @@ describe('area service', () => {
         userId: 'user-id',
         name: 'Test Area',
         normalizedName: 'test area',
+        isInbox: false,
         lifecycleState: 'ACTIVE',
         version: 1,
         createdAt: new Date(),
@@ -84,6 +85,7 @@ describe('area service', () => {
         userId: 'user-id',
         name: 'Test Area',
         normalizedName: 'test area',
+        isInbox: false,
         lifecycleState: 'ACTIVE',
         version: 1,
         createdAt: new Date(),
@@ -114,6 +116,7 @@ describe('area service', () => {
         {
           id: 'area-id',
           name: 'Test Area',
+          isInbox: false,
           lifecycleState: 'ACTIVE',
           taskCount: 5,
           projectCount: 1,
@@ -154,6 +157,7 @@ describe('area service', () => {
       userId: 'user-id',
       name: 'New Name',
       normalizedName: 'new name',
+      isInbox: false,
       lifecycleState: 'ACTIVE',
       version: 2,
       createdAt: new Date(),
@@ -182,6 +186,7 @@ describe('area service', () => {
         userId: 'user-id',
         name: 'Old Name',
         normalizedName: 'old name',
+        isInbox: false,
         lifecycleState: 'ACTIVE',
         version: 2,
         createdAt: new Date(),
@@ -221,6 +226,8 @@ describe('area service', () => {
 function repositoryMock(): jest.Mocked<AreaRepository> {
   return {
     createArea: jest.fn(),
+    findInbox: jest.fn(),
+    ensureInbox: jest.fn(),
     findById: jest.fn(),
     listByUser: jest.fn(),
     updateName: jest.fn(),

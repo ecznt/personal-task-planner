@@ -3,6 +3,11 @@ import { ApiProperty } from '@nestjs/swagger';
 import { ChecklistItemDataDto } from './checklist.dto';
 import { LabelSummaryDto } from './label.dto';
 
+export class CreateTaskChecklistItemRequestDto {
+  @ApiProperty({ example: 'Süt al', type: String })
+  text!: string;
+}
+
 export class TaskDataDto {
   @ApiProperty({ format: 'uuid', type: String })
   id!: string;
@@ -111,6 +116,44 @@ export class CreateTaskRequestDto {
     default: 'MEDIUM',
   })
   priority?: 'LOW' | 'MEDIUM' | 'HIGH';
+
+  @ApiProperty({ format: 'uuid', type: String, required: false })
+  projectId?: string | null;
+
+  @ApiProperty({ type: [String], format: 'uuid', required: false })
+  labelIds?: string[];
+
+  @ApiProperty({
+    type: () => [CreateTaskChecklistItemRequestDto],
+    required: false,
+    description: 'Checklist items to create with the task',
+  })
+  checklistItems?: CreateTaskChecklistItemRequestDto[];
+
+  @ApiProperty({
+    type: Object,
+    required: false,
+    description: 'Recurrence rule to attach to the task',
+  })
+  recurrence?: {
+    mode: 'CALENDAR_BASED' | 'COMPLETION_BASED';
+    frequency: 'DAILY' | 'WEEKDAYS' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
+    interval: number;
+    selectedWeekdays: number[];
+    dayOfMonth?: number | null;
+    monthOfYear?: number | null;
+    localTime?: string | null;
+  } | null;
+}
+
+export class GlobalCreateTaskRequestDto extends CreateTaskRequestDto {
+  @ApiProperty({
+    format: 'uuid',
+    type: String,
+    required: false,
+    description: 'Inbox (Gelen Kutusu) is used when omitted.',
+  })
+  areaId?: string | null;
 }
 
 export class EditTaskRequestDto {
@@ -195,6 +238,30 @@ export class TodayResponseDto {
 
   @ApiProperty({ type: () => TodaySectionDto })
   completedToday!: TodaySectionDto;
+}
+
+export class UpcomingTaskSummaryDto extends TaskSummaryDto {}
+
+export class UpcomingDayGroupDto {
+  @ApiProperty({ type: String, format: 'date', example: '2026-09-12' })
+  date!: string;
+
+  @ApiProperty({ type: () => [UpcomingTaskSummaryDto] })
+  planned!: UpcomingTaskSummaryDto[];
+
+  @ApiProperty({ type: () => [UpcomingTaskSummaryDto] })
+  due!: UpcomingTaskSummaryDto[];
+}
+
+export class UpcomingResponseDto {
+  @ApiProperty({ type: String })
+  timezone!: string;
+
+  @ApiProperty({ type: () => [UpcomingTaskSummaryDto] })
+  overdue!: UpcomingTaskSummaryDto[];
+
+  @ApiProperty({ type: () => [UpcomingDayGroupDto] })
+  days!: UpcomingDayGroupDto[];
 }
 
 export class KanbanColumnDto {

@@ -107,6 +107,12 @@ export class AreaSummaryDto {
     type: Number,
   })
   overdueTaskCount!: number;
+
+  @ApiProperty({
+    type: Boolean,
+    description: 'Gelen Kutusu flag; at most one per user.',
+  })
+  isInbox!: boolean;
 }
 
 export class AreaListMetaDto {

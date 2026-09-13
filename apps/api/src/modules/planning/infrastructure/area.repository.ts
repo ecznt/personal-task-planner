@@ -21,6 +21,7 @@ export class AreaRepository {
     userId: string,
     name: string,
     normalizedName: string,
+    options?: { readonly isInbox?: boolean },
   ): Promise<{ area: Area; statuses: readonly AreaStatus[] }> {
     return this.prisma.$transaction(async (transaction) => {
       const area = await transaction.area.create({
@@ -28,6 +29,7 @@ export class AreaRepository {
           name,
           normalizedName,
           userId,
+          isInbox: options?.isInbox ?? false,
         },
       });
 
@@ -67,6 +69,25 @@ export class AreaRepository {
 
       return { area, statuses };
     });
+  }
+
+  async findInbox(userId: string): Promise<Area | null> {
+    return this.prisma.area.findFirst({
+      where: { userId, isInbox: true, lifecycleState: 'ACTIVE' },
+    });
+  }
+
+  async ensureInbox(userId: string): Promise<Area> {
+    const existing = await this.findInbox(userId);
+
+    if (existing) {
+      return existing;
+    }
+
+    const { area } = await this.createArea(userId, 'Gelen Kutusu', 'gelen kutusu', {
+      isInbox: true,
+    });
+    return area;
   }
 
   async findById(userId: string, areaId: string): Promise<AreaDetail | null> {
@@ -133,6 +154,7 @@ export class AreaRepository {
         return {
           id: area.id,
           name: area.name,
+          isInbox: area.isInbox,
           lifecycleState: area.lifecycleState,
           taskCount,
           projectCount,

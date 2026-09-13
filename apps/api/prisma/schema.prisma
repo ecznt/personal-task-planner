@@ -330,6 +330,7 @@ model Area {
   userId         String                 @db.Uuid
   name           String
   normalizedName String
+  isInbox        Boolean                @default(false)
   lifecycleState PlanningLifecycleState @default(ACTIVE)
   archivedAt     DateTime?              @db.Timestamptz(3)
   trashedAt      DateTime?              @db.Timestamptz(3)

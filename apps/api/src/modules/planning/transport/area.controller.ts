@@ -544,6 +544,21 @@ export class AreaController {
       plannedAt: input.plannedAt ?? null,
       dueAt: input.dueAt ?? null,
       priority: input.priority,
+      projectId: input.projectId ?? null,
+      labelIds: input.labelIds ?? [],
+      checklistItems: input.checklistItems ?? [],
+      recurrence:
+        input.recurrence === null || input.recurrence === undefined
+          ? null
+          : {
+              mode: input.recurrence.mode,
+              frequency: input.recurrence.frequency,
+              interval: input.recurrence.interval,
+              selectedWeekdays: [...input.recurrence.selectedWeekdays],
+              dayOfMonth: input.recurrence.dayOfMonth ?? null,
+              monthOfYear: input.recurrence.monthOfYear ?? null,
+              localTime: input.recurrence.localTime ?? null,
+            },
     });
 
     return this.handleCreateTaskResult(result, response);
@@ -754,6 +769,7 @@ export class AreaController {
           data: result.areas.map((area) => ({
             id: area.id,
             name: area.name,
+            isInbox: area.isInbox,
             lifecycleState: area.lifecycleState,
             taskCount: area.taskCount,
             projectCount: area.projectCount,

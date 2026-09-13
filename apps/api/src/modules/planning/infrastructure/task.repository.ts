@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+
 import { Inject, Injectable } from '@nestjs/common';
 
 import { PrismaService } from '../../../platform/database/prisma.service';
@@ -16,6 +18,18 @@ export class TaskRepository {
       readonly plannedAt: Date | null;
       readonly dueAt: Date | null;
       readonly priority: 'LOW' | 'MEDIUM' | 'HIGH';
+      readonly projectId: string | null;
+      readonly labelIds: readonly string[];
+      readonly checklistItems: readonly { text: string }[];
+      readonly recurrence: {
+        readonly mode: 'CALENDAR_BASED' | 'COMPLETION_BASED';
+        readonly frequency: 'DAILY' | 'WEEKDAYS' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
+        readonly interval: number;
+        readonly selectedWeekdays: readonly number[];
+        readonly dayOfMonth: number | null;
+        readonly monthOfYear: number | null;
+        readonly localTime: string | null;
+      } | null;
     },
     defaultStatusId: string,
   ): Promise<Task> {
@@ -38,10 +52,14 @@ export class TaskRepository {
         ? incrementRank(maxGlobalRank.globalRank)
         : '000000000000000000000001';
 
+      const recurrenceSeriesId = randomUUID();
+      const recurrenceRuleVersionId = randomUUID();
+
       const task = await transaction.task.create({
         data: {
           userId,
           areaId,
+          projectId: input.projectId,
           areaStatusId: defaultStatusId,
           title: input.title,
           description: input.description,
@@ -50,8 +68,73 @@ export class TaskRepository {
           priority: input.priority,
           globalRank: nextGlobalRank,
           areaRank: nextAreaRank,
+          ...(input.recurrence
+            ? {
+                recurrenceSeriesId,
+                recurrenceRuleVersionId,
+                occurrenceNumber: 1,
+              }
+            : {}),
         },
       });
+
+      if (input.recurrence) {
+        const series = await transaction.recurrenceSeries.create({
+          data: {
+            id: recurrenceSeriesId,
+            userId,
+            currentOpenTaskId: task.id,
+            nextOccurrenceNumber: 2,
+            activeRuleVersionId: recurrenceRuleVersionId,
+          },
+        });
+
+        const ruleVersion = await transaction.recurrenceRuleVersion.create({
+          data: {
+            id: recurrenceRuleVersionId,
+            userId,
+            seriesId: series.id,
+            versionNumber: 1,
+            mode: input.recurrence.mode,
+            frequency: input.recurrence.frequency,
+            interval: input.recurrence.interval,
+            selectedWeekdays: [...input.recurrence.selectedWeekdays],
+            dayOfMonth: input.recurrence.dayOfMonth,
+            monthOfYear: input.recurrence.monthOfYear,
+            localTime: input.recurrence.localTime,
+          },
+        });
+
+        await transaction.task.update({
+          where: { id: task.id },
+          data: {
+            recurrenceSeriesId: series.id,
+            recurrenceRuleVersionId: ruleVersion.id,
+            occurrenceNumber: 1,
+          },
+        });
+      }
+
+      if (input.labelIds.length > 0) {
+        await transaction.taskLabel.createMany({
+          data: input.labelIds.map((labelId) => ({
+            userId,
+            taskId: task.id,
+            labelId,
+          })),
+        });
+      }
+
+      if (input.checklistItems.length > 0) {
+        await transaction.checklistItem.createMany({
+          data: input.checklistItems.map((item, index) => ({
+            userId,
+            taskId: task.id,
+            text: item.text,
+            position: index + 1,
+          })),
+        });
+      }
 
       return task;
     });
@@ -255,6 +338,19 @@ export class TaskRepository {
     return project !== null;
   }
 
+  async labelsBelongToUser(userId: string, labelIds: readonly string[]): Promise<boolean> {
+    if (labelIds.length === 0) {
+      return true;
+    }
+
+    const labels = await this.prisma.label.findMany({
+      where: { id: { in: [...labelIds] }, userId },
+      select: { id: true },
+    });
+
+    return labels.length === labelIds.length;
+  }
+
   async incrementVersion(userId: string, taskId: string): Promise<Task | null> {
     const result = await this.prisma.task.updateMany({
       where: { id: taskId, userId, lifecycleState: 'ACTIVE' },
@@ -398,6 +494,38 @@ export class TaskRepository {
     }
 
     return result;
+  }
+
+  async findUpcomingTasks(
+    userId: string,
+    rangeStart: Date,
+    rangeEnd: Date,
+  ): Promise<readonly TaskSummary[]> {
+    const tasks = await this.prisma.task.findMany({
+      where: {
+        userId,
+        lifecycleState: 'ACTIVE',
+        areaStatus: { canonicalStatus: { not: 'COMPLETED' } },
+        OR: [
+          { plannedAt: { gte: rangeStart, lt: rangeEnd } },
+          { dueAt: { gte: rangeStart, lt: rangeEnd } },
+        ],
+      },
+      orderBy: [{ dueAt: 'asc' }, { plannedAt: 'asc' }, { priority: 'asc' }, { title: 'asc' }],
+      include: { areaStatus: { select: { canonicalStatus: true } } },
+    });
+
+    return tasks.map((task) => ({
+      id: task.id,
+      title: task.title,
+      priority: task.priority,
+      canonicalStatus: task.areaStatus.canonicalStatus,
+      dueAt: task.dueAt,
+      plannedAt: task.plannedAt,
+      lifecycleState: task.lifecycleState,
+      version: task.version,
+      areaId: task.areaId,
+    }));
   }
 
   async findKanbanTasks(userId: string): Promise<{

@@ -22,27 +22,33 @@ import { AuthSecurityService } from '../../accounts/security/auth-security.servi
 import { parseCookieValue, sessionCookieName } from '../../accounts/transport/auth-cookie';
 import { TaskService } from '../application/task.service';
 import type {
+  CreateTaskResult,
   EditTaskResult,
   GetTaskResult,
   ListGlobalTasksResult,
   ListKanbanTasksResult,
   ListTodayTasksResult,
+  ListUpcomingTasksResult,
   MoveKanbanTaskResult,
 } from '../application/task.service';
 import type { TaskSummary } from '../domain/task.entity';
 import {
+  parseCreateTaskRequestInput,
   parseEditTaskInput,
   parseListGlobalTasksQuery,
   parseListTodayTasksQuery,
+  parseListUpcomingTasksQuery,
   parseMoveKanbanTaskInput,
 } from './task.schema';
 import {
   EditTaskRequestDto,
+  GlobalCreateTaskRequestDto,
   KanbanResponseDto,
   MoveKanbanTaskRequestDto,
   TaskListResponseDto,
   TaskResponseDto,
   TodayResponseDto,
+  UpcomingResponseDto,
 } from './task.dto';
 
 @ApiTags('Tasks')
@@ -128,6 +134,107 @@ export class TaskController {
     });
 
     return this.handleListTodayTasksResult(result);
+  }
+
+  @Post()
+  @HttpCode(201)
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    operationId: 'createGlobalTask',
+    summary: 'Create a Task anywhere, or in the Inbox when areaId is omitted',
+  })
+  @ApiBody({ type: GlobalCreateTaskRequestDto })
+  @ApiResponse({
+    status: 201,
+    type: TaskResponseDto,
+  })
+  @ApiResponse({
+    description: 'No valid authenticated session is present.',
+    status: 401,
+  })
+  @ApiResponse({
+    description: 'Area not found.',
+    status: 404,
+  })
+  @ApiResponse({
+    description: 'Validation failed.',
+    status: 422,
+  })
+  async createGlobalTask(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+    @Body() body: unknown,
+    @Headers('idempotency-key') idempotencyKey?: string,
+  ): Promise<TaskResponseDto> {
+    const userId = await this.resolveUserId(request);
+
+    const input = parseCreateTaskRequestInput(body);
+
+    if (!idempotencyKey) {
+      throw new ApiProblemException({
+        status: 422,
+        code: 'VALIDATION_FAILED',
+        detail: 'Idempotency-Key başlığı gereklidir.',
+      });
+    }
+
+    const result = await this.taskService.createTask(userId, {
+      ...(input.areaId !== undefined && input.areaId !== null && { areaId: input.areaId }),
+      title: input.title,
+      description: input.description ?? null,
+      plannedAt: input.plannedAt ?? null,
+      dueAt: input.dueAt ?? null,
+      priority: input.priority,
+      projectId: input.projectId ?? null,
+      labelIds: input.labelIds ?? [],
+      checklistItems: input.checklistItems ?? [],
+      recurrence:
+        input.recurrence === null || input.recurrence === undefined
+          ? null
+          : {
+              mode: input.recurrence.mode,
+              frequency: input.recurrence.frequency,
+              interval: input.recurrence.interval,
+              selectedWeekdays: [...input.recurrence.selectedWeekdays],
+              dayOfMonth: input.recurrence.dayOfMonth ?? null,
+              monthOfYear: input.recurrence.monthOfYear ?? null,
+              localTime: input.recurrence.localTime ?? null,
+            },
+    });
+
+    return this.handleCreateGlobalTaskResult(result, response);
+  }
+
+  @Get('upcoming')
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    operationId: 'listUpcomingTasks',
+    summary: 'Get upcoming Tasks grouped by day',
+  })
+  @ApiQuery({ name: 'timezone', type: String, required: false })
+  @ApiQuery({ name: 'days', type: Number, required: false })
+  @ApiResponse({
+    status: 200,
+    type: UpcomingResponseDto,
+  })
+  @ApiResponse({
+    description: 'No valid authenticated session is present.',
+    status: 401,
+  })
+  async listUpcomingTasks(
+    @Req() request: Request,
+    @Query() query: unknown,
+  ): Promise<UpcomingResponseDto> {
+    const userId = await this.resolveUserId(request);
+
+    const input = parseListUpcomingTasksQuery(query);
+
+    const result = await this.taskService.listUpcomingTasks(userId, {
+      timezone: input.timezone,
+      days: input.days,
+    });
+
+    return this.handleListUpcomingTasksResult(result);
   }
 
   @Get('kanban')
@@ -559,6 +666,80 @@ export class TaskController {
         })),
       },
     };
+  }
+
+  private handleListUpcomingTasksResult(
+    result: ListUpcomingTasksResult,
+  ): UpcomingResponseDto {
+    const mapTasks = (tasks: readonly TaskSummary[]) =>
+      tasks.map((task) => ({
+        id: task.id,
+        title: task.title,
+        priority: task.priority,
+        canonicalStatus: task.canonicalStatus,
+        dueAt: task.dueAt?.toISOString() ?? null,
+        plannedAt: task.plannedAt?.toISOString() ?? null,
+        lifecycleState: task.lifecycleState,
+        version: task.version,
+        areaId: task.areaId,
+      }));
+
+    return {
+      timezone: result.timezone,
+      overdue: mapTasks(result.overdue),
+      days: result.days.map((day) => ({
+        date: day.date,
+        planned: mapTasks(day.planned),
+        due: mapTasks(day.due),
+      })),
+    };
+  }
+
+  private handleCreateGlobalTaskResult(
+    result: CreateTaskResult,
+    response: Response,
+  ): TaskResponseDto {
+    switch (result.outcome) {
+      case 'SUCCESS':
+        response.setHeader('ETag', String(result.etag));
+        response.setHeader('Location', `/api/v1/tasks/${result.task.id}`);
+        return {
+          data: {
+            id: result.task.id,
+            areaId: result.task.areaId,
+            title: result.task.title,
+            description: result.task.description,
+            plannedAt: result.task.plannedAt?.toISOString() ?? null,
+            dueAt: result.task.dueAt?.toISOString() ?? null,
+            priority: result.task.priority,
+            areaStatusId: result.task.areaStatusId,
+            canonicalStatus: 'TO_DO',
+            lifecycleState: result.task.lifecycleState,
+            version: result.task.version,
+            labels: [],
+            checklistItems: [],
+            projectId: result.task.projectId,
+          },
+        };
+      case 'NOT_FOUND':
+        throw new ApiProblemException({
+          status: 404,
+          code: 'RESOURCE_NOT_FOUND',
+          detail: 'Kaynak bulunamadı.',
+        });
+      case 'VALIDATION_ERROR':
+        throw new ApiProblemException({
+          status: 422,
+          code: 'VALIDATION_FAILED',
+          detail: result.detail,
+        });
+      case 'UNAUTHENTICATED':
+        throw new ApiProblemException({
+          status: 401,
+          code: 'AUTHENTICATION_REQUIRED',
+          detail: 'Oturum açmanız gerekiyor.',
+        });
+    }
   }
 
   private handleListKanbanTasksResult(result: ListKanbanTasksResult): KanbanResponseDto {

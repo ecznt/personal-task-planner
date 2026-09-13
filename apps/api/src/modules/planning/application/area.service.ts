@@ -145,7 +145,14 @@ export class AreaService {
     return { outcome: 'SUCCESS', data };
   }
 
+  async ensureInbox(userId: string): Promise<{ id: string; name: string }> {
+    const area = await this.areaRepository.ensureInbox(userId);
+    return { id: area.id, name: area.name };
+  }
+
   async listAreas(userId: string, query: ListAreasQuery): Promise<ListAreasResult> {
+    await this.areaRepository.ensureInbox(userId);
+
     const { areas, nextCursor } = await this.areaRepository.listByUser(
       userId,
       query.cursor,

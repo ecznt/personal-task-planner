@@ -88,6 +88,10 @@ export type AreaStatusDto = {
 
 export type AreaSummaryDto = {
     id: string;
+    /**
+     * Gelen Kutusu flag; at most one per user.
+     */
+    isInbox: boolean;
     lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
     name: string;
     overdueTaskCount: number;
@@ -142,11 +146,27 @@ export type CreateProjectRequestDto = {
     name: string;
 };
 
+export type CreateTaskChecklistItemRequestDto = {
+    text: string;
+};
+
 export type CreateTaskRequestDto = {
+    /**
+     * Checklist items to create with the task
+     */
+    checklistItems?: Array<CreateTaskChecklistItemRequestDto>;
     description?: string;
     dueAt?: string;
+    labelIds?: Array<string>;
     plannedAt?: string;
     priority?: 'LOW' | 'MEDIUM' | 'HIGH';
+    projectId?: string;
+    /**
+     * Recurrence rule to attach to the task
+     */
+    recurrence?: {
+        [key: string]: unknown;
+    };
     title: string;
 };
 
@@ -200,6 +220,30 @@ export type EmailVerificationRequestAcceptedResponseDto = {
 
 export type EmailVerificationRequestDto = {
     email: string;
+};
+
+export type GlobalCreateTaskRequestDto = {
+    /**
+     * Inbox (Gelen Kutusu) is used when omitted.
+     */
+    areaId?: string;
+    /**
+     * Checklist items to create with the task
+     */
+    checklistItems?: Array<CreateTaskChecklistItemRequestDto>;
+    description?: string;
+    dueAt?: string;
+    labelIds?: Array<string>;
+    plannedAt?: string;
+    priority?: 'LOW' | 'MEDIUM' | 'HIGH';
+    projectId?: string;
+    /**
+     * Recurrence rule to attach to the task
+     */
+    recurrence?: {
+        [key: string]: unknown;
+    };
+    title: string;
 };
 
 export type KanbanColumnDto = {
@@ -474,6 +518,28 @@ export type TodayTaskSummaryDto = {
     plannedAt?: string;
     priority: 'LOW' | 'MEDIUM' | 'HIGH';
     reasons: Array<string>;
+    title: string;
+};
+
+export type UpcomingDayGroupDto = {
+    date: string;
+    due: Array<UpcomingTaskSummaryDto>;
+    planned: Array<UpcomingTaskSummaryDto>;
+};
+
+export type UpcomingResponseDto = {
+    days: Array<UpcomingDayGroupDto>;
+    overdue: Array<UpcomingTaskSummaryDto>;
+    timezone: string;
+};
+
+export type UpcomingTaskSummaryDto = {
+    canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+    dueAt?: string;
+    id: string;
+    lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+    plannedAt?: string;
+    priority: 'LOW' | 'MEDIUM' | 'HIGH';
     title: string;
 };
 
@@ -1730,6 +1796,34 @@ export type ListGlobalTasksResponses = {
 
 export type ListGlobalTasksResponse = ListGlobalTasksResponses[keyof ListGlobalTasksResponses];
 
+export type CreateGlobalTaskData = {
+    body: GlobalCreateTaskRequestDto;
+    path?: never;
+    query?: never;
+    url: '/api/v1/tasks';
+};
+
+export type CreateGlobalTaskErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Area not found.
+     */
+    404: unknown;
+    /**
+     * Validation failed.
+     */
+    422: unknown;
+};
+
+export type CreateGlobalTaskResponses = {
+    201: TaskResponseDto;
+};
+
+export type CreateGlobalTaskResponse = CreateGlobalTaskResponses[keyof CreateGlobalTaskResponses];
+
 export type ArchiveTaskData = {
     body?: never;
     path: {
@@ -2302,6 +2396,29 @@ export type ListTodayTasksResponses = {
 };
 
 export type ListTodayTasksResponse = ListTodayTasksResponses[keyof ListTodayTasksResponses];
+
+export type ListUpcomingTasksData = {
+    body?: never;
+    path?: never;
+    query?: {
+        days?: number;
+        timezone?: string;
+    };
+    url: '/api/v1/tasks/upcoming';
+};
+
+export type ListUpcomingTasksErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+};
+
+export type ListUpcomingTasksResponses = {
+    200: UpcomingResponseDto;
+};
+
+export type ListUpcomingTasksResponse = ListUpcomingTasksResponses[keyof ListUpcomingTasksResponses];
 
 export type ListTrashData = {
     body?: never;
