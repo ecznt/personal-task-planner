@@ -2,13 +2,8 @@
 
 ## Branch Strategy
 
-**NEVER push, merge, or open PRs targeting `origin/develop`.**
+**Work output is pushed directly to `opencode/develop` (origin).**
 
-- All work happens on `opencode/*` branches (e.g., `opencode/develop`, `opencode/feature-x`).
-- `develop` and `main` are protected integration/release branches. Do not modify them directly.
-- PRs must target a branch other than `develop` unless the user explicitly overrides this rule.
-
-**PR target branch: `opencode/develop`.**
-
-- All PRs must be created from a feature branch (e.g., `opencode/feature-x`) targeting `opencode/develop`.
-- Never open PRs targeting `develop` or `main` directly.
+- **Always commit and push completed work to `opencode/develop`** — do not create feature branches or open pull requests; `opencode/develop` is the single integration branch.
+- **NEVER push, merge, or open PRs targeting `origin/develop` or `origin/main`.** They are protected release branches. Do not modify them directly.
+- Before pushing, inspect `git status`/`git diff`, commit with a repo-style message, and verify the remote `opencode/develop` fast-forwards cleanly.
