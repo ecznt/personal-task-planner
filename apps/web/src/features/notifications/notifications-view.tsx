@@ -1,8 +1,9 @@
 'use client';
 
-import { apiClient } from '@planner/api-client';
+import { apiClient, getCurrentUser } from '@planner/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Bell } from 'lucide-react';
+import Link from 'next/link';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -55,6 +56,14 @@ export function NotificationsView() {
       }
 
       return result.data as NotificationsPageData;
+    },
+  });
+
+  const preferences = useQuery({
+    queryKey: ['users', 'me', 'notifications-center'],
+    queryFn: async () => {
+      const result = await getCurrentUser({ client: apiClient });
+      return result.data?.data?.inAppReminderNotificationsEnabled ?? true;
     },
   });
 
@@ -164,11 +173,24 @@ export function NotificationsView() {
       </div>
 
       {data.length === 0 ? (
-        <EmptyState
-          icon={<Bell className="size-5" aria-hidden="true" />}
-          title="Henüz bildirim yok"
-          description="Bitiş ve plan yaklaşan görevlerle ilgili bildirimler burada görünür."
-        />
+        preferences.data === false ? (
+          <EmptyState
+            icon={<Bell className="size-5" aria-hidden="true" />}
+            title="Bildirimler kapalı"
+            description="Yaklaşan tarihli görevler için uygulama içi bildirimler kapalı. Hatırlatıcı tanımlarınız korunur; yalnızca bildirim üretimi durduruldu. Tercihlerden yeniden açabilirsiniz."
+            action={
+              <Button asChild variant="outline" size="sm">
+                <Link href="/app/settings/preferences">Bildirimleri Aç</Link>
+              </Button>
+            }
+          />
+        ) : (
+          <EmptyState
+            icon={<Bell className="size-5" aria-hidden="true" />}
+            title="Henüz bildirim yok"
+            description="Bitiş ve plan yaklaşan görevlerle ilgili bildirimler burada görünür."
+          />
+        )
       ) : (
         <div className="space-y-2">
           {data.map((notification) => (

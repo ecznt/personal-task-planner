@@ -1958,14 +1958,15 @@
       },
       "UpdateCurrentUserRequestDto": {
         "properties": {
+          "inAppReminderNotificationsEnabled": {
+            "example": true,
+            "type": "boolean"
+          },
           "timeZone": {
             "example": "Europe/Istanbul",
             "type": "string"
           }
         },
-        "required": [
-          "timeZone"
-        ],
         "type": "object"
       },
       "UpdateProjectRequestDto": {

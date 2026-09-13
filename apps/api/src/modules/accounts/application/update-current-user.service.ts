@@ -8,8 +8,9 @@ const sessionRefreshIntervalMilliseconds = 5 * 60 * 1_000;
 
 export type UpdateCurrentUserCommand = {
   readonly etag: string | undefined;
+  readonly inAppReminderNotificationsEnabled?: boolean | undefined;
   readonly sessionToken: string | undefined;
-  readonly timeZone: string;
+  readonly timeZone?: string | undefined;
 };
 
 export type UpdateCurrentUserResult =
@@ -68,6 +69,7 @@ export class UpdateCurrentUserService {
 
     const updated = await this.accounts.updateCurrentUserProfile({
       expectedUserVersion: profile.version,
+      inAppReminderNotificationsEnabled: command.inAppReminderNotificationsEnabled,
       timeZone: command.timeZone,
       userId: profile.userId,
     });

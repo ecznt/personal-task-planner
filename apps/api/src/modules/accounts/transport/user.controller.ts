@@ -140,6 +140,7 @@ export class UserController {
     const input = parseUserProfilePatch(body);
     const result = await this.updateCurrentUser.execute({
       etag: parseIfMatch(ifMatchHeader),
+      inAppReminderNotificationsEnabled: input.inAppReminderNotificationsEnabled,
       sessionToken: parseCookieValue(request.headers.cookie, sessionCookieName()),
       timeZone: input.timeZone,
     });

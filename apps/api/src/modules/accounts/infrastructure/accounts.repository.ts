@@ -647,12 +647,16 @@ export class AccountsRepository {
 
   async updateCurrentUserProfile(input: {
     readonly expectedUserVersion: number;
-    readonly timeZone: string;
+    readonly inAppReminderNotificationsEnabled?: boolean | undefined;
+    readonly timeZone?: string | undefined;
     readonly userId: string;
   }): Promise<CurrentUserProfile | null> {
     const updated = await this.prisma.user.updateMany({
       data: {
-        timeZone: input.timeZone,
+        ...(input.inAppReminderNotificationsEnabled !== undefined
+          ? { inAppReminderNotificationsEnabled: input.inAppReminderNotificationsEnabled }
+          : {}),
+        ...(input.timeZone !== undefined ? { timeZone: input.timeZone } : {}),
         version: {
           increment: 1,
         },

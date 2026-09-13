@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { AccountDeletionForm } from '@/features/auth/account-deletion-form';
+import { SettingsTabs } from '@/features/settings/settings-tabs';
 import { PageHeader } from '@/components/page-header';
 
 export const metadata: Metadata = {
@@ -15,6 +16,7 @@ export default function AccountSettingsPage() {
         title="Hesap"
         description="Hesap erişimi ve gizlilikle ilgili hassas işlemleri buradan yönetebilirsiniz."
       />
+      <SettingsTabs />
       <AccountDeletionForm />
     </div>
   );

@@ -98,6 +98,42 @@ describe('update current user', () => {
       userId: '018f9f7c-0000-7000-8000-000000000001',
     });
   });
+
+  it('updates only the in-app reminder notification preference and returns a fresh ETag', async () => {
+    const accounts = repositoryMock({
+      findCurrentUserProfileBySession: jest
+        .fn<AccountsRepository['findCurrentUserProfileBySession']>()
+        .mockResolvedValue(profile),
+      updateCurrentUserProfile: jest
+        .fn<AccountsRepository['updateCurrentUserProfile']>()
+        .mockResolvedValue({
+          ...profile,
+          inAppReminderNotificationsEnabled: false,
+          version: 4,
+        }),
+    });
+    const service = new UpdateCurrentUserService(accounts, securityMock());
+
+    await expect(
+      service.execute({
+        etag: etagForVersion(3),
+        inAppReminderNotificationsEnabled: false,
+        sessionToken: 'raw-session-token',
+      }),
+    ).resolves.toMatchObject({
+      etag: etagForVersion(4),
+      outcome: 'UPDATED',
+      profile: {
+        inAppReminderNotificationsEnabled: false,
+      },
+    });
+    expect(accounts.updateCurrentUserProfile).toHaveBeenCalledWith({
+      expectedUserVersion: 3,
+      inAppReminderNotificationsEnabled: false,
+      timeZone: undefined,
+      userId: '018f9f7c-0000-7000-8000-000000000001',
+    });
+  });
 });
 
 function etagForVersion(version: number): string {

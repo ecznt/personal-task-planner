@@ -545,7 +545,8 @@ export type UpdateAreaStatusNameRequestDto = {
 };
 
 export type UpdateCurrentUserRequestDto = {
-    timeZone: string;
+    inAppReminderNotificationsEnabled?: boolean;
+    timeZone?: string;
 };
 
 export type UpdateProjectRequestDto = {

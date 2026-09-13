@@ -46,10 +46,18 @@ export class CurrentUserProfileResponseDto {
 
 export class UpdateCurrentUserRequestDto {
   @ApiProperty({
+    example: true,
+    required: false,
+    type: Boolean,
+  })
+  inAppReminderNotificationsEnabled?: boolean;
+
+  @ApiProperty({
     example: 'Europe/Istanbul',
+    required: false,
     type: String,
   })
-  timeZone!: string;
+  timeZone?: string;
 }
 
 export class OnboardingCompletionRequestDto {

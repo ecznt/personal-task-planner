@@ -208,6 +208,90 @@ describe('current user HTTP contract', () => {
     });
   });
 
+  it('updates the current user notification preference with CSRF and If-Match', async () => {
+    updateCurrentUser.execute.mockResolvedValueOnce({
+      etag: '"updated-user-etag"',
+      outcome: 'UPDATED',
+      profile: {
+        accountLifecycleState: 'ACTIVE',
+        inAppReminderNotificationsEnabled: false,
+        normalizedPrimaryEmail: 'user@example.com',
+        onboardingCompletedAt: null,
+        onboardingState: 'PENDING',
+        primaryEmail: 'User@example.com',
+        timeZone: 'Europe/Istanbul',
+        userId: '018f9f7c-0000-7000-8000-000000000001',
+        version: 4,
+      },
+    });
+
+    const response = await request(app.getHttpServer())
+      .patch('/api/v1/users/me')
+      .set('Cookie', 'planner-session=raw-session-secret; planner-csrf-context=browser-context')
+      .set('Origin', 'http://127.0.0.1:3000')
+      .set('X-CSRF-Token', 'csrf-token')
+      .set('If-Match', '"safe-user-etag"')
+      .send({
+        inAppReminderNotificationsEnabled: false,
+      })
+      .expect(200);
+
+    expect(updateCurrentUser.execute).toHaveBeenCalledWith({
+      etag: '"safe-user-etag"',
+      inAppReminderNotificationsEnabled: false,
+      sessionToken: 'raw-session-secret',
+      timeZone: undefined,
+    });
+    expect(response.headers.etag).toBe('"updated-user-etag"');
+    expect(response.body).toEqual({
+      data: {
+        accountLifecycleState: 'ACTIVE',
+        email: 'User@example.com',
+        id: '018f9f7c-0000-7000-8000-000000000001',
+        inAppReminderNotificationsEnabled: false,
+        onboardingState: 'PENDING',
+        timeZone: 'Europe/Istanbul',
+      },
+    });
+  });
+
+  it('rejects patching both preferences at once', async () => {
+    const response = await request(app.getHttpServer())
+      .patch('/api/v1/users/me')
+      .set('Cookie', 'planner-session=raw-session-secret; planner-csrf-context=browser-context')
+      .set('Origin', 'http://127.0.0.1:3000')
+      .set('X-CSRF-Token', 'csrf-token')
+      .set('If-Match', '"safe-user-etag"')
+      .send({
+        inAppReminderNotificationsEnabled: false,
+        timeZone: 'Europe/Istanbul',
+      })
+      .expect(422);
+
+    expect(response.body).toMatchObject({
+      code: 'VALIDATION_FAILED',
+      status: 422,
+    });
+    expect(updateCurrentUser.execute).not.toHaveBeenCalled();
+  });
+
+  it('rejects an empty current user preference patch', async () => {
+    const response = await request(app.getHttpServer())
+      .patch('/api/v1/users/me')
+      .set('Cookie', 'planner-session=raw-session-secret; planner-csrf-context=browser-context')
+      .set('Origin', 'http://127.0.0.1:3000')
+      .set('X-CSRF-Token', 'csrf-token')
+      .set('If-Match', '"safe-user-etag"')
+      .send({})
+      .expect(422);
+
+    expect(response.body).toMatchObject({
+      code: 'VALIDATION_FAILED',
+      status: 422,
+    });
+    expect(updateCurrentUser.execute).not.toHaveBeenCalled();
+  });
+
   it('rejects unsupported current user time zones before mutation', async () => {
     const response = await request(app.getHttpServer())
       .patch('/api/v1/users/me')

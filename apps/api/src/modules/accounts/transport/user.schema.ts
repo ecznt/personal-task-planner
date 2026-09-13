@@ -5,14 +5,29 @@ import {
   type ValidationProblemItem,
 } from '../../../platform/http/api-problem.exception';
 
-const userProfilePatchSchema = z.strictObject({
-  timeZone: z
-    .string()
-    .trim()
-    .min(1, 'Saat dilimi zorunludur.')
-    .max(100, 'Saat dilimi en fazla 100 karakter olabilir.')
-    .refine(isSupportedTimeZone, 'Geçerli bir IANA saat dilimi seçin.'),
-});
+const userProfilePatchSchema = z
+  .strictObject({
+    inAppReminderNotificationsEnabled: z.boolean().optional(),
+    timeZone: z
+      .string()
+      .trim()
+      .min(1, 'Saat dilimi zorunludur.')
+      .max(100, 'Saat dilimi en fazla 100 karakter olabilir.')
+      .refine(isSupportedTimeZone, 'Geçerli bir IANA saat dilimi seçin.')
+      .optional(),
+  })
+  .superRefine((value, context) => {
+    const hasTimeZone = value.timeZone !== undefined;
+    const hasNotifications = value.inAppReminderNotificationsEnabled !== undefined;
+
+    if (hasTimeZone === hasNotifications) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Saat dilimi veya bildirim tercihinden yalnızca birini güncelleyebilirsiniz.',
+        path: [],
+      });
+    }
+  });
 
 export type UserProfilePatchInput = z.infer<typeof userProfilePatchSchema>;
 
