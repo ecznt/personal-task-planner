@@ -25,6 +25,11 @@ type TaskSummary = {
   readonly version: number;
 };
 
+type GlobalTaskListProps = {
+  readonly projectId?: string;
+  readonly embedded?: boolean;
+};
+
 const SORT_OPTIONS = [
   { value: 'plannedDate', label: 'Planlanan Tarih' },
   { value: 'dueDate', label: 'Bitiş Tarihi' },
@@ -54,7 +59,10 @@ function formatDate(iso: string | null): string {
   });
 }
 
-export function GlobalTaskList() {
+export function GlobalTaskList({
+  projectId,
+  embedded = false,
+}: GlobalTaskListProps) {
   const [sort, setSort] = useState('plannedDate');
   const [order, setOrder] = useState<'asc' | 'desc'>('asc');
   const [statusFilter, setStatusFilter] = useState('');
@@ -64,7 +72,7 @@ export function GlobalTaskList() {
   const [bulkResult, setBulkResult] = useState<{ succeeded: number; failed: number } | null>(null);
 
   const tasks = useQuery({
-    queryKey: ['tasks', 'global', sort, order, statusFilter, priorityFilter],
+    queryKey: ['tasks', 'global', sort, order, statusFilter, priorityFilter, projectId ?? 'all'],
     queryFn: async () => {
       const params: Record<string, string> = {
         sort,
@@ -72,6 +80,7 @@ export function GlobalTaskList() {
         limit: '50',
       };
 
+      if (projectId) params.projectId = projectId;
       if (statusFilter) params.canonicalStatus = statusFilter;
       if (priorityFilter) params.priority = priorityFilter;
 
@@ -126,11 +135,13 @@ export function GlobalTaskList() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Görevler"
-        eyebrow="Görevler"
-        description="Tüm alanlardaki aktif görevler"
-      />
+      {!embedded && (
+        <PageHeader
+          title="Görevler"
+          eyebrow="Görevler"
+          description="Tüm alanlardaki aktif görevler"
+        />
+      )}
 
       {bulkResult && (
         <Alert variant={bulkResult.failed > 0 ? 'destructive' : 'default'}>
@@ -222,7 +233,13 @@ export function GlobalTaskList() {
       {taskData.length === 0 ? (
         <EmptyState
           icon={<Inbox className="size-5" aria-hidden="true" />}
-          title={statusFilter || priorityFilter ? 'Filtrelere uyan görev yok.' : 'Henüz görev yok.'}
+          title={
+            statusFilter || priorityFilter
+              ? 'Filtrelere uyan görev yok.'
+              : projectId
+                ? 'Bu projede henüz görev yok.'
+                : 'Henüz görev yok.'
+          }
           description={
             statusFilter || priorityFilter
               ? 'Filtreleri temizleyip tekrar deneyin.'

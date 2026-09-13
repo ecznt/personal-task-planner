@@ -353,13 +353,12 @@ Independent status deletion or isolated canonical-mapping mutation is intentiona
 
 | Method and route | Auth / preconditions | Ownership rule | Conceptual input | Successful output | Expected errors | Requirements |
 | --- | --- | --- | --- | --- | --- | --- |
-| `GET /projects` | Session | Current User only. | Cursor, limit, owned Area filters, lifecycle active by default, allowed sort. | `200` Project summaries and page metadata. | `400`, `401`, `429`. | FR-020–FR-023, UXF-009 |
+| `GET /projects` | Session | Current User only. | Cursor, limit, optional owned Area filter, lifecycle active by default, default sort. | `200` Project summaries (with task/completed counts) and page metadata. | `400`, `401`, `429`. | FR-020–FR-023, UXF-009 |
 | `POST /projects` | Session + CSRF; `Idem` | Target active Area belongs to current User. | Area ID and non-blank name. | `201` Project + `Location` + `ETag`. | `401`, `404` Area unavailable, `422`, `429`. | FR-020–FR-021, AC-004 |
 | `GET /projects/{projectId}` | Session | Owned Project; foreign/missing/unavailable is `404`. | None. | `200` Project detail/summary + `ETag`. | `401`, `404`, `429`. | FR-020–FR-023, FR-064 |
-| `PATCH /projects/{projectId}` | Session + CSRF + `If-Match` | Owned Project only. | Rename only; Area/lifecycle excluded. | `200` updated Project + new `ETag`. | `401`, `404`, `412`, `422`, `428`, `429`. | FR-020, NFR-005 |
-| `POST /projects/{projectId}/area-moves` | Session + CSRF + `If-Match`; `Idem` | Project, source/target Areas, and every contained Task belong to current User. | Target active Area ID and confirmation of affected scope. | `200` moved Project, affected Task count, canonical-preserving result + new `ETag`. | `401`, `404`, `409` reconciliation/concurrency conflict, `412`, `422`, `428`, `429`. | FR-023–FR-026, BR-PROJ-001–BR-PROJ-003, DD-034 |
+| `PATCH /projects/{projectId}` | Session + CSRF + `If-Match` | Owned Project only. | Exactly one of `name` (rename) or `areaId` (move to another owned active Area). | `200` updated Project + new `ETag`; moves also include `movedTasks` count. | `401`, `404`, `412`, `422`, `428`, `429`. | FR-020, FR-023–FR-026, BR-PROJ-001–BR-PROJ-003, DD-034, NFR-005 |
 
-Project lifecycle endpoints are defined in Sections 21 and 22. There is no ordinary Project `DELETE` route.
+Project lifecycle endpoints are defined in Sections 21 and 22. There is no ordinary Project `DELETE` route. The atomic Area move is modeled on the Project itself (Section 15); it is not a separate `/area-moves` route.
 
 ## 16. Task, Today, List, Kanban, recurrence, and bulk endpoints
 
@@ -543,7 +542,7 @@ Archive and Trash searches use their dedicated collection endpoints and explicit
 | Social authentication and provider identity linking | None in MVP | Deferred. No provider route or persisted provider identity is authorized by this contract. |
 | Complete onboarding/sample-data choice | `POST /users/me/onboarding-completions` | Covered idempotently; sample content is private ordinary content. |
 | Create/rename Area and valid default workflow | `/areas`, `/areas/{id}`, `/areas/{id}/workflow` | Covered; Area creation and workflow mutation preserve all canonical defaults atomically. |
-| Create/rename/move Project | `/projects*`, `/projects/{id}/area-moves` | Covered; Area move includes all contained Tasks atomically. |
+| Create/rename/move Project | `/projects*` | Covered; Area move via `PATCH /projects/{id}` with `areaId` includes all contained Tasks atomically. |
 | Create/edit/move/status-transition Task | `/tasks*`, `/tasks/{id}/area-moves`, `/tasks/{id}/status-transitions` | Covered; cross-boundary changes are explicit commands. |
 | Complete recurring occurrence exactly once | `POST /tasks/{id}/status-transitions` | Covered by `If-Match`, `Idempotency-Key`, and domain predecessor/generation uniqueness; response returns created/found successor. |
 | Edit/stop recurrence without rewriting history | `PUT`/`DELETE /tasks/{id}/recurrence` | Covered with explicit scope and immutable history. |

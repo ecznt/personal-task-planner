@@ -17,6 +17,7 @@ export type ProjectSummary = {
   readonly lifecycleState: string;
   readonly version: number;
   readonly taskCount: number;
+  readonly completedTaskCount: number;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 };

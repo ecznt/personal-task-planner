@@ -140,6 +140,7 @@ describe('project service', () => {
       lifecycleState: 'ACTIVE',
       version: 1,
       taskCount: 3,
+      completedTaskCount: 1,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -156,7 +157,7 @@ describe('project service', () => {
 
   it('lists projects for an area', async () => {
     const projects = projectRepositoryMock();
-    projects.listByArea.mockResolvedValue({
+    projects.listProjects.mockResolvedValue({
       projects: [
         {
           id: 'p1',
@@ -165,6 +166,7 @@ describe('project service', () => {
           lifecycleState: 'ACTIVE',
           version: 1,
           taskCount: 2,
+          completedTaskCount: 1,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -178,6 +180,31 @@ describe('project service', () => {
       outcome: 'SUCCESS',
       projects: expect.arrayContaining([expect.objectContaining({ id: 'p1' })]),
     });
+  });
+
+  it('lists projects globally without an area filter', async () => {
+    const projects = projectRepositoryMock();
+    projects.listProjects.mockResolvedValue({
+      projects: [
+        {
+          id: 'p1',
+          areaId: 'area-a',
+          name: 'Project 1',
+          lifecycleState: 'ACTIVE',
+          version: 1,
+          taskCount: 2,
+          completedTaskCount: 1,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ],
+    });
+
+    const service = new ProjectService(projects, areaRepositoryMock());
+    const result = await service.listProjects('user-id', {});
+
+    expect(projects.listProjects).toHaveBeenCalledWith('user-id', undefined, undefined, undefined);
+    expect(result.outcome).toBe('SUCCESS');
   });
 
   it('validates rename project name', async () => {
@@ -204,6 +231,7 @@ describe('project service', () => {
       lifecycleState: 'ACTIVE',
       version: 1,
       taskCount: 0,
+      completedTaskCount: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -258,6 +286,7 @@ describe('project service', () => {
         lifecycleState: 'ACTIVE',
         version: 2,
         taskCount: 0,
+        completedTaskCount: 0,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -268,6 +297,7 @@ describe('project service', () => {
         lifecycleState: 'ACTIVE',
         version: 2,
         taskCount: 0,
+        completedTaskCount: 0,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -293,6 +323,7 @@ describe('project service', () => {
       lifecycleState: 'ACTIVE',
       version: 1,
       taskCount: 0,
+      completedTaskCount: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -310,17 +341,235 @@ describe('project service', () => {
       detail: 'Bu alanda aynı isimde bir proje zaten mevcut.',
     });
   });
+
+  it('returns NOT_FOUND when moving a non-existent project', async () => {
+    const projects = projectRepositoryMock();
+    projects.findById.mockResolvedValue(null);
+
+    const service = new ProjectService(projects, areaRepositoryMock());
+    const result = await service.moveProject('user-id', {
+      projectId: 'non-existent',
+      targetAreaId: 'area-id',
+      version: 1,
+    });
+
+    expect(result).toEqual({ outcome: 'NOT_FOUND' });
+  });
+
+  it('returns SUCCESS without moving when target area matches current area', async () => {
+    const projects = projectRepositoryMock();
+    projects.findById.mockResolvedValue({
+      id: 'project-id',
+      areaId: 'area-a',
+      name: 'My Project',
+      lifecycleState: 'ACTIVE',
+      version: 1,
+      taskCount: 3,
+      completedTaskCount: 1,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const service = new ProjectService(projects, areaRepositoryMock());
+    const result = await service.moveProject('user-id', {
+      projectId: 'project-id',
+      targetAreaId: 'area-a',
+      version: 1,
+    });
+
+    expect(result).toEqual({
+      outcome: 'SUCCESS',
+      project: expect.objectContaining({ id: 'project-id' }),
+      etag: 1,
+      movedTasks: 0,
+    });
+    expect(projects.moveProjectToArea).not.toHaveBeenCalled();
+  });
+
+  it('moves a project to another area', async () => {
+    const projects = projectRepositoryMock();
+    projects.findById.mockResolvedValue({
+      id: 'project-id',
+      areaId: 'area-a',
+      name: 'My Project',
+      lifecycleState: 'ACTIVE',
+      version: 1,
+      taskCount: 3,
+      completedTaskCount: 1,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const areas = areaRepositoryMock();
+    areas.findById.mockResolvedValue({
+      area: {
+        id: 'area-b',
+        userId: 'user-id',
+        name: 'Area B',
+        normalizedName: 'area b',
+        isInbox: false,
+        lifecycleState: 'ACTIVE',
+        version: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      statuses: [],
+      taskCount: 0,
+      projectCount: 0,
+    });
+
+    projects.findByNormalized.mockResolvedValue(null);
+    projects.moveProjectToArea.mockResolvedValue({
+      outcome: 'SUCCESS',
+      project: {
+        id: 'project-id',
+        userId: 'user-id',
+        areaId: 'area-b',
+        name: 'My Project',
+        normalizedName: 'my project',
+        lifecycleState: 'ACTIVE',
+        version: 2,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      movedTasks: 2,
+    });
+
+    const service = new ProjectService(projects, areas);
+    const result = await service.moveProject('user-id', {
+      projectId: 'project-id',
+      targetAreaId: 'area-b',
+      version: 1,
+    });
+
+    expect(result).toEqual({
+      outcome: 'SUCCESS',
+      project: expect.objectContaining({ id: 'project-id', areaId: 'area-b' }),
+      etag: 2,
+      movedTasks: 2,
+    });
+    expect(projects.moveProjectToArea).toHaveBeenCalledWith(
+      'user-id',
+      'project-id',
+      'area-b',
+      1,
+    );
+  });
+
+  it('returns DUPLICATE_NAME when a project already exists in the target area', async () => {
+    const projects = projectRepositoryMock();
+    projects.findById.mockResolvedValue({
+      id: 'project-id',
+      areaId: 'area-a',
+      name: 'My Project',
+      lifecycleState: 'ACTIVE',
+      version: 1,
+      taskCount: 0,
+      completedTaskCount: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    projects.findByNormalized.mockResolvedValue({ id: 'other-project' });
+
+    const service = new ProjectService(projects, existingAreaMock());
+    const result = await service.moveProject('user-id', {
+      projectId: 'project-id',
+      targetAreaId: 'area-b',
+      version: 1,
+    });
+
+    expect(result).toEqual({
+      outcome: 'DUPLICATE_NAME',
+      detail: 'Hedef alanda aynı isimde bir proje zaten mevcut.',
+    });
+  });
+
+  it('returns STALE_VERSION when the repository rejects the move', async () => {
+    const projects = projectRepositoryMock();
+    projects.findById.mockResolvedValue({
+      id: 'project-id',
+      areaId: 'area-a',
+      name: 'My Project',
+      lifecycleState: 'ACTIVE',
+      version: 2,
+      taskCount: 0,
+      completedTaskCount: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    projects.moveProjectToArea.mockResolvedValue({ outcome: 'STALE_VERSION' });
+
+    const service = new ProjectService(projects, existingAreaMock());
+    const result = await service.moveProject('user-id', {
+      projectId: 'project-id',
+      targetAreaId: 'area-b',
+      version: 1,
+    });
+
+    expect(result).toEqual({ outcome: 'STALE_VERSION' });
+  });
+
+  it('returns VALIDATION_ERROR when the target area lacks a default status', async () => {
+    const projects = projectRepositoryMock();
+    projects.findById.mockResolvedValue({
+      id: 'project-id',
+      areaId: 'area-a',
+      name: 'My Project',
+      lifecycleState: 'ACTIVE',
+      version: 1,
+      taskCount: 0,
+      completedTaskCount: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+    projects.moveProjectToArea.mockResolvedValue({ outcome: 'NO_DEFAULT_STATUS' });
+
+    const service = new ProjectService(projects, existingAreaMock());
+    const result = await service.moveProject('user-id', {
+      projectId: 'project-id',
+      targetAreaId: 'area-b',
+      version: 1,
+    });
+
+    expect(result).toEqual({
+      outcome: 'VALIDATION_ERROR',
+      detail: 'Hedef alanda varsayılan durum bulunamadı.',
+    });
+  });
 });
+
+function existingAreaMock(): jest.Mocked<AreaRepository> {
+  return {
+    ...areaRepositoryMock(),
+    findById: jest.fn<AreaRepository['findById']>().mockResolvedValue({
+      area: {
+        id: 'area-b',
+        userId: 'user-id',
+        name: 'Area B',
+        normalizedName: 'area b',
+        isInbox: false,
+        lifecycleState: 'ACTIVE',
+        version: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      statuses: [],
+      taskCount: 0,
+      projectCount: 0,
+    }),
+  } as unknown as jest.Mocked<AreaRepository>;
+}
 
 function projectRepositoryMock(): jest.Mocked<ProjectRepository> {
   return {
     createProject: jest.fn(),
     findById: jest.fn(),
-    listByArea: jest.fn(),
+    listProjects: jest.fn(),
     updateName: jest.fn(),
     findByNormalized: jest.fn(),
     projectExists: jest.fn(),
     projectBelongsToArea: jest.fn(),
+    moveProjectToArea: jest.fn(),
   } as unknown as jest.Mocked<ProjectRepository>;
 }
 

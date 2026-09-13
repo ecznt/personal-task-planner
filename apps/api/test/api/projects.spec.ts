@@ -23,6 +23,7 @@ describe('project HTTP contract', () => {
     getProject: jest.fn<ProjectService['getProject']>(),
     listProjects: jest.fn<ProjectService['listProjects']>(),
     renameProject: jest.fn<ProjectService['renameProject']>(),
+    moveProject: jest.fn<ProjectService['moveProject']>(),
   };
   const accountsRepository = {
     findAuthenticatedSession: jest
@@ -141,6 +142,7 @@ describe('project HTTP contract', () => {
             lifecycleState: 'ACTIVE',
             version: 1,
             taskCount: 3,
+            completedTaskCount: 1,
             createdAt: new Date(),
             updatedAt: new Date(),
           },
@@ -169,6 +171,7 @@ describe('project HTTP contract', () => {
           lifecycleState: 'ACTIVE',
           version: 1,
           taskCount: 5,
+          completedTaskCount: 2,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -267,6 +270,62 @@ describe('project HTTP contract', () => {
         .send({ name: 'New Name' })
         .set('If-Match', '1')
         .expect(401);
+    });
+
+    it('moves project to another area', async () => {
+      projectService.moveProject.mockResolvedValue({
+        outcome: 'SUCCESS',
+        project: {
+          id: PROJECT_ID,
+          userId: 'user-id',
+          areaId: 'a0000000-0000-4000-8000-000000000002',
+          name: 'Test Project',
+          normalizedName: 'test project',
+          lifecycleState: 'ACTIVE',
+          version: 2,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        etag: 2,
+        movedTasks: 2,
+      });
+
+      const response = await request(app.getHttpServer())
+        .patch(`/projects/${PROJECT_ID}`)
+        .send({ areaId: 'a0000000-0000-4000-8000-000000000002' })
+        .set('Cookie', 'planner-session=token')
+        .set('If-Match', '1')
+        .expect(200);
+
+      expect(projectService.moveProject).toHaveBeenCalledWith('user-id', {
+        projectId: PROJECT_ID,
+        targetAreaId: 'a0000000-0000-4000-8000-000000000002',
+        version: 1,
+      });
+      expect(response.body.data).toMatchObject({ id: PROJECT_ID, version: 2 });
+    });
+
+    it('rejects a PATCH that sends both name and areaId', async () => {
+      await request(app.getHttpServer())
+        .patch(`/projects/${PROJECT_ID}`)
+        .send({ name: 'New Name', areaId: AREA_ID })
+        .set('Cookie', 'planner-session=token')
+        .set('If-Match', '1')
+        .expect(422);
+    });
+
+    it('returns 422 when moving to an area with a duplicate name', async () => {
+      projectService.moveProject.mockResolvedValue({
+        outcome: 'DUPLICATE_NAME',
+        detail: 'Hedef alanda aynı isimde bir proje zaten mevcut.',
+      });
+
+      await request(app.getHttpServer())
+        .patch(`/projects/${PROJECT_ID}`)
+        .send({ areaId: 'a0000000-0000-4000-8000-000000000002' })
+        .set('Cookie', 'planner-session=token')
+        .set('If-Match', '1')
+        .expect(422);
     });
   });
 });

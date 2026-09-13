@@ -31,18 +31,24 @@ export function parseCreateProjectInput(value: unknown): CreateProjectInput {
   });
 }
 
-const renameProjectSchema = z.strictObject({
-  name: z
-    .string()
-    .trim()
-    .min(1, 'Proje adı zorunludur.')
-    .max(100, 'Proje adı en fazla 100 karakter olabilir.'),
-});
+const updateProjectSchema = z
+  .strictObject({
+    name: z
+      .string()
+      .trim()
+      .min(1, 'Proje adı zorunludur.')
+      .max(100, 'Proje adı en fazla 100 karakter olabilir.')
+      .optional(),
+    areaId: z.string().uuid().optional(),
+  })
+  .refine((value) => (value.name !== undefined) !== (value.areaId !== undefined), {
+    message: 'Ya proje adı ya da taşınacağı alan belirtilmelidir.',
+  });
 
-export type RenameProjectInput = z.infer<typeof renameProjectSchema>;
+export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
 
-export function parseRenameProjectInput(value: unknown): RenameProjectInput {
-  const result = renameProjectSchema.safeParse(value);
+export function parseUpdateProjectInput(value: unknown): UpdateProjectInput {
+  const result = updateProjectSchema.safeParse(value);
 
   if (result.success) {
     return result.data;
@@ -57,7 +63,7 @@ export function parseRenameProjectInput(value: unknown): RenameProjectInput {
 }
 
 const listProjectsQuerySchema = z.object({
-  areaId: z.string().uuid(),
+  areaId: z.string().uuid().optional(),
   cursor: z.string().uuid().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });

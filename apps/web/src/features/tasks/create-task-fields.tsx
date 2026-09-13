@@ -38,6 +38,7 @@ type ChecklistDraft = {
 
 type CreateTaskFieldsProps = {
   readonly areaId: string;
+  readonly initialProjectId?: string;
   readonly onSuccess?: () => void;
   readonly onCancel?: () => void;
 };
@@ -72,7 +73,12 @@ function describeRecurrence(rule: CreateTaskRecurrenceValues): string {
 
 let checklistKey = 0;
 
-export function CreateTaskFields({ areaId, onSuccess, onCancel }: CreateTaskFieldsProps) {
+export function CreateTaskFields({
+  areaId,
+  initialProjectId,
+  onSuccess,
+  onCancel,
+}: CreateTaskFieldsProps) {
   const [selectedLabelIds, setSelectedLabelIds] = useState<readonly string[]>([]);
   const [checklistItems, setChecklistItems] = useState<ChecklistDraft[]>([]);
   const [recurrence, setRecurrence] = useState<RecurrenceFormValues | null>(null);
@@ -102,7 +108,12 @@ export function CreateTaskFields({ areaId, onSuccess, onCancel }: CreateTaskFiel
   });
 
   const form = useForm<CreateTaskFormValues>({
-    defaultValues: { title: '', description: '', priority: 'MEDIUM', projectId: '' },
+    defaultValues: {
+      title: '',
+      description: '',
+      priority: 'MEDIUM',
+      projectId: initialProjectId ?? '',
+    },
     resolver: zodResolver(createTaskSchema),
   });
 

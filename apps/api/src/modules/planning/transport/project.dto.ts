@@ -38,14 +38,19 @@ export class ProjectDataDto {
     type: String,
   })
   updatedAt!: string;
-}
 
-export class ProjectSummaryDataDto extends ProjectDataDto {
   @ApiProperty({
     type: Number,
   })
   taskCount!: number;
+
+  @ApiProperty({
+    type: Number,
+  })
+  completedTaskCount!: number;
 }
+
+export class ProjectSummaryDataDto extends ProjectDataDto {}
 
 export class ProjectListMetaDto {
   @ApiProperty({
@@ -89,10 +94,18 @@ export class CreateProjectRequestDto {
   name!: string;
 }
 
-export class RenameProjectRequestDto {
+export class UpdateProjectRequestDto {
   @ApiProperty({
     example: 'Yeni Proje Adı',
     type: String,
+    required: false,
   })
-  name!: string;
+  name?: string;
+
+  @ApiProperty({
+    format: 'uuid',
+    type: String,
+    required: false,
+  })
+  areaId?: string;
 }

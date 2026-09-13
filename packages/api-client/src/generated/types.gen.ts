@@ -343,6 +343,7 @@ export type ProjectResponseDto = {
 
 export type ProjectSummaryDataDto = {
     areaId: string;
+    completedTaskCount: number;
     createdAt: string;
     id: string;
     lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
@@ -417,10 +418,6 @@ export type RenameAreaRequestDto = {
 };
 
 export type RenameLabelRequestDto = {
-    name: string;
-};
-
-export type RenameProjectRequestDto = {
     name: string;
 };
 
@@ -549,6 +546,11 @@ export type UpdateAreaStatusNameRequestDto = {
 
 export type UpdateCurrentUserRequestDto = {
     timeZone: string;
+};
+
+export type UpdateProjectRequestDto = {
+    areaId?: string;
+    name?: string;
 };
 
 export type VerifyEmailDataDto = {
@@ -1586,10 +1588,10 @@ export type GetSummaryResponses = {
 export type ListProjectsData = {
     body?: never;
     path?: never;
-    query: {
+    query?: {
         limit?: number;
         cursor?: string;
-        areaId: string;
+        areaId?: string;
     };
     url: '/api/v1/projects';
 };
@@ -1693,8 +1695,8 @@ export type GetProjectResponses = {
 
 export type GetProjectResponse = GetProjectResponses[keyof GetProjectResponses];
 
-export type RenameProjectData = {
-    body: RenameProjectRequestDto;
+export type UpdateProjectData = {
+    body: UpdateProjectRequestDto;
     path: {
         projectId: string;
     };
@@ -1702,13 +1704,13 @@ export type RenameProjectData = {
     url: '/api/v1/projects/{projectId}';
 };
 
-export type RenameProjectErrors = {
+export type UpdateProjectErrors = {
     /**
      * No valid authenticated session is present.
      */
     401: unknown;
     /**
-     * Project not found.
+     * Project or Area not found.
      */
     404: unknown;
     /**
@@ -1725,11 +1727,11 @@ export type RenameProjectErrors = {
     428: unknown;
 };
 
-export type RenameProjectResponses = {
+export type UpdateProjectResponses = {
     200: ProjectResponseDto;
 };
 
-export type RenameProjectResponse = RenameProjectResponses[keyof RenameProjectResponses];
+export type UpdateProjectResponse = UpdateProjectResponses[keyof UpdateProjectResponses];
 
 export type SearchTasksData = {
     body?: never;

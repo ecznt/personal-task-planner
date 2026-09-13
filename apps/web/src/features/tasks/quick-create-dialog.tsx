@@ -78,9 +78,20 @@ function PlusIcon() {
   );
 }
 
-export function QuickCreateDialog() {
+export type QuickCreateDialogProps = {
+  readonly initialAreaId?: string;
+  readonly initialProjectId?: string;
+  readonly triggerLabel?: string;
+};
+
+export function QuickCreateDialog({
+  initialAreaId,
+  initialProjectId,
+  triggerLabel,
+}: QuickCreateDialogProps) {
   const [open, setOpen] = useState(false);
-  const [areaId, setAreaId] = useState('');
+  const [areaId, setAreaId] = useState(initialAreaId ?? '');
+  const [projectId, setProjectId] = useState(initialProjectId ?? '');
   const [text, setText] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [quickError, setQuickError] = useState<string | undefined>(undefined);
@@ -111,6 +122,7 @@ export function QuickCreateDialog() {
       const body: Record<string, unknown> = {
         title: payload.title,
         ...(areaId !== '' && { areaId }),
+        ...(projectId !== '' && { projectId }),
         ...(payload.parsed.dueAt !== undefined && { dueAt: payload.parsed.dueAt.toISOString() }),
         ...(payload.parsed.priority !== undefined && { priority: payload.parsed.priority }),
         ...(payload.parsed.recurrence !== undefined && { recurrence: payload.parsed.recurrence }),
@@ -152,7 +164,8 @@ export function QuickCreateDialog() {
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
-      setAreaId('');
+      setAreaId(initialAreaId ?? '');
+      setProjectId(initialProjectId ?? '');
       setText('');
       setShowAdvanced(false);
       setQuickError(undefined);
@@ -195,9 +208,15 @@ export function QuickCreateDialog() {
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetTrigger asChild>
-        <Button variant="default" size="icon" aria-label="Yeni görev oluştur">
-          <PlusIcon />
-        </Button>
+        {triggerLabel !== undefined ? (
+          <Button type="button" size="sm" variant="outline">
+            {triggerLabel}
+          </Button>
+        ) : (
+          <Button variant="default" size="icon" aria-label="Yeni görev oluştur">
+            <PlusIcon />
+          </Button>
+        )}
       </SheetTrigger>
       <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-md">
         <SheetHeader>
@@ -254,7 +273,12 @@ export function QuickCreateDialog() {
               <Select
                 id="quick-area"
                 value={effectiveAreaId}
-                onChange={(event) => setAreaId(event.target.value)}
+                onChange={(event) => {
+                  setAreaId(event.target.value);
+                  if (projectId !== '' && event.target.value !== initialAreaId) {
+                    setProjectId('');
+                  }
+                }}
               >
                 <option value="">Gelen Kutusu</option>
                 {sortedOptions.map((area) => (
@@ -265,6 +289,12 @@ export function QuickCreateDialog() {
               </Select>
             )}
           </Field>
+
+          {projectId !== '' && (
+            <p className="text-xs text-muted-foreground">
+              Görev bu projeye eklenecek. Alanı değiştirirseniz proje seçimi kaldırılır.
+            </p>
+          )}
 
           <div className="flex items-center gap-2">
             <Button
@@ -281,6 +311,7 @@ export function QuickCreateDialog() {
             <CreateTaskFields
               key={effectiveAreaId}
               areaId={effectiveAreaId}
+              {...(projectId !== '' && { initialProjectId: projectId })}
               onCancel={() => setShowAdvanced(false)}
               onSuccess={() => {
                 setText('');

@@ -25,18 +25,15 @@ import type {
   CreateProjectResult,
   GetProjectResult,
   ListProjectsResult,
+  MoveProjectResult,
   RenameProjectResult,
 } from '../application/project.service';
-import {
-  parseCreateProjectInput,
-  parseListProjectsQuery,
-  parseRenameProjectInput,
-} from './project.schema';
+import { parseCreateProjectInput, parseListProjectsQuery, parseUpdateProjectInput } from './project.schema';
 import {
   CreateProjectRequestDto,
   ProjectListResponseDto,
   ProjectResponseDto,
-  RenameProjectRequestDto,
+  UpdateProjectRequestDto,
 } from './project.dto';
 
 @ApiTags('Projects')
@@ -99,9 +96,9 @@ export class ProjectController {
   @Header('Cache-Control', 'no-store')
   @ApiOperation({
     operationId: 'listProjects',
-    summary: 'List active Projects in an Area',
+    summary: 'List active Projects, optionally filtered by Area',
   })
-  @ApiQuery({ name: 'areaId', type: String, format: 'uuid' })
+  @ApiQuery({ name: 'areaId', type: String, format: 'uuid', required: false })
   @ApiQuery({ name: 'cursor', type: String, format: 'uuid', required: false })
   @ApiQuery({ name: 'limit', type: Number, required: false })
   @ApiResponse({
@@ -121,7 +118,7 @@ export class ProjectController {
     const input = parseListProjectsQuery(query);
 
     const result = await this.projectService.listProjects(userId, {
-      areaId: input.areaId,
+      ...(input.areaId !== undefined && { areaId: input.areaId }),
       ...(input.cursor !== undefined && { cursor: input.cursor }),
       limit: input.limit,
     });
@@ -163,11 +160,11 @@ export class ProjectController {
   @Patch(':projectId')
   @Header('Cache-Control', 'no-store')
   @ApiOperation({
-    operationId: 'renameProject',
-    summary: 'Rename a Project',
+    operationId: 'updateProject',
+    summary: 'Rename a Project or move it to another Area',
   })
   @ApiParam({ name: 'projectId', type: String, format: 'uuid' })
-  @ApiBody({ type: RenameProjectRequestDto })
+  @ApiBody({ type: UpdateProjectRequestDto })
   @ApiResponse({
     status: 200,
     type: ProjectResponseDto,
@@ -177,7 +174,7 @@ export class ProjectController {
     status: 401,
   })
   @ApiResponse({
-    description: 'Project not found.',
+    description: 'Project or Area not found.',
     status: 404,
   })
   @ApiResponse({
@@ -192,7 +189,7 @@ export class ProjectController {
     description: 'If-Match header required.',
     status: 428,
   })
-  async renameProject(
+  async updateProject(
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
     @Param('projectId') projectId: string,
@@ -201,7 +198,7 @@ export class ProjectController {
   ): Promise<ProjectResponseDto> {
     const userId = await this.resolveUserId(request);
 
-    const input = parseRenameProjectInput(body);
+    const input = parseUpdateProjectInput(body);
 
     if (!ifMatch) {
       throw new ApiProblemException({
@@ -221,9 +218,19 @@ export class ProjectController {
       });
     }
 
+    if (input.areaId !== undefined) {
+      const result = await this.projectService.moveProject(userId, {
+        projectId,
+        targetAreaId: input.areaId,
+        version,
+      });
+
+      return this.handleMoveResult(result, response);
+    }
+
     const result = await this.projectService.renameProject(userId, {
       projectId,
-      name: input.name,
+      name: input.name ?? '',
       version,
     });
 
@@ -273,6 +280,7 @@ export class ProjectController {
             lifecycleState: result.project.lifecycleState as 'ACTIVE' | 'ARCHIVED' | 'TRASHED',
             version: result.project.version,
             taskCount: 0,
+            completedTaskCount: 0,
             createdAt: result.project.createdAt.toISOString(),
             updatedAt: result.project.updatedAt.toISOString(),
           },
@@ -309,6 +317,7 @@ export class ProjectController {
             lifecycleState: project.lifecycleState as 'ACTIVE' | 'ARCHIVED' | 'TRASHED',
             version: project.version,
             taskCount: project.taskCount,
+            completedTaskCount: project.completedTaskCount,
             createdAt: project.createdAt.toISOString(),
             updatedAt: project.updatedAt.toISOString(),
           })),
@@ -331,6 +340,7 @@ export class ProjectController {
             lifecycleState: result.project.lifecycleState as 'ACTIVE' | 'ARCHIVED' | 'TRASHED',
             version: result.project.version,
             taskCount: result.project.taskCount,
+            completedTaskCount: result.project.completedTaskCount,
             createdAt: result.project.createdAt.toISOString(),
             updatedAt: result.project.updatedAt.toISOString(),
           },
@@ -356,6 +366,51 @@ export class ProjectController {
             lifecycleState: result.project.lifecycleState as 'ACTIVE' | 'ARCHIVED' | 'TRASHED',
             version: result.project.version,
             taskCount: 0,
+            completedTaskCount: 0,
+            createdAt: result.project.createdAt.toISOString(),
+            updatedAt: result.project.updatedAt.toISOString(),
+          },
+        };
+      case 'VALIDATION_ERROR':
+        throw new ApiProblemException({
+          status: 422,
+          code: 'VALIDATION_FAILED',
+          detail: result.detail,
+        });
+      case 'NOT_FOUND':
+        throw new ApiProblemException({
+          status: 404,
+          code: 'RESOURCE_NOT_FOUND',
+          detail: 'Kaynak bulunamadı.',
+        });
+      case 'STALE_VERSION':
+        throw new ApiProblemException({
+          status: 409,
+          code: 'VERSION_CONFLICT',
+          detail: 'Çakışma oluştu. Lütfen sayfayı yenileyin.',
+        });
+      case 'DUPLICATE_NAME':
+        throw new ApiProblemException({
+          status: 422,
+          code: 'VALIDATION_FAILED',
+          detail: result.detail,
+        });
+    }
+  }
+
+  private handleMoveResult(result: MoveProjectResult, response: Response): ProjectResponseDto {
+    switch (result.outcome) {
+      case 'SUCCESS':
+        response.setHeader('ETag', String(result.project.version));
+        return {
+          data: {
+            id: result.project.id,
+            areaId: result.project.areaId,
+            name: result.project.name,
+            lifecycleState: result.project.lifecycleState as 'ACTIVE' | 'ARCHIVED' | 'TRASHED',
+            version: result.project.version,
+            taskCount: 0,
+            completedTaskCount: 0,
             createdAt: result.project.createdAt.toISOString(),
             updatedAt: result.project.updatedAt.toISOString(),
           },

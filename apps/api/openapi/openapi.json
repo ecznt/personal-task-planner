@@ -1150,6 +1150,9 @@
             "format": "uuid",
             "type": "string"
           },
+          "completedTaskCount": {
+            "type": "number"
+          },
           "createdAt": {
             "type": "string"
           },
@@ -1186,7 +1189,8 @@
           "version",
           "createdAt",
           "updatedAt",
-          "taskCount"
+          "taskCount",
+          "completedTaskCount"
         ],
         "type": "object"
       },
@@ -1439,18 +1443,6 @@
         "properties": {
           "name": {
             "example": "Alisveris Listesi",
-            "type": "string"
-          }
-        },
-        "required": [
-          "name"
-        ],
-        "type": "object"
-      },
-      "RenameProjectRequestDto": {
-        "properties": {
-          "name": {
-            "example": "Yeni Proje Adı",
             "type": "string"
           }
         },
@@ -1974,6 +1966,19 @@
         "required": [
           "timeZone"
         ],
+        "type": "object"
+      },
+      "UpdateProjectRequestDto": {
+        "properties": {
+          "areaId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "example": "Yeni Proje Adı",
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "VerifyEmailDataDto": {
@@ -3590,7 +3595,7 @@
           {
             "in": "query",
             "name": "areaId",
-            "required": true,
+            "required": false,
             "schema": {
               "format": "uuid",
               "type": "string"
@@ -3612,7 +3617,7 @@
             "description": "No valid authenticated session is present."
           }
         },
-        "summary": "List active Projects in an Area",
+        "summary": "List active Projects, optionally filtered by Area",
         "tags": [
           "Projects"
         ]
@@ -3743,7 +3748,7 @@
         ]
       },
       "patch": {
-        "operationId": "renameProject",
+        "operationId": "updateProject",
         "parameters": [
           {
             "in": "path",
@@ -3759,7 +3764,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RenameProjectRequestDto"
+                "$ref": "#/components/schemas/UpdateProjectRequestDto"
               }
             }
           },
@@ -3780,7 +3785,7 @@
             "description": "No valid authenticated session is present."
           },
           "404": {
-            "description": "Project not found."
+            "description": "Project or Area not found."
           },
           "409": {
             "description": "Version conflict."
@@ -3792,7 +3797,7 @@
             "description": "If-Match header required."
           }
         },
-        "summary": "Rename a Project",
+        "summary": "Rename a Project or move it to another Area",
         "tags": [
           "Projects"
         ]
