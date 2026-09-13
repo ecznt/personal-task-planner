@@ -2,7 +2,7 @@
 
 import { apiClient } from '@planner/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -161,6 +161,15 @@ export function QuickCreateDialog({
       setQuickError(error instanceof Error ? error.message : 'Görev eklenemedi.');
     },
   });
+
+  useEffect(() => {
+    if (triggerLabel !== undefined) {
+      return;
+    }
+    const onNewTask = () => setOpen(true);
+    window.addEventListener('planner:new-task', onNewTask);
+    return () => window.removeEventListener('planner:new-task', onNewTask);
+  }, [triggerLabel]);
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {

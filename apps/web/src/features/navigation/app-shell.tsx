@@ -10,7 +10,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { AmbientBackground } from '@/components/ambient-background';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { SignOutButton } from '@/features/auth/sign-out-button';
+import { CommandPalette } from '@/features/commands/command-palette';
 import { NotificationBell } from '@/features/notifications/notification-bell';
+import { useNewTaskShortcut } from '@/features/shortcuts/new-task-shortcut';
 import { QuickCreateDialog } from '@/features/tasks/quick-create-dialog';
 
 import { MOBILE_MORE, MOBILE_PRIMARY, type NavItem } from './app-nav';
@@ -169,6 +171,7 @@ function SearchLink() {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   useSearchShortcut();
+  useNewTaskShortcut();
   return (
     <div className="min-h-screen bg-background">
       <a href="#main-content" className="skip-link">
@@ -213,6 +216,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Tooltip>
           </div>
         </div>
+
+        <CommandPalette />
 
         <main
           id="main-content"
