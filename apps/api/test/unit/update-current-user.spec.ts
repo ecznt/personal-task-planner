@@ -14,6 +14,7 @@ const profile: CurrentUserProfile = {
   onboardingCompletedAt: null,
   onboardingState: 'PENDING',
   primaryEmail: 'user@example.com',
+  pushReminderNotificationsEnabled: true,
   timeZone: 'UTC',
   userId: '018f9f7c-0000-7000-8000-000000000001',
   version: 3,
@@ -130,6 +131,7 @@ describe('update current user', () => {
     expect(accounts.updateCurrentUserProfile).toHaveBeenCalledWith({
       expectedUserVersion: 3,
       inAppReminderNotificationsEnabled: false,
+      pushReminderNotificationsEnabled: undefined,
       timeZone: undefined,
       userId: '018f9f7c-0000-7000-8000-000000000001',
     });

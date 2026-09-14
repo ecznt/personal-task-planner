@@ -12,6 +12,7 @@ import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui
 import { Select } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
+import { usePushChannel } from '@/features/push/use-push-channel';
 
 import {
   detectedBrowserTimeZone,
@@ -24,6 +25,7 @@ type CurrentUserForPreferences = {
   readonly email: string;
   readonly etag: string;
   readonly inAppReminderNotificationsEnabled: boolean;
+  readonly pushReminderNotificationsEnabled: boolean;
   readonly timeZone: string;
 };
 
@@ -31,6 +33,8 @@ export function PreferencesForm() {
   const queryClient = useQueryClient();
   const [provisionalTimeZone, setProvisionalTimeZone] = useState<string | null>(null);
   const [notificationEnabled, setNotificationEnabled] = useState<boolean | null>(null);
+  const [pushEnabled, setPushEnabled] = useState<boolean | null>(null);
+  const [pushMessage, setPushMessage] = useState<string | null>(null);
   const currentUser = useQuery({
     queryKey: ['users', 'me', 'preferences'],
     queryFn: readCurrentUserForPreferences,
@@ -40,6 +44,9 @@ export function PreferencesForm() {
     queryFn: fetchCsrf,
     staleTime: 20 * 60 * 1_000,
   });
+  const pushChannel = usePushChannel(
+    pushEnabled ?? currentUser.data?.pushReminderNotificationsEnabled ?? false,
+  );
   const options = useMemo(
     () =>
       timeZoneOptions(
@@ -55,10 +62,12 @@ export function PreferencesForm() {
     provisionalTimeZone !== currentUser.data?.timeZone;
   const notificationsChecked =
     notificationEnabled ?? currentUser.data?.inAppReminderNotificationsEnabled ?? true;
+  const pushChecked = pushEnabled ?? currentUser.data?.pushReminderNotificationsEnabled ?? true;
 
   const save = useMutation({
     mutationFn: async (body: {
       readonly inAppReminderNotificationsEnabled?: boolean;
+      readonly pushReminderNotificationsEnabled?: boolean;
       readonly timeZone?: string;
     }) => {
       if (currentUser.data === undefined) {
@@ -97,12 +106,15 @@ export function PreferencesForm() {
           email: profile.email,
           etag,
           inAppReminderNotificationsEnabled: profile.inAppReminderNotificationsEnabled,
+          pushReminderNotificationsEnabled: profile.pushReminderNotificationsEnabled,
           timeZone: profile.timeZone,
         } satisfies CurrentUserForPreferences,
       );
       queryClient.invalidateQueries({ queryKey: ['users', 'me', 'onboarding'] });
       queryClient.invalidateQueries({ queryKey: ['notifications', 'summary'] });
       setNotificationEnabled(profile.inAppReminderNotificationsEnabled);
+      setPushEnabled(profile.pushReminderNotificationsEnabled);
+      setPushMessage(null);
       setProvisionalTimeZone(null);
     },
     onError: () => {
@@ -161,6 +173,53 @@ export function PreferencesForm() {
 
     setNotificationEnabled(next);
     save.mutate({ inAppReminderNotificationsEnabled: next });
+  }
+
+  function savePushNotifications(next: boolean) {
+    if (save.isPending) {
+      return;
+    }
+
+    if (!next) {
+      const confirmed = window.confirm(
+        'İnternet tarayıcısı bildirimleri kapatılacak. Bu cihazdaki aboneliğiniz kaldırılır; hatırlatıcı tanımlarınız ve uygulama içi bildirimleriniz korunur. Devam etmek istiyor musunuz?',
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      setPushEnabled(false);
+      void pushChannel.disable().finally(() => {
+        save.mutate({ pushReminderNotificationsEnabled: false });
+      });
+      return;
+    }
+
+    setPushMessage(null);
+    setPushEnabled(true);
+
+    void pushChannel.enable().then(async (outcome) => {
+      switch (outcome) {
+        case 'granted':
+          save.mutate({ pushReminderNotificationsEnabled: true });
+          break;
+        case 'denied':
+          setPushMessage(
+            'Tarayıcı bildirim izni verilmedi. Ayarlarınızdan bildirimlere izin verip tekrar deneyin.',
+          );
+          setPushEnabled(false);
+          break;
+        case 'unsupported':
+          setPushMessage('Bu tarayıcı web bildirimlerini desteklemiyor.');
+          setPushEnabled(false);
+          break;
+        case 'not-configured':
+          setPushMessage('Bildirim hizmeti henüz yapılandırılmadı.');
+          setPushEnabled(false);
+          break;
+      }
+    });
   }
 
   return (
@@ -224,7 +283,8 @@ export function PreferencesForm() {
             Bildirimler
           </CardTitle>
           <CardDescription>
-            Yaklaşan tarihli görevler için uygulama içi hatırlatıcı bildirimlerini yönetin.
+            Yaklaşan tarihli görevler için uygulama içi ve internet tarayıcısı hatırlatıcı
+            bildirimlerini yönetin.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -242,12 +302,37 @@ export function PreferencesForm() {
                 </label>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {notificationsChecked
-                    ? 'Açık — zamanı gelen hatırlatıcılar için bildirim üretilir.'
+                    ? 'Açık — zamanı gelen hatırlatıcılar için uygulama içi bildirim üretilir.'
                     : 'Kapalı — hatırlatıcı tanımları korunur, ancak kapalı dönemde zamanı gelenler için bildirim üretilmez.'}
                 </p>
               </div>
             </div>
           </FieldGroup>
+          <FieldGroup>
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="settings-web-push"
+                checked={pushChecked}
+                disabled={save.isPending}
+                onCheckedChange={(checked) => savePushNotifications(checked === true)}
+              />
+              <div className="min-w-0">
+                <label htmlFor="settings-web-push" className="font-medium text-sm">
+                  Tarayıcı bildirimleri
+                </label>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {pushChecked
+                    ? 'Açık — zamanı gelen hatırlatıcılar bu cihaza tarayıcı kapalıyken bile gönderilir.'
+                    : 'Kapalı — bu cihazdaki abonelik kaldırıldı.'}
+                </p>
+              </div>
+            </div>
+          </FieldGroup>
+          {pushMessage !== null && (
+            <p className="mt-2 text-sm text-destructive" role="status">
+              {pushMessage}
+            </p>
+          )}
         </CardContent>
       </Card>
     </div>
@@ -266,6 +351,7 @@ async function readCurrentUserForPreferences(): Promise<CurrentUserForPreference
     email: result.data.data.email,
     etag,
     inAppReminderNotificationsEnabled: result.data.data.inAppReminderNotificationsEnabled,
+    pushReminderNotificationsEnabled: result.data.data.pushReminderNotificationsEnabled,
     timeZone: result.data.data.timeZone,
   };
 }

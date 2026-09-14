@@ -14,6 +14,7 @@ const profile: CurrentUserProfile = {
   onboardingCompletedAt: null,
   onboardingState: 'PENDING',
   primaryEmail: 'user@example.com',
+  pushReminderNotificationsEnabled: true,
   timeZone: 'Europe/Istanbul',
   userId: '018f9f7c-0000-7000-8000-000000000001',
   version: 4,

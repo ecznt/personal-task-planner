@@ -8,6 +8,7 @@ import {
 const userProfilePatchSchema = z
   .strictObject({
     inAppReminderNotificationsEnabled: z.boolean().optional(),
+    pushReminderNotificationsEnabled: z.boolean().optional(),
     timeZone: z
       .string()
       .trim()
@@ -18,12 +19,16 @@ const userProfilePatchSchema = z
   })
   .superRefine((value, context) => {
     const hasTimeZone = value.timeZone !== undefined;
-    const hasNotifications = value.inAppReminderNotificationsEnabled !== undefined;
+    const hasInAppNotifications = value.inAppReminderNotificationsEnabled !== undefined;
+    const hasPushNotifications = value.pushReminderNotificationsEnabled !== undefined;
+    const changedFieldCount =
+      Number(hasTimeZone) + Number(hasInAppNotifications) + Number(hasPushNotifications);
 
-    if (hasTimeZone === hasNotifications) {
+    if (changedFieldCount !== 1) {
       context.addIssue({
         code: 'custom',
-        message: 'Saat dilimi veya bildirim tercihinden yalnızca birini güncelleyebilirsiniz.',
+        message:
+          'Saat dilimi veya bildirim tercihlerinden yalnızca birini güncelleyebilirsiniz.',
         path: [],
       });
     }

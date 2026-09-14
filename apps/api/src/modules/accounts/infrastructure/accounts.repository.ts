@@ -41,6 +41,7 @@ export type AuthenticatedSession = {
 export type CurrentUserProfile = {
   readonly accountLifecycleState: 'ACTIVE' | 'DELETION_CONFIRMED';
   readonly inAppReminderNotificationsEnabled: boolean;
+  readonly pushReminderNotificationsEnabled: boolean;
   readonly onboardingCompletedAt: Date | null;
   readonly normalizedPrimaryEmail: string;
   readonly onboardingState: 'PENDING' | 'COMPLETED';
@@ -581,6 +582,7 @@ export class AccountsRepository {
             onboardingCompletedAt: true,
             onboardingState: true,
             primaryEmail: true,
+            pushReminderNotificationsEnabled: true,
             timeZone: true,
             version: true,
           },
@@ -639,6 +641,7 @@ export class AccountsRepository {
       onboardingCompletedAt: session.user.onboardingCompletedAt,
       onboardingState: session.user.onboardingState,
       primaryEmail: session.user.primaryEmail,
+      pushReminderNotificationsEnabled: session.user.pushReminderNotificationsEnabled,
       timeZone: session.user.timeZone,
       userId: session.user.id,
       version: session.user.version,
@@ -648,6 +651,7 @@ export class AccountsRepository {
   async updateCurrentUserProfile(input: {
     readonly expectedUserVersion: number;
     readonly inAppReminderNotificationsEnabled?: boolean | undefined;
+    readonly pushReminderNotificationsEnabled?: boolean | undefined;
     readonly timeZone?: string | undefined;
     readonly userId: string;
   }): Promise<CurrentUserProfile | null> {
@@ -655,6 +659,9 @@ export class AccountsRepository {
       data: {
         ...(input.inAppReminderNotificationsEnabled !== undefined
           ? { inAppReminderNotificationsEnabled: input.inAppReminderNotificationsEnabled }
+          : {}),
+        ...(input.pushReminderNotificationsEnabled !== undefined
+          ? { pushReminderNotificationsEnabled: input.pushReminderNotificationsEnabled }
           : {}),
         ...(input.timeZone !== undefined ? { timeZone: input.timeZone } : {}),
         version: {
@@ -680,6 +687,7 @@ export class AccountsRepository {
         onboardingCompletedAt: true,
         onboardingState: true,
         primaryEmail: true,
+        pushReminderNotificationsEnabled: true,
         timeZone: true,
         version: true,
       },
@@ -695,6 +703,7 @@ export class AccountsRepository {
       onboardingCompletedAt: user.onboardingCompletedAt,
       onboardingState: user.onboardingState,
       primaryEmail: user.primaryEmail,
+      pushReminderNotificationsEnabled: user.pushReminderNotificationsEnabled,
       timeZone: user.timeZone,
       userId: input.userId,
       version: user.version,
@@ -1050,6 +1059,7 @@ export class AccountsRepository {
           onboardingCompletedAt: true,
           onboardingState: true,
           primaryEmail: true,
+          pushReminderNotificationsEnabled: true,
           timeZone: true,
           version: true,
         },
@@ -1069,6 +1079,7 @@ export class AccountsRepository {
           onboardingCompletedAt: user.onboardingCompletedAt,
           onboardingState: user.onboardingState,
           primaryEmail: user.primaryEmail,
+          pushReminderNotificationsEnabled: user.pushReminderNotificationsEnabled,
           timeZone: user.timeZone,
           userId: session.user.id,
           version: user.version,
@@ -2241,6 +2252,7 @@ function onboardingCompletionResponse(completion: OnboardingCompletionState): {
       readonly normalizedPrimaryEmail: string;
       readonly onboardingCompletedAt: string | null;
       readonly onboardingState: 'PENDING' | 'COMPLETED';
+      readonly pushReminderNotificationsEnabled: boolean;
       readonly timeZone: string;
       readonly version: number;
     };
@@ -2260,6 +2272,7 @@ function onboardingCompletionResponse(completion: OnboardingCompletionState): {
         normalizedPrimaryEmail: completion.profile.normalizedPrimaryEmail,
         onboardingCompletedAt: completion.profile.onboardingCompletedAt?.toISOString() ?? null,
         onboardingState: completion.profile.onboardingState,
+        pushReminderNotificationsEnabled: completion.profile.pushReminderNotificationsEnabled,
         timeZone: completion.profile.timeZone,
         version: completion.profile.version,
       },
@@ -2309,6 +2322,7 @@ function onboardingCompletionFromResponse(
           : new Date(response.data.user.onboardingCompletedAt),
       onboardingState: response.data.user.onboardingState,
       primaryEmail: response.data.user.email,
+      pushReminderNotificationsEnabled: response.data.user.pushReminderNotificationsEnabled,
       timeZone: response.data.user.timeZone,
       userId: response.data.user.id,
       version: response.data.user.version,

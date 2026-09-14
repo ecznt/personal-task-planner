@@ -48,6 +48,9 @@ const workerEnvironmentSchema = sharedEnvironmentSchema
   .extend({
     ...securityEnvironmentSchema.shape,
     ...emailEnvironmentShape,
+    VAPID_PUBLIC_KEY: z.string().trim().min(1).optional(),
+    VAPID_PRIVATE_KEY: z.string().trim().min(1).optional(),
+    VAPID_SUBJECT: z.string().url().optional(),
     WORKER_LEASE_MS: integerFromEnvironment({ minimum: 1_000, maximum: 15 * 60_000 }).default(
       30_000,
     ),

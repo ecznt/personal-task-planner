@@ -8,6 +8,8 @@ import { LabelService } from './application/label.service';
 import { LifecycleService } from './application/lifecycle.service';
 import { NotificationService } from './application/notification.service';
 import { ProjectService } from './application/project.service';
+import { PUSH_VAPID_CONFIG } from './application/push-vapid';
+import { PushService } from './application/push.service';
 import { RecurrenceService } from './application/recurrence.service';
 import { ReminderService } from './application/reminder.service';
 import { SearchService } from './application/search.service';
@@ -17,9 +19,11 @@ import { ChecklistItemRepository } from './infrastructure/checklist-item.reposit
 import { LabelRepository } from './infrastructure/label.repository';
 import { LifecycleRepository } from './infrastructure/lifecycle.repository';
 import { ProjectRepository } from './infrastructure/project.repository';
+import { PushSubscriptionRepository } from './infrastructure/push-subscription.repository';
 import { RecurrenceRepository } from './infrastructure/recurrence.repository';
 import { ReminderRepository } from './infrastructure/reminder.repository';
 import { TaskRepository } from './infrastructure/task.repository';
+import { PUSH_TRANSPORT, WebPushTransport } from './infrastructure/web-push.transport';
 import { AreaController } from './transport/area.controller';
 import { ArchiveController } from './transport/archive.controller';
 import { BulkActionController } from './transport/bulk.controller';
@@ -29,6 +33,7 @@ import { LabelController } from './transport/label.controller';
 import { LifecycleActionsController } from './transport/lifecycle-actions.controller';
 import { NotificationController } from './transport/notification.controller';
 import { ProjectController } from './transport/project.controller';
+import { PushController } from './transport/push.controller';
 import { RecurrenceController } from './transport/recurrence.controller';
 import { ReminderController } from './transport/reminder.controller';
 import { SearchController } from './transport/search.controller';
@@ -43,6 +48,7 @@ import { TrashController } from './transport/trash.controller';
     RecurrenceController,
     ReminderController,
     NotificationController,
+    PushController,
     LabelController,
     ChecklistController,
     ChecklistOrderController,
@@ -73,6 +79,10 @@ import { TrashController } from './transport/trash.controller';
     ProjectRepository,
     LifecycleService,
     LifecycleRepository,
+    PushSubscriptionRepository,
+    PushService,
+    { provide: PUSH_TRANSPORT, useClass: WebPushTransport },
+    { provide: PUSH_VAPID_CONFIG, useValue: null },
   ],
   exports: [
     AreaService,

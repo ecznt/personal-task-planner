@@ -35,6 +35,11 @@ export class CurrentUserProfileDataDto {
     type: Boolean,
   })
   inAppReminderNotificationsEnabled!: boolean;
+
+  @ApiProperty({
+    type: Boolean,
+  })
+  pushReminderNotificationsEnabled!: boolean;
 }
 
 export class CurrentUserProfileResponseDto {
@@ -51,6 +56,13 @@ export class UpdateCurrentUserRequestDto {
     type: Boolean,
   })
   inAppReminderNotificationsEnabled?: boolean;
+
+  @ApiProperty({
+    example: true,
+    required: false,
+    type: Boolean,
+  })
+  pushReminderNotificationsEnabled?: boolean;
 
   @ApiProperty({
     example: 'Europe/Istanbul',

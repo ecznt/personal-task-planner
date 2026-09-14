@@ -637,6 +637,9 @@
             ],
             "type": "string"
           },
+          "pushReminderNotificationsEnabled": {
+            "type": "boolean"
+          },
           "timeZone": {
             "example": "UTC",
             "type": "string"
@@ -648,7 +651,8 @@
           "timeZone",
           "onboardingState",
           "accountLifecycleState",
-          "inAppReminderNotificationsEnabled"
+          "inAppReminderNotificationsEnabled",
+          "pushReminderNotificationsEnabled"
         ],
         "type": "object"
       },
@@ -1959,6 +1963,10 @@
       "UpdateCurrentUserRequestDto": {
         "properties": {
           "inAppReminderNotificationsEnabled": {
+            "example": true,
+            "type": "boolean"
+          },
+          "pushReminderNotificationsEnabled": {
             "example": true,
             "type": "boolean"
           },
@@ -3801,6 +3809,109 @@
         "summary": "Rename a Project or move it to another Area",
         "tags": [
           "Projects"
+        ]
+      }
+    },
+    "/api/v1/push-subscriptions": {
+      "delete": {
+        "operationId": "unregister",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "endpoint": {
+                    "format": "uri",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "endpoint"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Subscription removed."
+          },
+          "400": {
+            "description": "Invalid input."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "summary": "Remove a web push subscription",
+        "tags": [
+          "Push Subscriptions"
+        ]
+      },
+      "post": {
+        "operationId": "register",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "endpoint": {
+                    "format": "uri",
+                    "type": "string"
+                  },
+                  "keys": {
+                    "properties": {
+                      "auth": {
+                        "type": "string"
+                      },
+                      "p256dh": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "p256dh",
+                      "auth"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "endpoint",
+                  "keys"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Subscription registered."
+          },
+          "400": {
+            "description": "Invalid input."
+          },
+          "401": {
+            "description": "Unauthorized."
+          }
+        },
+        "summary": "Register a web push subscription for reminder delivery",
+        "tags": [
+          "Push Subscriptions"
         ]
       }
     },

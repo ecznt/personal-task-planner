@@ -54,7 +54,18 @@ export class ReminderRepository {
 
   async findDueReminders(now: Date): Promise<
     readonly (TaskReminder & {
-      readonly user: { readonly id: string; readonly inAppReminderNotificationsEnabled: boolean };
+      readonly user: {
+        readonly id: string;
+        readonly timeZone: string;
+        readonly inAppReminderNotificationsEnabled: boolean;
+        readonly pushReminderNotificationsEnabled: boolean;
+      };
+      readonly task: {
+        readonly id: string;
+        readonly title: string;
+        readonly dueAt: Date | null;
+        readonly plannedAt: Date | null;
+      };
     })[]
   > {
     return this.prisma.taskReminder.findMany({
@@ -64,12 +75,28 @@ export class ReminderRepository {
       },
       include: {
         user: {
-          select: { id: true, inAppReminderNotificationsEnabled: true },
+          select: {
+            id: true,
+            timeZone: true,
+            inAppReminderNotificationsEnabled: true,
+            pushReminderNotificationsEnabled: true,
+          },
+        },
+        task: {
+          select: { id: true, title: true, dueAt: true, plannedAt: true },
         },
       },
       orderBy: { scheduledAt: 'asc' },
       take: 100,
     });
+  }
+
+  async markPushDelivered(reminderId: string, deliveredAt: Date): Promise<boolean> {
+    const result = await this.prisma.taskReminder.updateMany({
+      where: { id: reminderId, state: 'TRIGGERED' },
+      data: { pushDeliveredAt: deliveredAt },
+    });
+    return result.count > 0;
   }
 
   async triggerReminder(reminderId: string): Promise<boolean> {

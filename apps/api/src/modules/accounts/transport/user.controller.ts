@@ -92,6 +92,7 @@ export class UserController {
         id: currentUser.profile.userId,
         inAppReminderNotificationsEnabled: currentUser.profile.inAppReminderNotificationsEnabled,
         onboardingState: currentUser.profile.onboardingState,
+        pushReminderNotificationsEnabled: currentUser.profile.pushReminderNotificationsEnabled,
         timeZone: currentUser.profile.timeZone,
       },
     };
@@ -141,6 +142,7 @@ export class UserController {
     const result = await this.updateCurrentUser.execute({
       etag: parseIfMatch(ifMatchHeader),
       inAppReminderNotificationsEnabled: input.inAppReminderNotificationsEnabled,
+      pushReminderNotificationsEnabled: input.pushReminderNotificationsEnabled,
       sessionToken: parseCookieValue(request.headers.cookie, sessionCookieName()),
       timeZone: input.timeZone,
     });
@@ -185,6 +187,7 @@ export class UserController {
         email: result.profile.primaryEmail,
         id: result.profile.userId,
         inAppReminderNotificationsEnabled: result.profile.inAppReminderNotificationsEnabled,
+        pushReminderNotificationsEnabled: result.profile.pushReminderNotificationsEnabled,
         onboardingState: result.profile.onboardingState,
         timeZone: result.profile.timeZone,
       },
@@ -311,6 +314,8 @@ export class UserController {
           inAppReminderNotificationsEnabled:
             result.completion.profile.inAppReminderNotificationsEnabled,
           onboardingState: result.completion.profile.onboardingState,
+          pushReminderNotificationsEnabled:
+            result.completion.profile.pushReminderNotificationsEnabled,
           timeZone: result.completion.profile.timeZone,
         },
       },

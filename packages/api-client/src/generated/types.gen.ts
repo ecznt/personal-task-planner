@@ -188,6 +188,7 @@ export type CurrentUserProfileDataDto = {
     id: string;
     inAppReminderNotificationsEnabled: boolean;
     onboardingState: 'PENDING' | 'COMPLETED';
+    pushReminderNotificationsEnabled: boolean;
     timeZone: string;
 };
 
@@ -546,6 +547,7 @@ export type UpdateAreaStatusNameRequestDto = {
 
 export type UpdateCurrentUserRequestDto = {
     inAppReminderNotificationsEnabled?: boolean;
+    pushReminderNotificationsEnabled?: boolean;
     timeZone?: string;
 };
 
@@ -1733,6 +1735,67 @@ export type UpdateProjectResponses = {
 };
 
 export type UpdateProjectResponse = UpdateProjectResponses[keyof UpdateProjectResponses];
+
+export type UnregisterData = {
+    body: {
+        endpoint: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/v1/push-subscriptions';
+};
+
+export type UnregisterErrors = {
+    /**
+     * Invalid input.
+     */
+    400: unknown;
+    /**
+     * Unauthorized.
+     */
+    401: unknown;
+};
+
+export type UnregisterResponses = {
+    /**
+     * Subscription removed.
+     */
+    200: unknown;
+};
+
+export type RegisterData = {
+    body: {
+        endpoint: string;
+        keys: {
+            auth: string;
+            p256dh: string;
+        };
+    };
+    headers: {
+        'Idempotency-Key': string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/v1/push-subscriptions';
+};
+
+export type RegisterErrors = {
+    /**
+     * Invalid input.
+     */
+    400: unknown;
+    /**
+     * Unauthorized.
+     */
+    401: unknown;
+};
+
+export type RegisterResponses = {
+    /**
+     * Subscription registered.
+     */
+    201: unknown;
+};
 
 export type SearchTasksData = {
     body?: never;

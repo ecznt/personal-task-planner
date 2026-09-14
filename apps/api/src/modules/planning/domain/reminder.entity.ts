@@ -14,6 +14,7 @@ export type TaskReminder = {
   readonly scheduledAt: Date;
   readonly state: ReminderState;
   readonly version: number;
+  readonly pushDeliveredAt: Date | null;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 };
@@ -33,4 +34,14 @@ export type Notification = {
 export type NotificationDetail = Notification & {
   readonly taskTitle: string | null;
   readonly taskDueAt: Date | null;
+};
+
+export type PushSubscription = {
+  readonly id: string;
+  readonly userId: string;
+  readonly endpoint: string;
+  readonly keysP256dh: string;
+  readonly keysAuth: string;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
 };

@@ -1,3 +1,8 @@
 import { nextConfig } from '@planner/eslint-config/next';
 
-export default nextConfig;
+export default [
+  {
+    ignores: ['public/**'],
+  },
+  ...nextConfig,
+];

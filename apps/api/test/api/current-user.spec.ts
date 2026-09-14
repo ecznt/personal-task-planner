@@ -84,6 +84,7 @@ describe('current user HTTP contract', () => {
           onboardingCompletedAt: new Date('2026-08-17T09:00:00.000Z'),
           onboardingState: 'COMPLETED',
           primaryEmail: 'User@example.com',
+          pushReminderNotificationsEnabled: true,
           timeZone: 'Europe/Istanbul',
           userId: '018f9f7c-0000-7000-8000-000000000001',
           version: 5,
@@ -111,6 +112,7 @@ describe('current user HTTP contract', () => {
         onboardingCompletedAt: null,
         onboardingState: 'PENDING',
         primaryEmail: 'User@example.com',
+        pushReminderNotificationsEnabled: true,
         timeZone: 'Europe/Istanbul',
         userId: '018f9f7c-0000-7000-8000-000000000001',
         version: 3,
@@ -126,6 +128,7 @@ describe('current user HTTP contract', () => {
         onboardingCompletedAt: null,
         onboardingState: 'PENDING',
         primaryEmail: 'User@example.com',
+        pushReminderNotificationsEnabled: true,
         timeZone: 'Europe/Istanbul',
         userId: '018f9f7c-0000-7000-8000-000000000001',
         version: 4,
@@ -153,6 +156,7 @@ describe('current user HTTP contract', () => {
         id: '018f9f7c-0000-7000-8000-000000000001',
         inAppReminderNotificationsEnabled: true,
         onboardingState: 'PENDING',
+        pushReminderNotificationsEnabled: true,
         timeZone: 'Europe/Istanbul',
       },
     });
@@ -192,6 +196,7 @@ describe('current user HTTP contract', () => {
 
     expect(updateCurrentUser.execute).toHaveBeenCalledWith({
       etag: '"safe-user-etag"',
+      pushReminderNotificationsEnabled: undefined,
       sessionToken: 'raw-session-secret',
       timeZone: 'Europe/Istanbul',
     });
@@ -203,6 +208,7 @@ describe('current user HTTP contract', () => {
         id: '018f9f7c-0000-7000-8000-000000000001',
         inAppReminderNotificationsEnabled: true,
         onboardingState: 'PENDING',
+        pushReminderNotificationsEnabled: true,
         timeZone: 'Europe/Istanbul',
       },
     });
@@ -219,6 +225,7 @@ describe('current user HTTP contract', () => {
         onboardingCompletedAt: null,
         onboardingState: 'PENDING',
         primaryEmail: 'User@example.com',
+        pushReminderNotificationsEnabled: true,
         timeZone: 'Europe/Istanbul',
         userId: '018f9f7c-0000-7000-8000-000000000001',
         version: 4,
@@ -239,6 +246,7 @@ describe('current user HTTP contract', () => {
     expect(updateCurrentUser.execute).toHaveBeenCalledWith({
       etag: '"safe-user-etag"',
       inAppReminderNotificationsEnabled: false,
+      pushReminderNotificationsEnabled: undefined,
       sessionToken: 'raw-session-secret',
       timeZone: undefined,
     });
@@ -250,7 +258,52 @@ describe('current user HTTP contract', () => {
         id: '018f9f7c-0000-7000-8000-000000000001',
         inAppReminderNotificationsEnabled: false,
         onboardingState: 'PENDING',
+        pushReminderNotificationsEnabled: true,
         timeZone: 'Europe/Istanbul',
+      },
+    });
+  });
+
+  it('updates the current user web push preference with CSRF and If-Match', async () => {
+    updateCurrentUser.execute.mockResolvedValueOnce({
+      etag: '"updated-user-etag"',
+      outcome: 'UPDATED',
+      profile: {
+        accountLifecycleState: 'ACTIVE',
+        inAppReminderNotificationsEnabled: true,
+        normalizedPrimaryEmail: 'user@example.com',
+        onboardingCompletedAt: null,
+        onboardingState: 'PENDING',
+        primaryEmail: 'User@example.com',
+        pushReminderNotificationsEnabled: false,
+        timeZone: 'Europe/Istanbul',
+        userId: '018f9f7c-0000-7000-8000-000000000001',
+        version: 4,
+      },
+    });
+
+    const response = await request(app.getHttpServer())
+      .patch('/api/v1/users/me')
+      .set('Cookie', 'planner-session=raw-session-secret; planner-csrf-context=browser-context')
+      .set('Origin', 'http://127.0.0.1:3000')
+      .set('X-CSRF-Token', 'csrf-token')
+      .set('If-Match', '"safe-user-etag"')
+      .send({
+        pushReminderNotificationsEnabled: false,
+      })
+      .expect(200);
+
+    expect(updateCurrentUser.execute).toHaveBeenCalledWith({
+      etag: '"safe-user-etag"',
+      inAppReminderNotificationsEnabled: undefined,
+      pushReminderNotificationsEnabled: false,
+      sessionToken: 'raw-session-secret',
+      timeZone: undefined,
+    });
+    expect(response.body).toMatchObject({
+      data: {
+        inAppReminderNotificationsEnabled: true,
+        pushReminderNotificationsEnabled: false,
       },
     });
   });
@@ -386,6 +439,7 @@ describe('current user HTTP contract', () => {
           id: '018f9f7c-0000-7000-8000-000000000001',
           inAppReminderNotificationsEnabled: true,
           onboardingState: 'COMPLETED',
+          pushReminderNotificationsEnabled: true,
           timeZone: 'Europe/Istanbul',
         },
       },
@@ -408,6 +462,7 @@ describe('current user HTTP contract', () => {
           onboardingCompletedAt: new Date('2026-08-17T09:00:00.000Z'),
           onboardingState: 'COMPLETED',
           primaryEmail: 'User@example.com',
+          pushReminderNotificationsEnabled: true,
           timeZone: 'Europe/Istanbul',
           userId: '018f9f7c-0000-7000-8000-000000000001',
           version: 5,
