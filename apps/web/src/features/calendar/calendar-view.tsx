@@ -2,13 +2,15 @@
 
 import { apiClient } from '@planner/api-client';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { PageHeader } from '@/components/page-header';
 import { cn } from '@/lib/utils';
+
+import { DayQuickCreateDialog } from './day-quick-create-dialog';
 
 type CalendarTask = {
   readonly id: string;
@@ -80,10 +82,25 @@ function addDays(date: Date, days: number): Date {
   return result;
 }
 
+function mergeDayTasks(day: CalendarDayGroup | undefined): CalendarTask[] {
+  const seen = new Set<string>();
+  const result: CalendarTask[] = [];
+
+  for (const task of [...(day?.planned ?? []), ...(day?.due ?? [])]) {
+    if (!seen.has(task.id)) {
+      seen.add(task.id);
+      result.push(task);
+    }
+  }
+
+  return result;
+}
+
 export function CalendarView() {
   const now = new Date();
   const [cursorYear, setCursorYear] = useState(now.getFullYear());
   const [cursorMonth, setCursorMonth] = useState(now.getMonth());
+  const [quickAddDate, setQuickAddDate] = useState<string | null>(null);
   const today = todayKey();
 
   const gridStart = monthGridStart(cursorYear, cursorMonth);
@@ -225,7 +242,7 @@ export function CalendarView() {
         <div className="grid grid-cols-7 divide-x divide-border/50">
           {gridCells.map(({ date, key }) => {
             const day = daysByDate.get(key);
-            const allTasks = [...(day?.planned ?? []), ...(day?.due ?? [])];
+            const allTasks = mergeDayTasks(day);
             const isToday = key === today;
             const isCurrent = date.getMonth() === cursorMonth;
 
@@ -247,6 +264,14 @@ export function CalendarView() {
                   >
                     {date.getDate()}
                   </span>
+                  <button
+                    type="button"
+                    onClick={() => setQuickAddDate(key)}
+                    aria-label={`${date.getDate()} tarihine görev ekle`}
+                    className="flex size-5 items-center justify-center rounded text-muted-foreground/70 opacity-60 transition-all duration-150 hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 sm:opacity-0 sm:hover:opacity-100 sm:focus-visible:opacity-100"
+                  >
+                    <Plus className="size-3.5" aria-hidden="true" />
+                  </button>
                 </div>
 
                 <div className="flex min-h-0 flex-1 flex-col gap-px overflow-hidden">
@@ -280,6 +305,8 @@ export function CalendarView() {
           })}
         </div>
       </div>
+
+      <DayQuickCreateDialog dateKey={quickAddDate} onClose={() => setQuickAddDate(null)} />
     </div>
   );
 }
