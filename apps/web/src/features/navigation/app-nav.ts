@@ -1,6 +1,7 @@
 export type NavDestination =
   | 'today'
   | 'upcoming'
+  | 'calendar'
   | 'tasks'
   | 'kanban'
   | 'areas'
@@ -16,6 +17,7 @@ export type NavItem = {
   readonly icon:
     | 'today'
     | 'upcoming'
+    | 'calendar'
     | 'tasks'
     | 'kanban'
     | 'areas'
@@ -28,6 +30,7 @@ export type NavItem = {
 export const PRIMARY_NAV: readonly NavItem[] = [
   { key: 'today', href: '/app/today', label: 'Bugün', icon: 'today' },
   { key: 'upcoming', href: '/app/upcoming', label: 'Yaklaşan', icon: 'upcoming' },
+  { key: 'calendar', href: '/app/calendar', label: 'Takvim', icon: 'calendar' },
   { key: 'tasks', href: '/app/tasks', label: 'Görevler', icon: 'tasks' },
   { key: 'kanban', href: '/app/kanban', label: 'Kanban', icon: 'kanban' },
   { key: 'areas', href: '/app/areas', label: 'Alanlar', icon: 'areas' },
@@ -50,4 +53,8 @@ export const MOBILE_MORE: readonly NavItem[] = [
   { key: 'archive', href: '/app/archive', label: 'Arşiv', icon: 'archive' },
   { key: 'trash', href: '/app/trash', label: 'Çöp Kutusu', icon: 'trash' },
   { key: 'settings', href: '/app/settings/account', label: 'Ayarlar', icon: 'settings' },
+];
+
+export const DESKTOP_ONLY: readonly NavItem[] = [
+  { key: 'calendar', href: '/app/calendar', label: 'Takvim', icon: 'calendar' },
 ];

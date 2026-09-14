@@ -15,7 +15,7 @@ import { NotificationBell } from '@/features/notifications/notification-bell';
 import { useNewTaskShortcut } from '@/features/shortcuts/new-task-shortcut';
 import { QuickCreateDialog } from '@/features/tasks/quick-create-dialog';
 
-import { MOBILE_MORE, MOBILE_PRIMARY, type NavItem } from './app-nav';
+import { DESKTOP_ONLY, MOBILE_MORE, MOBILE_PRIMARY, type NavItem } from './app-nav';
 import { NavIcon } from './nav-icon';
 import { useSearchShortcut } from './search-shortcut';
 
@@ -68,6 +68,9 @@ function SidebarNav() {
   return (
     <nav aria-label="Ana menü (masaüstü)" className="flex flex-col gap-0.5">
       {MOBILE_PRIMARY.map((item) => (
+        <NavLink key={item.key} item={item} />
+      ))}
+      {DESKTOP_ONLY.map((item) => (
         <NavLink key={item.key} item={item} />
       ))}
       <div className="my-2 h-px bg-border" role="separator" />
