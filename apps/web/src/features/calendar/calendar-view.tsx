@@ -267,7 +267,7 @@ export function CalendarView() {
                   <button
                     type="button"
                     onClick={() => setQuickAddDate(key)}
-                    aria-label={`${date.getDate()} tarihine görev ekle`}
+                    aria-label={`${key} tarihine görev ekle`}
                     className="flex size-5 items-center justify-center rounded text-muted-foreground/70 opacity-60 transition-all duration-150 hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 sm:opacity-0 sm:hover:opacity-100 sm:focus-visible:opacity-100"
                   >
                     <Plus className="size-3.5" aria-hidden="true" />
