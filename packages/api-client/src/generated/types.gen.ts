@@ -107,6 +107,29 @@ export type AuthenticatedSessionDataDto = {
     next: string;
 };
 
+export type CalendarDayGroupDto = {
+    date: string;
+    due: Array<CalendarTaskSummaryDto>;
+    planned: Array<CalendarTaskSummaryDto>;
+};
+
+export type CalendarResponseDto = {
+    days: Array<CalendarDayGroupDto>;
+    timezone: string;
+};
+
+export type CalendarTaskSummaryDto = {
+    areaId: string;
+    canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+    dueAt?: string;
+    id: string;
+    lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+    plannedAt?: string;
+    priority: 'LOW' | 'MEDIUM' | 'HIGH';
+    title: string;
+    version: number;
+};
+
 export type ChecklistItemDataDto = {
     completedAt?: string;
     id: string;
@@ -2392,6 +2415,30 @@ export type ExecuteBulkActionsResponses = {
      */
     200: unknown;
 };
+
+export type ListCalendarTasksData = {
+    body?: never;
+    path?: never;
+    query: {
+        end: string;
+        start: string;
+        timezone?: string;
+    };
+    url: '/api/v1/tasks/calendar';
+};
+
+export type ListCalendarTasksErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+};
+
+export type ListCalendarTasksResponses = {
+    200: CalendarResponseDto;
+};
+
+export type ListCalendarTasksResponse = ListCalendarTasksResponses[keyof ListCalendarTasksResponses];
 
 export type ListKanbanTasksData = {
     body?: never;

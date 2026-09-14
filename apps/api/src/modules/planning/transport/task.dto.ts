@@ -264,6 +264,54 @@ export class UpcomingResponseDto {
   days!: UpcomingDayGroupDto[];
 }
 
+export class CalendarTaskSummaryDto {
+  @ApiProperty({ format: 'uuid', type: String })
+  id!: string;
+
+  @ApiProperty({ type: String })
+  title!: string;
+
+  @ApiProperty({ enum: ['LOW', 'MEDIUM', 'HIGH'], type: String })
+  priority!: 'LOW' | 'MEDIUM' | 'HIGH';
+
+  @ApiProperty({ enum: ['TO_DO', 'IN_PROGRESS', 'COMPLETED'], type: String })
+  canonicalStatus!: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+
+  @ApiProperty({ type: String, format: 'date-time', required: false })
+  dueAt!: string | null;
+
+  @ApiProperty({ type: String, format: 'date-time', required: false })
+  plannedAt!: string | null;
+
+  @ApiProperty({ enum: ['ACTIVE', 'ARCHIVED', 'TRASHED'], type: String })
+  lifecycleState!: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+
+  @ApiProperty({ type: Number })
+  version!: number;
+
+  @ApiProperty({ format: 'uuid', type: String })
+  areaId!: string;
+}
+
+export class CalendarDayGroupDto {
+  @ApiProperty({ type: String, format: 'date', example: '2026-09-14' })
+  date!: string;
+
+  @ApiProperty({ type: () => [CalendarTaskSummaryDto] })
+  planned!: CalendarTaskSummaryDto[];
+
+  @ApiProperty({ type: () => [CalendarTaskSummaryDto] })
+  due!: CalendarTaskSummaryDto[];
+}
+
+export class CalendarResponseDto {
+  @ApiProperty({ type: String })
+  timezone!: string;
+
+  @ApiProperty({ type: () => [CalendarDayGroupDto] })
+  days!: CalendarDayGroupDto[];
+}
+
 export class KanbanColumnDto {
   @ApiProperty({ type: Number })
   count!: number;

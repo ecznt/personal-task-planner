@@ -25,6 +25,7 @@ import type {
   CreateTaskResult,
   EditTaskResult,
   GetTaskResult,
+  ListCalendarTasksResult,
   ListGlobalTasksResult,
   ListKanbanTasksResult,
   ListTodayTasksResult,
@@ -35,12 +36,14 @@ import type { TaskSummary } from '../domain/task.entity';
 import {
   parseCreateTaskRequestInput,
   parseEditTaskInput,
+  parseListCalendarTasksQuery,
   parseListGlobalTasksQuery,
   parseListTodayTasksQuery,
   parseListUpcomingTasksQuery,
   parseMoveKanbanTaskInput,
 } from './task.schema';
 import {
+  CalendarResponseDto,
   EditTaskRequestDto,
   GlobalCreateTaskRequestDto,
   KanbanResponseDto,
@@ -241,6 +244,40 @@ export class TaskController {
     });
 
     return this.handleListUpcomingTasksResult(result);
+  }
+
+  @Get('calendar')
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    operationId: 'listCalendarTasks',
+    summary: 'Get Calendar view with Tasks grouped by day',
+  })
+  @ApiQuery({ name: 'timezone', type: String, required: false })
+  @ApiQuery({ name: 'start', type: String, required: true })
+  @ApiQuery({ name: 'end', type: String, required: true })
+  @ApiResponse({
+    status: 200,
+    type: CalendarResponseDto,
+  })
+  @ApiResponse({
+    description: 'No valid authenticated session is present.',
+    status: 401,
+  })
+  async listCalendarTasks(
+    @Req() request: Request,
+    @Query() query: unknown,
+  ): Promise<CalendarResponseDto> {
+    const userId = await this.resolveUserId(request);
+
+    const input = parseListCalendarTasksQuery(query);
+
+    const result = await this.taskService.listCalendarTasks(userId, {
+      timezone: input.timezone,
+      start: input.start,
+      end: input.end,
+    });
+
+    return this.handleListCalendarTasksResult(result);
   }
 
   @Get('kanban')
@@ -674,9 +711,7 @@ export class TaskController {
     };
   }
 
-  private handleListUpcomingTasksResult(
-    result: ListUpcomingTasksResult,
-  ): UpcomingResponseDto {
+  private handleListUpcomingTasksResult(result: ListUpcomingTasksResult): UpcomingResponseDto {
     const mapTasks = (tasks: readonly TaskSummary[]) =>
       tasks.map((task) => ({
         id: task.id,
@@ -693,6 +728,30 @@ export class TaskController {
     return {
       timezone: result.timezone,
       overdue: mapTasks(result.overdue),
+      days: result.days.map((day) => ({
+        date: day.date,
+        planned: mapTasks(day.planned),
+        due: mapTasks(day.due),
+      })),
+    };
+  }
+
+  private handleListCalendarTasksResult(result: ListCalendarTasksResult): CalendarResponseDto {
+    const mapTasks = (tasks: readonly TaskSummary[]) =>
+      tasks.map((task) => ({
+        id: task.id,
+        title: task.title,
+        priority: task.priority,
+        canonicalStatus: task.canonicalStatus,
+        dueAt: task.dueAt?.toISOString() ?? null,
+        plannedAt: task.plannedAt?.toISOString() ?? null,
+        lifecycleState: task.lifecycleState,
+        version: task.version,
+        areaId: task.areaId,
+      }));
+
+    return {
+      timezone: result.timezone,
       days: result.days.map((day) => ({
         date: day.date,
         planned: mapTasks(day.planned),

@@ -2,13 +2,13 @@
 
 | Field | Value |
 | --- | --- |
-| Status | L-009 through L-023 implemented — MVP complete |
-| Revision date | 2026-09-07 |
+| Status | L-009 through L-023 implemented — MVP complete; L-024 planned |
+| Revision date | 2026-09-14 |
 | Product scope | MVP, personal use only |
 | Document language | English |
 | Execution mode | Small vertical slices, but not one micro-story per technical concern |
 | Current completed baseline | EPIC-001; BL-007 through BL-011; BL-014; BL-015; BL-121; L-001 through L-023 |
-| Next slice | None — MVP fully delivered; no next slice defined |
+| Next slice | L-024 — Calendar view (month grid + day quick-add) |
 
 This document replaces the earlier over-granular execution queue. The approved PRD, UX, Domain, Data, API, Architecture, and ADR documents remain authoritative for product and technical rules. This backlog controls implementation order only.
 
@@ -389,6 +389,35 @@ Before each slice, verify the exact requirement IDs from PRD and API/Domain/Data
 3. Migration deploy rehearsal succeeds on disposable database in CI.
 4. Decision log + phase history + backlog reflect L-001 through L-023 all implemented.
 5. Self-review: no secrets, no `develop`/`main` push, no bypassed gates.
+
+### L-024 — Calendar view (month grid + day quick-add)
+
+**Implementation status:** Planned, not yet implemented.
+
+**Story goal:** User can view a monthly calendar that shows tasks on both their planned and due days, navigate between months, and click a day to create a new task pre-filled with that date.
+
+**Planned scope:**
+
+- New API endpoint `GET /api/v1/tasks/calendar?timezone&start&end` returning day-bucketed tasks where tasks may appear on both their planned day and due day; same-day deduplication.
+- Month grid UI (`/app/calendar`) with Mon–Sun header, prev/today/next month navigation, today highlighted.
+- Day cells show up to 3 tasks + "+N daha" overflow; tasks displayed with priority badge.
+- Click on a day opens the existing task-creation flow with `plannedAt` pre-filled to that day.
+- Desktop sidebar entry "Takvim" (Calendar icon) added to `app-shell.tsx`.
+- Owner isolation, CSRF protection, precondition handling, and error states.
+
+**Excluded:**
+
+- Week view, drag-and-drop task rescheduling, mobile bottom navigation addition, i18n of this view.
+
+**Planned tests:**
+
+- API unit tests for calendar service (both-planned-and-due placement, range limits, timezone).
+- OpenAPI regeneration, api-client regeneration, contract tests.
+- Frontend vitest for day-cell rendering/overflow, month navigation, quick-add prefill.
+- Live-stack Playwright e2e verifying calendar load, task display on planned and due days, day click → quick-add creation.
+- Full lint, typecheck, build, and security checks.
+
+**Plan document:** (to be created during implementation)
 
 ## 7. Backlog maintenance policy
 

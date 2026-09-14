@@ -236,6 +236,46 @@ export function parseListUpcomingTasksQuery(value: unknown): ListUpcomingTasksQu
   });
 }
 
+const listCalendarTasksQuerySchema = z
+  .object({
+    timezone: z.string().min(1).default('Europe/Istanbul'),
+    start: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Tarih YYYY-MM-DD formatında olmalıdır.'),
+    end: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Tarih YYYY-MM-DD formatında olmalıdır.'),
+  })
+  .refine((data) => data.start <= data.end, {
+    message: 'Bitiş tarihi, başlangıç tarihinden önce olamaz.',
+  })
+  .refine(
+    (data) => {
+      const [sy, sm, sd] = data.start.split('-').map(Number);
+      const [ey, em, ed] = data.end.split('-').map(Number);
+      const startMs = Date.UTC(sy ?? 0, (sm ?? 1) - 1, sd ?? 1);
+      const endMs = Date.UTC(ey ?? 0, (em ?? 1) - 1, ed ?? 1);
+      const totalDays = Math.round((endMs - startMs) / 86_400_000) + 1;
+      return totalDays <= 62;
+    },
+    {
+      message: 'Tarih aralığı en fazla 62 gün olabilir.',
+    },
+  );
+
+export type ListCalendarTasksQueryInput = z.infer<typeof listCalendarTasksQuerySchema>;
+
+export function parseListCalendarTasksQuery(value: unknown): ListCalendarTasksQueryInput {
+  const result = listCalendarTasksQuerySchema.safeParse(value);
+
+  if (result.success) {
+    return result.data;
+  }
+
+  throw new ApiProblemException({
+    status: 422,
+    code: 'VALIDATION_FAILED',
+    detail: 'Sorgu parametrelerini kontrol edin.',
+    errors: result.error.issues.map(toValidationProblem),
+  });
+}
+
 const moveKanbanTaskSchema = z.strictObject({
   taskId: z.string().uuid(),
   targetCanonicalStatus: z.enum(['TO_DO', 'IN_PROGRESS', 'COMPLETED']),

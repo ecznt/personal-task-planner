@@ -6,7 +6,7 @@
 | Planning stage | Stage 6 — API design |
 | Product scope | MVP |
 | Document language | English |
-| Last updated | 2026-07-25 |
+| Last updated | 2026-09-14 |
 | Implementation status | Partially implemented through BL-008; remaining contract groups are unstarted |
 
 This document defines the conceptual HTTP contract for the approved MVP. It describes observable REST resources, commands, authentication and session behavior, ownership enforcement, concurrency, idempotency, errors, collection semantics, and OpenAPI/client responsibilities. It does not create an OpenAPI file, controller, DTO class, backend module, persistence schema, migration, SQL statement, or production application code.
@@ -41,6 +41,7 @@ Normative terms such as **must**, **must not**, **should**, and **may** express 
 | API-D-012 | The backend owns deterministic OpenAPI generation; a committed generated contract becomes the only input to the generated frontend client. Handwritten transport types and endpoint duplication are forbidden. | Fixed OpenAPI/generated-client decisions |
 | API-D-013 | Persist a default-Enabled account preference for future in-app reminder Notifications. A due reminder resolves atomically to Triggered-with-Notification or Suppressed-without-Notification; disabling preserves definitions/history and re-enabling never backfills Suppressed reminders. | User choice 4B; FR-091–FR-093, BR-NOTIF-001–BR-NOTIF-003, DD-036 |
 | API-D-014 | Web Push is an independent reminder-delivery channel in addition to in-app Notifications. `pushReminderNotificationsEnabled` and `inAppReminderNotificationsEnabled` are separately toggled preferences; the worker dispatches each enabled channel independently at due time and push delivery never backfills disabled periods. | User choice 4B; FR-091–FR-093, BR-NOTIF-001–BR-NOTIF-003, DD-036, DD-037 |
+| API-D-015 | The Calendar view reads an explicit local-day range through `GET /tasks/calendar?timezone&start&end`. A Task may appear on both its planned day and its due day; when planned and due fall on the same local day the Task appears once under `planned`. Ranges are capped at 62 calendar days and bounded to account-local midnights, not UTC midnights. | L-024; BR-TIME-001–BR-TIME-009, API-G-005 |
 
 ## 3. API conventions
 
@@ -372,6 +373,7 @@ Project lifecycle endpoints are defined in Sections 21 and 22. There is no ordin
 | --- | --- | --- | --- | --- | --- | --- |
 | `GET /tasks` | Session | Current User active Tasks only. | Cursor, limit, approved filters including `dateState`+`timezone`, List sort/order. | `200` Task summaries and page metadata. | `400` query/cursor, `401`, `422` incoherent owned filters, `429`. | FR-059, FR-063–FR-069, UXF-015 |
 | `GET /tasks/today` | Session | Current User active eligible Tasks only. | Cursor/limit per section or bounded section options, approved filters/sort. | `200` account-local date/time zone and Overdue, Planned Today, Due Today, Completed Today projections with unique Task inclusion/reason badges. | `400`, `401`, `422`, `429`. | FR-041–FR-046, FR-061–FR-062, AC-009, UXF-006 |
+| `GET /tasks/calendar` | Session | Current User active non-completed Tasks only. | Required `start`/`end` calendar dates (`YYYY-MM-DD`, ≤ 62 local days) and optional `timezone`. | `200` timezone and one day group per calendar day, each with `planned` and `due` Task summaries; a Task may appear on both its planned day and due day, once per same day. | `400`, `401`, `422`, `429`. | L-024; BR-TIME-001–BR-TIME-009, API-D-015 |
 | `GET /tasks/kanban` | Session | Current User active Tasks only. | Per-group cursor/limit and approved filters. | `200` exactly three canonical groups; cards ordered by Global rank then Task ID. | `400`, `401`, `422`, `429`. | FR-060, FR-067–FR-069, UXF-016 |
 | `GET /areas/{areaId}/tasks` | Session | Owned active Area and its current User Tasks only. | Cursor, limit, Project/status/Label/date filters, List sort. | `200` Area-scoped Task summaries and page metadata. | `400`, `401`, `404`, `422`, `429`. | FR-017–FR-024, FR-059, UXF-008 |
 | `GET /areas/{areaId}/kanban` | Session | Owned active Area and its Tasks/statuses only. | Per-status cursor/limit and approved filters. | `200` ordered AreaStatus columns and cards ordered by Area rank then Task ID. | `400`, `401`, `404`, `422`, `429`. | FR-087–FR-090, UXF-017 |
@@ -555,7 +557,7 @@ Archive and Trash searches use their dedicated collection endpoints and explicit
 | Deliver Web Push reminder channel | `POST`/`DELETE /push-subscriptions`, internal worker dispatch, `PATCH /users/me` | Covered as an owner-scoped subscription registry with idempotent upsert and terminal 410 removal on delivery failure. |
 | Manage Labels and checklist order | `/labels*`, `/tasks/{id}/checklist-*` | Covered with same-owner validation and Task ETag. |
 | Global/Area manual board ordering | `/tasks/kanban-moves`, `/areas/{id}/kanban-moves` | Covered with separate ranks and destination-context validation. |
-| Search/filter/sort/Today/List/Kanban reads | `/search/tasks`, `/tasks`, `/tasks/today`, Kanban collection endpoints | Covered with owner-scoped cursor projections. |
+| Search/filter/sort/Today/List/Kanban reads | `/search/tasks`, `/tasks`, `/tasks/today`, `/tasks/calendar`, Kanban collection endpoints | Covered with owner-scoped cursor projections or bounded local-day calendar ranges. |
 | Bulk Task status/Label/Archive/Trash | `POST /tasks/bulk-actions` | Covered with per-item authorization, ETag, atomicity, and results. |
 | Archive/Trash cascades and coherent restore | Resource lifecycle commands plus `/archive/*` and `/trash/*` restore routes | Covered with provenance, explicit destination, and no guessed parent. |
 | Manual permanent deletion from Trash | `/trash/{type}/{id}/permanent-deletions` | Covered with recent re-auth, confirmation, idempotency, and required descendant purge. |

@@ -4,7 +4,7 @@ import { AreaService } from './area.service';
 import { TaskRepository } from '../infrastructure/task.repository';
 import type { DateStateValue, Task, TaskDetail, TaskSummary } from '../domain/task.entity';
 import { RecurrenceService } from './recurrence.service';
-import { parseTodayRange } from './date-range';
+import { buildCalendarDayRanges, parseTodayRange } from './date-range';
 
 export type CreateTaskChecklistItemInput = {
   readonly text: string;
@@ -209,6 +209,24 @@ export type MoveAreaKanbanTaskResult =
   | { readonly outcome: 'VALIDATION_ERROR'; readonly detail: string }
   | { readonly outcome: 'UNAUTHENTICATED' };
 
+export type ListCalendarTasksQuery = {
+  readonly timezone: string;
+  readonly start: string;
+  readonly end: string;
+};
+
+export type CalendarDayGroup = {
+  readonly date: string;
+  readonly planned: readonly TaskSummary[];
+  readonly due: readonly TaskSummary[];
+};
+
+export type ListCalendarTasksResult = {
+  readonly outcome: 'SUCCESS';
+  readonly timezone: string;
+  readonly days: readonly CalendarDayGroup[];
+};
+
 @Injectable()
 export class TaskService {
   constructor(
@@ -251,8 +269,7 @@ export class TaskService {
       }
     }
 
-    const areaId = command.areaId
-      ?? (await this.ensureInboxAreaId(userId));
+    const areaId = command.areaId ?? (await this.ensureInboxAreaId(userId));
 
     const areaExists = await this.taskRepository.areaExists(userId, areaId);
 
@@ -540,6 +557,61 @@ export class TaskService {
     };
   }
 
+  async listCalendarTasks(
+    userId: string,
+    query: ListCalendarTasksQuery,
+  ): Promise<ListCalendarTasksResult> {
+    const ranges = buildCalendarDayRanges(query.timezone, query.start, query.end);
+
+    const rangeStart = ranges[0]?.start;
+    const rangeEnd = ranges[ranges.length - 1]?.end;
+
+    if (rangeStart === undefined || rangeEnd === undefined) {
+      return { outcome: 'SUCCESS', timezone: query.timezone, days: [] };
+    }
+
+    const tasks = await this.taskRepository.findUpcomingTasks(userId, rangeStart, rangeEnd);
+
+    const dayGroups = new Map<string, { planned: TaskSummary[]; due: TaskSummary[] }>();
+
+    for (const range of ranges) {
+      dayGroups.set(range.date, { planned: [], due: [] });
+    }
+
+    for (const task of tasks) {
+      if (task.plannedAt !== null && task.plannedAt >= rangeStart && task.plannedAt < rangeEnd) {
+        const day = ranges.find(
+          (r) => task.plannedAt !== null && task.plannedAt >= r.start && task.plannedAt < r.end,
+        );
+        if (day) {
+          dayGroups.get(day.date)?.planned.push(task);
+        }
+      }
+
+      if (task.dueAt !== null && task.dueAt >= rangeStart && task.dueAt < rangeEnd) {
+        const day = ranges.find(
+          (r) => task.dueAt !== null && task.dueAt >= r.start && task.dueAt < r.end,
+        );
+        if (day) {
+          const group = dayGroups.get(day.date);
+          if (group && !group.planned.some((t) => t.id === task.id)) {
+            group.due.push(task);
+          }
+        }
+      }
+    }
+
+    return {
+      outcome: 'SUCCESS',
+      timezone: query.timezone,
+      days: ranges.map((range) => ({
+        date: range.date,
+        planned: dayGroups.get(range.date)?.planned ?? [],
+        due: dayGroups.get(range.date)?.due ?? [],
+      })),
+    };
+  }
+
   async listKanbanTasks(userId: string): Promise<ListKanbanTasksResult> {
     const { todo, inProgress, completed } = await this.taskRepository.findKanbanTasks(userId);
 
@@ -781,7 +853,11 @@ function buildDayRangesInTimeZone(
   });
 
   const todayParts = formatter.format(now).split('-');
-  const startBase = Date.UTC(Number(todayParts[0]), Number(todayParts[1]) - 1, Number(todayParts[2]));
+  const startBase = Date.UTC(
+    Number(todayParts[0]),
+    Number(todayParts[1]) - 1,
+    Number(todayParts[2]),
+  );
 
   const ranges: { date: string; start: Date; end: Date }[] = [];
 

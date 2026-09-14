@@ -383,6 +383,111 @@
         ],
         "type": "object"
       },
+      "CalendarDayGroupDto": {
+        "properties": {
+          "date": {
+            "example": "2026-09-14",
+            "format": "date",
+            "type": "string"
+          },
+          "due": {
+            "items": {
+              "$ref": "#/components/schemas/CalendarTaskSummaryDto"
+            },
+            "type": "array"
+          },
+          "planned": {
+            "items": {
+              "$ref": "#/components/schemas/CalendarTaskSummaryDto"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "date",
+          "planned",
+          "due"
+        ],
+        "type": "object"
+      },
+      "CalendarResponseDto": {
+        "properties": {
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/CalendarDayGroupDto"
+            },
+            "type": "array"
+          },
+          "timezone": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "timezone",
+          "days"
+        ],
+        "type": "object"
+      },
+      "CalendarTaskSummaryDto": {
+        "properties": {
+          "areaId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "canonicalStatus": {
+            "enum": [
+              "TO_DO",
+              "IN_PROGRESS",
+              "COMPLETED"
+            ],
+            "type": "string"
+          },
+          "dueAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "lifecycleState": {
+            "enum": [
+              "ACTIVE",
+              "ARCHIVED",
+              "TRASHED"
+            ],
+            "type": "string"
+          },
+          "plannedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "priority": {
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "version": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "priority",
+          "canonicalStatus",
+          "lifecycleState",
+          "version",
+          "areaId"
+        ],
+        "type": "object"
+      },
       "ChecklistItemDataDto": {
         "properties": {
           "completedAt": {
@@ -4918,6 +5023,56 @@
         "summary": "Execute bulk actions on Tasks",
         "tags": [
           "Bulk Actions"
+        ]
+      }
+    },
+    "/api/v1/tasks/calendar": {
+      "get": {
+        "operationId": "listCalendarTasks",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "end",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "start",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "timezone",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          }
+        },
+        "summary": "Get Calendar view with Tasks grouped by day",
+        "tags": [
+          "Tasks"
         ]
       }
     },
