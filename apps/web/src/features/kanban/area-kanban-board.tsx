@@ -1,19 +1,29 @@
 'use client';
 
 import { apiClient } from '@planner/api-client';
+import { DragDropProvider, DragOverlay, type DragEndEvent } from '@dnd-kit/react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  DraggableKanbanCard,
+  DroppableKanbanColumn,
+  moveTaskBetweenColumns,
+  resolveDragMove,
+  type DragTaskData,
+} from '@/features/kanban/kanban-dnd';
 import { KanbanTaskCard, type KanbanTask } from '@/features/kanban/kanban-task-card';
 import {
   KanbanToolbar,
   useKanbanBoardFilters,
   type KanbanFilters,
 } from '@/features/kanban/kanban-toolbar';
+import { cn } from '@/lib/utils';
 
 type AreaKanbanStatus = {
   readonly id: string;
@@ -33,6 +43,13 @@ type AreaKanbanResponse = {
   readonly columns: readonly AreaKanbanColumn[];
 };
 
+type AreaMoveVariables = {
+  taskId: string;
+  targetAreaStatusId: string;
+  version: number;
+  fromStatusId: string;
+};
+
 function AreaKanbanColumnView({
   column,
   statusName,
@@ -44,68 +61,91 @@ function AreaKanbanColumnView({
   statusName: string;
   columns: readonly AreaKanbanColumn[];
   columnIndex: number;
-  onMove: (taskId: string, targetAreaStatusId: string) => void;
+  onMove: (
+    taskId: string,
+    targetAreaStatusId: string,
+    version: number,
+    fromStatusId: string,
+  ) => void;
 }) {
   const hasPrevious = columnIndex > 0;
   const hasNext = columnIndex < columns.length - 1;
 
   return (
-    <div className="flex min-w-[260px] flex-1 flex-col rounded-lg border bg-muted/50 p-3">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-semibold">{statusName}</h2>
-        <span
-          className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground"
-          aria-live="polite"
-        >
-          {column.count}
-        </span>
-      </div>
-      <div className="flex-1 space-y-2">
-        {column.tasks.length === 0 ? (
-          <div className="rounded-lg border border-dashed p-4 text-center text-xs text-muted-foreground">
-            Boş
-          </div>
-        ) : (
-          column.tasks.map((task, index) => {
-            const previousColumn = columns[columnIndex - 1];
-            const nextColumn = columns[columnIndex + 1];
-            return (
-              <div key={task.id} className="group relative">
-                <KanbanTaskCard task={task} index={index} />
-                <div className="absolute right-1 top-1 z-10 flex gap-1">
-                  {hasPrevious && previousColumn && (
-                    <button
-                      type="button"
-                      onClick={() => onMove(task.id, previousColumn.statusId)}
-                      className="rounded bg-background/80 px-1.5 py-0.5 text-muted-foreground backdrop-blur transition-transform duration-150 focus-visible:ring-2 active:scale-90 hover:bg-background"
-                      aria-label={`${task.title} görevini önceki duruma taşı`}
-                    >
-                      <ArrowLeft className="size-3" aria-hidden="true" />
-                    </button>
-                  )}
-                  {hasNext && nextColumn && (
-                    <button
-                      type="button"
-                      onClick={() => onMove(task.id, nextColumn.statusId)}
-                      className="rounded bg-background/80 px-1.5 py-0.5 text-muted-foreground backdrop-blur transition-transform duration-150 focus-visible:ring-2 active:scale-90 hover:bg-background"
-                      aria-label={`${task.title} görevini sonraki duruma taşı`}
-                    >
-                      <ArrowRight className="size-3" aria-hidden="true" />
-                    </button>
-                  )}
+    <DroppableKanbanColumn id={column.statusId} className="flex min-w-[260px] flex-1 flex-col">
+      <div className="flex h-full flex-col rounded-lg border bg-muted/50 p-3">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-semibold">{statusName}</h2>
+          <span
+            className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground"
+            aria-live="polite"
+          >
+            {column.count}
+          </span>
+        </div>
+        <div className="flex-1 space-y-2">
+          {column.tasks.length === 0 ? (
+            <div className="rounded-lg border border-dashed p-4 text-center text-xs text-muted-foreground">
+              Boş
+            </div>
+          ) : (
+            column.tasks.map((task, index) => {
+              const previousColumn = columns[columnIndex - 1];
+              const nextColumn = columns[columnIndex + 1];
+              return (
+                <div key={task.id} className="group relative">
+                  <DraggableKanbanCard task={task} index={index} fromColumn={column.statusId} />
+                  <div className="absolute right-1 top-1 z-10 flex gap-1">
+                    {hasPrevious && previousColumn && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onMove(task.id, previousColumn.statusId, task.version, column.statusId)
+                        }
+                        className="rounded bg-background/80 px-1.5 py-0.5 text-muted-foreground backdrop-blur transition-transform duration-150 focus-visible:ring-2 active:scale-90 hover:bg-background"
+                        aria-label={`${task.title} görevini önceki duruma taşı`}
+                      >
+                        <ArrowLeft className="size-3" aria-hidden="true" />
+                      </button>
+                    )}
+                    {hasNext && nextColumn && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onMove(task.id, nextColumn.statusId, task.version, column.statusId)
+                        }
+                        className="rounded bg-background/80 px-1.5 py-0.5 text-muted-foreground backdrop-blur transition-transform duration-150 focus-visible:ring-2 active:scale-90 hover:bg-background"
+                        aria-label={`${task.title} görevini sonraki duruma taşı`}
+                      >
+                        <ArrowRight className="size-3" aria-hidden="true" />
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })
-        )}
+              );
+            })
+          )}
+        </div>
       </div>
-    </div>
+    </DroppableKanbanColumn>
   );
+}
+
+function buildAreaKanbanQuery(filters: KanbanFilters): Record<string, string> {
+  const query: Record<string, string> = {};
+
+  if (filters.q.length > 0) query.q = filters.q;
+  if (filters.projectId !== undefined) query.projectId = filters.projectId;
+  if (filters.priority !== undefined) query.priority = filters.priority;
+  if (filters.labelId !== undefined) query.labelId = filters.labelId;
+
+  return query;
 }
 
 export function AreaKanbanBoard({ areaId }: { areaId: string }) {
   const queryClient = useQueryClient();
   const { filters, setQ, setFilter, clearAll } = useKanbanBoardFilters({ mode: 'local' });
+  const [activeTask, setActiveTask] = useState<KanbanTask | null>(null);
 
   const kanbanQuery = buildAreaKanbanQuery(filters);
 
@@ -126,17 +166,14 @@ export function AreaKanbanBoard({ areaId }: { areaId: string }) {
   });
 
   const moveMutation = useMutation({
-    mutationFn: async ({
-      taskId,
-      targetAreaStatusId,
-    }: {
-      taskId: string;
-      targetAreaStatusId: string;
-    }) => {
+    mutationFn: async ({ taskId, targetAreaStatusId, version }: AreaMoveVariables) => {
       const result = await apiClient.post({
         url: `/api/v1/areas/${areaId}/kanban-moves`,
         body: { taskId, targetAreaStatusId },
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'If-Match': String(version),
+        },
       });
 
       if (result.error !== undefined) {
@@ -145,12 +182,69 @@ export function AreaKanbanBoard({ areaId }: { areaId: string }) {
 
       return result.data;
     },
-    onSuccess: () => {
+    onMutate: async ({ taskId, targetAreaStatusId, fromStatusId }: AreaMoveVariables) => {
+      await queryClient.cancelQueries({ queryKey: ['areas', areaId, 'kanban'] });
+
+      const previous = queryClient.getQueryData<AreaKanbanResponse>([
+        'areas',
+        areaId,
+        'kanban',
+        filters,
+      ]);
+
+      if (previous !== undefined) {
+        const record = Object.fromEntries(
+          previous.columns.map((column) => [column.statusId, column]),
+        );
+        const nextRecord = moveTaskBetweenColumns(record, taskId, fromStatusId, targetAreaStatusId);
+        queryClient.setQueryData<AreaKanbanResponse>(['areas', areaId, 'kanban', filters], {
+          ...previous,
+          columns: previous.columns.map((column) => nextRecord[column.statusId] ?? column),
+        });
+      }
+
+      return { previous };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous !== undefined) {
+        queryClient.setQueryData<AreaKanbanResponse>(['areas', areaId, 'kanban', filters], {
+          ...context.previous,
+        });
+      }
+      toast.error('Taşıma başarısız.');
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['areas', areaId, 'kanban'] });
       queryClient.invalidateQueries({ queryKey: ['tasks', 'kanban'] });
+    },
+    onSuccess: () => {
       toast.success('Görev taşındı');
     },
   });
+
+  const handleMove = useCallback(
+    (taskId: string, targetAreaStatusId: string, version: number, fromStatusId: string) => {
+      moveMutation.mutate({ taskId, targetAreaStatusId, version, fromStatusId });
+    },
+    [moveMutation],
+  );
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      if (event.canceled) return;
+
+      const source = event.operation.source;
+      const target = event.operation.target;
+      if (source === null || target === null) return;
+
+      const move = resolveDragMove(source.data as DragTaskData, String(target.id));
+      if (move !== null) {
+        const sourceData = source.data as DragTaskData;
+        handleMove(move.taskId, move.toColumn, move.version, sourceData.fromColumn);
+      }
+    },
+    [handleMove],
+  );
 
   if (kanban.isLoading && !kanban.data) {
     return (
@@ -179,10 +273,6 @@ export function AreaKanbanBoard({ areaId }: { areaId: string }) {
 
   const data = kanban.data;
 
-  const handleMove = (taskId: string, targetAreaStatusId: string) => {
-    moveMutation.mutate({ taskId, targetAreaStatusId });
-  };
-
   const allEmpty = data.columns.every((col) => col.count === 0);
 
   return (
@@ -196,25 +286,40 @@ export function AreaKanbanBoard({ areaId }: { areaId: string }) {
         projectsAreaId={areaId}
       />
 
-      <div
-        className="flex gap-4 overflow-x-auto pb-4"
-        role="region"
-        aria-label="Alan Kanban panosu, yatay kaydırılabilir"
+      <DragDropProvider
+        onDragStart={(event) => {
+          const sourceData = event.operation.source?.data as DragTaskData | undefined;
+          setActiveTask(sourceData?.task ?? null);
+        }}
+        onDragEnd={handleDragEnd}
       >
-        {data.columns.map((column, index) => {
-          const status = data.statuses.find((s) => s.id === column.statusId);
-          return (
-            <AreaKanbanColumnView
-              key={column.statusId}
-              column={column}
-              statusName={status?.name ?? ''}
-              columns={data.columns}
-              columnIndex={index}
-              onMove={handleMove}
-            />
-          );
-        })}
-      </div>
+        <div
+          className="flex gap-4 overflow-x-auto pb-4"
+          role="region"
+          aria-label="Alan Kanban panosu, yatay kaydırılabilir"
+        >
+          {data.columns.map((column, index) => {
+            const status = data.statuses.find((s) => s.id === column.statusId);
+            return (
+              <AreaKanbanColumnView
+                key={column.statusId}
+                column={column}
+                statusName={status?.name ?? ''}
+                columns={data.columns}
+                columnIndex={index}
+                onMove={handleMove}
+              />
+            );
+          })}
+        </div>
+        <DragOverlay>
+          {activeTask !== null && (
+            <div className={cn('pointer-events-none rotate-2 scale-[1.02] shadow-surface-hover')}>
+              <KanbanTaskCard task={activeTask} />
+            </div>
+          )}
+        </DragOverlay>
+      </DragDropProvider>
 
       {allEmpty && (
         <div className="rounded-lg border bg-card p-6 text-center text-muted-foreground">
@@ -231,17 +336,6 @@ export function AreaKanbanBoard({ areaId }: { areaId: string }) {
       )}
     </div>
   );
-}
-
-function buildAreaKanbanQuery(filters: KanbanFilters): Record<string, string> {
-  const query: Record<string, string> = {};
-
-  if (filters.q.length > 0) query.q = filters.q;
-  if (filters.projectId !== undefined) query.projectId = filters.projectId;
-  if (filters.priority !== undefined) query.priority = filters.priority;
-  if (filters.labelId !== undefined) query.labelId = filters.labelId;
-
-  return query;
 }
 
 export { buildAreaKanbanQuery };
