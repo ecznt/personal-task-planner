@@ -3,13 +3,14 @@ import type { RecurrenceFormValues } from './recurrence-form';
 export type ParsedQuickCapture = {
   readonly title: string;
   readonly plannedAt?: Date;
-  readonly dueAt?: Date;
   readonly priority?: 'LOW' | 'MEDIUM' | 'HIGH';
   readonly recurrence?: RecurrenceFormValues;
+  readonly projectRaw?: string;
+  readonly labelRaws?: readonly string[];
 };
 
-const PRIORITY_HIGH = /\bonemli\b/gi;
-const PRIORITY_LOW = /\b(onemsiz|dusuk oncelikli?|dusuk oncelik)\b/gi;
+const PRIORITY_HIGH = /\b(?<!@#)onemli\b/gi;
+const PRIORITY_LOW = /\b(?<!@#)(onemsiz|dusuk oncelikli?|dusuk oncelik)\b/gi;
 
 const MONTHS: ReadonlyArray<{ readonly name: string; readonly index: number }> = [
   { name: 'ocak', index: 0 },
@@ -41,12 +42,13 @@ const WEEKDAYS: ReadonlyArray<{ readonly iso: number; readonly names: readonly s
   { iso: 7, names: ['pazar', 'paz'] },
 ];
 
-const RELATIVE_DAYS: ReadonlyArray<{ readonly offset: number; readonly words: readonly string[] }> = [
-  { offset: 0, words: ['bugun'] },
-  { offset: 1, words: ['yarin'] },
-  { offset: 2, words: ['obur gun', 'oburgun'] },
-  { offset: 7, words: ['onumuzdeki hafta', 'gelecek hafta', 'haftaya'] },
-];
+const RELATIVE_DAYS: ReadonlyArray<{ readonly offset: number; readonly words: readonly string[] }> =
+  [
+    { offset: 0, words: ['bugun'] },
+    { offset: 1, words: ['yarin'] },
+    { offset: 2, words: ['obur gun', 'oburgun'] },
+    { offset: 7, words: ['onumuzdeki hafta', 'gelecek hafta', 'haftaya'] },
+  ];
 
 const TIME_WORDS: ReadonlyArray<{ readonly hour: number; readonly words: readonly string[] }> = [
   { hour: 7, words: ['sabah'] },
@@ -60,7 +62,7 @@ type Match = {
   readonly end: number;
 };
 
-function normalize(input: string): string {
+export function normalize(input: string): string {
   return input
     .toLocaleLowerCase('tr-TR')
     .replaceAll('ş', 's')
@@ -72,6 +74,10 @@ function normalize(input: string): string {
     .replaceAll('â', 'a')
     .replaceAll('î', 'i')
     .replaceAll('û', 'u');
+}
+
+export function namesEqual(left: string, right: string): boolean {
+  return normalize(left.trim()) === normalize(right.trim());
 }
 
 function collect(re: RegExp, text: string): readonly Match[] {
@@ -132,6 +138,40 @@ function dateAtEndOfDay(date: Date): Date {
   return atClockTime(date, 23, 59);
 }
 
+export function describeQuickCapture(parsed: ParsedQuickCapture): string | undefined {
+  const labels: string[] = [];
+
+  if (parsed.plannedAt !== undefined) {
+    const isAllDay = parsed.plannedAt.getHours() === 23 && parsed.plannedAt.getMinutes() === 59;
+    labels.push(
+      new Intl.DateTimeFormat('tr-TR', {
+        day: 'numeric',
+        month: 'short',
+        ...(isAllDay ? {} : { hour: '2-digit', minute: '2-digit' }),
+      }).format(parsed.plannedAt),
+    );
+  }
+
+  if (parsed.priority === 'HIGH') {
+    labels.push('Önemli');
+  }
+  if (parsed.priority === 'LOW') {
+    labels.push('Düşük öncelik');
+  }
+  if (parsed.recurrence !== undefined) {
+    const frequency = {
+      DAILY: 'Her gün',
+      WEEKDAYS: 'Her iş günü',
+      WEEKLY: 'Her hafta',
+      MONTHLY: 'Her ay',
+      YEARLY: 'Her yıl',
+    } as const;
+    labels.push(frequency[parsed.recurrence.frequency] ?? 'Tekrarlı');
+  }
+
+  return labels.length > 0 ? labels.join(' · ') : undefined;
+}
+
 export function parseQuickCapture(input: string, now: Date = new Date()): ParsedQuickCapture {
   const original = input.trim();
 
@@ -141,8 +181,33 @@ export function parseQuickCapture(input: string, now: Date = new Date()): Parsed
 
   const norm = normalize(original);
   const matches: Match[] = [];
+
+  let projectRaw: string | undefined;
+  const labelRaws: string[] = [];
+
+  const annotationRe = /(?:^|\s)[@#]([\p{L}\p{N}_-]+)/giu;
+  const annotationChars = [...norm];
+
+  for (const match of norm.matchAll(annotationRe)) {
+    const token = match[0];
+    const isProject = token.trimStart().startsWith('#');
+    const raw = original.slice(match.index, match.index + token.length).trim();
+
+    if (isProject) {
+      projectRaw = raw;
+    } else {
+      labelRaws.push(raw);
+    }
+
+    for (let index = match.index; index < match.index + token.length; index += 1) {
+      annotationChars[index] = ' ';
+    }
+  }
+
+  const annotated = annotationChars.join('');
+
   const collectAll = (re: RegExp): readonly Match[] => {
-    const found = collect(re, norm);
+    const found = collect(re, annotated);
     matches.push(...found);
     return found;
   };
@@ -158,6 +223,21 @@ export function parseQuickCapture(input: string, now: Date = new Date()): Parsed
   }
   if (collectAll(PRIORITY_LOW).length > 0) {
     priority = 'LOW';
+  }
+
+  const priorityLevels = collectAll(/\bp([1-4])\b/gi);
+
+  if (priorityLevels.length > 0) {
+    const levelText = firstMatchText(annotated, priorityLevels);
+    const level = Number(levelText?.match(/\d/)?.[0]);
+
+    if (level === 1) {
+      priority = 'HIGH';
+    } else if (level === 2) {
+      priority = 'MEDIUM';
+    } else if (level === 3) {
+      priority = 'LOW';
+    }
   }
 
   if (collectAll(/\bher gun\b|\bhergun\b/gi).length > 0) {
@@ -187,9 +267,9 @@ export function parseQuickCapture(input: string, now: Date = new Date()): Parsed
   );
 
   if (herWeekdayMatches.length > 0) {
-    const text = firstMatchText(norm, herWeekdayMatches);
-    const day = WEEKDAYS.find((candidate) =>
-      text !== undefined && candidate.names.some((name) => text.includes(name)),
+    const text = firstMatchText(annotated, herWeekdayMatches);
+    const day = WEEKDAYS.find(
+      (candidate) => text !== undefined && candidate.names.some((name) => text.includes(name)),
     );
 
     if (day) {
@@ -239,7 +319,7 @@ export function parseQuickCapture(input: string, now: Date = new Date()): Parsed
   const herNMatches = collectAll(/\bher\s+(\d+)\s+(?:gunde\s+bir|gun)\b/gi);
 
   if (herNMatches.length > 0) {
-    const text = firstMatchText(norm, herNMatches) ?? '';
+    const text = firstMatchText(annotated, herNMatches) ?? '';
     const interval = Number(text.match(/\d+/)?.[0] ?? 1);
     recurrence = {
       mode: 'CALENDAR_BASED',
@@ -260,14 +340,15 @@ export function parseQuickCapture(input: string, now: Date = new Date()): Parsed
     'gi',
   );
 
-  for (const match of norm.matchAll(monthPattern)) {
+  for (const match of annotated.matchAll(monthPattern)) {
     const [raw, dayText, monthName, yearText] = match;
     const month = MONTHS.find((candidate) => candidate.name === monthName);
 
     if (month) {
       const year = Number(yearText) || now.getFullYear();
       const candidate = new Date(year, month.index, Number(dayText));
-      absoluteDate = candidate >= now ? candidate : new Date(year + 1, month.index, Number(dayText));
+      absoluteDate =
+        candidate >= now ? candidate : new Date(year + 1, month.index, Number(dayText));
     }
 
     matches.push({ start: match.index, end: match.index + raw.length });
@@ -277,14 +358,14 @@ export function parseQuickCapture(input: string, now: Date = new Date()): Parsed
   const timeMatches = collectAll(/\b\d{1,2}:\d{2}\b|\b\d{1,2}\.\d{2}(?!\d)\b/gi);
 
   for (const match of timeMatches) {
-    const text = norm.slice(match.start, match.end);
+    const text = annotated.slice(match.start, match.end);
     const parts = text.includes(':')
       ? text.split(':').map((part) => Number(part))
       : text.split('.').map((part) => Number(part));
     time = { hour: parts[0] ?? 0, minute: parts[1] ?? 0 };
   }
 
-  for (const match of norm.matchAll(/\bsaat\s+(\d{1,2})(?::(\d{2}))?\b/gi)) {
+  for (const match of annotated.matchAll(/\bsaat\s+(\d{1,2})(?::(\d{2}))?\b/gi)) {
     time = { hour: Number(match[1]), minute: Number(match[2] ?? 0) };
     matches.push({ start: match.index, end: match.index + match[0].length });
   }
@@ -295,7 +376,7 @@ export function parseQuickCapture(input: string, now: Date = new Date()): Parsed
       'gi',
     );
 
-    for (const match of norm.matchAll(re)) {
+    for (const match of annotated.matchAll(re)) {
       time = { hour: Number(match[1]), minute: Number(match[2] ?? 0) };
       matches.push({ start: match.index, end: match.index + match[0].length });
     }
@@ -308,8 +389,8 @@ export function parseQuickCapture(input: string, now: Date = new Date()): Parsed
     'gi',
   );
 
-  for (const match of norm.matchAll(relativePattern)) {
-    const text = norm.slice(match.index, match.index + match[0].length);
+  for (const match of annotated.matchAll(relativePattern)) {
+    const text = annotated.slice(match.index, match.index + match[0].length);
     const group = RELATIVE_DAYS.find((candidate) =>
       candidate.words.some((word) => text.includes(word)),
     );
@@ -320,7 +401,7 @@ export function parseQuickCapture(input: string, now: Date = new Date()): Parsed
     }
   }
 
-  for (const match of norm.matchAll(/\b(\d+|bir)\s+(gun|hafta|ay|yil)\s+sonra\b/gi)) {
+  for (const match of annotated.matchAll(/\b(\d+|bir)\s+(gun|hafta|ay|yil)\s+sonra\b/gi)) {
     const amount = Number(match[1]) || 1;
     const unitDays = { gun: 1, hafta: 7, ay: 30, yil: 365 } as Record<string, number>;
     dayOffset = amount * (unitDays[match[2] ?? ''] ?? 1);
@@ -332,32 +413,37 @@ export function parseQuickCapture(input: string, now: Date = new Date()): Parsed
       continue;
     }
 
-    const re = new RegExp(`\\b(?:${[...day.names].sort((a, b) => b.length - a.length).join('|')})\\b`, 'gi');
+    const re = new RegExp(
+      `\\b(?:${[...day.names].sort((a, b) => b.length - a.length).join('|')})\\b`,
+      'gi',
+    );
 
-    for (const match of norm.matchAll(re)) {
+    for (const match of annotated.matchAll(re)) {
       absoluteDate = nextOccurrenceOfIsoWeekday(now, day.iso);
       matches.push({ start: match.index, end: match.index + match[0].length });
     }
   }
 
   const resolvedDate = absoluteDate ?? (dayOffset === undefined ? now : shiftDate(now, dayOffset));
-  let dueAt: Date | undefined;
+  let plannedAt: Date | undefined;
 
   if (time !== undefined) {
     const candidate = atClockTime(resolvedDate, time.hour, time.minute);
 
     if (absoluteDate === undefined && dayOffset === undefined && candidate < now) {
-      dueAt = atClockTime(shiftDate(resolvedDate, 1), time.hour, time.minute);
+      plannedAt = atClockTime(shiftDate(resolvedDate, 1), time.hour, time.minute);
     } else {
-      dueAt = candidate;
+      plannedAt = candidate;
     }
   } else if (absoluteDate !== undefined || dayOffset !== undefined || recurrence !== undefined) {
-    dueAt = dateAtEndOfDay(resolvedDate);
+    plannedAt = dateAtEndOfDay(resolvedDate);
   }
 
   return {
     title: maskOut(original, matches),
-    ...(dueAt !== undefined && { dueAt }),
+    ...(projectRaw !== undefined && { projectRaw }),
+    ...(labelRaws.length > 0 && { labelRaws }),
+    ...(plannedAt !== undefined && { plannedAt }),
     ...(priority !== undefined && { priority }),
     ...(recurrence !== undefined && { recurrence }),
   };
@@ -365,6 +451,9 @@ export function parseQuickCapture(input: string, now: Date = new Date()): Parsed
 
 export function hasQuickCaptureIntent(input: string): boolean {
   return (
-    collect(/\b(?:bugun|yarin|obur gun|haftaya|\d+\s+(?:gun|hafta|ay|yil)\s+sonra|pazartesi|pzt|sali|carsamba|persembe|cuma|cumartesi|cmt|pazar|paz|ocak|subat|mart|nisan|mayis|haziran|temmuz|agustos|eylul|ekim|kasim|aralik|saat|onemli|her gun|her is gunu)\b/gi, normalize(input)).length > 0
+    collect(
+      /\b(?:bugun|yarin|obur gun|haftaya|\d+\s+(?:gun|hafta|ay|yil)\s+sonra|pazartesi|pzt|sali|carsamba|persembe|cuma|cumartesi|cmt|pazar|paz|ocak|subat|mart|nisan|mayis|haziran|temmuz|agustos|eylul|ekim|kasim|aralik|saat|onemli|her gun|her is gunu)\b|p[1-4]|[@#][^\s@#]+/gi,
+      normalize(input),
+    ).length > 0
   );
 }

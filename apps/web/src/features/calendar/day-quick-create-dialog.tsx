@@ -17,6 +17,15 @@ import {
 } from '@/components/ui/sheet';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
 
+import { describeQuickCapture, parseQuickCapture } from '../tasks/natural-language';
+
+function toLocalDatetimeInput(date: Date): string {
+  const pad = (value: number): string => String(value).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+    date.getDate(),
+  )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 type DayQuickCreateFormProps = {
   readonly dateKey: string;
   readonly onClose: () => void;
@@ -42,6 +51,12 @@ function DayQuickCreateForm({ dateKey, onClose }: DayQuickCreateFormProps) {
     staleTime: 20 * 60 * 1_000,
   });
 
+  const parsed = title.trim().length > 0 ? parseQuickCapture(title) : undefined;
+  const parsedPlannedAt = parsed?.plannedAt;
+  const effectivePlannedAt =
+    parsedPlannedAt !== undefined ? toLocalDatetimeInput(parsedPlannedAt) : plannedAt;
+  const described = parsed !== undefined ? describeQuickCapture(parsed) : undefined;
+
   const create = useMutation({
     mutationFn: async () => {
       const csrf = csrfQuery.data ?? (await fetchCsrf());
@@ -50,8 +65,10 @@ function DayQuickCreateForm({ dateKey, onClose }: DayQuickCreateFormProps) {
       const result = await apiClient.post({
         url: '/api/v1/tasks',
         body: {
-          title: title.trim(),
-          ...(plannedAt !== '' && { plannedAt }),
+          title: parsed?.title ?? title.trim(),
+          plannedAt: parsedPlannedAt !== undefined ? parsedPlannedAt.toISOString() : plannedAt,
+          ...(parsed?.priority !== undefined && { priority: parsed.priority }),
+          ...(parsed?.recurrence !== undefined && { recurrence: parsed.recurrence }),
         },
         headers: {
           'Content-Type': 'application/json',
@@ -105,16 +122,24 @@ function DayQuickCreateForm({ dateKey, onClose }: DayQuickCreateFormProps) {
             id="day-quick-title"
             value={title}
             onChange={(event) => setTitle(event.target.value)}
-            placeholder="Örn: Diş hekimi randevusu"
+            placeholder='Örn: "Diş hekimi randevusu" veya "yarın 15:00"'
           />
           {error && <FieldError>{error}</FieldError>}
+          {parsed !== undefined && parsed.title !== title.trim() && (
+            <p className="mt-1 text-sm text-muted-foreground">
+              Başlık: <span className="font-medium text-foreground">{parsed.title}</span>
+            </p>
+          )}
+          {described !== undefined && (
+            <p className="mt-1 text-sm text-muted-foreground">{described}</p>
+          )}
         </Field>
         <Field>
           <FieldLabel htmlFor="day-quick-planned-at">Başlangıç Tarihi</FieldLabel>
           <Input
             id="day-quick-planned-at"
             type="datetime-local"
-            value={plannedAt}
+            value={effectivePlannedAt}
             onChange={(event) => setPlannedAt(event.target.value)}
           />
         </Field>

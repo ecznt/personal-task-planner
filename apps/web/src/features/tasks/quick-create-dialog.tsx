@@ -21,7 +21,13 @@ import { Spinner } from '@/components/ui/spinner';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
 
 import { CreateTaskFields } from './create-task-fields';
-import { parseQuickCapture, type ParsedQuickCapture } from './natural-language';
+import {
+  describeQuickCapture,
+  namesEqual,
+  normalize,
+  parseQuickCapture,
+  type ParsedQuickCapture,
+} from './natural-language';
 
 type AreaOption = {
   readonly id: string;
@@ -29,38 +35,92 @@ type AreaOption = {
   readonly isInbox: boolean;
 };
 
-function describeParsed(parsed: ParsedQuickCapture): string | undefined {
-  const labels: string[] = [];
+type ProjectSummary = {
+  readonly id: string;
+  readonly areaId: string;
+  readonly name: string;
+  readonly lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+};
 
-  if (parsed.dueAt) {
-    labels.push(
-      new Intl.DateTimeFormat('tr-TR', {
-        day: 'numeric',
-        month: 'short',
-        hour: parsed.dueAt.getHours() === 23 && parsed.dueAt.getMinutes() === 59 ? undefined : '2-digit',
-        minute: parsed.dueAt.getHours() === 23 && parsed.dueAt.getMinutes() === 59 ? undefined : '2-digit',
-      }).format(parsed.dueAt),
-    );
-  }
+type LabelSummary = {
+  readonly id: string;
+  readonly name: string;
+};
 
-  if (parsed.priority === 'HIGH') {
-    labels.push('Önemli');
-  }
-  if (parsed.priority === 'LOW') {
-    labels.push('Düşük öncelik');
-  }
-  if (parsed.recurrence !== undefined) {
-    const frequency = {
-      DAILY: 'Her gün',
-      WEEKDAYS: 'Her iş günü',
-      WEEKLY: 'Her hafta',
-      MONTHLY: 'Her ay',
-      YEARLY: 'Her yıl',
-    }[parsed.recurrence.frequency];
-    labels.push(frequency ?? 'Tekrarlı');
+type CreateQuickTaskPayload = {
+  readonly title: string;
+  readonly areaId: string;
+  readonly parsed: ParsedQuickCapture;
+  readonly project?: ProjectSummary;
+  readonly labelIds: readonly string[];
+};
+
+function findProject(
+  parsed: ParsedQuickCapture,
+  projects: readonly ProjectSummary[],
+): ProjectSummary | undefined {
+  if (parsed.projectRaw === undefined) {
+    return undefined;
   }
 
-  return labels.length > 0 ? labels.join(' · ') : undefined;
+  const target = parsed.projectRaw.replace(/^#/, '');
+
+  return projects.find(
+    (project) => project.lifecycleState === 'ACTIVE' && namesEqual(project.name, target),
+  );
+}
+
+function resolveLabels(
+  parsed: ParsedQuickCapture,
+  labels: readonly LabelSummary[],
+): { readonly resolved: LabelSummary[]; readonly missing: readonly string[] } {
+  const resolved: LabelSummary[] = [];
+  const missing: string[] = [];
+
+  for (const raw of parsed.labelRaws ?? []) {
+    const target = raw.replace(/^@/, '');
+    const matched = labels.find((label) => namesEqual(label.name, target));
+
+    if (matched !== undefined) {
+      resolved.push(matched);
+    } else {
+      missing.push(raw);
+    }
+  }
+
+  return { resolved, missing };
+}
+
+function resolvedRemovals(
+  parsed: ParsedQuickCapture,
+  project: ProjectSummary | undefined,
+  resolvedLabels: readonly LabelSummary[],
+): readonly string[] {
+  const removals: string[] = [];
+
+  if (project !== undefined && parsed.projectRaw !== undefined) {
+    removals.push(parsed.projectRaw);
+  }
+
+  const matchedNames = new Set(resolvedLabels.map((label) => normalize(label.name)));
+
+  for (const raw of parsed.labelRaws ?? []) {
+    if (matchedNames.has(normalize(raw.replace(/^@/, '')))) {
+      removals.push(raw);
+    }
+  }
+
+  return removals;
+}
+
+function stripTokens(title: string, removals: readonly string[]): string {
+  let next = title;
+
+  for (const token of removals) {
+    next = next.replace(token, ' ');
+  }
+
+  return next.replace(/\s+/g, ' ').trim();
 }
 
 function PlusIcon() {
@@ -114,18 +174,59 @@ export function QuickCreateDialog({
     enabled: open,
   });
 
+  const projects = useQuery({
+    queryKey: ['projects'],
+    queryFn: async () => {
+      const result = await apiClient.get({
+        url: '/api/v1/projects',
+        query: { limit: 100 },
+      });
+
+      if (result.error !== undefined) {
+        throw new Error('Projeler yüklenemedi.');
+      }
+
+      return (result.data as { data: ProjectSummary[] })?.data ?? [];
+    },
+    enabled: open,
+  });
+
+  const labels = useQuery({
+    queryKey: ['labels'],
+    queryFn: async () => {
+      const result = await apiClient.get({
+        url: '/api/v1/labels',
+        query: { limit: 50 },
+      });
+
+      if (result.error !== undefined) {
+        throw new Error('Etiketler yüklenemedi.');
+      }
+
+      return (result.data as { data: LabelSummary[] })?.data ?? [];
+    },
+    enabled: open,
+  });
+
   const quickAdd = useMutation({
-    mutationFn: async (payload: { title: string; parsed: ParsedQuickCapture }) => {
+    mutationFn: async (payload: CreateQuickTaskPayload) => {
       const csrf = csrfQuery.data ?? (await fetchCsrf());
       queryClient.setQueryData(csrfQueryKey, csrf);
 
       const body: Record<string, unknown> = {
         title: payload.title,
-        ...(areaId !== '' && { areaId }),
-        ...(projectId !== '' && { projectId }),
-        ...(payload.parsed.dueAt !== undefined && { dueAt: payload.parsed.dueAt.toISOString() }),
-        ...(payload.parsed.priority !== undefined && { priority: payload.parsed.priority }),
-        ...(payload.parsed.recurrence !== undefined && { recurrence: payload.parsed.recurrence }),
+        areaId: payload.areaId,
+        ...(payload.project !== undefined && { projectId: payload.project.id }),
+        ...(payload.labelIds.length > 0 && { labelIds: [...payload.labelIds] }),
+        ...(payload.parsed.plannedAt !== undefined && {
+          plannedAt: payload.parsed.plannedAt.toISOString(),
+        }),
+        ...(payload.parsed.priority !== undefined && {
+          priority: payload.parsed.priority,
+        }),
+        ...(payload.parsed.recurrence !== undefined && {
+          recurrence: payload.parsed.recurrence,
+        }),
       };
 
       const result = await apiClient.post({
@@ -194,13 +295,29 @@ export function QuickCreateDialog({
     }
 
     const parsed = parseQuickCapture(trimmed);
+    const project = findProject(parsed, projects.data ?? []);
+    const { resolved: resolvedLabels } = resolveLabels(parsed, labels.data ?? []);
+    const title = stripTokens(parsed.title, resolvedRemovals(parsed, project, resolvedLabels));
 
-    if (parsed.title.length === 0) {
+    if (title.length === 0) {
       setQuickError('Görev başlığı girin.');
       return;
     }
 
-    quickAdd.mutate({ title: parsed.title, parsed });
+    const effectiveAreaId = project?.areaId ?? (areaId !== '' ? areaId : inboxAreaId);
+
+    if (effectiveAreaId.length === 0) {
+      setQuickError('Görev ekleneceği alan bulunamadı.');
+      return;
+    }
+
+    quickAdd.mutate({
+      title,
+      areaId: effectiveAreaId,
+      parsed,
+      ...(project !== undefined && { project }),
+      labelIds: resolvedLabels.map((label) => label.id),
+    });
   };
 
   const areaOptions = Array.isArray(areas.data) ? areas.data : [];
@@ -211,8 +328,32 @@ export function QuickCreateDialog({
     return left.isInbox ? -1 : 1;
   });
   const inboxArea = areaOptions.find((area) => area.isInbox);
-  const effectiveAreaId = areaId !== '' ? areaId : inboxArea?.id ?? '';
+  const inboxAreaId = inboxArea?.id ?? '';
+  const projectOptions = Array.isArray(projects.data) ? projects.data : [];
+  const labelOptions = Array.isArray(labels.data) ? labels.data : [];
   const parsedPreview = text.trim().length > 0 ? parseQuickCapture(text) : undefined;
+  const activeProject =
+    parsedPreview !== undefined ? findProject(parsedPreview, projectOptions) : undefined;
+  const labelResolution =
+    parsedPreview !== undefined
+      ? resolveLabels(parsedPreview, labelOptions)
+      : { resolved: [], missing: [] };
+  const removalList =
+    parsedPreview !== undefined && activeProject !== undefined
+      ? resolvedRemovals(parsedPreview, activeProject, labelResolution.resolved)
+      : parsedPreview !== undefined
+        ? resolvedRemovals(parsedPreview, undefined, labelResolution.resolved)
+        : [];
+  const previewTitle =
+    parsedPreview !== undefined && parsedPreview.title.length > 0
+      ? stripTokens(parsedPreview.title, removalList)
+      : undefined;
+  const needsResolution =
+    parsedPreview?.projectRaw !== undefined || (parsedPreview?.labelRaws?.length ?? 0) > 0;
+  const resolutionReady =
+    !needsResolution || (projects.data !== undefined && labels.data !== undefined);
+  const described = parsedPreview !== undefined ? describeQuickCapture(parsedPreview) : undefined;
+  const effectiveAreaId = activeProject?.areaId ?? (areaId !== '' ? areaId : inboxAreaId);
 
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
@@ -231,7 +372,8 @@ export function QuickCreateDialog({
         <SheetHeader>
           <SheetTitle>Yeni görev</SheetTitle>
           <SheetDescription>
-            Tek satırda hızlıca ekleyin — tarih, saat, tekrar ve önceliği yazıyla tanıyabilirim.
+            Tek satırda hızlıca ekleyin — #proje, @etiket, p1-p3, tarih, saat ve tekrarı yazıyla
+            tanıyabilirim.
           </SheetDescription>
         </SheetHeader>
         <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-4">
@@ -244,11 +386,11 @@ export function QuickCreateDialog({
                     id="quick-capture"
                     value={text}
                     onChange={(event) => setText(event.target.value)}
-                    placeholder='Ör: "Pazartesi 09:00 önemli toplantı"'
+                    placeholder='Ör: "Yarın 09:00 p1 toplantı #İş @önemli"'
                   />
                   <Button
                     type="submit"
-                    disabled={quickAdd.isPending || csrfQuery.isLoading}
+                    disabled={quickAdd.isPending || csrfQuery.isLoading || !resolutionReady}
                     aria-busy={quickAdd.isPending}
                   >
                     Ekle
@@ -258,18 +400,36 @@ export function QuickCreateDialog({
 
               {quickError && <FieldError>{quickError}</FieldError>}
 
-              {parsedPreview && parsedPreview.title.length > 0 && parsedPreview.title !== text.trim() && (
-                <p className="text-sm text-muted-foreground">
-                  Başlık: <span className="font-medium text-foreground">{parsedPreview.title}</span>
-                </p>
-              )}
-              {parsedPreview && describeParsed(parsedPreview) !== undefined && (
-                <p className="text-sm text-muted-foreground">{describeParsed(parsedPreview)}</p>
-              )}
-              {parsedPreview && parsedPreview.title !== text.trim() && (
-                <p className="text-xs text-muted-foreground/70">
-                  Girdiğiniz metin tarih ve zaman bilgisi içeriyor — aldığım değerler daha yukarıda görünür, düzeltmek için detaylı formu kullanın.
-                </p>
+              {parsedPreview && previewTitle !== undefined && (
+                <div className="space-y-1 text-sm">
+                  {previewTitle !== text.trim() && (
+                    <p className="text-muted-foreground">
+                      Başlık: <span className="font-medium text-foreground">{previewTitle}</span>
+                    </p>
+                  )}
+                  {described !== undefined && <p className="text-muted-foreground">{described}</p>}
+                  {activeProject !== undefined && (
+                    <p className="text-muted-foreground">
+                      Proje:{' '}
+                      <span className="font-medium text-foreground">{activeProject.name}</span>
+                    </p>
+                  )}
+                  {labelResolution.resolved.map((label) => (
+                    <p key={label.id} className="text-muted-foreground">
+                      Etiket: <span className="font-medium text-foreground">{label.name}</span>
+                    </p>
+                  ))}
+                  {parsedPreview.projectRaw !== undefined && activeProject === undefined && (
+                    <p className="text-amber-600">
+                      Proje &apos;{parsedPreview.projectRaw}&apos; bulunamadı, başlıkta korundu.
+                    </p>
+                  )}
+                  {labelResolution.missing.map((raw) => (
+                    <p key={raw} className="text-amber-600">
+                      Etiket &apos;{raw}&apos; bulunamadı, başlıkta korundu.
+                    </p>
+                  ))}
+                </div>
               )}
             </form>
           )}

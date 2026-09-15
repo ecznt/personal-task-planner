@@ -101,4 +101,41 @@ describe('DayQuickCreateDialog', () => {
     expect(mocks.apiPost).not.toHaveBeenCalled();
     expect(onClose).not.toHaveBeenCalled();
   });
+
+  it('parses natural language into plannedAt priority and a cleaned title', async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    mocks.apiPost.mockResolvedValue({
+      data: { data: { id: 'task-2', title: 'Toplantı' } },
+      error: undefined,
+    });
+
+    renderDialog('2026-09-14', onClose);
+
+    await user.type(screen.getByLabelText('Başlık'), 'Toplantı 25 aralık 2027 14:30 p1');
+
+    expect(screen.getByText('Başlık:')).toBeInTheDocument();
+    expect(screen.getByText('Toplantı')).toBeInTheDocument();
+    expect(screen.getByLabelText('Başlangıç Tarihi')).toHaveValue('2027-12-25T14:30');
+
+    await user.click(screen.getByRole('button', { name: 'Oluştur' }));
+
+    await waitFor(() => {
+      expect(mocks.apiPost).toHaveBeenCalledTimes(1);
+    });
+
+    const [args] = mocks.apiPost.mock.calls[0] as unknown as [
+      {
+        url: string;
+        body: Record<string, unknown>;
+        headers: Record<string, string>;
+      },
+    ];
+    expect(args.url).toBe('/api/v1/tasks');
+    expect(args.body).toEqual({
+      title: 'Toplantı',
+      plannedAt: new Date(2027, 11, 25, 14, 30).toISOString(),
+      priority: 'HIGH',
+    });
+  });
 });

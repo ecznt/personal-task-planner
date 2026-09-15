@@ -2,13 +2,13 @@
 
 | Field | Value |
 | --- | --- |
-| Status | L-009 through L-023 implemented — MVP complete; L-024 planned |
-| Revision date | 2026-09-14 |
+| Status | L-001 through L-024 implemented; L-025 (Natural-language Quick Add v2) implemented |
+| Revision date | 2026-09-15 |
 | Product scope | MVP, personal use only |
 | Document language | English |
 | Execution mode | Small vertical slices, but not one micro-story per technical concern |
-| Current completed baseline | EPIC-001; BL-007 through BL-011; BL-014; BL-015; BL-121; L-001 through L-023 |
-| Next slice | L-024 — Calendar view (month grid + day quick-add) |
+| Current completed baseline | EPIC-001; BL-007 through BL-011; BL-014; BL-015; BL-121; L-001 through L-025 |
+| Next slice | TBD — await product decision (candidates: email reminders, week view, saved search filters) |
 
 This document replaces the earlier over-granular execution queue. The approved PRD, UX, Domain, Data, API, Architecture, and ADR documents remain authoritative for product and technical rules. This backlog controls implementation order only.
 
@@ -392,7 +392,7 @@ Before each slice, verify the exact requirement IDs from PRD and API/Domain/Data
 
 ### L-024 — Calendar view (month grid + day quick-add)
 
-**Implementation status:** Planned, not yet implemented.
+**Implementation status:** Implemented and published to `opencode/develop` (commits `5208a6e`, `526617e`, `c86165b`, `a899ebf`).
 
 **Story goal:** User can view a monthly calendar that shows tasks on both their planned and due days, navigate between months, and click a day to create a new task pre-filled with that date.
 
@@ -418,6 +418,25 @@ Before each slice, verify the exact requirement IDs from PRD and API/Domain/Data
 - Full lint, typecheck, build, and security checks.
 
 **Plan document:** (to be created during implementation)
+
+### L-025 — Natural-language Quick Add v2 (#proje, @etiket, p1-p3, plannedAt routing)
+
+**Implementation status:** Implemented and published to `opencode/develop`.
+
+**Story goal:** Capture a task from a single line of text using Todoist-style shorthand — `#Proje` assigns the task to a matching project (and its area), `@Etiket` assigns matching labels, `p1`–`p3` set priority (in addition to existing Turkish words such as “önemli”), and parsed dates/times now schedule the task via `plannedAt` instead of `dueAt`. The calendar day quick-add dialog uses the same smart input with a live preview.
+
+**Why:** Base Turkish natural-language capture already existed in `natural-language.ts` and the header quick-create. The competitive gap versus Todoist was the `#`/`@`/`p` shorthand, scheduling-first (`plannedAt`) semantics, and parser parity in the calendar day dialog.
+
+**Delivered scope:**
+
+- Parser (`apps/web/src/features/tasks/natural-language.ts`): extracts `#Project` and `@Label` tokens (kept verbatim in the title so nothing is lost), maps `p1`→HIGH, `p2`→MEDIUM, `p3`→LOW, and returns `plannedAt` instead of `dueAt`; exports `describeQuickCapture` and `namesEqual`; `hasQuickCaptureIntent` recognizes the shorthand.
+- Header quick-create dialog: fetches global projects (`GET /api/v1/projects?limit=100`) and labels, resolves `#`/`@` tokens to existing entities, strips them from the title, overrides the area to the resolved project’s area, and posts `plannedAt`/`priority`/`recurrence`/`projectId`/`labelIds`. Unresolvable tokens stay in the title with an inline warning (no automatic project/label creation).
+- Calendar day quick-add dialog: uses the parser — text dates/times override the pre-filled `plannedAt`, `p`/`önemli` sets priority, recurrence words apply, and a live preview chip shows recognized values.
+- No API contract changes (create-task transport already accepted `plannedAt`, `projectId`, `labelIds`).
+
+**Tests:** parser unit tests (shorthand, tokens, plannedAt routing, `#`-prefixed words not misread as keywords), header dialog resolution/unresolved/rejected-capture component tests, calendar dialog NL component test. Full web suite 167/167, typecheck, lint, Prettier, and live-stack calendar e2e all green.
+
+**Excluded:** auto-creating missing projects/labels from capture (future slice), multi-word shorthand names, `!`-reminder syntax, quick-capture in the command palette input.
 
 ## 7. Backlog maintenance policy
 

@@ -16,11 +16,11 @@ function day(hour: number, minute: number, offset = 0): Date {
   return new Date(2026, 8, 12 + offset, hour, minute, 0, 0);
 }
 
-function dueAt(result: ParsedQuickCapture): Date {
-  if (result.dueAt === undefined) {
-    throw new Error('expected dueAt to be defined');
+function plannedAt(result: ParsedQuickCapture): Date {
+  if (result.plannedAt === undefined) {
+    throw new Error('expected plannedAt to be defined');
   }
-  return result.dueAt;
+  return result.plannedAt;
 }
 
 describe('parseQuickCapture', () => {
@@ -35,69 +35,69 @@ describe('parseQuickCapture', () => {
   it('parses "bugün" as end of today', () => {
     const result = parseQuickCapture('Bugün rapor teslim', NOW);
     expect(result.title).toBe('rapor teslim');
-    expect(result.dueAt).toBeDefined();
-    expect(iso(dueAt(result))).toBe(iso(day(23, 59)));
+    expect(result.plannedAt).toBeDefined();
+    expect(iso(plannedAt(result))).toBe(iso(day(23, 59)));
   });
 
   it('parses "yarın" as end of tomorrow', () => {
     const result = parseQuickCapture('Rapor yarın', NOW);
     expect(result.title).toBe('Rapor');
-    expect(iso(dueAt(result))).toBe(iso(day(23, 59, 1)));
+    expect(iso(plannedAt(result))).toBe(iso(day(23, 59, 1)));
   });
 
   it('parses weekday names', () => {
     const result = parseQuickCapture('Toplantı pazartesi', NOW);
     expect(result.title).toBe('Toplantı');
-    expect(iso(dueAt(result))).toBe(iso(day(23, 59, 2)));
+    expect(iso(plannedAt(result))).toBe(iso(day(23, 59, 2)));
   });
 
   it('parses relative "gün sonra"', () => {
     const result = parseQuickCapture('Temizlik 3 gün sonra', NOW);
     expect(result.title).toBe('Temizlik');
-    expect(iso(dueAt(result))).toBe(iso(day(23, 59, 3)));
+    expect(iso(plannedAt(result))).toBe(iso(day(23, 59, 3)));
   });
 
   it('parses "önümüzdeki hafta"', () => {
     const result = parseQuickCapture('Rapor önümüzdeki hafta', NOW);
     expect(result.title).toBe('Rapor');
-    expect(iso(dueAt(result))).toBe(iso(day(23, 59, 7)));
+    expect(iso(plannedAt(result))).toBe(iso(day(23, 59, 7)));
   });
 
   it('parses explicit clock time later today', () => {
     const result = parseQuickCapture('Toplantı saat 18:00', NOW);
     expect(result.title).toBe('Toplantı');
-    expect(iso(dueAt(result))).toBe(iso(day(18, 0)));
+    expect(iso(plannedAt(result))).toBe(iso(day(18, 0)));
   });
 
   it('moves past clock time to tomorrow', () => {
     const result = parseQuickCapture('Toplantı saat 14:00', NOW);
     expect(result.title).toBe('Toplantı');
-    expect(iso(dueAt(result))).toBe(iso(day(14, 0, 1)));
+    expect(iso(plannedAt(result))).toBe(iso(day(14, 0, 1)));
   });
 
   it('parses "akşam 20:30"', () => {
     const result = parseQuickCapture('Yemek akşam 20:30', NOW);
     expect(result.title).toBe('Yemek');
-    expect(iso(dueAt(result))).toBe(iso(day(20, 30)));
+    expect(iso(plannedAt(result))).toBe(iso(day(20, 30)));
   });
 
   it('parses weekday with time', () => {
     const result = parseQuickCapture('Çağrı cuma 09:30', NOW);
     expect(result.title).toBe('Çağrı');
-    expect(iso(dueAt(result))).toBe(iso(day(9, 30, 6)));
+    expect(iso(plannedAt(result))).toBe(iso(day(9, 30, 6)));
   });
 
   it('parses priority', () => {
     const result = parseQuickCapture('Rapor önemli', NOW);
     expect(result.title).toBe('Rapor');
     expect(result.priority).toBe('HIGH');
-    expect(result.dueAt).toBeUndefined();
+    expect(result.plannedAt).toBeUndefined();
   });
 
   it('parses absolute month date', () => {
     const result = parseQuickCapture('Randevu 12 ocak', NOW);
     expect(result.title).toBe('Randevu');
-    expect(iso(dueAt(result))).toBe(iso(new Date(2027, 0, 12, 23, 59)));
+    expect(iso(plannedAt(result))).toBe(iso(new Date(2027, 0, 12, 23, 59)));
   });
 
   it('parses "her gün" recurrence', () => {
@@ -111,7 +111,7 @@ describe('parseQuickCapture', () => {
       dayOfMonth: null,
       monthOfYear: null,
     });
-    expect(iso(dueAt(result))).toBe(iso(day(23, 59)));
+    expect(iso(plannedAt(result))).toBe(iso(day(23, 59)));
   });
 
   it('parses "her iş günü" recurrence', () => {
@@ -124,7 +124,7 @@ describe('parseQuickCapture', () => {
     expect(result.title).toBe('Tatil');
     expect(result.recurrence?.frequency).toBe('WEEKLY');
     expect(result.recurrence?.selectedWeekdays).toEqual([5]);
-    expect(iso(dueAt(result))).toBe(iso(day(23, 59, 6)));
+    expect(iso(plannedAt(result))).toBe(iso(day(23, 59, 6)));
   });
 
   it('parses "her 3 günde bir" recurrence interval', () => {
@@ -138,7 +138,56 @@ describe('parseQuickCapture', () => {
     const result = parseQuickCapture('Sunum önemli perşembe 10:00', NOW);
     expect(result.title).toBe('Sunum');
     expect(result.priority).toBe('HIGH');
-    expect(iso(dueAt(result))).toBe(iso(day(10, 0, 5)));
+    expect(iso(plannedAt(result))).toBe(iso(day(10, 0, 5)));
+  });
+
+  it('parses p1 priority shorthand as HIGH', () => {
+    const result = parseQuickCapture('Sunum p1', NOW);
+    expect(result.title).toBe('Sunum');
+    expect(result.priority).toBe('HIGH');
+  });
+
+  it('parses p2 as MEDIUM', () => {
+    expect(parseQuickCapture('Sunum p2', NOW).priority).toBe('MEDIUM');
+  });
+
+  it('parses p3 as LOW', () => {
+    expect(parseQuickCapture('Sunum p3', NOW).priority).toBe('LOW');
+  });
+
+  it('combines shorthand, date and priority', () => {
+    const result = parseQuickCapture('Sunum p1 cuma 09:30', NOW);
+    expect(result.title).toBe('Sunum');
+    expect(result.priority).toBe('HIGH');
+    expect(iso(plannedAt(result))).toBe(iso(day(9, 30, 6)));
+  });
+
+  it('extracts #Project token and keeps the project in the title', () => {
+    const result = parseQuickCapture('Rapor #Yazilim', NOW);
+    expect(result.title).toBe('Rapor #Yazilim');
+    expect(result.projectRaw).toBe('#Yazilim');
+  });
+
+  it('extracts @labels and keeps them in the title', () => {
+    const result = parseQuickCapture('Rapor @is @odemesi', NOW);
+    expect(result.title).toBe('Rapor @is @odemesi');
+    expect(result.labelRaws).toEqual(['@is', '@odemesi']);
+  });
+
+  it('accepts shorthand tokens with date and priority', () => {
+    const result = parseQuickCapture('Rapor #Yazilim @is p1 yarın', NOW);
+    expect(result.title).toBe('Rapor #Yazilim @is');
+    expect(result.projectRaw).toBe('#Yazilim');
+    expect(result.labelRaws).toEqual(['@is']);
+    expect(result.priority).toBe('HIGH');
+    expect(iso(plannedAt(result))).toBe(iso(day(23, 59, 1)));
+  });
+
+  it('does not interpret a #/@-prefixed word as a date keyword', () => {
+    const result = parseQuickCapture('Not #pazartesi', NOW);
+    expect(result.title).toBe('Not #pazartesi');
+    expect(result.projectRaw).toBe('#pazartesi');
+    expect(result.plannedAt).toBeUndefined();
   });
 });
 
@@ -148,5 +197,11 @@ describe('hasQuickCaptureIntent', () => {
     expect(hasQuickCaptureIntent('Bunu yap')).toBe(false);
     expect(hasQuickCaptureIntent('Cuma gönder')).toBe(true);
     expect(hasQuickCaptureIntent('Önemli not')).toBe(true);
+  });
+
+  it('detects shorthand tokens', () => {
+    expect(hasQuickCaptureIntent('Not #proje')).toBe(true);
+    expect(hasQuickCaptureIntent('Not @etiket')).toBe(true);
+    expect(hasQuickCaptureIntent('Not p3')).toBe(true);
   });
 });
