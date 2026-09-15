@@ -10,23 +10,16 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
 import { Skeleton } from '@/components/ui/skeleton';
-import { TaskPriorityBadge } from '@/features/tasks/task-badge';
-
-type TaskSummary = {
-  readonly id: string;
-  readonly title: string;
-  readonly priority: 'LOW' | 'MEDIUM' | 'HIGH';
-  readonly canonicalStatus: string;
-  readonly dueAt: string | null;
-  readonly plannedAt: string | null;
-  readonly lifecycleState: string;
-  readonly version: number;
-  readonly areaId: string;
-};
+import { KanbanTaskCard, type KanbanTask } from '@/features/kanban/kanban-task-card';
+import {
+  KanbanToolbar,
+  useKanbanBoardFilters,
+  type KanbanFilters,
+} from '@/features/kanban/kanban-toolbar';
 
 type KanbanColumn = {
   readonly count: number;
-  readonly tasks: readonly TaskSummary[];
+  readonly tasks: readonly KanbanTask[];
 };
 
 type KanbanResponse = {
@@ -40,26 +33,6 @@ const COLUMN_LABELS: Record<string, string> = {
   inProgress: 'Devam Ediyor',
   completed: 'Tamamlandı',
 };
-
-function TaskCard({ task, index }: { task: TaskSummary; index: number }) {
-  return (
-    <Link
-      href={`/app/areas/tasks/${task.id}`}
-      className="card-surface animate-fade-slide-in block rounded-xl border border-border/70 bg-card p-3 shadow-surface transition-all duration-150 active:scale-[0.97] hover:border-border hover:shadow-surface-hover"
-      style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
-    >
-      <div className="truncate text-sm font-medium">{task.title}</div>
-      <div className="mt-1.5 flex items-center gap-1.5">
-        <TaskPriorityBadge priority={task.priority} />
-        {task.dueAt && (
-          <span className="text-xs text-muted-foreground">
-            {new Date(task.dueAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
-          </span>
-        )}
-      </div>
-    </Link>
-  );
-}
 
 function KanbanColumnView({
   columnKey,
@@ -89,7 +62,7 @@ function KanbanColumnView({
         ) : (
           column.tasks.map((task, index) => (
             <div key={task.id} className="group relative">
-              <TaskCard task={task} index={index} />
+              <KanbanTaskCard task={task} index={index} />
               <div className="absolute right-1 top-1 z-10 flex gap-1">
                 {columnKey !== 'todo' && (
                   <button
@@ -128,11 +101,20 @@ function KanbanColumnView({
 
 export function KanbanBoard() {
   const queryClient = useQueryClient();
+  const { filters, setQ, setFilter, clearAll } = useKanbanBoardFilters({
+    mode: 'url',
+    pathname: '/app/kanban',
+  });
+
+  const kanbanQuery = buildGlobalKanbanQuery(filters);
 
   const kanban = useQuery({
-    queryKey: ['tasks', 'kanban'],
+    queryKey: ['tasks', 'kanban', filters],
     queryFn: async () => {
-      const result = await apiClient.get({ url: '/api/v1/tasks/kanban' });
+      const result = await apiClient.get({
+        url: '/api/v1/tasks/kanban',
+        ...(Object.keys(kanbanQuery).length > 0 ? { query: kanbanQuery } : {}),
+      });
 
       if (result.error !== undefined) {
         throw new Error('Kanban yüklenemedi.');
@@ -173,7 +155,7 @@ export function KanbanBoard() {
     },
   });
 
-  if (kanban.isLoading) {
+  if (kanban.isLoading && !kanban.data) {
     return (
       <div className="grid gap-3 md:grid-cols-3" role="status" aria-label="Yükleniyor">
         {[0, 1, 2].map((col) => (
@@ -212,6 +194,15 @@ export function KanbanBoard() {
     <div className="space-y-6">
       <PageHeader title="Kanban" eyebrow="Görevler" description="Tüm alanlardaki görevler" />
 
+      <KanbanToolbar
+        filters={filters}
+        onQChange={setQ}
+        onFilterChange={setFilter}
+        onClearAll={clearAll}
+        showArea
+        projectsAreaId={filters.areaId}
+      />
+
       <div
         className="flex gap-4 overflow-x-auto pb-4"
         role="region"
@@ -240,3 +231,17 @@ export function KanbanBoard() {
     </div>
   );
 }
+
+function buildGlobalKanbanQuery(filters: KanbanFilters): Record<string, string> {
+  const query: Record<string, string> = {};
+
+  if (filters.q.length > 0) query.q = filters.q;
+  if (filters.areaId !== undefined) query.areaId = filters.areaId;
+  if (filters.projectId !== undefined) query.projectId = filters.projectId;
+  if (filters.priority !== undefined) query.priority = filters.priority;
+  if (filters.labelId !== undefined) query.labelId = filters.labelId;
+
+  return query;
+}
+
+export { buildGlobalKanbanQuery };

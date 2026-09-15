@@ -8,17 +8,12 @@ import { toast } from 'sonner';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
-import { TaskPriorityBadge } from '@/features/tasks/task-badge';
-
-type TaskSummary = {
-  readonly id: string;
-  readonly title: string;
-  readonly priority: 'LOW' | 'MEDIUM' | 'HIGH';
-  readonly canonicalStatus: string;
-  readonly dueAt: string | null;
-  readonly plannedAt: string | null;
-  readonly lifecycleState: string;
-};
+import { KanbanTaskCard, type KanbanTask } from '@/features/kanban/kanban-task-card';
+import {
+  KanbanToolbar,
+  useKanbanBoardFilters,
+  type KanbanFilters,
+} from '@/features/kanban/kanban-toolbar';
 
 type AreaKanbanStatus = {
   readonly id: string;
@@ -30,33 +25,13 @@ type AreaKanbanStatus = {
 type AreaKanbanColumn = {
   readonly statusId: string;
   readonly count: number;
-  readonly tasks: readonly TaskSummary[];
+  readonly tasks: readonly KanbanTask[];
 };
 
 type AreaKanbanResponse = {
   readonly statuses: readonly AreaKanbanStatus[];
   readonly columns: readonly AreaKanbanColumn[];
 };
-
-function TaskCard({ task, index }: { task: TaskSummary; index: number }) {
-  return (
-    <Link
-      href={`/app/areas/tasks/${task.id}`}
-      className="animate-fade-slide-in block rounded-lg border bg-card p-3 transition-colors duration-150 active:scale-[0.97] hover:bg-accent"
-      style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
-    >
-      <div className="truncate text-sm font-medium">{task.title}</div>
-      <div className="mt-1.5 flex items-center gap-1.5">
-        <TaskPriorityBadge priority={task.priority} />
-        {task.dueAt && (
-          <span className="text-xs text-muted-foreground">
-            {new Date(task.dueAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
-          </span>
-        )}
-      </div>
-    </Link>
-  );
-}
 
 function AreaKanbanColumnView({
   column,
@@ -96,7 +71,7 @@ function AreaKanbanColumnView({
             const nextColumn = columns[columnIndex + 1];
             return (
               <div key={task.id} className="group relative">
-                <TaskCard task={task} index={index} />
+                <KanbanTaskCard task={task} index={index} />
                 <div className="absolute right-1 top-1 z-10 flex gap-1">
                   {hasPrevious && previousColumn && (
                     <button
@@ -130,11 +105,17 @@ function AreaKanbanColumnView({
 
 export function AreaKanbanBoard({ areaId }: { areaId: string }) {
   const queryClient = useQueryClient();
+  const { filters, setQ, setFilter, clearAll } = useKanbanBoardFilters({ mode: 'local' });
+
+  const kanbanQuery = buildAreaKanbanQuery(filters);
 
   const kanban = useQuery({
-    queryKey: ['areas', areaId, 'kanban'],
+    queryKey: ['areas', areaId, 'kanban', filters],
     queryFn: async () => {
-      const result = await apiClient.get({ url: `/api/v1/areas/${areaId}/kanban` });
+      const result = await apiClient.get({
+        url: `/api/v1/areas/${areaId}/kanban`,
+        ...(Object.keys(kanbanQuery).length > 0 ? { query: kanbanQuery } : {}),
+      });
 
       if (result.error !== undefined) {
         throw new Error('Kanban yüklenemedi.');
@@ -171,7 +152,7 @@ export function AreaKanbanBoard({ areaId }: { areaId: string }) {
     },
   });
 
-  if (kanban.isLoading) {
+  if (kanban.isLoading && !kanban.data) {
     return (
       <div className="grid gap-3 md:grid-cols-3" role="status" aria-label="Yükleniyor">
         {[0, 1, 2].map((col) => (
@@ -205,7 +186,16 @@ export function AreaKanbanBoard({ areaId }: { areaId: string }) {
   const allEmpty = data.columns.every((col) => col.count === 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      <KanbanToolbar
+        filters={filters}
+        onQChange={setQ}
+        onFilterChange={setFilter}
+        onClearAll={clearAll}
+        showArea={false}
+        projectsAreaId={areaId}
+      />
+
       <div
         className="flex gap-4 overflow-x-auto pb-4"
         role="region"
@@ -242,3 +232,16 @@ export function AreaKanbanBoard({ areaId }: { areaId: string }) {
     </div>
   );
 }
+
+function buildAreaKanbanQuery(filters: KanbanFilters): Record<string, string> {
+  const query: Record<string, string> = {};
+
+  if (filters.q.length > 0) query.q = filters.q;
+  if (filters.projectId !== undefined) query.projectId = filters.projectId;
+  if (filters.priority !== undefined) query.priority = filters.priority;
+  if (filters.labelId !== undefined) query.labelId = filters.labelId;
+
+  return query;
+}
+
+export { buildAreaKanbanQuery };

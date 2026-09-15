@@ -1,6 +1,16 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+
+const mocks = vi.hoisted(() => ({
+  searchParams: new URLSearchParams(''),
+  replace: vi.fn(),
+}));
+
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => mocks.searchParams,
+  useRouter: () => ({ replace: mocks.replace }),
+}));
 
 vi.mock('@planner/api-client', () => ({
   apiClient: {
@@ -9,10 +19,18 @@ vi.mock('@planner/api-client', () => ({
   },
 }));
 
+import { beforeEach } from 'vitest';
 import { apiClient } from '@planner/api-client';
 import { AreaKanbanBoard } from './area-kanban-board';
 
 const mockedApiClient = vi.mocked(apiClient);
+
+beforeEach(() => {
+  mocks.searchParams = new URLSearchParams('');
+  mocks.replace.mockClear();
+  mockedApiClient.get.mockClear();
+  mockedApiClient.post.mockClear();
+});
 
 function renderAreaKanbanBoard(areaId = 'area-1', queryClient = new QueryClient()) {
   return render(
@@ -24,19 +42,25 @@ function renderAreaKanbanBoard(areaId = 'area-1', queryClient = new QueryClient(
 
 describe('AreaKanbanBoard', () => {
   it('renders area-specific columns', async () => {
-    mockedApiClient.get.mockResolvedValue({
-      data: {
-        statuses: [
-          { id: 's1', name: 'Yapılacak', canonicalStatus: 'TO_DO', position: 1 },
-          { id: 's2', name: 'İnceleme', canonicalStatus: 'IN_PROGRESS', position: 2 },
-        ],
-        columns: [
-          { statusId: 's1', count: 0, tasks: [] },
-          { statusId: 's2', count: 0, tasks: [] },
-        ],
-      },
-      error: undefined,
-    });
+    mockedApiClient.get.mockImplementation(({ url }: { url: string }) =>
+      Promise.resolve(
+        url === `/api/v1/areas/area-1/kanban`
+          ? {
+              data: {
+                statuses: [
+                  { id: 's1', name: 'Yapılacak', canonicalStatus: 'TO_DO', position: 1 },
+                  { id: 's2', name: 'İnceleme', canonicalStatus: 'IN_PROGRESS', position: 2 },
+                ],
+                columns: [
+                  { statusId: 's1', count: 0, tasks: [] },
+                  { statusId: 's2', count: 0, tasks: [] },
+                ],
+              },
+              error: undefined,
+            }
+          : { data: { data: [] }, error: undefined },
+      ),
+    );
 
     renderAreaKanbanBoard();
 
@@ -47,29 +71,38 @@ describe('AreaKanbanBoard', () => {
   });
 
   it('renders tasks in columns', async () => {
-    mockedApiClient.get.mockResolvedValue({
-      data: {
-        statuses: [{ id: 's1', name: 'Yapılacak', canonicalStatus: 'TO_DO', position: 1 }],
-        columns: [
-          {
-            statusId: 's1',
-            count: 1,
-            tasks: [
-              {
-                id: 'task-1',
-                title: 'Alan Görevi',
-                priority: 'HIGH',
-                canonicalStatus: 'TO_DO',
-                dueAt: null,
-                plannedAt: null,
-                lifecycleState: 'ACTIVE',
+    mockedApiClient.get.mockImplementation(({ url }: { url: string }) =>
+      Promise.resolve(
+        url === `/api/v1/areas/area-1/kanban`
+          ? {
+              data: {
+                statuses: [{ id: 's1', name: 'Yapılacak', canonicalStatus: 'TO_DO', position: 1 }],
+                columns: [
+                  {
+                    statusId: 's1',
+                    count: 1,
+                    tasks: [
+                      {
+                        id: 'task-1',
+                        title: 'Alan Görevi',
+                        priority: 'HIGH',
+                        canonicalStatus: 'TO_DO',
+                        dueAt: null,
+                        plannedAt: null,
+                        lifecycleState: 'ACTIVE',
+                        version: 1,
+                        labels: [],
+                        project: null,
+                      },
+                    ],
+                  },
+                ],
               },
-            ],
-          },
-        ],
-      },
-      error: undefined,
-    });
+              error: undefined,
+            }
+          : { data: { data: [] }, error: undefined },
+      ),
+    );
 
     renderAreaKanbanBoard();
 
@@ -79,13 +112,19 @@ describe('AreaKanbanBoard', () => {
   });
 
   it('shows empty state when no tasks', async () => {
-    mockedApiClient.get.mockResolvedValue({
-      data: {
-        statuses: [{ id: 's1', name: 'Yapılacak', canonicalStatus: 'TO_DO', position: 1 }],
-        columns: [{ statusId: 's1', count: 0, tasks: [] }],
-      },
-      error: undefined,
-    });
+    mockedApiClient.get.mockImplementation(({ url }: { url: string }) =>
+      Promise.resolve(
+        url === `/api/v1/areas/area-1/kanban`
+          ? {
+              data: {
+                statuses: [{ id: 's1', name: 'Yapılacak', canonicalStatus: 'TO_DO', position: 1 }],
+                columns: [{ statusId: 's1', count: 0, tasks: [] }],
+              },
+              error: undefined,
+            }
+          : { data: { data: [] }, error: undefined },
+      ),
+    );
 
     renderAreaKanbanBoard();
 
@@ -96,15 +135,46 @@ describe('AreaKanbanBoard', () => {
 
   it('shows error state on API failure', async () => {
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    mockedApiClient.get.mockResolvedValue({
-      data: undefined,
-      error: { status: 500 },
-    });
+    mockedApiClient.get.mockImplementation(({ url }: { url: string }) =>
+      Promise.resolve(
+        url === `/api/v1/areas/area-1/kanban`
+          ? { data: undefined, error: { status: 500 } }
+          : { data: { data: [] }, error: undefined },
+      ),
+    );
 
     renderAreaKanbanBoard('area-1', queryClient);
 
     await waitFor(() => {
       expect(screen.getByText('Kanban yüklenemedi.')).toBeInTheDocument();
+    });
+  });
+
+  it('applies a typed search query to the area board request', async () => {
+    mockedApiClient.get.mockImplementation(({ url }: { url: string }) =>
+      Promise.resolve(
+        url === `/api/v1/areas/area-1/kanban`
+          ? {
+              data: {
+                statuses: [{ id: 's1', name: 'Yapılacak', canonicalStatus: 'TO_DO', position: 1 }],
+                columns: [{ statusId: 's1', count: 0, tasks: [] }],
+              },
+              error: undefined,
+            }
+          : { data: { data: [] }, error: undefined },
+      ),
+    );
+
+    renderAreaKanbanBoard();
+
+    const input = await screen.findByLabelText('Görevlerde ara');
+    fireEvent.change(input, { target: { value: 'süt' } });
+
+    await waitFor(() => {
+      expect(mockedApiClient.get).toHaveBeenCalledWith({
+        url: `/api/v1/areas/area-1/kanban`,
+        query: { q: 'süt' },
+      });
     });
   });
 });
