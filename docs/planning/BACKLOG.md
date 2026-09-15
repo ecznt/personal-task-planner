@@ -2,12 +2,12 @@
 
 | Field | Value |
 | --- | --- |
-| Status | L-001 through L-024 implemented; L-025 (Natural-language Quick Add v2) implemented |
+| Status | L-001 through L-026 implemented (incl. Kanban v2 search/filter + drag-and-drop) |
 | Revision date | 2026-09-15 |
 | Product scope | MVP, personal use only |
 | Document language | English |
 | Execution mode | Small vertical slices, but not one micro-story per technical concern |
-| Current completed baseline | EPIC-001; BL-007 through BL-011; BL-014; BL-015; BL-121; L-001 through L-025 |
+| Current completed baseline | EPIC-001; BL-007 through BL-011; BL-014; BL-015; BL-121; L-001 through L-026 |
 | Next slice | TBD — await product decision (candidates: email reminders, week view, saved search filters) |
 
 This document replaces the earlier over-granular execution queue. The approved PRD, UX, Domain, Data, API, Architecture, and ADR documents remain authoritative for product and technical rules. This backlog controls implementation order only.
@@ -437,6 +437,24 @@ Before each slice, verify the exact requirement IDs from PRD and API/Domain/Data
 **Tests:** parser unit tests (shorthand, tokens, plannedAt routing, `#`-prefixed words not misread as keywords), header dialog resolution/unresolved/rejected-capture component tests, calendar dialog NL component test. Full web suite 167/167, typecheck, lint, Prettier, and live-stack calendar e2e all green.
 
 **Excluded:** auto-creating missing projects/labels from capture (future slice), multi-word shorthand names, `!`-reminder syntax, quick-capture in the command palette input.
+
+### L-026 — Kanban v2 (search/filter toolbar + drag-and-drop)
+
+**Implementation status:** Implemented and published to `opencode/develop`.
+
+**Story goal:** Make the global and per-area Kanban boards fast to use at scale: server-side search and filters (query, area, project, priority, label) plus direct drag-and-drop between columns instead of page-refresh moves.
+
+**Why:** Kanban was read-only except for arrow buttons; switching boards meant leaving the page, and there was no way to narrow a large board down to a task you are looking for.
+
+**Delivered scope:**
+
+- **API (S1):** `GET /api/v1/tasks/kanban` accepts `q`, `areaId`, `projectId`, `priority`, `labelId`; `GET /api/v1/areas/{areaId}/kanban` accepts `q`, `projectId`, `priority`, `labelId` (no `areaId` on the scoped board). Tasks are enriched into `KanbanTaskDto` with `labels`, `project`, `areaName`, `version`, `areaId`. `q` matches the title only, with the same Turkish-aware term splitter and sanitizer as search. Filtering was done in the repository via `buildKanbanWhere`, including correct `labels: { some: { labelId } }` semantics. Also fixed a latent pre-existing bug where three list/search queries used an invalid `taskLabels` Prisma WHERE key that would have thrown at runtime for label-filtered requests. Added repository DB tests (testcontainers Postgres), service, and HTTP contract coverage; regenerated OpenAPI + api-client.
+- **Web (S2):** Shared `KanbanToolbar` (300 ms-debounced search + area/project/priority/label selects) on both boards; the global board persists filters and query to `/app/kanban` URL params via the `useKanbanBoardFilters` hook (local state on the area board). Shared `KanbanTaskCard` shows label chips, project name, planned/due dates, and area name (global). Query keys stay prefix-compatible so existing invalidations still work.
+- **Web (S3):** `DragDropProvider` enables whole-card dragging between columns on both boards (empty columns are valid targets), with a `DragOverlay` preview and optimistic reorder via the pure `moveTaskBetweenColumns` helper, rolled back on failure. Keyboard arrows remain for accessibility. Fixed a latent bug: area kanban-moves now send `If-Match` (the API rejects requests without it, so the earlier arrow buttons would have failed against a real server).
+
+**Tests:** API service/contract/DB suites; web component tests for filter → query param pass-through, URL persistence, debounced search, enriched cards; unit tests for `resolveDragMove` and `moveTaskBetweenColumns`. Full web suite 176/176, API contract 131/131, DB kanban suite 6/6, typecheck, lint, and Prettier green.
+
+**Excluded:** column collapse/expand, server-side pagination inside a column, dragging to reorder *within* a column, non-title full-text search, client-side filtering (all filtering is server-side).
 
 ## 7. Backlog maintenance policy
 
