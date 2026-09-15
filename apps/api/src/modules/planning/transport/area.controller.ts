@@ -14,7 +14,7 @@ import {
   Req,
   Res,
 } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 
 import { ApiProblemException } from '../../../platform/http/api-problem.exception';
@@ -43,6 +43,7 @@ import type {
 import {
   parseCreateAreaInput,
   parseListAreasQuery,
+  parseListAreaKanbanTasksQuery,
   parseRenameAreaInput,
   parseCreateAreaStatusInput,
   parseUpdateAreaStatusNameInput,
@@ -63,6 +64,7 @@ import {
   parseListTasksQuery,
   parseMoveAreaKanbanTaskInput,
 } from './task.schema';
+import { mapKanbanTaskSummary } from './kanban-task.mapper';
 import {
   AreaKanbanResponseDto,
   CreateTaskRequestDto,
@@ -604,6 +606,10 @@ export class AreaController {
     summary: 'List Tasks in an Area as Kanban columns',
   })
   @ApiParam({ name: 'areaId', type: String, format: 'uuid' })
+  @ApiQuery({ name: 'q', type: String, required: false })
+  @ApiQuery({ name: 'projectId', type: String, format: 'uuid', required: false })
+  @ApiQuery({ name: 'priority', type: String, required: false })
+  @ApiQuery({ name: 'labelId', type: String, format: 'uuid', required: false })
   @ApiResponse({
     status: 200,
     type: AreaKanbanResponseDto,
@@ -619,10 +625,13 @@ export class AreaController {
   async listAreaKanbanTasks(
     @Req() request: Request,
     @Param('areaId') areaId: string,
+    @Query() query: unknown,
   ): Promise<AreaKanbanResponseDto> {
     const userId = await this.resolveUserId(request);
 
-    const result = await this.taskService.listAreaKanbanTasks(userId, areaId);
+    const input = parseListAreaKanbanTasksQuery(query);
+
+    const result = await this.taskService.listAreaKanbanTasks(userId, areaId, input);
 
     return this.handleAreaKanbanResult(result);
   }
@@ -955,17 +964,7 @@ export class AreaController {
           columns: result.columns.map((col) => ({
             statusId: col.statusId,
             count: col.count,
-            tasks: col.tasks.map((task) => ({
-              id: task.id,
-              title: task.title,
-              priority: task.priority,
-              canonicalStatus: task.canonicalStatus,
-              dueAt: task.dueAt?.toISOString() ?? null,
-              plannedAt: task.plannedAt?.toISOString() ?? null,
-              lifecycleState: task.lifecycleState,
-              version: task.version,
-              areaId: task.areaId,
-            })),
+            tasks: col.tasks.map(mapKanbanTaskSummary),
           })),
         };
       case 'NOT_FOUND':

@@ -19,6 +19,9 @@ describe('task service — listKanbanTasks', () => {
           lifecycleState: 'ACTIVE',
           version: 1,
           areaId: 'area-id',
+          labels: [],
+          project: null,
+          areaName: 'Test Alan',
         },
       ],
       inProgress: [],
@@ -33,6 +36,27 @@ describe('task service — listKanbanTasks', () => {
       todo: expect.arrayContaining([expect.objectContaining({ id: 'task-1' })]),
       inProgress: [],
       completed: [],
+    });
+  });
+
+  it('passes filters through to the repository', async () => {
+    const repository = repositoryMock();
+    repository.findKanbanTasks.mockResolvedValue({ todo: [], inProgress: [], completed: [] });
+
+    const service = new TaskService(repository, recurrenceServiceMock());
+    const result = await service.listKanbanTasks('user-id', {
+      q: 'rapor',
+      areaId: 'area-id',
+      priority: 'HIGH',
+      labelId: 'label-1',
+    });
+
+    expect(result.outcome).toBe('SUCCESS');
+    expect(repository.findKanbanTasks).toHaveBeenCalledWith('user-id', {
+      q: 'rapor',
+      areaId: 'area-id',
+      priority: 'HIGH',
+      labelId: 'label-1',
     });
   });
 });

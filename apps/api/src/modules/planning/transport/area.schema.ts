@@ -77,6 +77,30 @@ export function parseListAreasQuery(value: unknown): ListAreasQueryInput {
   });
 }
 
+const listAreaKanbanTasksQuerySchema = z.object({
+  q: z.string().max(200).optional(),
+  projectId: z.string().uuid().optional(),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
+  labelId: z.string().uuid().optional(),
+});
+
+export type ListAreaKanbanTasksQueryInput = z.infer<typeof listAreaKanbanTasksQuerySchema>;
+
+export function parseListAreaKanbanTasksQuery(value: unknown): ListAreaKanbanTasksQueryInput {
+  const result = listAreaKanbanTasksQuerySchema.safeParse(value);
+
+  if (result.success) {
+    return result.data;
+  }
+
+  throw new ApiProblemException({
+    status: 422,
+    code: 'VALIDATION_FAILED',
+    detail: 'Sorgu parametrelerini kontrol edin.',
+    errors: result.error.issues.map(toValidationProblem),
+  });
+}
+
 const createAreaStatusSchema = z.strictObject({
   name: z
     .string()

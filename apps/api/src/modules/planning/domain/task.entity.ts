@@ -81,6 +81,20 @@ export type TaskSummary = {
   readonly areaId: string;
 };
 
+export type KanbanTaskSummary = TaskSummary & {
+  readonly labels: readonly { id: string; name: string }[];
+  readonly project: { id: string; name: string } | null;
+  readonly areaName: string;
+};
+
+export type KanbanTaskFilter = {
+  readonly q?: string | undefined;
+  readonly areaId?: string | undefined;
+  readonly projectId?: string | undefined;
+  readonly priority?: TaskPriority | undefined;
+  readonly labelId?: string | undefined;
+};
+
 export type TaskDetail = {
   readonly task: Task;
   readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';

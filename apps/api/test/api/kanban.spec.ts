@@ -82,6 +82,58 @@ describe('kanban HTTP contract', () => {
 
       await request(app.getHttpServer()).get('/tasks/kanban').expect(401);
     });
+
+    it('accepts query filters and returns enriched tasks', async () => {
+      taskService.listKanbanTasks.mockResolvedValue({
+        outcome: 'SUCCESS',
+        todo: [
+          {
+            id: TASK_ID,
+            title: 'Rapor yaz',
+            priority: 'HIGH',
+            canonicalStatus: 'TO_DO',
+            dueAt: null,
+            plannedAt: null,
+            lifecycleState: 'ACTIVE',
+            version: 1,
+            areaId: 'a0000000-0000-4000-8000-000000000002',
+            labels: [{ id: 'label-1', name: 'Ev' }],
+            project: null,
+            areaName: 'İş',
+          },
+        ],
+        inProgress: [],
+        completed: [],
+      });
+
+      const response = await request(app.getHttpServer())
+        .get('/tasks/kanban?q=rapor&priority=HIGH&labelId=00000000-0000-4000-8000-00000000000a')
+        .set('Cookie', 'planner-session=token')
+        .expect(200);
+
+      expect(taskService.listKanbanTasks).toHaveBeenCalledWith(
+        'user-id',
+        expect.objectContaining({ q: 'rapor', priority: 'HIGH', labelId: '00000000-0000-4000-8000-00000000000a' }),
+      );
+      expect(response.body.todo).toMatchObject({
+        count: 1,
+        tasks: [
+          {
+            areaName: 'İş',
+            labels: [{ id: 'label-1', name: 'Ev' }],
+            version: 1,
+            areaId: 'a0000000-0000-4000-8000-000000000002',
+          },
+        ],
+      });
+    });
+
+    it('rejects invalid query filters', async () => {
+      await request(app.getHttpServer())
+        .get('/tasks/kanban?priority=URGENT')
+        .set('Cookie', 'planner-session=token')
+        .expect(422);
+    });
   });
 
   describe('POST /tasks/kanban-moves', () => {

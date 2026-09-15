@@ -5,9 +5,12 @@ import { Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../platform/database/prisma.service';
 import type {
   DateStateValue,
+  KanbanTaskFilter,
+  KanbanTaskSummary,
   RecurrenceSeriesDetail,
   Task,
   TaskDetail,
+  TaskPriority,
   TaskSummary,
 } from '../domain/task.entity';
 
@@ -425,7 +428,7 @@ export class TaskRepository {
     }
 
     if (options.labelId !== undefined) {
-      where.taskLabels = { some: { labelId: options.labelId } };
+      where.labels = { some: { labelId: options.labelId } };
     }
 
     if (andConstraints.length > 0) {
@@ -555,33 +558,31 @@ export class TaskRepository {
     }));
   }
 
-  async findKanbanTasks(userId: string): Promise<{
-    readonly todo: readonly TaskSummary[];
-    readonly inProgress: readonly TaskSummary[];
-    readonly completed: readonly TaskSummary[];
+  async findKanbanTasks(
+    userId: string,
+    filters: KanbanTaskFilter = {},
+  ): Promise<{
+    readonly todo: readonly KanbanTaskSummary[];
+    readonly inProgress: readonly KanbanTaskSummary[];
+    readonly completed: readonly KanbanTaskSummary[];
   }> {
     const tasks = await this.prisma.task.findMany({
-      where: { userId, lifecycleState: 'ACTIVE' },
+      where: this.buildKanbanWhere(userId, filters, filters.areaId),
       orderBy: [{ globalRank: 'asc' }, { id: 'asc' }],
-      include: { areaStatus: { select: { canonicalStatus: true } } },
+      include: {
+        areaStatus: { select: { canonicalStatus: true } },
+        area: { select: { name: true } },
+        project: { select: { id: true, name: true } },
+        labels: { select: { label: { select: { id: true, name: true } } } },
+      },
     });
 
-    const todo: TaskSummary[] = [];
-    const inProgress: TaskSummary[] = [];
-    const completed: TaskSummary[] = [];
+    const todo: KanbanTaskSummary[] = [];
+    const inProgress: KanbanTaskSummary[] = [];
+    const completed: KanbanTaskSummary[] = [];
 
     for (const task of tasks) {
-      const summary: TaskSummary = {
-        id: task.id,
-        title: task.title,
-        priority: task.priority,
-        canonicalStatus: task.areaStatus.canonicalStatus,
-        dueAt: task.dueAt,
-        plannedAt: task.plannedAt,
-        lifecycleState: task.lifecycleState,
-        version: task.version,
-        areaId: task.areaId,
-      };
+      const summary = this.toKanbanTaskSummary(task);
 
       switch (task.areaStatus.canonicalStatus) {
         case 'TO_DO':
@@ -597,6 +598,76 @@ export class TaskRepository {
     }
 
     return { todo, inProgress, completed };
+  }
+
+  private buildKanbanWhere(
+    userId: string,
+    filters: KanbanTaskFilter,
+    areaId?: string,
+  ): Record<string, unknown> {
+    const where: Record<string, unknown> = { userId, lifecycleState: 'ACTIVE' };
+
+    if (areaId !== undefined) {
+      where.areaId = areaId;
+    }
+
+    if (filters.priority !== undefined) {
+      where.priority = filters.priority;
+    }
+
+    if (filters.projectId !== undefined) {
+      where.projectId = filters.projectId;
+    }
+
+    if (filters.labelId !== undefined) {
+      where.labels = { some: { labelId: filters.labelId } };
+    }
+
+    const searchTerms = (filters.q ?? '')
+      .split(/\s+/)
+      .filter((t) => t.length > 0)
+      .map((t) => t.replace(/[^\wğüşıöçĞÜŞİÖÇ]/g, ''))
+      .filter((t) => t.length > 0);
+
+    if (searchTerms.length > 0) {
+      where.AND = searchTerms.map((term) => ({
+        title: { contains: term, mode: 'insensitive' as const },
+      }));
+    }
+
+    return where;
+  }
+
+  private toKanbanTaskSummary(task: {
+    readonly id: string;
+    readonly title: string;
+    readonly priority: TaskPriority;
+    readonly dueAt: Date | null;
+    readonly plannedAt: Date | null;
+    readonly lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+    readonly version: number;
+    readonly areaId: string;
+    readonly areaStatus: { canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED' };
+    readonly area: { name: string };
+    readonly project: { id: string; name: string } | null;
+    readonly labels: ReadonlyArray<{
+      readonly label: { id: string; name: string };
+    }>;
+  }): KanbanTaskSummary {
+    return {
+      id: task.id,
+      title: task.title,
+      priority: task.priority,
+      canonicalStatus: task.areaStatus.canonicalStatus,
+      dueAt: task.dueAt,
+      plannedAt: task.plannedAt,
+      lifecycleState: task.lifecycleState,
+      version: task.version,
+      areaId: task.areaId,
+      labels: task.labels.map((tl) => ({ id: tl.label.id, name: tl.label.name })),
+      project: task.project,
+      areaName: task.area.name,
+    };
   }
 
   async moveTask(
@@ -665,6 +736,7 @@ export class TaskRepository {
   async findAreaKanbanTasks(
     userId: string,
     areaId: string,
+    filters: KanbanTaskFilter = {},
   ): Promise<{
     readonly statuses: ReadonlyArray<{
       readonly id: string;
@@ -675,7 +747,7 @@ export class TaskRepository {
     readonly columns: ReadonlyArray<{
       readonly statusId: string;
       readonly count: number;
-      readonly tasks: readonly TaskSummary[];
+      readonly tasks: readonly KanbanTaskSummary[];
     }>;
   }> {
     const statuses = await this.prisma.areaStatus.findMany({
@@ -685,12 +757,17 @@ export class TaskRepository {
     });
 
     const tasks = await this.prisma.task.findMany({
-      where: { userId, areaId, lifecycleState: 'ACTIVE' },
+      where: this.buildKanbanWhere(userId, filters, areaId),
       orderBy: [{ areaRank: 'asc' }, { id: 'asc' }],
-      include: { areaStatus: { select: { id: true, canonicalStatus: true } } },
+      include: {
+        areaStatus: { select: { id: true, canonicalStatus: true } },
+        area: { select: { name: true } },
+        project: { select: { id: true, name: true } },
+        labels: { select: { label: { select: { id: true, name: true } } } },
+      },
     });
 
-    const taskMap = new Map<string, TaskSummary[]>();
+    const taskMap = new Map<string, KanbanTaskSummary[]>();
 
     for (const status of statuses) {
       taskMap.set(status.id, []);
@@ -700,17 +777,7 @@ export class TaskRepository {
       const bucket = taskMap.get(task.areaStatus.id);
 
       if (bucket) {
-        bucket.push({
-          id: task.id,
-          title: task.title,
-          priority: task.priority,
-          canonicalStatus: task.areaStatus.canonicalStatus,
-          dueAt: task.dueAt,
-          plannedAt: task.plannedAt,
-          lifecycleState: task.lifecycleState,
-          version: task.version,
-          areaId: task.areaId,
-        });
+        bucket.push(this.toKanbanTaskSummary(task));
       }
     }
 
@@ -855,7 +922,7 @@ export class TaskRepository {
     }
 
     if (options.labelId !== undefined) {
-      where.taskLabels = { some: { labelId: options.labelId } };
+      where.labels = { some: { labelId: options.labelId } };
     }
 
     if (andConstraints.length > 0) {

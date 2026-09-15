@@ -28,6 +28,9 @@ describe('task service — listAreaKanbanTasks', () => {
               lifecycleState: 'ACTIVE',
               version: 1,
               areaId: 'area-1',
+              labels: [],
+              project: null,
+              areaName: 'Test Alan',
             },
           ],
         },
@@ -59,6 +62,25 @@ describe('task service — listAreaKanbanTasks', () => {
     const result = await service.listAreaKanbanTasks('user-id', 'nonexistent');
 
     expect(result.outcome).toBe('NOT_FOUND');
+  });
+
+  it('passes filters through to the repository', async () => {
+    const repository = repositoryMock();
+    repository.areaExists.mockResolvedValue(true);
+    repository.findAreaKanbanTasks.mockResolvedValue({ statuses: [], columns: [] });
+
+    const service = new TaskService(repository, recurrenceServiceMock());
+    await service.listAreaKanbanTasks('user-id', 'area-1', {
+      q: 'rapor',
+      priority: 'MEDIUM',
+      projectId: 'project-1',
+    });
+
+    expect(repository.findAreaKanbanTasks).toHaveBeenCalledWith('user-id', 'area-1', {
+      q: 'rapor',
+      priority: 'MEDIUM',
+      projectId: 'project-1',
+    });
   });
 });
 

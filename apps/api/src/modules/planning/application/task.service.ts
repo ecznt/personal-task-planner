@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 
 import { AreaService } from './area.service';
 import { TaskRepository } from '../infrastructure/task.repository';
-import type { DateStateValue, Task, TaskDetail, TaskSummary } from '../domain/task.entity';
+import type { DateStateValue, KanbanTaskFilter, KanbanTaskSummary, Task, TaskDetail, TaskSummary } from '../domain/task.entity';
 import { RecurrenceService } from './recurrence.service';
 import { buildCalendarDayRanges, parseTodayRange } from './date-range';
 
@@ -128,9 +128,9 @@ export type ListTodayTasksResult = {
 
 export type ListKanbanTasksResult = {
   readonly outcome: 'SUCCESS';
-  readonly todo: readonly TaskSummary[];
-  readonly inProgress: readonly TaskSummary[];
-  readonly completed: readonly TaskSummary[];
+  readonly todo: readonly KanbanTaskSummary[];
+  readonly inProgress: readonly KanbanTaskSummary[];
+  readonly completed: readonly KanbanTaskSummary[];
 };
 
 export type ListUpcomingTasksQuery = {
@@ -179,7 +179,7 @@ export type AreaKanbanStatusColumn = {
 export type AreaKanbanColumn = {
   readonly statusId: string;
   readonly count: number;
-  readonly tasks: readonly TaskSummary[];
+  readonly tasks: readonly KanbanTaskSummary[];
 };
 
 export type ListAreaKanbanTasksResult =
@@ -612,8 +612,8 @@ export class TaskService {
     };
   }
 
-  async listKanbanTasks(userId: string): Promise<ListKanbanTasksResult> {
-    const { todo, inProgress, completed } = await this.taskRepository.findKanbanTasks(userId);
+  async listKanbanTasks(userId: string, filters: KanbanTaskFilter = {}): Promise<ListKanbanTasksResult> {
+    const { todo, inProgress, completed } = await this.taskRepository.findKanbanTasks(userId, filters);
 
     return {
       outcome: 'SUCCESS',
@@ -663,14 +663,18 @@ export class TaskService {
     };
   }
 
-  async listAreaKanbanTasks(userId: string, areaId: string): Promise<ListAreaKanbanTasksResult> {
+  async listAreaKanbanTasks(
+    userId: string,
+    areaId: string,
+    filters: KanbanTaskFilter = {},
+  ): Promise<ListAreaKanbanTasksResult> {
     const areaExists = await this.taskRepository.areaExists(userId, areaId);
 
     if (!areaExists) {
       return { outcome: 'NOT_FOUND' };
     }
 
-    const { statuses, columns } = await this.taskRepository.findAreaKanbanTasks(userId, areaId);
+    const { statuses, columns } = await this.taskRepository.findAreaKanbanTasks(userId, areaId, filters);
     return { outcome: 'SUCCESS', statuses, columns };
   }
 

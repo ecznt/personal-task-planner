@@ -173,7 +173,7 @@
           },
           "tasks": {
             "items": {
-              "$ref": "#/components/schemas/TaskSummaryDto"
+              "$ref": "#/components/schemas/KanbanTaskDto"
             },
             "type": "array"
           }
@@ -932,7 +932,7 @@
           },
           "tasks": {
             "items": {
-              "$ref": "#/components/schemas/TaskSummaryDto"
+              "$ref": "#/components/schemas/KanbanTaskDto"
             },
             "type": "array"
           }
@@ -940,6 +940,22 @@
         "required": [
           "count",
           "tasks"
+        ],
+        "type": "object"
+      },
+      "KanbanProjectDto": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
         ],
         "type": "object"
       },
@@ -959,6 +975,80 @@
           "todo",
           "inProgress",
           "completed"
+        ],
+        "type": "object"
+      },
+      "KanbanTaskDto": {
+        "properties": {
+          "areaId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "areaName": {
+            "type": "string"
+          },
+          "canonicalStatus": {
+            "enum": [
+              "TO_DO",
+              "IN_PROGRESS",
+              "COMPLETED"
+            ],
+            "type": "string"
+          },
+          "dueAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "labels": {
+            "items": {
+              "$ref": "#/components/schemas/LabelSummaryDto"
+            },
+            "type": "array"
+          },
+          "lifecycleState": {
+            "enum": [
+              "ACTIVE",
+              "ARCHIVED",
+              "TRASHED"
+            ],
+            "type": "string"
+          },
+          "plannedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "priority": {
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ],
+            "type": "string"
+          },
+          "project": {
+            "$ref": "#/components/schemas/KanbanProjectDto"
+          },
+          "title": {
+            "type": "string"
+          },
+          "version": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "priority",
+          "canonicalStatus",
+          "lifecycleState",
+          "version",
+          "areaId",
+          "labels",
+          "areaName"
         ],
         "type": "object"
       },
@@ -2447,6 +2537,40 @@
       "get": {
         "operationId": "listAreaKanbanTasks",
         "parameters": [
+          {
+            "in": "query",
+            "name": "labelId",
+            "required": false,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "priority",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "projectId",
+            "required": false,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "in": "path",
             "name": "areaId",
@@ -5079,7 +5203,51 @@
     "/api/v1/tasks/kanban": {
       "get": {
         "operationId": "listKanbanTasks",
-        "parameters": [],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "labelId",
+            "required": false,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "priority",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "projectId",
+            "required": false,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "areaId",
+            "required": false,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {

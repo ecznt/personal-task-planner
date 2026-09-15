@@ -49,7 +49,7 @@ export type AreaDetailResponseDto = {
 export type AreaKanbanColumnDto = {
     count: number;
     statusId: string;
-    tasks: Array<TaskSummaryDto>;
+    tasks: Array<KanbanTaskDto>;
 };
 
 export type AreaKanbanResponseDto = {
@@ -272,13 +272,33 @@ export type GlobalCreateTaskRequestDto = {
 
 export type KanbanColumnDto = {
     count: number;
-    tasks: Array<TaskSummaryDto>;
+    tasks: Array<KanbanTaskDto>;
+};
+
+export type KanbanProjectDto = {
+    id: string;
+    name: string;
 };
 
 export type KanbanResponseDto = {
     completed: KanbanColumnDto;
     inProgress: KanbanColumnDto;
     todo: KanbanColumnDto;
+};
+
+export type KanbanTaskDto = {
+    areaId: string;
+    areaName: string;
+    canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+    dueAt?: string;
+    id: string;
+    labels: Array<LabelSummaryDto>;
+    lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+    plannedAt?: string;
+    priority: 'LOW' | 'MEDIUM' | 'HIGH';
+    project?: KanbanProjectDto;
+    title: string;
+    version: number;
 };
 
 export type LabelDataDto = {
@@ -804,7 +824,12 @@ export type ListAreaKanbanTasksData = {
     path: {
         areaId: string;
     };
-    query?: never;
+    query?: {
+        labelId?: string;
+        priority?: string;
+        projectId?: string;
+        q?: string;
+    };
     url: '/api/v1/areas/{areaId}/kanban';
 };
 
@@ -2443,7 +2468,13 @@ export type ListCalendarTasksResponse = ListCalendarTasksResponses[keyof ListCal
 export type ListKanbanTasksData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        labelId?: string;
+        priority?: string;
+        projectId?: string;
+        areaId?: string;
+        q?: string;
+    };
     url: '/api/v1/tasks/kanban';
 };
 

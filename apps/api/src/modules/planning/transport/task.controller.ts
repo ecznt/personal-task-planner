@@ -32,12 +32,14 @@ import type {
   ListUpcomingTasksResult,
   MoveKanbanTaskResult,
 } from '../application/task.service';
-import type { TaskSummary } from '../domain/task.entity';
+import type { KanbanTaskSummary, TaskSummary } from '../domain/task.entity';
+import { mapKanbanTaskSummary } from './kanban-task.mapper';
 import {
   parseCreateTaskRequestInput,
   parseEditTaskInput,
   parseListCalendarTasksQuery,
   parseListGlobalTasksQuery,
+  parseListKanbanTasksQuery,
   parseListTodayTasksQuery,
   parseListUpcomingTasksQuery,
   parseMoveKanbanTaskInput,
@@ -286,6 +288,11 @@ export class TaskController {
     operationId: 'listKanbanTasks',
     summary: 'Get Global Kanban view',
   })
+  @ApiQuery({ name: 'q', type: String, required: false })
+  @ApiQuery({ name: 'areaId', type: String, format: 'uuid', required: false })
+  @ApiQuery({ name: 'projectId', type: String, format: 'uuid', required: false })
+  @ApiQuery({ name: 'priority', type: String, required: false })
+  @ApiQuery({ name: 'labelId', type: String, format: 'uuid', required: false })
   @ApiResponse({
     status: 200,
     type: KanbanResponseDto,
@@ -294,10 +301,15 @@ export class TaskController {
     description: 'No valid authenticated session is present.',
     status: 401,
   })
-  async listKanbanTasks(@Req() request: Request): Promise<KanbanResponseDto> {
+  async listKanbanTasks(
+    @Req() request: Request,
+    @Query() query: unknown,
+  ): Promise<KanbanResponseDto> {
     const userId = await this.resolveUserId(request);
 
-    const result = await this.taskService.listKanbanTasks(userId);
+    const input = parseListKanbanTasksQuery(query);
+
+    const result = await this.taskService.listKanbanTasks(userId, input);
 
     return this.handleListKanbanTasksResult(result);
   }
@@ -808,18 +820,7 @@ export class TaskController {
   }
 
   private handleListKanbanTasksResult(result: ListKanbanTasksResult): KanbanResponseDto {
-    const mapTasks = (tasks: readonly TaskSummary[]) =>
-      tasks.map((task) => ({
-        id: task.id,
-        title: task.title,
-        priority: task.priority,
-        canonicalStatus: task.canonicalStatus,
-        dueAt: task.dueAt?.toISOString() ?? null,
-        plannedAt: task.plannedAt?.toISOString() ?? null,
-        lifecycleState: task.lifecycleState,
-        version: task.version,
-        areaId: task.areaId,
-      }));
+    const mapTasks = (tasks: readonly KanbanTaskSummary[]) => tasks.map(mapKanbanTaskSummary);
 
     return {
       todo: { count: result.todo.length, tasks: mapTasks(result.todo) },

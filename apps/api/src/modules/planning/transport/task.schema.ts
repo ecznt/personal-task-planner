@@ -193,6 +193,31 @@ export function parseListGlobalTasksQuery(value: unknown): ListGlobalTasksQueryI
   });
 }
 
+const listKanbanTasksQuerySchema = z.object({
+  q: z.string().max(200).optional(),
+  areaId: z.string().uuid().optional(),
+  projectId: z.string().uuid().optional(),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
+  labelId: z.string().uuid().optional(),
+});
+
+export type ListKanbanTasksQueryInput = z.infer<typeof listKanbanTasksQuerySchema>;
+
+export function parseListKanbanTasksQuery(value: unknown): ListKanbanTasksQueryInput {
+  const result = listKanbanTasksQuerySchema.safeParse(value);
+
+  if (result.success) {
+    return result.data;
+  }
+
+  throw new ApiProblemException({
+    status: 422,
+    code: 'VALIDATION_FAILED',
+    detail: 'Sorgu parametrelerini kontrol edin.',
+    errors: result.error.issues.map(toValidationProblem),
+  });
+}
+
 const listTodayTasksQuerySchema = z.object({
   timezone: z.string().min(1).default('Europe/Istanbul'),
 });
