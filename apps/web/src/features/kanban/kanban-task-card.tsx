@@ -26,6 +26,7 @@ export function KanbanTaskCard({ task, index }: { task: KanbanTask; index?: numb
   return (
     <Link
       href={`/app/areas/tasks/${task.id}`}
+      draggable={false}
       className="card-surface block rounded-lg border border-border/70 bg-card p-3 shadow-surface transition-all duration-150 active:scale-[0.97] hover:border-border hover:shadow-surface-hover"
       style={index === undefined ? undefined : { animationDelay: `${Math.min(index, 8) * 40}ms` }}
     >

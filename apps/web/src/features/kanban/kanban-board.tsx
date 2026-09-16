@@ -1,7 +1,7 @@
 'use client';
 
 import { apiClient } from '@planner/api-client';
-import { DragDropProvider, DragOverlay, type DragEndEvent } from '@dnd-kit/react';
+import { DragDropProvider, DragOverlay, KeyboardSensor, PointerSensor, type DragEndEvent } from '@dnd-kit/react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight, Kanban } from 'lucide-react';
@@ -16,6 +16,7 @@ import {
   DraggableKanbanCard,
   DroppableKanbanColumn,
   moveTaskBetweenColumns,
+  preventCardDragFromControls,
   resolveDragMove,
   type DragTaskData,
 } from '@/features/kanban/kanban-dnd';
@@ -278,6 +279,10 @@ export function KanbanBoard() {
       />
 
       <DragDropProvider
+        sensors={[
+          { plugin: PointerSensor, options: { preventActivation: preventCardDragFromControls } },
+          KeyboardSensor,
+        ]}
         onDragStart={(event) => {
           const sourceData = event.operation.source?.data as DragTaskData | undefined;
           setActiveTask(sourceData?.task ?? null);

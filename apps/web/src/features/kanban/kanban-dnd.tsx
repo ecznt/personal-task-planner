@@ -7,6 +7,20 @@ import { useRef } from 'react';
 import { KanbanTaskCard, type KanbanTask } from '@/features/kanban/kanban-task-card';
 import { cn } from '@/lib/utils';
 
+const interactiveControlSelector = [
+  'button:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[contenteditable]:not([contenteditable="false"])',
+].join(', ');
+
+export function preventCardDragFromControls(event: PointerEvent) {
+  const target = event.target;
+  if (!(target instanceof Element)) return false;
+  return target.closest(interactiveControlSelector) !== null;
+}
+
 export type DragTaskData = {
   readonly taskId: string;
   readonly version: number;

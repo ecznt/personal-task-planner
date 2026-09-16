@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { moveTaskBetweenColumns, resolveDragMove } from './kanban-dnd';
+import { moveTaskBetweenColumns, preventCardDragFromControls, resolveDragMove } from './kanban-dnd';
 import type { KanbanTask } from './kanban-task-card';
 
 const task = (id: string): KanbanTask => ({
@@ -47,6 +47,53 @@ describe('resolveDragMove', () => {
         null,
       ),
     ).toBeNull();
+  });
+});
+
+describe('preventCardDragFromControls', () => {
+  it('returns true when a control inside the card triggered the pointerdown', () => {
+    const card = document.createElement('a');
+    card.href = '/app/areas/tasks/task-1';
+    const button = document.createElement('button');
+    card.appendChild(button);
+    document.body.appendChild(card);
+
+    const event = new PointerEvent('pointerdown', { bubbles: true });
+    button.dispatchEvent(event);
+    expect(preventCardDragFromControls(event)).toBe(true);
+
+    card.remove();
+  });
+
+  it('returns true for contenteditable surfaces', () => {
+    const card = document.createElement('a');
+    card.href = '/app/areas/tasks/task-1';
+    const editor = document.createElement('div');
+    editor.setAttribute('contenteditable', 'true');
+    card.appendChild(editor);
+    document.body.appendChild(card);
+
+    const event = new PointerEvent('pointerdown', { bubbles: true });
+    editor.dispatchEvent(event);
+    expect(preventCardDragFromControls(event)).toBe(true);
+
+    card.remove();
+  });
+
+  it('allows activation from the card anchor (non-control surface)', () => {
+    const card = document.createElement('a');
+    card.href = '/app/areas/tasks/task-1';
+    document.body.appendChild(card);
+
+    const event = new PointerEvent('pointerdown', { bubbles: true });
+    card.dispatchEvent(event);
+    expect(preventCardDragFromControls(event)).toBe(false);
+
+    card.remove();
+  });
+
+  it('returns false when no event target is present', () => {
+    expect(preventCardDragFromControls({ target: null } as unknown as PointerEvent)).toBe(false);
   });
 });
 
