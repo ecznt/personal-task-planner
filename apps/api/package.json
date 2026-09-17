@@ -8,6 +8,8 @@
     "dev:worker": "tsx watch src/worker.ts",
     "lint": "eslint .",
     "openapi:generate": "tsx scripts/generate-openapi.ts",
+    "seed:dummy": "tsx scripts/seed-dummy-user.ts",
+    "seed:verify": "tsx scripts/verify-seed.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:validate": "prisma validate",
@@ -16,7 +18,9 @@
     "test:api": "jest --config test/jest-api.config.cjs --runInBand",
     "test:db": "NODE_OPTIONS=--experimental-vm-modules jest --config test/jest-db.config.cjs --runInBand",
     "test:unit": "jest --config test/jest-unit.config.cjs --runInBand",
-    "typecheck": "tsc --project tsconfig.json --noEmit"
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "seed:dummy": "tsx scripts/seed-dummy-user.ts",
+    "seed:verify": "tsx scripts/verify-seed.ts"
   },
   "dependencies": {
     "@nestjs/common": "11.1.28",
