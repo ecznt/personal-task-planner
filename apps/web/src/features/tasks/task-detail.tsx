@@ -201,6 +201,40 @@ export function TaskDetail({ taskId }: TaskDetailProps) {
     },
   });
 
+  const toggleLabel = useMutation({
+    mutationFn: async (labelId: string) => {
+      const csrf = csrfQuery.data ?? (await fetchCsrf());
+      queryClient.setQueryData(csrfQueryKey, csrf);
+
+      const current = task.data?.data;
+      if (!current) throw new Error('Görev bulunamadı.');
+
+      const next = selectedLabelIds.includes(labelId)
+        ? selectedLabelIds.filter((l) => l !== labelId)
+        : [...selectedLabelIds, labelId];
+
+      const result = await apiClient.patch({
+        url: '/api/v1/tasks/{taskId}',
+        path: { taskId },
+        body: { labelIds: next },
+        headers: {
+          'X-CSRF-Token': csrf.token,
+          'If-Match': String(current.version),
+        },
+      });
+
+      if (result.error !== undefined) {
+        throw apiError(result.error);
+      }
+
+      return result.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['areas', 'tasks', taskId] });
+      queryClient.invalidateQueries({ queryKey: ['areas', task.data?.data?.areaId, 'tasks'] });
+    },
+  });
+
   if (task.isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -392,9 +426,7 @@ export function TaskDetail({ taskId }: TaskDetailProps) {
         <LabelManager
           selectedLabelIds={selectedLabelIds}
           onToggleLabel={(id) => {
-            setSelectedLabelIds((prev) =>
-              prev.includes(id) ? prev.filter((l) => l !== id) : [...prev, id],
-            );
+            toggleLabel.mutate(id);
           }}
         />
       </div>
