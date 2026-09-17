@@ -39,7 +39,15 @@ export function KanbanTaskCard({ task, index }: { task: KanbanTask; index?: numb
 
       <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
         {task.labels.map((label) => (
-          <span key={label.id} className="text-xs text-muted-foreground">
+          <span
+            key={label.id}
+            className="inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-xs"
+          >
+            <span
+              aria-hidden
+              className="size-2 rounded-full"
+              style={{ backgroundColor: label.color ?? '#2563eb' }}
+            />
             #{label.name}
           </span>
         ))}
