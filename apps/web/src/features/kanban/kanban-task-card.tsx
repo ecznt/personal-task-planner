@@ -13,7 +13,7 @@ export type KanbanTask = {
   readonly dueAt: string | null;
   readonly plannedAt: string | null;
   readonly version: number;
-  readonly labels: readonly { readonly id: string; readonly name: string }[];
+  readonly labels: readonly { readonly id: string; readonly name: string; readonly color: string | null }[];
   readonly project: { readonly id: string; readonly name: string } | null;
   readonly areaName?: string;
 };

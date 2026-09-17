@@ -25,6 +25,7 @@ type LabelManagerProps = {
 export function LabelManager({ selectedLabelIds, onToggleLabel }: LabelManagerProps) {
   const [isCreating, setIsCreating] = useState(false);
   const [newLabelName, setNewLabelName] = useState('');
+  const [newLabelColor, setNewLabelColor] = useState('#2563eb');
   const queryClient = useQueryClient();
 
   const labels = useQuery({
@@ -111,11 +112,18 @@ export function LabelManager({ selectedLabelIds, onToggleLabel }: LabelManagerPr
             placeholder="Etiket adı"
             className="h-8"
           />
+          <input
+            type="color"
+            value={newLabelColor}
+            onChange={(e) => setNewLabelColor(e.target.value)}
+            aria-label="Etiket rengi"
+            className="h-8 w-9 cursor-pointer rounded border"
+          />
           <Button
             type="button"
             size="sm"
             disabled={createLabel.isPending || newLabelName.trim().length === 0}
-            onClick={() => createLabel.mutate({ name: newLabelName })}
+            onClick={() => createLabel.mutate({ name: newLabelName, color: newLabelColor })}
           >
             {createLabel.isPending ? 'Ekleniyor...' : 'Ekle'}
           </Button>
