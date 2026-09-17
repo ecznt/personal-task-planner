@@ -17,6 +17,12 @@ export class LabelSummaryDto {
 
   @ApiProperty({ type: String })
   name!: string;
+
+  @ApiProperty({ type: String, required: false })
+  color!: string | null;
+
+  @ApiProperty({ type: Number })
+  version!: number;
 }
 
 export class LabelListMetaDto {

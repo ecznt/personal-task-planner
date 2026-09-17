@@ -97,7 +97,7 @@ describe('kanban HTTP contract', () => {
             lifecycleState: 'ACTIVE',
             version: 1,
             areaId: 'a0000000-0000-4000-8000-000000000002',
-            labels: [{ id: 'label-1', name: 'Ev' }],
+            labels: [{ id: 'label-1', name: 'Ev', color: '#0000ff', version: 1 }],
             project: null,
             areaName: 'İş',
           },

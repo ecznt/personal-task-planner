@@ -7,9 +7,14 @@ import type { Label, LabelDetail, LabelSummary } from '../domain/label.entity';
 export class LabelRepository {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
-  async createLabel(userId: string, name: string, normalizedName: string): Promise<Label> {
+  async createLabel(
+    userId: string,
+    name: string,
+    normalizedName: string,
+    color: string,
+  ): Promise<Label> {
     return this.prisma.label.create({
-      data: { userId, name, normalizedName },
+      data: { userId, name, normalizedName, color },
     });
   }
 
@@ -51,6 +56,8 @@ export class LabelRepository {
     const summaries: LabelSummary[] = slicedLabels.map((label) => ({
       id: label.id,
       name: label.name,
+      color: label.color,
+      version: label.version,
     }));
 
     return { labels: summaries, ...(nextCursor !== undefined && { nextCursor }) };
@@ -62,10 +69,16 @@ export class LabelRepository {
     name: string,
     normalizedName: string,
     version: number,
+    color?: string,
   ): Promise<Label | null> {
     const result = await this.prisma.label.updateMany({
       where: { id: labelId, userId, version },
-      data: { name, normalizedName, version: { increment: 1 } },
+      data: {
+        name,
+        normalizedName,
+        ...(color !== undefined && { color }),
+        version: { increment: 1 },
+      },
     });
 
     if (result.count === 0) {

@@ -536,6 +536,8 @@ export class TaskController {
             labels: result.data.labels.map((label) => ({
               id: label.id,
               name: label.name,
+              color: label.color,
+              version: label.version,
             })),
             checklistItems: result.data.checklistItems.map((item) => ({
               id: item.id,

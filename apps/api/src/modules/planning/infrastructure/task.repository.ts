@@ -177,7 +177,7 @@ export class TaskRepository {
 
     const taskLabels = await this.prisma.taskLabel.findMany({
       where: { taskId, userId },
-      include: { label: { select: { id: true, name: true } } },
+      include: { label: { select: { id: true, name: true, color: true, version: true } } },
     });
 
     const checklistItems = await this.prisma.checklistItem.findMany({
@@ -211,7 +211,12 @@ export class TaskRepository {
       task,
       canonicalStatus: areaStatus?.canonicalStatus ?? 'TO_DO',
       areaName: area?.name ?? '',
-      labels: taskLabels.map((tl) => ({ id: tl.label.id, name: tl.label.name })),
+      labels: taskLabels.map((tl) => ({
+        id: tl.label.id,
+        name: tl.label.name,
+        color: tl.label.color,
+        version: tl.label.version,
+      })),
       checklistItems,
       recurrence,
     };
@@ -573,7 +578,7 @@ export class TaskRepository {
         areaStatus: { select: { canonicalStatus: true } },
         area: { select: { name: true } },
         project: { select: { id: true, name: true } },
-        labels: { select: { label: { select: { id: true, name: true } } } },
+        labels: { select: { label: { select: { id: true, name: true, color: true, version: true } } } },
       },
     });
 
@@ -651,7 +656,12 @@ export class TaskRepository {
     readonly area: { name: string };
     readonly project: { id: string; name: string } | null;
     readonly labels: ReadonlyArray<{
-      readonly label: { id: string; name: string };
+      readonly label: {
+        readonly id: string;
+        readonly name: string;
+        readonly color: string | null;
+        readonly version: number;
+      };
     }>;
   }): KanbanTaskSummary {
     return {
@@ -664,7 +674,12 @@ export class TaskRepository {
       lifecycleState: task.lifecycleState,
       version: task.version,
       areaId: task.areaId,
-      labels: task.labels.map((tl) => ({ id: tl.label.id, name: tl.label.name })),
+      labels: task.labels.map((tl) => ({
+            id: tl.label.id,
+            name: tl.label.name,
+            color: tl.label.color,
+            version: tl.label.version,
+          })),
       project: task.project,
       areaName: task.area.name,
     };
@@ -763,7 +778,7 @@ export class TaskRepository {
         areaStatus: { select: { id: true, canonicalStatus: true } },
         area: { select: { name: true } },
         project: { select: { id: true, name: true } },
-        labels: { select: { label: { select: { id: true, name: true } } } },
+        labels: { select: { label: { select: { id: true, name: true, color: true, version: true } } } },
       },
     });
 

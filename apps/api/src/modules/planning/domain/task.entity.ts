@@ -82,10 +82,11 @@ export type TaskSummary = {
 };
 
 export type KanbanTaskSummary = TaskSummary & {
-  readonly labels: readonly { id: string; name: string }[];
+  readonly labels: readonly LabelSummary[];
   readonly project: { id: string; name: string } | null;
   readonly areaName: string;
 };
+
 
 export type KanbanTaskFilter = {
   readonly q?: string | undefined;

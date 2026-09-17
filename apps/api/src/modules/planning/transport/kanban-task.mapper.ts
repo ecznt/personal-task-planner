@@ -12,7 +12,12 @@ export function mapKanbanTaskSummary(task: KanbanTaskSummary): KanbanTaskDto {
     lifecycleState: task.lifecycleState,
     version: task.version,
     areaId: task.areaId,
-    labels: task.labels.map((label) => ({ id: label.id, name: label.name })),
+    labels: task.labels.map((label) => ({
+      id: label.id,
+      name: label.name,
+      color: label.color,
+      version: label.version,
+    })),
     project: task.project ?? null,
     areaName: task.areaName,
   };

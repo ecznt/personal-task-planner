@@ -5,7 +5,10 @@ import type { Label, LabelDetail, LabelSummary } from '../domain/label.entity';
 
 export type CreateLabelCommand = {
   readonly name: string;
+  readonly color?: string;
 };
+
+export const DEFAULT_LABEL_COLOR = '#2563eb';
 
 export type CreateLabelResult =
   | { readonly outcome: 'SUCCESS'; readonly label: Label; readonly etag: number }
@@ -39,6 +42,7 @@ export type RenameLabelCommand = {
   readonly labelId: string;
   readonly name: string;
   readonly version: number;
+  readonly color?: string;
 };
 
 export type RenameLabelResult =
@@ -86,7 +90,12 @@ export class LabelService {
       return { outcome: 'CONFLICT', detail: 'Bu isimde bir etiket zaten mevcut.' };
     }
 
-    const label = await this.labelRepository.createLabel(userId, name, normalizedName);
+    const label = await this.labelRepository.createLabel(
+      userId,
+      name,
+      normalizedName,
+      command.color?.trim() || DEFAULT_LABEL_COLOR,
+    );
 
     return { outcome: 'SUCCESS', label, etag: 1 };
   }
@@ -139,6 +148,7 @@ export class LabelService {
       name,
       normalizedName,
       command.version,
+      command.color?.trim(),
     );
 
     if (!label) {

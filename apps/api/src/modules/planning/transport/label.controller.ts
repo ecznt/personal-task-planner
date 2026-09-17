@@ -357,6 +357,8 @@ export class LabelController {
           data: result.labels.map((label) => ({
             id: label.id,
             name: label.name,
+            color: label.color,
+            version: label.version,
           })),
           meta: {
             ...(result.nextCursor !== undefined && { nextCursor: result.nextCursor }),
