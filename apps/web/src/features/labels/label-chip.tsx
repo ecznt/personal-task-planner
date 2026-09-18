@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { labelTextColor, labelTint, resolveLabelColor, type LabelLike } from './label-color';
 
 export const labelHoverSurfaceClass =
-  'bg-[color-mix(in_oklch,var(--task-label)_25%,transparent)] hover:bg-[color-mix(in_oklch,var(--task-label)_40%,transparent)]';
+  'bg-[color-mix(in_oklch,var(--task-label)_40%,transparent)] hover:bg-[color-mix(in_oklch,var(--task-label)_60%,transparent)]';
 
 export function labelSurfaceStyle(color: string | null | undefined): CSSProperties {
   return { '--task-label': resolveLabelColor(color) } as CSSProperties;
