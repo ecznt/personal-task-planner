@@ -19,6 +19,7 @@ describe('task service — listGlobalTasks', () => {
           lifecycleState: 'ACTIVE',
           version: 1,
           areaId: 'area-id',
+          labels: [],
         },
       ],
     });

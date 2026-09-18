@@ -64,6 +64,7 @@ describe('SearchView', () => {
                     areaId: 'area-1',
                     version: 1,
                     score: 10,
+                    labels: [{ id: 'label-1', name: 'Finans', color: '#16a34a' }],
                   },
                 ],
                 page: { hasMore: false },
@@ -91,6 +92,8 @@ describe('SearchView', () => {
     });
 
     expect(await screen.findByText('Rapor Teslim')).toBeInTheDocument();
+    expect(screen.getByTestId('task-identity-bar')).toBeInTheDocument();
+    expect(screen.getByText('Finans')).toBeInTheDocument();
   });
 
   it('preserves existing filters when the search URL is rewritten', async () => {

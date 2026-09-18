@@ -76,6 +76,9 @@ export class TaskSummaryDto {
 
   @ApiProperty({ enum: ['ACTIVE', 'ARCHIVED', 'TRASHED'], type: String })
   lifecycleState!: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+
+  @ApiProperty({ type: () => [LabelSummaryDto] })
+  labels!: LabelSummaryDto[];
 }
 
 export class TaskListMetaDto {
@@ -208,6 +211,9 @@ export class TodayTaskSummaryDto {
   @ApiProperty({ enum: ['ACTIVE', 'ARCHIVED', 'TRASHED'], type: String })
   lifecycleState!: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
 
+  @ApiProperty({ type: () => [LabelSummaryDto] })
+  labels!: LabelSummaryDto[];
+
   @ApiProperty({ type: [String] })
   reasons!: string[];
 }
@@ -291,6 +297,9 @@ export class CalendarTaskSummaryDto {
 
   @ApiProperty({ format: 'uuid', type: String })
   areaId!: string;
+
+  @ApiProperty({ type: () => [LabelSummaryDto] })
+  labels!: LabelSummaryDto[];
 }
 
 export class CalendarDayGroupDto {

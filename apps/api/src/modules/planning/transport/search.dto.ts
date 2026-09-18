@@ -1,5 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+import { LabelSummaryDto } from './label.dto';
+
 export class SearchTaskResultDto {
   @ApiProperty({ description: 'Task unique identifier' })
   readonly id!: string;
@@ -30,6 +32,9 @@ export class SearchTaskResultDto {
 
   @ApiProperty({ description: 'Task version for optimistic concurrency' })
   readonly version!: number;
+
+  @ApiProperty({ type: () => [LabelSummaryDto], description: 'Labels attached to the task' })
+  readonly labels!: LabelSummaryDto[];
 
   @ApiProperty({ description: 'Relevance score for full-text search' })
   readonly score!: number;

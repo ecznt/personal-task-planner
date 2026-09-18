@@ -149,6 +149,7 @@ describe('task HTTP contract', () => {
             lifecycleState: 'ACTIVE',
             version: 1,
             areaId: 'area-id',
+            labels: [],
           },
         ],
       });

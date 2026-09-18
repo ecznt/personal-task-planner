@@ -7,6 +7,9 @@ export class LabelDataDto {
   @ApiProperty({ type: String })
   name!: string;
 
+  @ApiProperty({ type: String, required: false })
+  color!: string | null;
+
   @ApiProperty({ type: Number })
   version!: number;
 }
@@ -46,9 +49,15 @@ export class LabelListResponseDto {
 export class CreateLabelRequestDto {
   @ApiProperty({ example: 'Alisveris', type: String })
   name!: string;
+
+  @ApiProperty({ example: '#2563eb', type: String, required: false })
+  color?: string;
 }
 
 export class RenameLabelRequestDto {
   @ApiProperty({ example: 'Alisveris Listesi', type: String })
   name!: string;
+
+  @ApiProperty({ example: '#2563eb', type: String, required: false })
+  color?: string;
 }

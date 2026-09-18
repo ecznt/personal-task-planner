@@ -62,6 +62,7 @@ describe('TodayView', () => {
               plannedAt: null,
               lifecycleState: 'ACTIVE',
               reasons: ['overdue'],
+              labels: [],
             },
           ],
         },
@@ -97,6 +98,7 @@ describe('TodayView', () => {
               plannedAt: null,
               lifecycleState: 'ACTIVE',
               reasons: ['overdue'],
+              labels: [{ id: 'label-1', name: 'Acil', color: '#dc2626' }],
             },
           ],
         },
@@ -112,6 +114,7 @@ describe('TodayView', () => {
               plannedAt: '2026-08-21T09:00:00Z',
               lifecycleState: 'ACTIVE',
               reasons: ['plannedToday'],
+              labels: [{ id: 'label-2', name: 'İş', color: '#2563eb' }],
             },
           ],
         },
@@ -127,5 +130,9 @@ describe('TodayView', () => {
       expect(screen.getByText(/Gecikmiş \(1\)/)).toBeInTheDocument();
       expect(screen.getByText(/Bugün Planlandı \(1\)/)).toBeInTheDocument();
     });
+
+    expect(screen.getAllByTestId('task-identity-bar')).toHaveLength(2);
+    expect(screen.getByText('Acil')).toBeInTheDocument();
+    expect(screen.getByText('İş')).toBeInTheDocument();
   });
 });

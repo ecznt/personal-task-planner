@@ -65,6 +65,7 @@ import {
   parseMoveAreaKanbanTaskInput,
 } from './task.schema';
 import { mapKanbanTaskSummary } from './kanban-task.mapper';
+import { serializeTaskLabels } from './task-label.mapper';
 import {
   AreaKanbanResponseDto,
   CreateTaskRequestDto,
@@ -931,6 +932,7 @@ export class AreaController {
             lifecycleState: task.lifecycleState,
             version: task.version,
             areaId: task.areaId,
+            labels: serializeTaskLabels(task.labels),
           })),
           meta: {
             ...(result.nextCursor !== undefined && { nextCursor: result.nextCursor }),

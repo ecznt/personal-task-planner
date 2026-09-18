@@ -79,10 +79,10 @@ export type TaskSummary = {
   readonly lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
   readonly version: number;
   readonly areaId: string;
+  readonly labels: readonly LabelSummary[];
 };
 
 export type KanbanTaskSummary = TaskSummary & {
-  readonly labels: readonly LabelSummary[];
   readonly project: { id: string; name: string } | null;
   readonly areaName: string;
 };

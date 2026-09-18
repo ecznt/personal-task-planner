@@ -14,6 +14,13 @@ import { PageHeader } from '@/components/page-header';
 import { TaskPriorityBadge } from '@/features/tasks/task-badge';
 import { useTaskInspector } from '@/features/tasks/task-inspector-context';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
+import { anchorLabel } from '@/features/labels/label-color';
+import {
+  LabelChip,
+  TaskIdentityBar,
+  labelHoverSurfaceClass,
+  labelSurfaceStyle,
+} from '@/features/labels/label-chip';
 
 type UpcomingTask = {
   readonly id: string;
@@ -25,6 +32,7 @@ type UpcomingTask = {
   readonly lifecycleState: string;
   readonly version: number;
   readonly areaId: string;
+  readonly labels: readonly { readonly id: string; readonly name: string; readonly color: string | null }[];
 };
 
 type UpcomingDayGroup = {
@@ -132,13 +140,23 @@ function TaskCard({
 }) {
   const { openTask } = useTaskInspector();
   const isCompleted = task.canonicalStatus === 'COMPLETED';
+  const anchor = anchorLabel(task.labels);
 
   return (
     <div
-      className="card-surface animate-fade-slide-in flex items-center gap-3 rounded-xl border border-border/70 bg-card p-3 shadow-surface transition-all duration-150 hover:border-border hover:shadow-surface-hover"
-      style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
+      className={`card-surface group relative animate-fade-slide-in flex items-center gap-3 rounded-xl border border-border/70 bg-card p-3 shadow-surface transition-all duration-150 hover:border-border hover:shadow-surface-hover ${
+        anchor !== undefined ? labelHoverSurfaceClass : ''
+      }`}
+      style={{
+        animationDelay: `${Math.min(index, 8) * 40}ms`,
+        ...(anchor !== undefined ? labelSurfaceStyle(anchor.color) : {}),
+      }}
     >
-      <button type="button" onClick={() => openTask(task.id)} className="min-w-0 flex-1 cursor-pointer rounded-lg text-left">
+      <button
+        type="button"
+        onClick={() => openTask(task.id)}
+        className="min-w-0 flex-1 cursor-pointer rounded-lg text-left"
+      >
         <div className="truncate font-medium">{task.title}</div>
         <div className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
           <TaskPriorityBadge priority={task.priority} />
@@ -146,6 +164,16 @@ function TaskCard({
           {task.dueAt && (
             <span>
               Bitiş: {formatDate(task.dueAt)} {formatTime(task.dueAt)}
+            </span>
+          )}
+          {task.labels.length > 0 && (
+            <span className="hidden items-center gap-1 overflow-hidden group-hover:flex">
+              {task.labels.slice(0, 2).map((label) => (
+                <LabelChip key={label.id} label={label} />
+              ))}
+              {task.labels.length > 2 && (
+                <span className="text-xs text-muted-foreground">+{task.labels.length - 2}</span>
+              )}
             </span>
           )}
         </div>
@@ -173,6 +201,7 @@ function TaskCard({
         )}
         {isCompleted && <span className="text-xs text-muted-foreground">Tamamlandı</span>}
       </div>
+      {anchor !== undefined && <TaskIdentityBar color={anchor.color} />}
     </div>
   );
 }

@@ -67,6 +67,7 @@ describe('GlobalTaskList', () => {
             dueAt: null,
             plannedAt: null,
             lifecycleState: 'ACTIVE',
+            labels: [{ id: 'label-1', name: 'Önemli', color: '#ea580c' }],
           },
         ],
       },
@@ -78,6 +79,9 @@ describe('GlobalTaskList', () => {
     await waitFor(() => {
       expect(screen.getByText('Test Görevi')).toBeInTheDocument();
     });
+
+    expect(screen.getByTestId('task-identity-bar')).toBeInTheDocument();
+    expect(screen.getByText('Önemli')).toBeInTheDocument();
   });
 
   it('shows filter controls and filter bar', async () => {

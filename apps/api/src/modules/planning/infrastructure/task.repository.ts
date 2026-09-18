@@ -233,7 +233,10 @@ export class TaskRepository {
       orderBy: { areaRank: 'asc' },
       take: limit + 1,
       ...(cursor !== undefined && { cursor: { id: cursor } }),
-      include: { areaStatus: { select: { canonicalStatus: true } } },
+      include: {
+        areaStatus: { select: { canonicalStatus: true } },
+        labels: { select: { label: { select: { id: true, name: true, color: true, version: true } } } },
+      },
     });
 
     const hasMore = tasks.length > limit;
@@ -251,6 +254,12 @@ export class TaskRepository {
       lifecycleState: task.lifecycleState,
       version: task.version,
       areaId: task.areaId,
+      labels: task.labels.map((tl) => ({
+        id: tl.label.id,
+        name: tl.label.name,
+        color: tl.label.color,
+        version: tl.label.version,
+      })),
     }));
 
     return { tasks: summaries, ...(nextCursor !== undefined && { nextCursor }) };
@@ -445,7 +454,10 @@ export class TaskRepository {
       orderBy,
       take: options.limit + 1,
       ...(options.cursor !== undefined && { cursor: { id: options.cursor } }),
-      include: { areaStatus: { select: { canonicalStatus: true } } },
+      include: {
+        areaStatus: { select: { canonicalStatus: true } },
+        labels: { select: { label: { select: { id: true, name: true, color: true, version: true } } } },
+      },
     });
 
     const hasMore = tasks.length > options.limit;
@@ -463,6 +475,12 @@ export class TaskRepository {
       lifecycleState: task.lifecycleState,
       version: task.version,
       areaId: task.areaId,
+      labels: task.labels.map((tl) => ({
+        id: tl.label.id,
+        name: tl.label.name,
+        color: tl.label.color,
+        version: tl.label.version,
+      })),
     }));
 
     return { tasks: summaries, ...(nextCursor !== undefined && { nextCursor }) };
@@ -484,7 +502,10 @@ export class TaskRepository {
         ],
       },
       orderBy: [{ dueAt: 'asc' }, { plannedAt: 'asc' }, { priority: 'asc' }, { title: 'asc' }],
-      include: { areaStatus: { select: { canonicalStatus: true } } },
+      include: {
+        areaStatus: { select: { canonicalStatus: true } },
+        labels: { select: { label: { select: { id: true, name: true, color: true, version: true } } } },
+      },
     });
 
     const result: (TaskSummary & { readonly reasons: readonly string[] })[] = [];
@@ -523,6 +544,12 @@ export class TaskRepository {
           lifecycleState: task.lifecycleState,
           version: task.version,
           areaId: task.areaId,
+          labels: task.labels.map((tl) => ({
+            id: tl.label.id,
+            name: tl.label.name,
+            color: tl.label.color,
+            version: tl.label.version,
+          })),
           reasons,
         });
       }
@@ -547,7 +574,10 @@ export class TaskRepository {
         ],
       },
       orderBy: [{ dueAt: 'asc' }, { plannedAt: 'asc' }, { priority: 'asc' }, { title: 'asc' }],
-      include: { areaStatus: { select: { canonicalStatus: true } } },
+      include: {
+        areaStatus: { select: { canonicalStatus: true } },
+        labels: { select: { label: { select: { id: true, name: true, color: true, version: true } } } },
+      },
     });
 
     return tasks.map((task) => ({
@@ -560,6 +590,12 @@ export class TaskRepository {
       lifecycleState: task.lifecycleState,
       version: task.version,
       areaId: task.areaId,
+      labels: task.labels.map((tl) => ({
+        id: tl.label.id,
+        name: tl.label.name,
+        color: tl.label.color,
+        version: tl.label.version,
+      })),
     }));
   }
 
@@ -954,7 +990,10 @@ export class TaskRepository {
       orderBy,
       take: options.limit + 1,
       ...(options.cursor !== undefined && { cursor: { id: options.cursor } }),
-      include: { areaStatus: { select: { canonicalStatus: true } } },
+      include: {
+        areaStatus: { select: { canonicalStatus: true } },
+        labels: { select: { label: { select: { id: true, name: true, color: true, version: true } } } },
+      },
     });
 
     const hasMore = tasks.length > options.limit;
@@ -988,6 +1027,12 @@ export class TaskRepository {
         lifecycleState: task.lifecycleState,
         version: task.version,
         areaId: task.areaId,
+        labels: task.labels.map((tl) => ({
+          id: tl.label.id,
+          name: tl.label.name,
+          color: tl.label.color,
+          version: tl.label.version,
+        })),
         score,
       };
     });

@@ -70,6 +70,7 @@ describe('global task list HTTP contract', () => {
             lifecycleState: 'ACTIVE',
             version: 1,
             areaId: 'area-id',
+            labels: [],
           },
         ],
       });

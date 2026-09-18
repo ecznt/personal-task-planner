@@ -211,6 +211,7 @@ function makeSummary(
     lifecycleState: 'ACTIVE',
     version: 1,
     areaId: 'inbox-id',
+    labels: [],
     ...overrides,
   };
 }

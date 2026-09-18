@@ -9,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { PageHeader } from '@/components/page-header';
 import { cn } from '@/lib/utils';
 import { useTaskInspector } from '@/features/tasks/task-inspector-context';
+import { LabelDots } from '@/features/labels/label-chip';
 
 import { DayQuickCreateDialog } from './day-quick-create-dialog';
 
@@ -22,6 +23,7 @@ type CalendarTask = {
   readonly lifecycleState: string;
   readonly version: number;
   readonly areaId: string;
+  readonly labels: readonly { readonly id: string; readonly name: string; readonly color: string | null }[];
 };
 
 type CalendarDayGroup = {
@@ -293,6 +295,7 @@ export function CalendarView() {
                               : 'bg-muted-foreground/40',
                         )}
                       />
+                      <LabelDots labels={task.labels} />
                       <span className="truncate">{task.title}</span>
                     </button>
                   ))}

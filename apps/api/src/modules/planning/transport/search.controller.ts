@@ -9,6 +9,7 @@ import { parseCookieValue, sessionCookieName } from '../../accounts/transport/au
 import { SearchService } from '../application/search.service';
 import { parseSearchTasksQuery } from './search.schema';
 import type { SearchTasksResponseDto } from './search.dto';
+import { serializeTaskLabels } from './task-label.mapper';
 
 @ApiTags('Search')
 @Controller('search')
@@ -92,6 +93,7 @@ export class SearchController {
         areaId: task.areaId,
         areaName: null,
         version: task.version,
+        labels: serializeTaskLabels(task.labels),
         score: task.score,
       })),
       page: {

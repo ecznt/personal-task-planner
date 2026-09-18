@@ -105,7 +105,10 @@ export class LabelController {
     const userId = await this.resolveUserId(request);
     const input = parseCreateLabelInput(body);
 
-    const result = await this.labelService.createLabel(userId, { name: input.name });
+    const result = await this.labelService.createLabel(userId, {
+      name: input.name,
+      ...(input.color !== undefined && { color: input.color }),
+    });
 
     return this.handleCreateResult(result, response);
   }
@@ -202,6 +205,7 @@ export class LabelController {
       labelId,
       name: input.name,
       version,
+      ...(input.color !== undefined && { color: input.color }),
     });
 
     return this.handleRenameResult(result, response);
@@ -300,6 +304,7 @@ export class LabelController {
           data: {
             id: result.label.id,
             name: result.label.name,
+            color: result.label.color,
             version: result.label.version,
           },
         };
@@ -332,6 +337,7 @@ export class LabelController {
           data: {
             id: result.data.label.id,
             name: result.data.label.name,
+            color: result.data.label.color,
             version: result.data.label.version,
           },
         };
@@ -381,6 +387,7 @@ export class LabelController {
           data: {
             id: result.label.id,
             name: result.label.name,
+            color: result.label.color,
             version: result.label.version,
           },
         };

@@ -450,6 +450,12 @@
             "format": "uuid",
             "type": "string"
           },
+          "labels": {
+            "items": {
+              "$ref": "#/components/schemas/LabelSummaryDto"
+            },
+            "type": "array"
+          },
           "lifecycleState": {
             "enum": [
               "ACTIVE",
@@ -484,7 +490,8 @@
           "canonicalStatus",
           "lifecycleState",
           "version",
-          "areaId"
+          "areaId",
+          "labels"
         ],
         "type": "object"
       },
@@ -594,6 +601,10 @@
       },
       "CreateLabelRequestDto": {
         "properties": {
+          "color": {
+            "example": "#2563eb",
+            "type": "string"
+          },
           "name": {
             "example": "Alisveris",
             "type": "string"
@@ -1054,6 +1065,9 @@
       },
       "LabelDataDto": {
         "properties": {
+          "color": {
+            "type": "string"
+          },
           "id": {
             "format": "uuid",
             "type": "string"
@@ -1112,17 +1126,24 @@
       },
       "LabelSummaryDto": {
         "properties": {
+          "color": {
+            "type": "string"
+          },
           "id": {
             "format": "uuid",
             "type": "string"
           },
           "name": {
             "type": "string"
+          },
+          "version": {
+            "type": "number"
           }
         },
         "required": [
           "id",
-          "name"
+          "name",
+          "version"
         ],
         "type": "object"
       },
@@ -1640,6 +1661,10 @@
       },
       "RenameLabelRequestDto": {
         "properties": {
+          "color": {
+            "example": "#2563eb",
+            "type": "string"
+          },
           "name": {
             "example": "Alisveris Listesi",
             "type": "string"
@@ -1900,6 +1925,12 @@
             "format": "uuid",
             "type": "string"
           },
+          "labels": {
+            "items": {
+              "$ref": "#/components/schemas/LabelSummaryDto"
+            },
+            "type": "array"
+          },
           "lifecycleState": {
             "enum": [
               "ACTIVE",
@@ -1929,7 +1960,8 @@
           "title",
           "priority",
           "canonicalStatus",
-          "lifecycleState"
+          "lifecycleState",
+          "labels"
         ],
         "type": "object"
       },
@@ -2000,6 +2032,12 @@
             "format": "uuid",
             "type": "string"
           },
+          "labels": {
+            "items": {
+              "$ref": "#/components/schemas/LabelSummaryDto"
+            },
+            "type": "array"
+          },
           "lifecycleState": {
             "enum": [
               "ACTIVE",
@@ -2036,6 +2074,7 @@
           "priority",
           "canonicalStatus",
           "lifecycleState",
+          "labels",
           "reasons"
         ],
         "type": "object"
@@ -2110,6 +2149,12 @@
             "format": "uuid",
             "type": "string"
           },
+          "labels": {
+            "items": {
+              "$ref": "#/components/schemas/LabelSummaryDto"
+            },
+            "type": "array"
+          },
           "lifecycleState": {
             "enum": [
               "ACTIVE",
@@ -2139,7 +2184,8 @@
           "title",
           "priority",
           "canonicalStatus",
-          "lifecycleState"
+          "lifecycleState",
+          "labels"
         ],
         "type": "object"
       },

@@ -38,6 +38,7 @@ describe('task service — listTodayTasks', () => {
         lifecycleState: 'ACTIVE',
         version: 1,
         areaId: 'area-id',
+        labels: [],
         reasons: ['overdue'],
       },
     ]);
@@ -68,6 +69,7 @@ describe('task service — listTodayTasks', () => {
         lifecycleState: 'ACTIVE',
         version: 1,
         areaId: 'area-id',
+        labels: [],
         reasons: ['plannedToday', 'dueToday'],
       },
     ]);

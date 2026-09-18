@@ -12,6 +12,13 @@ import { PageHeader } from '@/components/page-header';
 import { Select } from '@/components/ui/select';
 import { TaskFilterBar } from '@/features/filters/task-filter-bar';
 import { useUrlTaskFilters } from '@/features/filters/url-task-filters';
+import { anchorLabel } from '@/features/labels/label-color';
+import {
+  LabelChip,
+  TaskIdentityBar,
+  labelHoverSurfaceClass,
+  labelSurfaceStyle,
+} from '@/features/labels/label-chip';
 import { TaskPriorityBadge } from './task-badge';
 import { BulkActionBar } from './bulk-action-bar';
 import { useTaskInspector } from './task-inspector-context';
@@ -25,6 +32,7 @@ type TaskSummary = {
   readonly plannedAt: string | null;
   readonly lifecycleState: string;
   readonly version: number;
+  readonly labels: readonly { readonly id: string; readonly name: string; readonly color: string | null }[];
 };
 
 type GlobalTaskListProps = {
@@ -289,88 +297,112 @@ export function GlobalTaskList({
         />
       ) : (
         <div className="space-y-2">
-          {taskData.map((task, index) => (
-            <div
-              key={task.id}
-              className={`card-surface group animate-fade-slide-in flex items-center rounded-xl border p-3 shadow-surface transition-all duration-150 active:scale-[0.97] ${
-                selectionMode
-                  ? selectedTaskIds.has(task.id)
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border/70 hover:border-border hover:shadow-surface-hover'
-                  : 'border-border/70 hover:border-border hover:shadow-surface-hover'
-              }`}
-              style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
-            >
-              {selectionMode && (
-                <button
-                  type="button"
-                  onClick={() => toggleTaskSelection(task.id)}
-                  className="mr-3 flex h-5 w-5 items-center justify-center rounded border transition-colors duration-150"
-                  style={{
-                    backgroundColor: selectedTaskIds.has(task.id)
-                      ? 'hsl(var(--primary))'
-                      : 'transparent',
-                    borderColor: selectedTaskIds.has(task.id)
-                      ? 'hsl(var(--primary))'
-                      : 'hsl(var(--border))',
-                  }}
-                >
-                  {selectedTaskIds.has(task.id) && (
-                    <svg
-                      className="h-3 w-3 text-primary-foreground"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={3}
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
+          {taskData.map((task, index) => {
+            const anchor = anchorLabel(task.labels);
+            const labelReveal =
+              task.labels.length > 0 ? (
+                <span className="hidden items-center gap-1 overflow-hidden group-hover:flex">
+                  {task.labels.slice(0, 2).map((label) => (
+                    <LabelChip key={label.id} label={label} />
+                  ))}
+                  {task.labels.length > 2 && (
+                    <span className="text-xs text-muted-foreground">
+                      +{task.labels.length - 2}
+                    </span>
                   )}
-                </button>
-              )}
-
-              {selectionMode ? (
-                <div className="min-w-0 flex-1">
-                  <div className="truncate font-medium">{task.title}</div>
-                  <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-                    <TaskPriorityBadge priority={task.priority} />
-                    {task.plannedAt && <span>Plan: {formatDate(task.plannedAt)}</span>}
-                    {task.dueAt && <span>Bitiş: {formatDate(task.dueAt)}</span>}
-                  </div>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => openTask(task.id)}
-                  className="min-w-0 flex-1 cursor-pointer rounded-lg text-left"
-                >
-                  <div className="truncate font-medium">{task.title}</div>
-                  <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-                    <TaskPriorityBadge priority={task.priority} />
-                    {task.plannedAt && <span>Plan: {formatDate(task.plannedAt)}</span>}
-                    {task.dueAt && <span>Bitiş: {formatDate(task.dueAt)}</span>}
-                  </div>
-                </button>
-              )}
-
-              <div className="ml-4 text-sm text-muted-foreground">
-                {task.canonicalStatus === 'TO_DO'
-                  ? 'Yapılacak'
-                  : task.canonicalStatus === 'IN_PROGRESS'
-                    ? 'Devam Ediyor'
-                    : 'Tamamlandı'}
-              </div>
-
-              {!selectionMode && (
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none ml-2 text-muted-foreground opacity-0 transition-opacity duration-150 group-hover:opacity-100"
-                >
-                  <PencilIcon className="size-4" />
                 </span>
-              )}
-            </div>
-          ))}
+              ) : null;
+
+            return (
+              <div
+                key={task.id}
+                className={`card-surface group relative animate-fade-slide-in flex items-center rounded-xl border p-3 shadow-surface transition-all duration-150 active:scale-[0.97] ${
+                  selectionMode
+                    ? selectedTaskIds.has(task.id)
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border/70 hover:border-border hover:shadow-surface-hover'
+                    : 'border-border/70 hover:border-border hover:shadow-surface-hover'
+                } ${!selectionMode && anchor !== undefined ? labelHoverSurfaceClass : ''}`}
+                style={{
+                  animationDelay: `${Math.min(index, 8) * 40}ms`,
+                  ...(anchor !== undefined ? labelSurfaceStyle(anchor.color) : {}),
+                }}
+              >
+                {selectionMode && (
+                  <button
+                    type="button"
+                    onClick={() => toggleTaskSelection(task.id)}
+                    className="mr-3 flex h-5 w-5 items-center justify-center rounded border transition-colors duration-150"
+                    style={{
+                      backgroundColor: selectedTaskIds.has(task.id)
+                        ? 'hsl(var(--primary))'
+                        : 'transparent',
+                      borderColor: selectedTaskIds.has(task.id)
+                        ? 'hsl(var(--primary))'
+                        : 'hsl(var(--border))',
+                    }}
+                  >
+                    {selectedTaskIds.has(task.id) && (
+                      <svg
+                        className="h-3 w-3 text-primary-foreground"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={3}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </button>
+                )}
+
+                {selectionMode ? (
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate font-medium">{task.title}</div>
+                    <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+                      <TaskPriorityBadge priority={task.priority} />
+                      {task.plannedAt && <span>Plan: {formatDate(task.plannedAt)}</span>}
+                      {task.dueAt && <span>Bitiş: {formatDate(task.dueAt)}</span>}
+                      {labelReveal}
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => openTask(task.id)}
+                    className="min-w-0 flex-1 cursor-pointer rounded-lg text-left"
+                  >
+                    <div className="truncate font-medium">{task.title}</div>
+                    <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+                      <TaskPriorityBadge priority={task.priority} />
+                      {task.plannedAt && <span>Plan: {formatDate(task.plannedAt)}</span>}
+                      {task.dueAt && <span>Bitiş: {formatDate(task.dueAt)}</span>}
+                      {labelReveal}
+                    </div>
+                  </button>
+                )}
+
+                <div className="ml-4 text-sm text-muted-foreground">
+                  {task.canonicalStatus === 'TO_DO'
+                    ? 'Yapılacak'
+                    : task.canonicalStatus === 'IN_PROGRESS'
+                      ? 'Devam Ediyor'
+                      : 'Tamamlandı'}
+                </div>
+
+                {!selectionMode && (
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none ml-2 text-muted-foreground opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+                  >
+                    <PencilIcon className="size-4" />
+                  </span>
+                )}
+
+                {anchor !== undefined && <TaskIdentityBar color={anchor.color} />}
+              </div>
+            );
+          })}
         </div>
       )}
 

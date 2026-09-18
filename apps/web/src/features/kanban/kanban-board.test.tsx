@@ -115,7 +115,7 @@ describe('KanbanBoard', () => {
     await waitFor(() => {
       expect(screen.getByText('Test Görevi')).toBeInTheDocument();
       expect(screen.getByText('Proje')).toBeInTheDocument();
-      expect(screen.getByText('#Ev')).toBeInTheDocument();
+      expect(screen.getByText('Ev')).toBeInTheDocument();
     });
   });
 

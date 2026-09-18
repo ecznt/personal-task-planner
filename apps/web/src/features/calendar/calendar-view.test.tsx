@@ -110,6 +110,7 @@ describe('CalendarView', () => {
                 lifecycleState: 'ACTIVE',
                 version: 1,
                 areaId: 'a1',
+                labels: [{ id: 'label-1', name: 'İş', color: '#2563eb' }],
               },
               {
                 id: 't2',
@@ -121,6 +122,7 @@ describe('CalendarView', () => {
                 lifecycleState: 'ACTIVE',
                 version: 1,
                 areaId: 'a1',
+                labels: [],
               },
               {
                 id: 't3',
@@ -132,6 +134,7 @@ describe('CalendarView', () => {
                 lifecycleState: 'ACTIVE',
                 version: 1,
                 areaId: 'a1',
+                labels: [],
               },
               {
                 id: 't4',
@@ -143,6 +146,7 @@ describe('CalendarView', () => {
                 lifecycleState: 'ACTIVE',
                 version: 1,
                 areaId: 'a1',
+                labels: [],
               },
             ],
             due: [],
@@ -160,6 +164,7 @@ describe('CalendarView', () => {
     expect(screen.getByText('Görev B')).toBeInTheDocument();
     expect(screen.getByText(/\+1 daha/)).toBeInTheDocument();
     expect(screen.queryByText('Görev D')).not.toBeInTheDocument();
+    expect(screen.getByTestId('label-dots')).toBeInTheDocument();
   });
 
   it('renders a task listed in both planned and due once', async () => {
@@ -180,6 +185,7 @@ describe('CalendarView', () => {
                 lifecycleState: 'ACTIVE',
                 version: 1,
                 areaId: 'a1',
+                labels: [],
               },
             ],
             due: [
@@ -193,6 +199,7 @@ describe('CalendarView', () => {
                 lifecycleState: 'ACTIVE',
                 version: 1,
                 areaId: 'a1',
+                labels: [],
               },
             ],
           },
@@ -227,6 +234,7 @@ describe('CalendarView', () => {
                 lifecycleState: 'ACTIVE',
                 version: 1,
                 areaId: 'a1',
+                labels: [],
               },
             ],
             due: [
@@ -240,6 +248,7 @@ describe('CalendarView', () => {
                 lifecycleState: 'ACTIVE',
                 version: 1,
                 areaId: 'a1',
+                labels: [],
               },
               {
                 id: 'o2',
@@ -251,6 +260,7 @@ describe('CalendarView', () => {
                 lifecycleState: 'ACTIVE',
                 version: 1,
                 areaId: 'a1',
+                labels: [],
               },
             ],
           },

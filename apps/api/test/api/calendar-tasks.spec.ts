@@ -161,5 +161,6 @@ function makeSummary(id: string, title: string) {
     lifecycleState: 'ACTIVE',
     version: 1,
     areaId: 'area-id',
+    labels: [],
   } as const;
 }

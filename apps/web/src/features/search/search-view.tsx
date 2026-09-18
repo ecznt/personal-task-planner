@@ -15,6 +15,13 @@ import { TaskFilterBar } from '@/features/filters/task-filter-bar';
 import { useUrlTaskFilters } from '@/features/filters/url-task-filters';
 import { TaskPriorityBadge } from '@/features/tasks/task-badge';
 import { useTaskInspector } from '@/features/tasks/task-inspector-context';
+import { anchorLabel } from '@/features/labels/label-color';
+import {
+  LabelChip,
+  TaskIdentityBar,
+  labelHoverSurfaceClass,
+  labelSurfaceStyle,
+} from '@/features/labels/label-chip';
 
 type SearchResult = {
   readonly id: string;
@@ -27,6 +34,7 @@ type SearchResult = {
   readonly areaId: string;
   readonly version: number;
   readonly score: number;
+  readonly labels: readonly { readonly id: string; readonly name: string; readonly color: string | null }[];
 };
 
 type SearchPageData = {
@@ -186,39 +194,60 @@ export function SearchView() {
             </div>
           )}
 
-          {search.data.data.map((result) => (
-            <button
-              key={result.id}
-              type="button"
-              onClick={() => openTask(result.id)}
-              className="w-full rounded-lg border bg-card p-4 text-left transition-all duration-150 hover:border-primary/50 hover:shadow-sm active:scale-[0.99]"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <div className="font-medium">{result.title}</div>
-                  {result.descriptionSnippet && (
-                    <div className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-                      {result.descriptionSnippet}
+          {search.data.data.map((result) => {
+            const anchor = anchorLabel(result.labels);
+
+            return (
+              <div key={result.id} className="group relative">
+                <button
+                  type="button"
+                  onClick={() => openTask(result.id)}
+                  className={`w-full rounded-lg border bg-card p-4 text-left transition-all duration-150 hover:border-primary/50 hover:shadow-sm active:scale-[0.99] ${
+                    anchor !== undefined ? labelHoverSurfaceClass : ''
+                  }`}
+                  style={anchor !== undefined ? labelSurfaceStyle(anchor.color) : undefined}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium">{result.title}</div>
+                      {result.descriptionSnippet && (
+                        <div className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                          {result.descriptionSnippet}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <TaskPriorityBadge priority={result.priority} />
-                  <Badge variant="neutral">
-                    {result.canonicalStatus === 'TO_DO'
-                      ? 'Yapılacak'
-                      : result.canonicalStatus === 'IN_PROGRESS'
-                        ? 'Devam Ediyor'
-                        : 'Tamamlandı'}
-                  </Badge>
-                </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <TaskPriorityBadge priority={result.priority} />
+                      <Badge variant="neutral">
+                        {result.canonicalStatus === 'TO_DO'
+                          ? 'Yapılacak'
+                          : result.canonicalStatus === 'IN_PROGRESS'
+                            ? 'Devam Ediyor'
+                            : 'Tamamlandı'}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+                    {result.plannedAt && <span>Başlangıç: {formatDate(result.plannedAt)}</span>}
+                    {result.dueAt && <span>Bitiş: {formatDate(result.dueAt)}</span>}
+                    {result.labels.length > 0 && (
+                      <span className="hidden items-center gap-1 overflow-hidden group-hover:flex">
+                        {result.labels.slice(0, 2).map((label) => (
+                          <LabelChip key={label.id} label={label} />
+                        ))}
+                        {result.labels.length > 2 && (
+                          <span className="text-xs text-muted-foreground">
+                            +{result.labels.length - 2}
+                          </span>
+                        )}
+                      </span>
+                    )}
+                  </div>
+                </button>
+                {anchor !== undefined && <TaskIdentityBar color={anchor.color} />}
               </div>
-              <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
-                {result.plannedAt && <span>Başlangıç: {formatDate(result.plannedAt)}</span>}
-                {result.dueAt && <span>Bitiş: {formatDate(result.dueAt)}</span>}
-              </div>
-            </button>
-          ))}
+            );
+          })}
 
           {search.data.page.hasMore && (
             <div className="flex justify-center pt-4">

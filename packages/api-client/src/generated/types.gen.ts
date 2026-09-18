@@ -123,6 +123,7 @@ export type CalendarTaskSummaryDto = {
     canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
     dueAt?: string;
     id: string;
+    labels: Array<LabelSummaryDto>;
     lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
     plannedAt?: string;
     priority: 'LOW' | 'MEDIUM' | 'HIGH';
@@ -161,6 +162,7 @@ export type CreateAreaStatusRequestDto = {
 };
 
 export type CreateLabelRequestDto = {
+    color?: string;
     name: string;
 };
 
@@ -302,6 +304,7 @@ export type KanbanTaskDto = {
 };
 
 export type LabelDataDto = {
+    color?: string;
     id: string;
     name: string;
     version: number;
@@ -321,8 +324,10 @@ export type LabelResponseDto = {
 };
 
 export type LabelSummaryDto = {
+    color?: string;
     id: string;
     name: string;
+    version: number;
 };
 
 export type LoginRequestDto = {
@@ -462,6 +467,7 @@ export type RenameAreaRequestDto = {
 };
 
 export type RenameLabelRequestDto = {
+    color?: string;
     name: string;
 };
 
@@ -531,6 +537,7 @@ export type TaskSummaryDto = {
     canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
     dueAt?: string;
     id: string;
+    labels: Array<LabelSummaryDto>;
     lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
     plannedAt?: string;
     priority: 'LOW' | 'MEDIUM' | 'HIGH';
@@ -555,6 +562,7 @@ export type TodayTaskSummaryDto = {
     canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
     dueAt?: string;
     id: string;
+    labels: Array<LabelSummaryDto>;
     lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
     plannedAt?: string;
     priority: 'LOW' | 'MEDIUM' | 'HIGH';
@@ -578,6 +586,7 @@ export type UpcomingTaskSummaryDto = {
     canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
     dueAt?: string;
     id: string;
+    labels: Array<LabelSummaryDto>;
     lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
     plannedAt?: string;
     priority: 'LOW' | 'MEDIUM' | 'HIGH';

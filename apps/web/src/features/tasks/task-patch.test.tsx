@@ -123,8 +123,13 @@ describe('useTaskPatch', () => {
 
     await waitFor(() => expect(mockedPatch).toHaveBeenCalledTimes(2));
 
+    const resolveSecond = resolvers[1];
+    if (resolveSecond === undefined) {
+      throw new Error('second patch request was not started');
+    }
+
     await act(async () => {
-      resolvers[1]!({
+      resolveSecond({
         data: {
           data: taskData({
             title: 'Rapor Güncel',

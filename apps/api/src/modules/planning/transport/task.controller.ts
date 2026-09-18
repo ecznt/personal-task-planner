@@ -31,9 +31,11 @@ import type {
   ListTodayTasksResult,
   ListUpcomingTasksResult,
   MoveKanbanTaskResult,
+  TodayTaskSummary,
 } from '../application/task.service';
 import type { KanbanTaskSummary, TaskSummary } from '../domain/task.entity';
 import { mapKanbanTaskSummary } from './kanban-task.mapper';
+import { serializeTaskLabels } from './task-label.mapper';
 import {
   parseCreateTaskRequestInput,
   parseEditTaskInput,
@@ -650,6 +652,7 @@ export class TaskController {
             lifecycleState: task.lifecycleState,
             version: task.version,
             areaId: task.areaId,
+            labels: serializeTaskLabels(task.labels),
           })),
           meta: {
             ...(result.nextCursor !== undefined && { nextCursor: result.nextCursor }),
@@ -659,68 +662,39 @@ export class TaskController {
   }
 
   private handleListTodayTasksResult(result: ListTodayTasksResult): TodayResponseDto {
+    const mapTasks = (tasks: readonly TodayTaskSummary[]) =>
+      tasks.map((task) => ({
+        id: task.id,
+        title: task.title,
+        priority: task.priority,
+        canonicalStatus: task.canonicalStatus,
+        dueAt: task.dueAt?.toISOString() ?? null,
+        plannedAt: task.plannedAt?.toISOString() ?? null,
+        lifecycleState: task.lifecycleState,
+        version: task.version,
+        areaId: task.areaId,
+        labels: serializeTaskLabels(task.labels),
+        reasons: [...task.reasons],
+      }));
+
     return {
       today: result.today,
       timezone: result.timezone,
       overdue: {
         count: result.overdue.length,
-        tasks: result.overdue.map((task) => ({
-          id: task.id,
-          title: task.title,
-          priority: task.priority,
-          canonicalStatus: task.canonicalStatus,
-          dueAt: task.dueAt?.toISOString() ?? null,
-          plannedAt: task.plannedAt?.toISOString() ?? null,
-          lifecycleState: task.lifecycleState,
-          version: task.version,
-          areaId: task.areaId,
-          reasons: [...task.reasons],
-        })),
+        tasks: mapTasks(result.overdue),
       },
       plannedToday: {
         count: result.plannedToday.length,
-        tasks: result.plannedToday.map((task) => ({
-          id: task.id,
-          title: task.title,
-          priority: task.priority,
-          canonicalStatus: task.canonicalStatus,
-          dueAt: task.dueAt?.toISOString() ?? null,
-          plannedAt: task.plannedAt?.toISOString() ?? null,
-          lifecycleState: task.lifecycleState,
-          version: task.version,
-          areaId: task.areaId,
-          reasons: [...task.reasons],
-        })),
+        tasks: mapTasks(result.plannedToday),
       },
       dueToday: {
         count: result.dueToday.length,
-        tasks: result.dueToday.map((task) => ({
-          id: task.id,
-          title: task.title,
-          priority: task.priority,
-          canonicalStatus: task.canonicalStatus,
-          dueAt: task.dueAt?.toISOString() ?? null,
-          plannedAt: task.plannedAt?.toISOString() ?? null,
-          lifecycleState: task.lifecycleState,
-          version: task.version,
-          areaId: task.areaId,
-          reasons: [...task.reasons],
-        })),
+        tasks: mapTasks(result.dueToday),
       },
       completedToday: {
         count: result.completedToday.length,
-        tasks: result.completedToday.map((task) => ({
-          id: task.id,
-          title: task.title,
-          priority: task.priority,
-          canonicalStatus: task.canonicalStatus,
-          dueAt: task.dueAt?.toISOString() ?? null,
-          plannedAt: task.plannedAt?.toISOString() ?? null,
-          lifecycleState: task.lifecycleState,
-          version: task.version,
-          areaId: task.areaId,
-          reasons: [...task.reasons],
-        })),
+        tasks: mapTasks(result.completedToday),
       },
     };
   }
@@ -737,6 +711,7 @@ export class TaskController {
         lifecycleState: task.lifecycleState,
         version: task.version,
         areaId: task.areaId,
+        labels: serializeTaskLabels(task.labels),
       }));
 
     return {
@@ -762,6 +737,7 @@ export class TaskController {
         lifecycleState: task.lifecycleState,
         version: task.version,
         areaId: task.areaId,
+        labels: serializeTaskLabels(task.labels),
       }));
 
     return {

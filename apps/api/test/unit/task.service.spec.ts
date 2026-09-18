@@ -250,6 +250,7 @@ describe('task service', () => {
           lifecycleState: 'ACTIVE',
           version: 1,
           areaId: 'area-id',
+          labels: [],
         },
       ],
     });
