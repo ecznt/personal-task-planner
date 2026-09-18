@@ -36,7 +36,7 @@ export function KanbanTaskCard({ task, index }: { task: KanbanTask; index?: numb
       </div>
 
       <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
-        {task.labels.map((label) => (
+        {(task.labels ?? []).map((label) => (
           <LabelChip key={label.id} label={label} />
         ))}
         {task.areaName !== undefined && task.areaName.length > 0 && (

@@ -84,6 +84,32 @@ describe('GlobalTaskList', () => {
     expect(screen.getByText('Önemli')).toBeInTheDocument();
   });
 
+  it('renders tasks even when the response omits labels', async () => {
+    mockedApiClient.get.mockResolvedValue({
+      data: {
+        data: [
+          {
+            id: 'legacy-task',
+            title: 'Eski API Görevi',
+            priority: 'LOW',
+            canonicalStatus: 'TO_DO',
+            dueAt: null,
+            plannedAt: null,
+            lifecycleState: 'ACTIVE',
+          },
+        ],
+      },
+      error: undefined,
+    });
+
+    renderGlobalTaskList();
+
+    await waitFor(() => {
+      expect(screen.getByText('Eski API Görevi')).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId('task-identity-bar')).not.toBeInTheDocument();
+  });
+
   it('shows filter controls and filter bar', async () => {
     mockedApiClient.get.mockResolvedValue({ data: { data: [] }, error: undefined });
 

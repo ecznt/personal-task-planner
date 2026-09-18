@@ -195,7 +195,8 @@ export function SearchView() {
           )}
 
           {search.data.data.map((result) => {
-            const anchor = anchorLabel(result.labels);
+            const labels = result.labels ?? [];
+            const anchor = anchorLabel(labels);
 
             return (
               <div key={result.id} className="group relative">
@@ -230,14 +231,14 @@ export function SearchView() {
                   <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
                     {result.plannedAt && <span>Başlangıç: {formatDate(result.plannedAt)}</span>}
                     {result.dueAt && <span>Bitiş: {formatDate(result.dueAt)}</span>}
-                    {result.labels.length > 0 && (
+                    {labels.length > 0 && (
                       <span className="hidden items-center gap-1 overflow-hidden group-hover:flex">
-                        {result.labels.slice(0, 2).map((label) => (
+                        {labels.slice(0, 2).map((label) => (
                           <LabelChip key={label.id} label={label} />
                         ))}
-                        {result.labels.length > 2 && (
+                        {labels.length > 2 && (
                           <span className="text-xs text-muted-foreground">
-                            +{result.labels.length - 2}
+                            +{labels.length - 2}
                           </span>
                         )}
                       </span>

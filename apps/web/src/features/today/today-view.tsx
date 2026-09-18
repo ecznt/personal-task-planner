@@ -120,7 +120,8 @@ function TaskCard({
 }) {
   const { openTask } = useTaskInspector();
   const isCompleted = task.canonicalStatus === 'COMPLETED';
-  const anchor = anchorLabel(task.labels);
+  const labels = task.labels ?? [];
+  const anchor = anchorLabel(labels);
 
   return (
     <div
@@ -156,13 +157,13 @@ function TaskCard({
               Bitiş: {formatDate(task.dueAt)} {formatTime(task.dueAt)}
             </span>
           )}
-          {task.labels.length > 0 && (
+          {labels.length > 0 && (
             <span className="hidden items-center gap-1 overflow-hidden group-hover:flex">
-              {task.labels.slice(0, 2).map((label) => (
+              {labels.slice(0, 2).map((label) => (
                 <LabelChip key={label.id} label={label} />
               ))}
-              {task.labels.length > 2 && (
-                <span className="text-xs text-muted-foreground">+{task.labels.length - 2}</span>
+              {labels.length > 2 && (
+                <span className="text-xs text-muted-foreground">+{labels.length - 2}</span>
               )}
             </span>
           )}

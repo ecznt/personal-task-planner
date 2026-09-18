@@ -55,13 +55,13 @@ export function TaskIdentityBar({ color, className }: TaskIdentityBarProps) {
 }
 
 type LabelDotsProps = {
-  readonly labels: readonly LabelLike[];
+  readonly labels: readonly LabelLike[] | null | undefined;
   readonly max?: number;
   readonly className?: string;
 };
 
 export function LabelDots({ labels, max = 2, className }: LabelDotsProps) {
-  if (labels.length === 0) {
+  if (!labels || labels.length === 0) {
     return null;
   }
 

@@ -35,6 +35,6 @@ export function labelTextColor(color: string | null | undefined): string {
   return `color-mix(in oklch, ${resolveLabelColor(color)} 65%, var(--foreground))`;
 }
 
-export function anchorLabel(labels: readonly LabelLike[]): LabelLike | undefined {
-  return labels[0];
+export function anchorLabel(labels: readonly LabelLike[] | null | undefined): LabelLike | undefined {
+  return labels?.[0];
 }

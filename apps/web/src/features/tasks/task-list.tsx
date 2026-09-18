@@ -65,7 +65,8 @@ export function TaskList({ areaId }: TaskListProps) {
   return (
     <div className="space-y-2">
       {taskData.map((task, index) => {
-        const anchor = anchorLabel(task.labels);
+        const labels = task.labels ?? [];
+        const anchor = anchorLabel(labels);
 
         return (
           <div key={task.id} className="group relative">
@@ -87,14 +88,14 @@ export function TaskList({ areaId }: TaskListProps) {
                   {task.dueAt && (
                     <span>Bitiş: {new Date(task.dueAt).toLocaleDateString('tr-TR')}</span>
                   )}
-                  {task.labels.length > 0 && (
+                  {labels.length > 0 && (
                     <span className="hidden items-center gap-1 overflow-hidden group-hover:flex">
-                      {task.labels.slice(0, 2).map((label) => (
+                      {labels.slice(0, 2).map((label) => (
                         <LabelChip key={label.id} label={label} />
                       ))}
-                      {task.labels.length > 2 && (
+                      {labels.length > 2 && (
                         <span className="text-xs text-muted-foreground">
-                          +{task.labels.length - 2}
+                          +{labels.length - 2}
                         </span>
                       )}
                     </span>
