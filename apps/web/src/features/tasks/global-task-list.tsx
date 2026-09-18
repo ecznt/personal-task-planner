@@ -302,7 +302,7 @@ export function GlobalTaskList({
             const anchor = anchorLabel(labels);
             const labelReveal =
               labels.length > 0 ? (
-                <span className="hidden items-center gap-1 overflow-hidden group-hover:flex">
+                <span className="flex items-center gap-1">
                   {labels.slice(0, 2).map((label) => (
                     <LabelChip key={label.id} label={label} />
                   ))}
@@ -323,7 +323,7 @@ export function GlobalTaskList({
                       ? 'border-primary bg-primary/5'
                       : 'border-border/70 hover:border-border hover:shadow-surface-hover'
                     : 'border-border/70 hover:border-border hover:shadow-surface-hover'
-                } ${!selectionMode && anchor !== undefined ? labelHoverSurfaceClass : ''}`}
+                } ${!selectionMode && anchor !== undefined ? labelHoverSurfaceClass : ''} hover:scale-[101%]`}
                 style={{
                   animationDelay: `${Math.min(index, 8) * 40}ms`,
                   ...(anchor !== undefined ? labelSurfaceStyle(anchor.color) : {}),

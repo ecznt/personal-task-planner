@@ -29,7 +29,7 @@ export function KanbanTaskCard({ task, index }: { task: KanbanTask; index?: numb
     <div
       className={`card-surface rounded-lg border border-border/70 bg-card p-3 shadow-surface transition-all duration-150 hover:border-border hover:shadow-surface-hover ${
         anchor !== undefined ? labelHoverSurfaceClass : ''
-      }`}
+      } hover:scale-[101%]`}
       style={{
         ...(anchor !== undefined ? labelSurfaceStyle(anchor.color) : {}),
         animationDelay: index === undefined ? undefined : `${Math.min(index, 8) * 40}ms`,

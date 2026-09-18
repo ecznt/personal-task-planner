@@ -74,8 +74,8 @@ export function TaskList({ areaId }: TaskListProps) {
               type="button"
               onClick={() => openTask(task.id)}
               className={`animate-fade-slide-in flex w-full items-center justify-between rounded-lg border bg-card p-3 pr-10 text-left transition-colors duration-150 active:scale-[0.97] ${
-                anchor !== undefined ? labelHoverSurfaceClass : 'hover:bg-accent'
-              }`}
+                anchor !== undefined ? labelHoverSurfaceClass : ''
+              } hover:scale-[101%]`}
               style={{
                 animationDelay: `${Math.min(index, 8) * 40}ms`,
                 ...(anchor !== undefined ? labelSurfaceStyle(anchor.color) : {}),
@@ -89,7 +89,7 @@ export function TaskList({ areaId }: TaskListProps) {
                     <span>Bitiş: {new Date(task.dueAt).toLocaleDateString('tr-TR')}</span>
                   )}
                   {labels.length > 0 && (
-                    <span className="hidden items-center gap-1 overflow-hidden group-hover:flex">
+                    <span className="flex items-center gap-1">
                       {labels.slice(0, 2).map((label) => (
                         <LabelChip key={label.id} label={label} />
                       ))}

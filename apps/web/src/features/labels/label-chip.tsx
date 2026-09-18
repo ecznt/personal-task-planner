@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { labelTextColor, labelTint, resolveLabelColor, type LabelLike } from './label-color';
 
 export const labelHoverSurfaceClass =
-  'hover:bg-[color-mix(in_oklch,var(--task-label)_6%,transparent)]';
+  'bg-[color-mix(in_oklch,var(--task-label)_25%,transparent)] hover:bg-[color-mix(in_oklch,var(--task-label)_40%,transparent)]';
 
 export function labelSurfaceStyle(color: string | null | undefined): CSSProperties {
   return { '--task-label': resolveLabelColor(color) } as CSSProperties;
@@ -37,16 +37,21 @@ export function LabelChip({ label, className }: LabelChipProps) {
 
 type TaskIdentityBarProps = {
   readonly color: string | null | undefined;
+  readonly size?: 'sm' | 'md';
   readonly className?: string;
 };
 
-export function TaskIdentityBar({ color, className }: TaskIdentityBarProps) {
+export function TaskIdentityBar({ color, size = 'md', className }: TaskIdentityBarProps) {
+  const width = size === 'sm' ? 'w-[2px]' : 'w-[5px]';
+
   return (
     <span
       aria-hidden="true"
       data-testid="task-identity-bar"
       className={cn(
-        'pointer-events-none absolute top-1.5 bottom-1.5 left-1 w-[3px] rounded-full',
+        'pointer-events-none absolute top-1.5 bottom-1.5 left-1',
+        width,
+        size === 'md' && 'rounded-full',
         className,
       )}
       style={{ backgroundColor: resolveLabelColor(color) }}
