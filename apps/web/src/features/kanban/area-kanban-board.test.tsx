@@ -22,6 +22,7 @@ vi.mock('@planner/api-client', () => ({
 import { beforeEach } from 'vitest';
 import { apiClient } from '@planner/api-client';
 import { AreaKanbanBoard } from './area-kanban-board';
+import { TaskInspectorProvider } from '@/features/tasks/task-inspector-provider';
 
 const mockedApiClient = vi.mocked(apiClient);
 
@@ -35,7 +36,9 @@ beforeEach(() => {
 function renderAreaKanbanBoard(areaId = 'area-1', queryClient = new QueryClient()) {
   return render(
     <QueryClientProvider client={queryClient}>
-      <AreaKanbanBoard areaId={areaId} />
+      <TaskInspectorProvider>
+        <AreaKanbanBoard areaId={areaId} />
+      </TaskInspectorProvider>
     </QueryClientProvider>,
   );
 }

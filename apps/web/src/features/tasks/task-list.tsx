@@ -2,10 +2,11 @@
 
 import { apiClient } from '@planner/api-client';
 import { useQuery } from '@tanstack/react-query';
-import Link from 'next/link';
+import { PencilIcon } from 'lucide-react';
 
 import { ListSkeleton } from '@/components/list-skeleton';
 import { TaskPriorityBadge } from '@/features/tasks/task-badge';
+import { useTaskInspector } from '@/features/tasks/task-inspector-context';
 
 type TaskSummary = {
   readonly id: string;
@@ -22,6 +23,8 @@ type TaskListProps = {
 };
 
 export function TaskList({ areaId }: TaskListProps) {
+  const { openTask } = useTaskInspector();
+
   const tasks = useQuery({
     queryKey: ['areas', areaId, 'tasks'],
     queryFn: async () => {
@@ -59,21 +62,31 @@ export function TaskList({ areaId }: TaskListProps) {
   return (
     <div className="space-y-2">
       {taskData.map((task, index) => (
-        <Link
-          key={task.id}
-          href={`/app/areas/tasks/${task.id}`}
-          className="animate-fade-slide-in flex items-center justify-between rounded-lg border bg-card p-3 transition-colors duration-150 active:scale-[0.97] hover:bg-accent"
-          style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
-        >
-          <div className="min-w-0 flex-1">
-            <div className="truncate font-medium">{task.title}</div>
-            <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-              <TaskPriorityBadge priority={task.priority} />
-              {task.dueAt && <span>Bitiş: {new Date(task.dueAt).toLocaleDateString('tr-TR')}</span>}
+        <div key={task.id} className="group relative">
+          <button
+            type="button"
+            onClick={() => openTask(task.id)}
+            className="animate-fade-slide-in flex w-full items-center justify-between rounded-lg border bg-card p-3 pr-10 text-left transition-colors duration-150 active:scale-[0.97] hover:bg-accent"
+            style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
+          >
+            <div className="min-w-0 flex-1">
+              <div className="truncate font-medium">{task.title}</div>
+              <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+                <TaskPriorityBadge priority={task.priority} />
+                {task.dueAt && (
+                  <span>Bitiş: {new Date(task.dueAt).toLocaleDateString('tr-TR')}</span>
+                )}
+              </div>
             </div>
-          </div>
-          <div className="ml-4 text-sm text-muted-foreground">{task.canonicalStatus}</div>
-        </Link>
+            <div className="ml-4 text-sm text-muted-foreground">{task.canonicalStatus}</div>
+          </button>
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+          >
+            <PencilIcon className="size-4" />
+          </span>
+        </div>
       ))}
     </div>
   );

@@ -12,12 +12,22 @@ type TaskLifecycleActionsProps = {
   readonly taskId: string;
   readonly version: number;
   readonly lifecycleState: string;
+  readonly onNavigateAway?: () => void;
+};
+
+const goTo = (onNavigateAway: (() => void) | undefined, router: ReturnType<typeof useRouter>) => {
+  if (onNavigateAway !== undefined) {
+    onNavigateAway();
+    return;
+  }
+  router.push('/app/archive');
 };
 
 export function TaskLifecycleActions({
   taskId,
   version,
   lifecycleState,
+  onNavigateAway,
 }: TaskLifecycleActionsProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -30,7 +40,7 @@ export function TaskLifecycleActions({
     onSuccess: () => {
       toast.success('Görev arşivlendi.');
       queryClient.invalidateQueries({ queryKey: ['tasks'], exact: false });
-      router.push('/app/archive');
+      goTo(onNavigateAway, router);
     },
   });
 
@@ -41,7 +51,7 @@ export function TaskLifecycleActions({
     onSuccess: () => {
       toast.success('Görev çöp kutusuna taşındı.');
       queryClient.invalidateQueries({ queryKey: ['tasks'], exact: false });
-      router.push('/app/trash');
+      goTo(onNavigateAway, router);
     },
   });
 

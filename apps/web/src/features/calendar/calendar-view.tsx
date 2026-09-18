@@ -4,11 +4,11 @@ import { apiClient } from '@planner/api-client';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { useState } from 'react';
-import Link from 'next/link';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { PageHeader } from '@/components/page-header';
 import { cn } from '@/lib/utils';
+import { useTaskInspector } from '@/features/tasks/task-inspector-context';
 
 import { DayQuickCreateDialog } from './day-quick-create-dialog';
 
@@ -97,6 +97,7 @@ function mergeDayTasks(day: CalendarDayGroup | undefined): CalendarTask[] {
 }
 
 export function CalendarView() {
+  const { openTask } = useTaskInspector();
   const now = new Date();
   const [cursorYear, setCursorYear] = useState(now.getFullYear());
   const [cursorMonth, setCursorMonth] = useState(now.getMonth());
@@ -276,10 +277,11 @@ export function CalendarView() {
 
                 <div className="flex min-h-0 flex-1 flex-col gap-px overflow-hidden">
                   {allTasks.slice(0, 3).map((task) => (
-                    <Link
+                    <button
                       key={task.id}
-                      href={`/app/areas/tasks/${task.id}`}
-                      className="group flex items-center gap-1 truncate rounded px-1 py-px text-[10px] leading-snug sm:text-[11px] hover:bg-accent/70"
+                      type="button"
+                      onClick={() => openTask(task.id)}
+                      className="group flex w-full items-center gap-1 truncate rounded px-1 py-px text-left text-[10px] leading-snug sm:text-[11px] hover:bg-accent/70"
                     >
                       <span
                         className={cn(
@@ -292,7 +294,7 @@ export function CalendarView() {
                         )}
                       />
                       <span className="truncate">{task.title}</span>
-                    </Link>
+                    </button>
                   ))}
                   {allTasks.length > 3 && (
                     <span className="truncate px-1 text-[10px] text-muted-foreground/70">

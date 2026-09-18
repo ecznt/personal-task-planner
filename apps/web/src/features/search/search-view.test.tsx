@@ -18,6 +18,10 @@ vi.mock('@planner/api-client', () => ({
   },
 }));
 
+vi.mock('@/features/tasks/task-inspector-context', () => ({
+  useTaskInspector: () => ({ openTask: vi.fn(), closeTask: vi.fn() }),
+}));
+
 import { beforeEach } from 'vitest';
 import { apiClient } from '@planner/api-client';
 import { SearchView } from './search-view';

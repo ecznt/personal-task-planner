@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { CalendarClock } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
@@ -24,10 +23,8 @@ function formatShortDate(iso: string): string {
 
 export function KanbanTaskCard({ task, index }: { task: KanbanTask; index?: number }) {
   return (
-    <Link
-      href={`/app/areas/tasks/${task.id}`}
-      draggable={false}
-      className="card-surface block rounded-lg border border-border/70 bg-card p-3 shadow-surface transition-all duration-150 active:scale-[0.97] hover:border-border hover:shadow-surface-hover"
+    <div
+      className="card-surface rounded-lg border border-border/70 bg-card p-3 shadow-surface transition-all duration-150 hover:border-border hover:shadow-surface-hover"
       style={index === undefined ? undefined : { animationDelay: `${Math.min(index, 8) * 40}ms` }}
     >
       <div className="truncate text-sm font-medium">{task.title}</div>
@@ -66,6 +63,6 @@ export function KanbanTaskCard({ task, index }: { task: KanbanTask; index?: numb
           </span>
         )}
       </div>
-    </Link>
+    </div>
   );
 }

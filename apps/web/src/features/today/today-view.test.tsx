@@ -10,13 +10,16 @@ vi.mock('@planner/api-client', () => ({
 
 import { apiClient } from '@planner/api-client';
 import { TodayView } from './today-view';
+import { TaskInspectorProvider } from '@/features/tasks/task-inspector-provider';
 
 const mockedApiClient = vi.mocked(apiClient);
 
 function renderTodayView(queryClient = new QueryClient()) {
   return render(
     <QueryClientProvider client={queryClient}>
-      <TodayView />
+      <TaskInspectorProvider>
+        <TodayView />
+      </TaskInspectorProvider>
     </QueryClientProvider>,
   );
 }

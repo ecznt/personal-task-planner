@@ -16,11 +16,14 @@ vi.mock('@planner/api-client', () => ({
 }));
 
 import { CalendarView } from './calendar-view';
+import { TaskInspectorProvider } from '@/features/tasks/task-inspector-provider';
 
 function renderCalendarView(queryClient = new QueryClient()) {
   return render(
     <QueryClientProvider client={queryClient}>
-      <CalendarView />
+      <TaskInspectorProvider>
+        <CalendarView />
+      </TaskInspectorProvider>
     </QueryClientProvider>,
   );
 }

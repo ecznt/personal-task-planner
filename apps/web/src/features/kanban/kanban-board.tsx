@@ -4,7 +4,7 @@ import { apiClient } from '@planner/api-client';
 import { DragDropProvider, DragOverlay, KeyboardSensor, PointerSensor, type DragEndEvent } from '@dnd-kit/react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
-import { ArrowLeft, ArrowRight, Kanban } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Kanban, PencilIcon } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -21,6 +21,7 @@ import {
   type DragTaskData,
 } from '@/features/kanban/kanban-dnd';
 import { KanbanTaskCard, type KanbanTask } from '@/features/kanban/kanban-task-card';
+import { useTaskInspector } from '@/features/tasks/task-inspector-context';
 import {
   KanbanToolbar,
   useKanbanBoardFilters,
@@ -69,6 +70,8 @@ function KanbanColumnView({
   column: KanbanColumn;
   onMove: (taskId: string, target: MoveTarget, version: number, fromColumn: string) => void;
 }) {
+  const { openTask } = useTaskInspector();
+
   return (
     <DroppableKanbanColumn id={columnKey} className="flex min-w-[260px] flex-1 flex-col">
       <div className="flex h-full flex-col rounded-xl border border-border/70 bg-muted/40 p-3 backdrop-blur-sm">
@@ -91,6 +94,14 @@ function KanbanColumnView({
               <div key={task.id} className="group relative">
                 <DraggableKanbanCard task={task} index={index} fromColumn={columnKey} />
                 <div className="absolute right-1 top-1 z-10 flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => openTask(task.id)}
+                    className="rounded bg-background/80 px-1.5 py-0.5 text-muted-foreground backdrop-blur transition-transform duration-150 focus-visible:ring-2 active:scale-90 hover:bg-background"
+                    aria-label={`${task.title} görevini düzenle`}
+                  >
+                    <PencilIcon className="size-3" aria-hidden="true" />
+                  </button>
                   {columnKey !== 'todo' && (
                     <button
                       type="button"

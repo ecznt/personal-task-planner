@@ -21,6 +21,7 @@ vi.mock('@planner/api-client', () => ({
 import { apiClient } from '@planner/api-client';
 import { beforeEach } from 'vitest';
 import { GlobalTaskList } from './global-task-list';
+import { TaskInspectorProvider } from './task-inspector-provider';
 
 const mockedApiClient = vi.mocked(apiClient);
 
@@ -36,7 +37,9 @@ function renderGlobalTaskList(
 ) {
   return render(
     <QueryClientProvider client={queryClient}>
-      <GlobalTaskList {...props} />
+      <TaskInspectorProvider>
+        <GlobalTaskList {...props} />
+      </TaskInspectorProvider>
     </QueryClientProvider>,
   );
 }

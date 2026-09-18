@@ -4,11 +4,14 @@ import { describe, expect, it } from 'vitest';
 import { axe } from 'vitest-axe';
 
 import { AreaDetail } from './area-detail';
+import { TaskInspectorProvider } from '@/features/tasks/task-inspector-provider';
 
 function renderAreaDetail(queryClient = new QueryClient()) {
   return render(
     <QueryClientProvider client={queryClient}>
-      <AreaDetail areaId="123e4567-e89b-12d3-a456-426614174000" />
+      <TaskInspectorProvider>
+        <AreaDetail areaId="123e4567-e89b-12d3-a456-426614174000" />
+      </TaskInspectorProvider>
     </QueryClientProvider>,
   );
 }

@@ -12,6 +12,7 @@ import { EmptyState } from '@/components/empty-state';
 import { ListSkeleton } from '@/components/list-skeleton';
 import { PageHeader } from '@/components/page-header';
 import { TaskPriorityBadge } from '@/features/tasks/task-badge';
+import { useTaskInspector } from '@/features/tasks/task-inspector-context';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
 
 type UpcomingTask = {
@@ -129,6 +130,7 @@ function TaskCard({
     version: number,
   ) => void;
 }) {
+  const { openTask } = useTaskInspector();
   const isCompleted = task.canonicalStatus === 'COMPLETED';
 
   return (
@@ -136,7 +138,7 @@ function TaskCard({
       className="card-surface animate-fade-slide-in flex items-center gap-3 rounded-xl border border-border/70 bg-card p-3 shadow-surface transition-all duration-150 hover:border-border hover:shadow-surface-hover"
       style={{ animationDelay: `${Math.min(index, 8) * 40}ms` }}
     >
-      <Link href={`/app/areas/tasks/${task.id}`} className="min-w-0 flex-1">
+      <button type="button" onClick={() => openTask(task.id)} className="min-w-0 flex-1 cursor-pointer rounded-lg text-left">
         <div className="truncate font-medium">{task.title}</div>
         <div className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
           <TaskPriorityBadge priority={task.priority} />
@@ -147,7 +149,7 @@ function TaskCard({
             </span>
           )}
         </div>
-      </Link>
+      </button>
       <div className="flex shrink-0 gap-1">
         {!isCompleted && task.canonicalStatus !== 'IN_PROGRESS' && (
           <button

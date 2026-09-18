@@ -2,9 +2,8 @@
 
 import { apiClient } from '@planner/api-client';
 import { useQuery } from '@tanstack/react-query';
-import { Inbox } from 'lucide-react';
+import { Inbox, PencilIcon } from 'lucide-react';
 import { useState } from 'react';
-import Link from 'next/link';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { EmptyState } from '@/components/empty-state';
@@ -15,6 +14,7 @@ import { TaskFilterBar } from '@/features/filters/task-filter-bar';
 import { useUrlTaskFilters } from '@/features/filters/url-task-filters';
 import { TaskPriorityBadge } from './task-badge';
 import { BulkActionBar } from './bulk-action-bar';
+import { useTaskInspector } from './task-inspector-context';
 
 type TaskSummary = {
   readonly id: string;
@@ -74,6 +74,7 @@ export function GlobalTaskList({
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
   const [bulkResult, setBulkResult] = useState<{ succeeded: number; failed: number } | null>(null);
+  const { openTask } = useTaskInspector();
 
   const statusFilter = standalone ? (urlFilters.filters.canonicalStatus ?? '') : localStatusFilter;
   const priorityFilter = standalone ? (urlFilters.filters.priority ?? '') : localPriorityFilter;
@@ -291,7 +292,7 @@ export function GlobalTaskList({
           {taskData.map((task, index) => (
             <div
               key={task.id}
-              className={`card-surface animate-fade-slide-in flex items-center rounded-xl border p-3 shadow-surface transition-all duration-150 active:scale-[0.97] ${
+              className={`card-surface group animate-fade-slide-in flex items-center rounded-xl border p-3 shadow-surface transition-all duration-150 active:scale-[0.97] ${
                 selectionMode
                   ? selectedTaskIds.has(task.id)
                     ? 'border-primary bg-primary/5'
@@ -338,14 +339,18 @@ export function GlobalTaskList({
                   </div>
                 </div>
               ) : (
-                <Link href={`/app/areas/tasks/${task.id}`} className="min-w-0 flex-1">
+                <button
+                  type="button"
+                  onClick={() => openTask(task.id)}
+                  className="min-w-0 flex-1 cursor-pointer rounded-lg text-left"
+                >
                   <div className="truncate font-medium">{task.title}</div>
                   <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
                     <TaskPriorityBadge priority={task.priority} />
                     {task.plannedAt && <span>Plan: {formatDate(task.plannedAt)}</span>}
                     {task.dueAt && <span>Bitiş: {formatDate(task.dueAt)}</span>}
                   </div>
-                </Link>
+                </button>
               )}
 
               <div className="ml-4 text-sm text-muted-foreground">
@@ -355,6 +360,15 @@ export function GlobalTaskList({
                     ? 'Devam Ediyor'
                     : 'Tamamlandı'}
               </div>
+
+              {!selectionMode && (
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none ml-2 text-muted-foreground opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+                >
+                  <PencilIcon className="size-4" />
+                </span>
+              )}
             </div>
           ))}
         </div>

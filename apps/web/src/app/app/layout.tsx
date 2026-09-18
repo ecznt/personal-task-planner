@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 
 import { SessionBoundary } from '@/features/auth/session-boundary';
 import { AppShell } from '@/features/navigation/app-shell';
+import { TaskInspectorProvider } from '@/features/tasks/task-inspector-provider';
 
 export const metadata: Metadata = {
   title: {
@@ -13,7 +14,9 @@ export const metadata: Metadata = {
 export default function AppLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <SessionBoundary>
-      <AppShell>{children}</AppShell>
+      <TaskInspectorProvider>
+        <AppShell>{children}</AppShell>
+      </TaskInspectorProvider>
     </SessionBoundary>
   );
 }

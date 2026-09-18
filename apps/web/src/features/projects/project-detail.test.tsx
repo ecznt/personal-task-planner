@@ -28,6 +28,7 @@ vi.mock('next/navigation', () => ({
 
 import { apiClient } from '@planner/api-client';
 import { ProjectDetail } from './project-detail';
+import { TaskInspectorProvider } from '@/features/tasks/task-inspector-provider';
 
 const mockedApiClient = vi.mocked(apiClient);
 
@@ -75,7 +76,9 @@ function mockDefaultApi() {
 function renderProjectDetail(projectId = 'project-1', queryClient = new QueryClient()) {
   return render(
     <QueryClientProvider client={queryClient}>
-      <ProjectDetail projectId={projectId} />
+      <TaskInspectorProvider>
+        <ProjectDetail projectId={projectId} />
+      </TaskInspectorProvider>
     </QueryClientProvider>,
   );
 }

@@ -3,7 +3,7 @@
 import { apiClient } from '@planner/api-client';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { TaskFilterBar } from '@/features/filters/task-filter-bar';
 import { useUrlTaskFilters } from '@/features/filters/url-task-filters';
 import { TaskPriorityBadge } from '@/features/tasks/task-badge';
+import { useTaskInspector } from '@/features/tasks/task-inspector-context';
 
 type SearchResult = {
   readonly id: string;
@@ -122,12 +123,7 @@ export function SearchView() {
     enabled: debouncedQuery.trim().length > 0,
   });
 
-  const handleTaskClick = useCallback(
-    (taskId: string) => {
-      router.push(`/app/areas/tasks/${taskId}`);
-    },
-    [router],
-  );
+  const openTask = useTaskInspector().openTask;
 
   return (
     <div className="space-y-6">
@@ -194,7 +190,7 @@ export function SearchView() {
             <button
               key={result.id}
               type="button"
-              onClick={() => handleTaskClick(result.id)}
+              onClick={() => openTask(result.id)}
               className="w-full rounded-lg border bg-card p-4 text-left transition-all duration-150 hover:border-primary/50 hover:shadow-sm active:scale-[0.99]"
             >
               <div className="flex items-start justify-between gap-3">
