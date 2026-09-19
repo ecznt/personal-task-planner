@@ -215,16 +215,32 @@ export function LabelManager({ selectedLabelIds, onToggleLabel }: LabelManagerPr
               <span
                 key={label.id}
                 className={cn(
-                  'inline-flex items-center gap-1.5 rounded-full border py-1 pr-3 pl-2 text-sm transition-colors duration-150',
+                  'inline-flex items-center rounded-full border py-1 pr-1.5 pl-2 text-sm transition-colors duration-150',
                   isSelected
                     ? 'border-primary bg-primary text-primary-foreground'
                     : 'border-border bg-transparent text-foreground hover:bg-muted',
                 )}
               >
-                <span className="relative flex size-3.5 items-center justify-center">
+                <button
+                  type="button"
+                  aria-pressed={isSelected}
+                  onClick={() => onToggleLabel(label.id)}
+                  className="inline-flex items-center gap-1.5 rounded-full transition-transform duration-150 active:scale-95"
+                >
                   <span
                     aria-hidden="true"
                     className="size-3 rounded-full ring-1 ring-black/10"
+                    style={{ backgroundColor: resolveLabelColor(label.color) }}
+                  />
+                  {label.name}
+                </button>
+                <label
+                  title={`${label.name} rengini değiştir`}
+                  className="relative ml-1.5 flex size-4 cursor-pointer items-center justify-center rounded-full transition-colors duration-150 hover:bg-black/5 dark:hover:bg-white/10"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="size-2.5 rounded-full"
                     style={{ backgroundColor: resolveLabelColor(label.color) }}
                   />
                   <input
@@ -235,14 +251,7 @@ export function LabelManager({ selectedLabelIds, onToggleLabel }: LabelManagerPr
                     disabled={updateLabelColor.isPending}
                     className="absolute inset-0 cursor-pointer rounded-full opacity-0 disabled:cursor-not-allowed"
                   />
-                </span>
-                <button
-                  type="button"
-                  onClick={() => onToggleLabel(label.id)}
-                  className="transition-transform duration-150 active:scale-95"
-                >
-                  {label.name}
-                </button>
+                </label>
               </span>
             );
           })}
