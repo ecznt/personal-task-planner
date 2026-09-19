@@ -27,8 +27,8 @@ export function KanbanTaskCard({ task, index }: { task: KanbanTask; index?: numb
 
   return (
     <div
-      className={`card-surface rounded-lg border border-border/70 bg-card p-3 shadow-surface transition-all duration-150 hover:border-border hover:shadow-surface-hover ${
-        anchor !== undefined ? labelHoverSurfaceClass : ''
+      className={`card-surface rounded-lg border border-border/70 p-3 shadow-surface transition-all duration-150 hover:border-border hover:shadow-surface-hover ${
+        anchor !== undefined ? labelHoverSurfaceClass : 'bg-card'
       } hover:scale-[101%]`}
       style={{
         ...(anchor !== undefined ? labelSurfaceStyle(anchor.color) : {}),
