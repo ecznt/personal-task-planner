@@ -6,6 +6,7 @@ export type NavDestination =
   | 'kanban'
   | 'areas'
   | 'projects'
+  | 'templates'
   | 'archive'
   | 'trash'
   | 'settings';
@@ -22,6 +23,7 @@ export type NavItem = {
     | 'kanban'
     | 'areas'
     | 'projects'
+    | 'templates'
     | 'archive'
     | 'trash'
     | 'settings';
@@ -50,6 +52,7 @@ export const MOBILE_PRIMARY: readonly NavItem[] = [
 export const MOBILE_MORE: readonly NavItem[] = [
   { key: 'areas', href: '/app/areas', label: 'Alanlar', icon: 'areas' },
   { key: 'projects', href: '/app/projects', label: 'Projeler', icon: 'projects' },
+  { key: 'templates', href: '/app/templates', label: 'Şablonlar', icon: 'templates' },
   { key: 'archive', href: '/app/archive', label: 'Arşiv', icon: 'archive' },
   { key: 'trash', href: '/app/trash', label: 'Çöp Kutusu', icon: 'trash' },
   { key: 'settings', href: '/app/settings/account', label: 'Ayarlar', icon: 'settings' },

@@ -25,6 +25,12 @@ export type AddChecklistItemRequestDto = {
     text: string;
 };
 
+export type ApplyTaskTemplateRequestDto = {
+    areaId?: string;
+    plannedAt?: string;
+    projectId?: string;
+};
+
 export type AreaDataDto = {
     id: string;
     lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
@@ -199,6 +205,15 @@ export type CreateTaskRequestDto = {
     recurrence?: {
         [key: string]: unknown;
     };
+    title: string;
+};
+
+export type CreateTaskTemplateRequestDto = {
+    checklistSteps?: Array<string>;
+    defaultPlannedAtOffsetDays?: number;
+    description?: string;
+    labelNames?: Array<string>;
+    priority?: 'LOW' | 'MEDIUM' | 'HIGH';
     title: string;
 };
 
@@ -587,6 +602,44 @@ export type TaskSummaryDto = {
     title: string;
 };
 
+export type TaskTemplateDataDto = {
+    checklistSteps: Array<string>;
+    createdAt: string;
+    defaultPlannedAtOffsetDays?: number;
+    description?: string;
+    id: string;
+    labelNames: Array<string>;
+    priority: 'LOW' | 'MEDIUM' | 'HIGH';
+    title: string;
+    updatedAt: string;
+    version: number;
+};
+
+export type TaskTemplateListMetaDto = {
+    nextCursor?: string;
+};
+
+export type TaskTemplateListResponseDto = {
+    data: Array<TaskTemplateSummaryDto>;
+    meta: TaskTemplateListMetaDto;
+};
+
+export type TaskTemplateResponseDto = {
+    data: TaskTemplateDataDto;
+};
+
+export type TaskTemplateSummaryDto = {
+    checklistSteps: Array<string>;
+    defaultPlannedAtOffsetDays?: number;
+    description?: string;
+    id: string;
+    labelNames: Array<string>;
+    priority: 'LOW' | 'MEDIUM' | 'HIGH';
+    title: string;
+    updatedAt: string;
+    version: number;
+};
+
 export type TodayResponseDto = {
     completedToday: TodaySectionDto;
     dueToday: TodaySectionDto;
@@ -655,6 +708,15 @@ export type UpdateCurrentUserRequestDto = {
 export type UpdateProjectRequestDto = {
     areaId?: string;
     name?: string;
+};
+
+export type UpdateTaskTemplateRequestDto = {
+    checklistSteps?: Array<string>;
+    defaultPlannedAtOffsetDays?: number;
+    description?: string;
+    labelNames?: Array<string>;
+    priority?: 'LOW' | 'MEDIUM' | 'HIGH';
+    title?: string;
 };
 
 export type VerifyEmailDataDto = {
@@ -1939,6 +2001,147 @@ export type SearchTasksResponses = {
      */
     200: unknown;
 };
+
+export type ListTaskTemplatesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/task-templates';
+};
+
+export type ListTaskTemplatesErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+};
+
+export type ListTaskTemplatesResponses = {
+    200: TaskTemplateListResponseDto;
+};
+
+export type ListTaskTemplatesResponse = ListTaskTemplatesResponses[keyof ListTaskTemplatesResponses];
+
+export type CreateTaskTemplateData = {
+    body: CreateTaskTemplateRequestDto;
+    path?: never;
+    query?: never;
+    url: '/api/v1/task-templates';
+};
+
+export type CreateTaskTemplateErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Validation failed.
+     */
+    422: unknown;
+};
+
+export type CreateTaskTemplateResponses = {
+    201: TaskTemplateResponseDto;
+};
+
+export type CreateTaskTemplateResponse = CreateTaskTemplateResponses[keyof CreateTaskTemplateResponses];
+
+export type DeleteTaskTemplateData = {
+    body?: never;
+    path: {
+        templateId: string;
+    };
+    query?: never;
+    url: '/api/v1/task-templates/{templateId}';
+};
+
+export type DeleteTaskTemplateErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Template not found.
+     */
+    404: unknown;
+    /**
+     * Version conflict.
+     */
+    409: unknown;
+};
+
+export type DeleteTaskTemplateResponses = {
+    /**
+     * Template deleted successfully.
+     */
+    204: void;
+};
+
+export type DeleteTaskTemplateResponse = DeleteTaskTemplateResponses[keyof DeleteTaskTemplateResponses];
+
+export type UpdateTaskTemplateData = {
+    body: UpdateTaskTemplateRequestDto;
+    path: {
+        templateId: string;
+    };
+    query?: never;
+    url: '/api/v1/task-templates/{templateId}';
+};
+
+export type UpdateTaskTemplateErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Template not found.
+     */
+    404: unknown;
+    /**
+     * Version conflict.
+     */
+    409: unknown;
+    /**
+     * Validation failed or If-Match header required.
+     */
+    422: unknown;
+};
+
+export type UpdateTaskTemplateResponses = {
+    200: TaskTemplateResponseDto;
+};
+
+export type UpdateTaskTemplateResponse = UpdateTaskTemplateResponses[keyof UpdateTaskTemplateResponses];
+
+export type ApplyTaskTemplateData = {
+    body: ApplyTaskTemplateRequestDto;
+    path: {
+        templateId: string;
+    };
+    query?: never;
+    url: '/api/v1/task-templates/{templateId}/apply';
+};
+
+export type ApplyTaskTemplateErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Template not found.
+     */
+    404: unknown;
+    /**
+     * Validation failed.
+     */
+    422: unknown;
+};
+
+export type ApplyTaskTemplateResponses = {
+    201: TaskResponseDto;
+};
+
+export type ApplyTaskTemplateResponse = ApplyTaskTemplateResponses[keyof ApplyTaskTemplateResponses];
 
 export type ListGlobalTasksData = {
     body?: never;

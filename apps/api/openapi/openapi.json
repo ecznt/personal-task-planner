@@ -78,6 +78,25 @@
         ],
         "type": "object"
       },
+      "ApplyTaskTemplateRequestDto": {
+        "properties": {
+          "areaId": {
+            "example": "a0000000-0000-4000-8000-000000000001",
+            "format": "uuid",
+            "type": "string"
+          },
+          "plannedAt": {
+            "example": "2026-10-01T08:00:00.000Z",
+            "type": "string"
+          },
+          "projectId": {
+            "example": "b0000000-0000-4000-8000-000000000001",
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "AreaDataDto": {
         "properties": {
           "id": {
@@ -707,6 +726,54 @@
           },
           "title": {
             "example": "Marketten süt al",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "type": "object"
+      },
+      "CreateTaskTemplateRequestDto": {
+        "properties": {
+          "checklistSteps": {
+            "example": [
+              "Veri topla",
+              "Rapor yaz"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "defaultPlannedAtOffsetDays": {
+            "example": 7,
+            "type": "number"
+          },
+          "description": {
+            "example": "Haftalık ilerleme raporunu hazırla",
+            "type": "string"
+          },
+          "labelNames": {
+            "example": [
+              "Ev"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "priority": {
+            "default": "MEDIUM",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "example": "Haftalık Rapor",
             "type": "string"
           }
         },
@@ -2117,6 +2184,154 @@
         ],
         "type": "object"
       },
+      "TaskTemplateDataDto": {
+        "properties": {
+          "checklistSteps": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "defaultPlannedAtOffsetDays": {
+            "type": "number"
+          },
+          "description": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "labelNames": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "priority": {
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "version": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "priority",
+          "checklistSteps",
+          "labelNames",
+          "version",
+          "createdAt",
+          "updatedAt"
+        ],
+        "type": "object"
+      },
+      "TaskTemplateListMetaDto": {
+        "properties": {
+          "nextCursor": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "TaskTemplateListResponseDto": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/TaskTemplateSummaryDto"
+            },
+            "type": "array"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/TaskTemplateListMetaDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "type": "object"
+      },
+      "TaskTemplateResponseDto": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/TaskTemplateDataDto"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "TaskTemplateSummaryDto": {
+        "properties": {
+          "checklistSteps": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "defaultPlannedAtOffsetDays": {
+            "type": "number"
+          },
+          "description": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "labelNames": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "priority": {
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "version": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "priority",
+          "checklistSteps",
+          "labelNames",
+          "version",
+          "updatedAt"
+        ],
+        "type": "object"
+      },
       "TodayResponseDto": {
         "properties": {
           "completedToday": {
@@ -2402,6 +2617,50 @@
           },
           "name": {
             "example": "Yeni Proje Adı",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "UpdateTaskTemplateRequestDto": {
+        "properties": {
+          "checklistSteps": {
+            "example": [
+              "Veri topla",
+              "Rapor yaz"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "defaultPlannedAtOffsetDays": {
+            "example": 7,
+            "type": "number"
+          },
+          "description": {
+            "example": "Haftalık ilerleme raporunu hazırla",
+            "type": "string"
+          },
+          "labelNames": {
+            "example": [
+              "Ev"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "priority": {
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "example": "Haftalık Rapor",
             "type": "string"
           }
         },
@@ -4455,6 +4714,204 @@
         "summary": "Search tasks by title and description",
         "tags": [
           "Search"
+        ]
+      }
+    },
+    "/api/v1/task-templates": {
+      "get": {
+        "operationId": "listTaskTemplates",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskTemplateListResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          }
+        },
+        "summary": "List User Task Templates",
+        "tags": [
+          "Task Templates"
+        ]
+      },
+      "post": {
+        "operationId": "createTaskTemplate",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTaskTemplateRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskTemplateResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "422": {
+            "description": "Validation failed."
+          }
+        },
+        "summary": "Create a Task Template",
+        "tags": [
+          "Task Templates"
+        ]
+      }
+    },
+    "/api/v1/task-templates/{templateId}": {
+      "delete": {
+        "operationId": "deleteTaskTemplate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "templateId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Template deleted successfully."
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "404": {
+            "description": "Template not found."
+          },
+          "409": {
+            "description": "Version conflict."
+          }
+        },
+        "summary": "Delete a Task Template",
+        "tags": [
+          "Task Templates"
+        ]
+      },
+      "patch": {
+        "operationId": "updateTaskTemplate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "templateId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTaskTemplateRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskTemplateResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "404": {
+            "description": "Template not found."
+          },
+          "409": {
+            "description": "Version conflict."
+          },
+          "422": {
+            "description": "Validation failed or If-Match header required."
+          }
+        },
+        "summary": "Update a Task Template",
+        "tags": [
+          "Task Templates"
+        ]
+      }
+    },
+    "/api/v1/task-templates/{templateId}/apply": {
+      "post": {
+        "operationId": "applyTaskTemplate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "templateId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyTaskTemplateRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "404": {
+            "description": "Template not found."
+          },
+          "422": {
+            "description": "Validation failed."
+          }
+        },
+        "summary": "Instantiate a Task from a Template",
+        "tags": [
+          "Task Templates"
         ]
       }
     },

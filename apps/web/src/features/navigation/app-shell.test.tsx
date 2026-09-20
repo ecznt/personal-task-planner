@@ -59,6 +59,11 @@ describe('AppShell', () => {
     for (const link of projectsLinks) {
       expect(link).toHaveAttribute('href', '/app/projects');
     }
+    const templatesLinks = screen.getAllByRole('link', { name: 'Şablonlar' });
+    expect(templatesLinks.length).toBeGreaterThan(0);
+    for (const link of templatesLinks) {
+      expect(link).toHaveAttribute('href', '/app/templates');
+    }
     expect(screen.getAllByRole('link', { name: 'Arşiv' }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole('link', { name: 'Çöp Kutusu' }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole('link', { name: 'Ayarlar' }).length).toBeGreaterThan(0);
@@ -86,6 +91,7 @@ describe('AppShell', () => {
 
     expect(await screen.findByRole('navigation', { name: 'Daha fazla menü' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Projeler' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Şablonlar' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Ayarlar' })).toBeInTheDocument();
   });
 

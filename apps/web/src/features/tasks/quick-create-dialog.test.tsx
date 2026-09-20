@@ -48,7 +48,7 @@ async function openDialog() {
   const user = userEvent.setup();
   renderDialog();
   await user.click(screen.getByRole('button', { name: 'Yeni görev' }));
-  await screen.findByLabelText('Hızlı ekle');
+  await screen.findByRole('tab', { name: 'Hızlı ekle', selected: true });
   return user;
 }
 
@@ -99,7 +99,7 @@ describe('QuickCreateDialog', () => {
     });
 
     await user.type(
-      screen.getByLabelText('Hızlı ekle'),
+screen.getByRole('textbox', { name: 'Hızlı ekle' }),
       'Rapor 25 aralık 2027 14:30 p1 #Yazilim @is',
     );
 
@@ -135,7 +135,7 @@ describe('QuickCreateDialog', () => {
       error: undefined,
     });
 
-    await user.type(screen.getByLabelText('Hızlı ekle'), 'Not #Yok @bilinmeyen');
+    await user.type(screen.getByRole('textbox', { name: 'Hızlı ekle' }), 'Not #Yok @bilinmeyen');
 
     expect(
       await screen.findByText("Proje '#Yok' bulunamadı, başlıkta korundu."),
@@ -163,7 +163,7 @@ describe('QuickCreateDialog', () => {
   it('rejects a capture that resolves to an empty title', async () => {
     const user = await openDialog();
 
-    await user.type(screen.getByLabelText('Hızlı ekle'), '25 aralık 2027 14:30 p1');
+    await user.type(screen.getByRole('textbox', { name: 'Hızlı ekle' }), '25 aralık 2027 14:30 p1');
 
     const submit = screen.getByRole('button', { name: 'Ekle' });
     await waitFor(() => {

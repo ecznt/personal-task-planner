@@ -14,6 +14,7 @@ import { RecurrenceService } from './application/recurrence.service';
 import { ReminderService } from './application/reminder.service';
 import { SearchService } from './application/search.service';
 import { TaskService } from './application/task.service';
+import { TaskTemplateService } from './application/task-template.service';
 import { AreaRepository } from './infrastructure/area.repository';
 import { ChecklistItemRepository } from './infrastructure/checklist-item.repository';
 import { LabelRepository } from './infrastructure/label.repository';
@@ -23,6 +24,7 @@ import { PushSubscriptionRepository } from './infrastructure/push-subscription.r
 import { RecurrenceRepository } from './infrastructure/recurrence.repository';
 import { ReminderRepository } from './infrastructure/reminder.repository';
 import { TaskRepository } from './infrastructure/task.repository';
+import { TaskTemplateRepository } from './infrastructure/task-template.repository';
 import { PUSH_TRANSPORT, WebPushTransport } from './infrastructure/web-push.transport';
 import { AreaController } from './transport/area.controller';
 import { ArchiveController } from './transport/archive.controller';
@@ -38,6 +40,7 @@ import { RecurrenceController } from './transport/recurrence.controller';
 import { ReminderController } from './transport/reminder.controller';
 import { SearchController } from './transport/search.controller';
 import { TaskController } from './transport/task.controller';
+import { TaskTemplateController } from './transport/task-template.controller';
 import { TrashController } from './transport/trash.controller';
 
 @Module({
@@ -45,6 +48,7 @@ import { TrashController } from './transport/trash.controller';
   controllers: [
     AreaController,
     TaskController,
+    TaskTemplateController,
     RecurrenceController,
     ReminderController,
     NotificationController,
@@ -64,6 +68,8 @@ import { TrashController } from './transport/trash.controller';
     AreaRepository,
     TaskService,
     TaskRepository,
+    TaskTemplateService,
+    TaskTemplateRepository,
     RecurrenceService,
     RecurrenceRepository,
     ReminderService,

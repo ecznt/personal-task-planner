@@ -24,6 +24,16 @@ export class LabelRepository {
     });
   }
 
+  async findManyByNames(userId: string, normalizedNames: readonly string[]): Promise<Label[]> {
+    if (normalizedNames.length === 0) {
+      return [];
+    }
+
+    return this.prisma.label.findMany({
+      where: { userId, normalizedName: { in: normalizedNames as string[] } },
+    });
+  }
+
   async findById(userId: string, labelId: string): Promise<LabelDetail | null> {
     const label = await this.prisma.label.findFirst({
       where: { id: labelId, userId },

@@ -19,6 +19,7 @@ import {
 import { Select } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
+import { TemplateQuickApply } from '@/features/templates/template-quick-apply';
 
 import { CreateTaskFields } from './create-task-fields';
 import {
@@ -150,6 +151,7 @@ export function QuickCreateDialog({
   triggerLabel,
 }: QuickCreateDialogProps) {
   const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<'quick' | 'template'>('quick');
   const [areaId, setAreaId] = useState(initialAreaId ?? '');
   const [projectId, setProjectId] = useState(initialProjectId ?? '');
   const [text, setText] = useState('');
@@ -274,6 +276,7 @@ export function QuickCreateDialog({
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
+      setMode('quick');
       setAreaId(initialAreaId ?? '');
       setProjectId(initialProjectId ?? '');
       setText('');
@@ -376,7 +379,47 @@ export function QuickCreateDialog({
             tanıyabilirim.
           </SheetDescription>
         </SheetHeader>
-        <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-4">
+
+        <div className="flex gap-1 border-b border-border/70 px-4 pb-2" role="tablist" aria-label="Görev oluşturma yöntemi">
+          <button
+            type="button"
+            role="tab"
+            id="quick-add-tab"
+            aria-selected={mode === 'quick'}
+            aria-controls="quick-add-panel"
+            onClick={() => setMode('quick')}
+            className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+              mode === 'quick'
+                ? 'bg-secondary text-foreground shadow-inner-edge'
+                : 'text-muted-foreground hover:bg-accent/70 hover:text-foreground'
+            }`}
+          >
+            Hızlı ekle
+          </button>
+          <button
+            type="button"
+            role="tab"
+            id="template-tab"
+            aria-selected={mode === 'template'}
+            aria-controls="template-panel"
+            onClick={() => setMode('template')}
+            className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+              mode === 'template'
+                ? 'bg-secondary text-foreground shadow-inner-edge'
+                : 'text-muted-foreground hover:bg-accent/70 hover:text-foreground'
+            }`}
+          >
+            Şablon
+          </button>
+        </div>
+
+        <div
+          role="tabpanel"
+          id="quick-add-panel"
+          aria-labelledby="quick-add-tab"
+          className="flex flex-1 flex-col gap-4 overflow-y-auto px-4"
+          hidden={mode !== 'quick'}
+        >
           {!showAdvanced && (
             <form onSubmit={handleQuickSubmit} className="space-y-3">
               <Field>
@@ -488,6 +531,19 @@ export function QuickCreateDialog({
               }}
             />
           )}
+        </div>
+
+        <div
+          role="tabpanel"
+          id="template-panel"
+          aria-labelledby="template-tab"
+          className="flex flex-1 flex-col gap-4 overflow-y-auto px-4"
+          hidden={mode !== 'template'}
+        >
+          <p className="text-sm text-muted-foreground">
+            Bir şablon seçin, alan ve projeyi belirleyin — görev şablon içeriğiyle oluşturulsun.
+          </p>
+          {open && mode === 'template' && <TemplateQuickApply />}
         </div>
       </SheetContent>
     </Sheet>

@@ -4,7 +4,7 @@
 | --- | --- |
 | Slice | L-028 |
 | Goal | Tekrar eden iş kalıplarını tek tıkla yeni Task olarak anında çoğaltma |
-| Status | Planlı — uygulanmadı |
+| Status | Uygulandı (2026-09-20) |
 | Created | 2026-09-20 |
 | Dependencies | L-007 (Checklist/Labels), L-025 (Quick Add), L-006 (Task CRUD) |
 

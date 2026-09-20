@@ -458,12 +458,28 @@ Before each slice, verify the exact requirement IDs from PRD and API/Domain/Data
 
 ## 6a. Planned next slices (L-027 through L-031)
 
-Sourced from `docs/research/FEATURE_RESEARCH.md` and user selection on 2026-09-20. Slices are planned only; none implemented. Each has a decision-complete plan document in `docs/planning/`.
+Sourced from `docs/research/FEATURE_RESEARCH.md` and user selection on 2026-09-20. Each has a decision-complete plan document in `docs/planning/`; implemented slices are documented below the heading.
+
+### L-028 — Task templates (Task Templates)
+
+**Implementation status:** Implemented and published to `opencode/develop`.
+
+**Story goal:** Let the user save frequently repeating task shapes (title, description, priority, checklist, labels) once and instantiate them into real Tasks in one click instead of typing everything from scratch.
+
+**Delivered scope:**
+
+- **DB (S1):** New `TaskTemplate` Prisma model (`title`, `description?`, `priority`, `checklistSteps[]`, `labelNames[]`, `defaultPlannedAtOffsetDays?`, `version`, owner-scoped cascade + `@@index([userId, updatedAt])`), migration applied, client regenerated.
+- **API (S2):** Owned CRUD at `/api/v1/task-templates` (GET cursor list, POST with Idempotency-Key, PATCH/DELETE with If-Match → 404/409 version conflict), plus `POST /:templateId/apply` → 201 Task DTO with ETag/Location. `TaskTemplateService.applyTemplate` reuses `TaskService.createTask`; `defaultPlannedAtOffsetDays` sets `plannedAt = now + offset` unless an explicit `plannedAt` override is passed; `labelNames` are resolved to ids via owner-scoped lookup at apply time and silently skipped when missing; checklist steps instantiate as checklist items. Service handles title/length/step validations with Turkish-aware messages. Added unit + HTTP contract suites (165 unit, 147 API tests across API).
+- **Web (S3):** New `/app/templates` management page (list + create/edit form with title, description, priority, one-step-per-line checklist editor, comma-separated labels, offset days; inline edit; delete with confirm; "Uygula" dialog choosing area, optional project and date). Sidebar "Şablonlar" entry (desktop + mobile overflow). Header quick-add dialog gained a "Şablon" tab (template picker → apply form). Shared `TemplateApplyForm` reused by page and quick-add; component tests 209/209 green.
+
+**Tests:** API `test:unit` (165), `test:api` (147), web `test:component` (209), `typecheck`, and `lint` green. (`test:db` blocked by testcontainers runtime on this machine — pre-existing infra caveat.)
+
+**Excluded:** project templates (area + multiple tasks + statuses), template library/import/export, sharing, recurrence coupling, variables/placeholders (v1 is plain text only).
 
 | Slice | Goal | Plan document | Implementation status |
 | --- | --- | --- | --- |
 | L-027 | Sub-tasks (nested Tasks under a parent Task, single level, subtask cascade) | `docs/planning/L-027_SUBTASKS_PLAN.md` | Implemented (API + web) — CI-verified² |
-| L-028 | Task templates (save/apply template → instant Task with checklist, labels, priority) | `docs/planning/L-028_TASK_TEMPLATES_PLAN.md` | Planned — not implemented |
+| L-028 | Task templates (save/apply template → instant Task with checklist, labels, priority) | `docs/planning/L-028_TASK_TEMPLATES_PLAN.md` | Implemented (API + web) — CI-verified² |
 | L-029 | Snooze / postpone (task-date snooze + reminder snooze) | `docs/planning/L-029_SNOOZE_PLAN.md` | Planned — not implemented |
 | L-030 | Markdown-supported rich notes on Task description (render-only, safe subset) | `docs/planning/L-030_MARKDOWN_NOTES_PLAN.md` | Planned — not implemented |
 | L-031 | Kanban improvements: Area board URL-persisted filters + new Project-scoped Kanban board | `docs/planning/L-031_KANBAN_IMPROVEMENTS_PLAN.md` | Planned — not implemented |
