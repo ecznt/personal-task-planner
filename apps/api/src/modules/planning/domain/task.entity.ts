@@ -99,6 +99,22 @@ export type KanbanTaskFilter = {
   readonly labelId?: string | undefined;
 };
 
+export type TaskParentSummary = {
+  readonly id: string;
+  readonly title: string;
+  readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+};
+
+export type TaskSubtaskSummary = {
+  readonly id: string;
+  readonly title: string;
+  readonly priority: TaskPriority;
+  readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+  readonly plannedAt: Date | null;
+  readonly dueAt: Date | null;
+  readonly lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+};
+
 export type TaskDetail = {
   readonly task: Task;
   readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
@@ -108,4 +124,6 @@ export type TaskDetail = {
   readonly recurrence: RecurrenceSeriesDetail | null;
   readonly subtaskCount: number;
   readonly completedSubtaskCount: number;
+  readonly parentTask: TaskParentSummary | null;
+  readonly subtasks: readonly TaskSubtaskSummary[];
 };

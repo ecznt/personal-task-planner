@@ -529,6 +529,7 @@ export type TaskDataDto = {
     id: string;
     labels: Array<LabelSummaryDto>;
     lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+    parentTask?: TaskParentDataDto;
     parentTaskId?: string;
     plannedAt?: string;
     priority: 'LOW' | 'MEDIUM' | 'HIGH';
@@ -537,6 +538,7 @@ export type TaskDataDto = {
         [key: string]: unknown;
     };
     subtaskCount: number;
+    subtasks: Array<TaskSubtaskDataDto>;
     title: string;
     version: number;
 };
@@ -550,8 +552,24 @@ export type TaskListResponseDto = {
     meta: TaskListMetaDto;
 };
 
+export type TaskParentDataDto = {
+    canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+    id: string;
+    title: string;
+};
+
 export type TaskResponseDto = {
     data: TaskDataDto;
+};
+
+export type TaskSubtaskDataDto = {
+    canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+    dueAt?: string;
+    id: string;
+    lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+    plannedAt?: string;
+    priority: 'LOW' | 'MEDIUM' | 'HIGH';
+    title: string;
 };
 
 export type TaskSummaryDto = {

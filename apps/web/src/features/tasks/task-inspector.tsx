@@ -26,6 +26,7 @@ import {
   useTaskPatch,
   type RecurrenceInfo,
   type TaskData,
+  type TaskSubtask,
 } from './task-patch';
 import { useTaskInspector } from './task-inspector-context';
 
@@ -55,7 +56,7 @@ type TaskInspectorProps = {
 
 export function TaskInspector({ taskId, variant = 'page' }: TaskInspectorProps) {
   const queryClient = useQueryClient();
-  const { closeTask } = useTaskInspector();
+  const { openTask, closeTask } = useTaskInspector();
   const { saveFields, status, error, clearError } = useTaskPatch({ taskId });
 
   const task = useQuery({
@@ -157,6 +158,7 @@ export function TaskInspector({ taskId, variant = 'page' }: TaskInspectorProps) 
 
   const current = task.data.data;
   const selectedLabelIds = current.labels.map((label) => label.id);
+  const parentTask = current.parentTask;
 
   const sections = (
     <>
@@ -175,6 +177,21 @@ export function TaskInspector({ taskId, variant = 'page' }: TaskInspectorProps) 
         </a>
         <AutosaveStatus status={status} />
       </div>
+
+      {parentTask !== null && (
+        <div className="rounded-xl border border-border/70 bg-muted/40 p-3">
+          <div className="text-xs text-muted-foreground">Üst görev</div>
+          <button
+            type="button"
+            className="mt-1 flex w-full items-center gap-2 text-left font-medium transition-colors duration-150 hover:text-foreground"
+            onClick={() => openTask(parentTask.id)}
+          >
+            <ListTree className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+            <span className="min-w-0 flex-1 truncate">{parentTask.title}</span>
+            <Badge variant="neutral">{statusLabel(parentTask.canonicalStatus)}</Badge>
+          </button>
+        </div>
+      )}
 
       {error && (
         <Alert variant="destructive">
@@ -295,6 +312,8 @@ export function TaskInspector({ taskId, variant = 'page' }: TaskInspectorProps) 
           areaId={current.areaId}
           subtaskCount={current.subtaskCount}
           completedSubtaskCount={current.completedSubtaskCount}
+          subtasks={current.subtasks}
+          onOpenSubtask={openTask}
           csrfToken={csrfQuery.data?.token}
         />
       )}
@@ -326,12 +345,16 @@ function SubtasksSection({
   areaId,
   subtaskCount,
   completedSubtaskCount,
+  subtasks,
+  onOpenSubtask,
   csrfToken,
 }: {
   readonly taskId: string;
   readonly areaId: string;
   readonly subtaskCount: number;
   readonly completedSubtaskCount: number;
+  readonly subtasks: readonly TaskSubtask[];
+  readonly onOpenSubtask: (subtaskId: string) => void;
   readonly csrfToken: string | undefined;
 }) {
   const queryClient = useQueryClient();
@@ -388,6 +411,34 @@ function SubtasksSection({
           <ListTree className="size-4" aria-hidden="true" />
           {completedSubtaskCount}/{subtaskCount} alt görev tamamlandı
         </div>
+      )}
+
+      {subtasks.length > 0 && (
+        <ul className="mt-3 space-y-1.5">
+          {subtasks.map((subtask) => (
+            <li key={subtask.id}>
+              <button
+                type="button"
+                className="flex w-full items-center gap-2 rounded-lg border border-border/70 bg-background px-3 py-2 text-left transition-colors duration-150 hover:border-border hover:bg-muted/50"
+                onClick={() => onOpenSubtask(subtask.id)}
+              >
+                <span
+                  className={
+                    subtask.canonicalStatus === 'COMPLETED'
+                      ? 'text-muted-foreground line-through'
+                      : 'min-w-0 flex-1 truncate'
+                  }
+                >
+                  {subtask.title}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {PRIORITY_LABELS[subtask.priority]}
+                </span>
+                <Badge variant="neutral">{statusLabel(subtask.canonicalStatus)}</Badge>
+              </button>
+            </li>
+          ))}
+        </ul>
       )}
 
       {showForm && (

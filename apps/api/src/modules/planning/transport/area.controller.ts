@@ -899,6 +899,8 @@ export class AreaController {
             parentTaskId: result.task.parentTaskId,
             subtaskCount: 0,
             completedSubtaskCount: 0,
+            parentTask: null,
+            subtasks: [],
           },
         };
       case 'NOT_FOUND':
@@ -1017,6 +1019,8 @@ export class AreaController {
             parentTaskId: result.task.parentTaskId,
             subtaskCount: result.subtaskCount,
             completedSubtaskCount: result.completedSubtaskCount,
+            parentTask: null,
+            subtasks: [],
           },
         };
       case 'NOT_FOUND':

@@ -206,7 +206,22 @@ export class TaskRepository {
       include: {
         subtasks: {
           where: { lifecycleState: 'ACTIVE' },
-          select: SUBTASK_COUNT_SELECT,
+          select: {
+            id: true,
+            title: true,
+            priority: true,
+            plannedAt: true,
+            dueAt: true,
+            lifecycleState: true,
+            areaStatus: { select: { canonicalStatus: true } },
+          },
+        },
+        parentTask: {
+          select: {
+            id: true,
+            title: true,
+            areaStatus: { select: { canonicalStatus: true } },
+          },
         },
       },
     });
@@ -215,7 +230,7 @@ export class TaskRepository {
       return null;
     }
 
-    const { subtasks, ...taskRow } = task;
+    const { subtasks, parentTask, ...taskRow } = task;
     const subtaskStats = toSubtaskStats(subtasks);
 
     const areaStatus = await this.prisma.areaStatus.findUnique({
@@ -274,6 +289,22 @@ export class TaskRepository {
       recurrence,
       subtaskCount: subtaskStats.subtaskCount,
       completedSubtaskCount: subtaskStats.completedSubtaskCount,
+      parentTask: parentTask
+        ? {
+            id: parentTask.id,
+            title: parentTask.title,
+            canonicalStatus: parentTask.areaStatus?.canonicalStatus ?? 'TO_DO',
+          }
+        : null,
+      subtasks: subtasks.map((subtask) => ({
+        id: subtask.id,
+        title: subtask.title,
+        priority: subtask.priority,
+        canonicalStatus: subtask.areaStatus?.canonicalStatus ?? 'TO_DO',
+        plannedAt: subtask.plannedAt,
+        dueAt: subtask.dueAt,
+        lifecycleState: subtask.lifecycleState,
+      })),
     };
   }
 

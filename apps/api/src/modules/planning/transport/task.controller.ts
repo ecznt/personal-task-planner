@@ -553,6 +553,22 @@ export class TaskController {
             parentTaskId: result.data.task.parentTaskId,
             subtaskCount: result.data.subtaskCount,
             completedSubtaskCount: result.data.completedSubtaskCount,
+            parentTask: result.data.parentTask
+              ? {
+                  id: result.data.parentTask.id,
+                  title: result.data.parentTask.title,
+                  canonicalStatus: result.data.parentTask.canonicalStatus,
+                }
+              : null,
+            subtasks: result.data.subtasks.map((subtask) => ({
+              id: subtask.id,
+              title: subtask.title,
+              priority: subtask.priority,
+              canonicalStatus: subtask.canonicalStatus,
+              plannedAt: subtask.plannedAt?.toISOString() ?? null,
+              dueAt: subtask.dueAt?.toISOString() ?? null,
+              lifecycleState: subtask.lifecycleState,
+            })),
             recurrence: result.data.recurrence
               ? {
                   series: {
@@ -617,6 +633,8 @@ export class TaskController {
             parentTaskId: result.task.parentTaskId,
             subtaskCount: result.subtaskCount,
             completedSubtaskCount: result.completedSubtaskCount,
+            parentTask: null,
+            subtasks: [],
           },
         };
       case 'NOT_FOUND':
@@ -797,6 +815,8 @@ export class TaskController {
             parentTaskId: result.task.parentTaskId,
             subtaskCount: 0,
             completedSubtaskCount: 0,
+            parentTask: null,
+            subtasks: [],
           },
         };
       case 'NOT_FOUND':
@@ -856,6 +876,8 @@ export class TaskController {
             parentTaskId: result.task.parentTaskId,
             subtaskCount: result.subtaskCount,
             completedSubtaskCount: result.completedSubtaskCount,
+            parentTask: null,
+            subtasks: [],
           },
         };
       case 'NOT_FOUND':

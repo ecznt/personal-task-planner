@@ -38,6 +38,22 @@ export type RecurrenceInfo = {
   readonly currentOpenTaskId: string | null;
 } | null;
 
+export type TaskParent = {
+  readonly id: string;
+  readonly title: string;
+  readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+};
+
+export type TaskSubtask = {
+  readonly id: string;
+  readonly title: string;
+  readonly priority: 'LOW' | 'MEDIUM' | 'HIGH';
+  readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+  readonly plannedAt: string | null;
+  readonly dueAt: string | null;
+  readonly lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+};
+
 export type TaskData = {
   readonly id: string;
   readonly areaId: string;
@@ -56,6 +72,8 @@ export type TaskData = {
   readonly parentTaskId: string | null;
   readonly subtaskCount: number;
   readonly completedSubtaskCount: number;
+  readonly parentTask: TaskParent | null;
+  readonly subtasks: readonly TaskSubtask[];
   readonly recurrence: RecurrenceInfo;
 };
 

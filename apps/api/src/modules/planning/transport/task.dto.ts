@@ -8,6 +8,40 @@ export class CreateTaskChecklistItemRequestDto {
   text!: string;
 }
 
+export class TaskParentDataDto {
+  @ApiProperty({ format: 'uuid', type: String })
+  id!: string;
+
+  @ApiProperty({ type: String })
+  title!: string;
+
+  @ApiProperty({ enum: ['TO_DO', 'IN_PROGRESS', 'COMPLETED'], type: String })
+  canonicalStatus!: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+}
+
+export class TaskSubtaskDataDto {
+  @ApiProperty({ format: 'uuid', type: String })
+  id!: string;
+
+  @ApiProperty({ type: String })
+  title!: string;
+
+  @ApiProperty({ enum: ['LOW', 'MEDIUM', 'HIGH'], type: String })
+  priority!: 'LOW' | 'MEDIUM' | 'HIGH';
+
+  @ApiProperty({ enum: ['TO_DO', 'IN_PROGRESS', 'COMPLETED'], type: String })
+  canonicalStatus!: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+
+  @ApiProperty({ type: String, format: 'date-time', required: false })
+  plannedAt!: string | null;
+
+  @ApiProperty({ type: String, format: 'date-time', required: false })
+  dueAt!: string | null;
+
+  @ApiProperty({ enum: ['ACTIVE', 'ARCHIVED', 'TRASHED'], type: String })
+  lifecycleState!: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+}
+
 export class TaskDataDto {
   @ApiProperty({ format: 'uuid', type: String })
   id!: string;
@@ -59,6 +93,12 @@ export class TaskDataDto {
 
   @ApiProperty({ type: Number })
   completedSubtaskCount!: number;
+
+  @ApiProperty({ type: () => TaskParentDataDto, required: false })
+  parentTask!: TaskParentDataDto | null;
+
+  @ApiProperty({ type: () => [TaskSubtaskDataDto] })
+  subtasks!: TaskSubtaskDataDto[];
 
   @ApiProperty({ type: Object, required: false })
   recurrence?: Record<string, unknown> | null;

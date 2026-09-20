@@ -1871,6 +1871,9 @@
             ],
             "type": "string"
           },
+          "parentTask": {
+            "$ref": "#/components/schemas/TaskParentDataDto"
+          },
           "parentTaskId": {
             "format": "uuid",
             "type": "string"
@@ -1897,6 +1900,12 @@
           "subtaskCount": {
             "type": "number"
           },
+          "subtasks": {
+            "items": {
+              "$ref": "#/components/schemas/TaskSubtaskDataDto"
+            },
+            "type": "array"
+          },
           "title": {
             "type": "string"
           },
@@ -1916,7 +1925,8 @@
           "labels",
           "checklistItems",
           "subtaskCount",
-          "completedSubtaskCount"
+          "completedSubtaskCount",
+          "subtasks"
         ],
         "type": "object"
       },
@@ -1947,6 +1957,31 @@
         ],
         "type": "object"
       },
+      "TaskParentDataDto": {
+        "properties": {
+          "canonicalStatus": {
+            "enum": [
+              "TO_DO",
+              "IN_PROGRESS",
+              "COMPLETED"
+            ],
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "canonicalStatus"
+        ],
+        "type": "object"
+      },
       "TaskResponseDto": {
         "properties": {
           "data": {
@@ -1955,6 +1990,57 @@
         },
         "required": [
           "data"
+        ],
+        "type": "object"
+      },
+      "TaskSubtaskDataDto": {
+        "properties": {
+          "canonicalStatus": {
+            "enum": [
+              "TO_DO",
+              "IN_PROGRESS",
+              "COMPLETED"
+            ],
+            "type": "string"
+          },
+          "dueAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "lifecycleState": {
+            "enum": [
+              "ACTIVE",
+              "ARCHIVED",
+              "TRASHED"
+            ],
+            "type": "string"
+          },
+          "plannedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "priority": {
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "priority",
+          "canonicalStatus",
+          "lifecycleState"
         ],
         "type": "object"
       },

@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "build": "nest build",
-    "dev": "tsx watch src/main.ts",
-    "dev:worker": "tsx watch src/worker.ts",
+    "dev": "tsx watch --env-file=../../.env src/main.ts",
+    "dev:worker": "tsx watch --env-file=../../.env src/worker.ts",
     "lint": "eslint .",
     "openapi:generate": "tsx scripts/generate-openapi.ts",
     "seed:dummy": "tsx scripts/seed-dummy-user.ts",

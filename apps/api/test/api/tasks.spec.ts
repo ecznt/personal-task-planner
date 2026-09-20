@@ -213,6 +213,8 @@ describe('task HTTP contract', () => {
           checklistItems: [],
           subtaskCount: 0,
           completedSubtaskCount: 0,
+          parentTask: null,
+          subtasks: [],
           recurrence: null,
         },
         etag: 1,
