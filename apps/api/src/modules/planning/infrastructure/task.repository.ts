@@ -744,6 +744,13 @@ export class TaskRepository {
           where: { lifecycleState: 'ACTIVE' },
           select: SUBTASK_COUNT_SELECT,
         },
+        parentTask: {
+          select: {
+            id: true,
+            title: true,
+            areaStatus: { select: { canonicalStatus: true } },
+          },
+        },
       },
     });
 
@@ -822,6 +829,11 @@ export class TaskRepository {
     readonly areaStatus: { canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED' };
     readonly area: { name: string };
     readonly project: { id: string; name: string } | null;
+    readonly parentTask: {
+      readonly id: string;
+      readonly title: string;
+      readonly areaStatus: { readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED' } | null;
+    } | null;
     readonly labels: ReadonlyArray<{
       readonly label: {
         readonly id: string;
@@ -851,6 +863,13 @@ export class TaskRepository {
       })),
       project: task.project,
       areaName: task.area.name,
+      parentTask: task.parentTask
+        ? {
+            id: task.parentTask.id,
+            title: task.parentTask.title,
+            canonicalStatus: task.parentTask.areaStatus?.canonicalStatus ?? 'TO_DO',
+          }
+        : null,
     };
   }
 
@@ -953,6 +972,13 @@ export class TaskRepository {
         subtasks: {
           where: { lifecycleState: 'ACTIVE' },
           select: SUBTASK_COUNT_SELECT,
+        },
+        parentTask: {
+          select: {
+            id: true,
+            title: true,
+            areaStatus: { select: { canonicalStatus: true } },
+          },
         },
       },
     });

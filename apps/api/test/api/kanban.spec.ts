@@ -102,6 +102,7 @@ describe('kanban HTTP contract', () => {
             completedSubtaskCount: 0,
             labels: [{ id: 'label-1', name: 'Ev', color: '#0000ff', version: 1 }],
             project: null,
+            parentTask: null,
             areaName: 'İş',
           },
         ],

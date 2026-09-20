@@ -15,6 +15,7 @@ const task = (id: string): KanbanTask => ({
   completedSubtaskCount: 0,
   labels: [],
   project: null,
+  parentTask: null,
 });
 
 describe('resolveDragMove', () => {

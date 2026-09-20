@@ -24,6 +24,7 @@ describe('task service — listKanbanTasks', () => {
           completedSubtaskCount: 0,
           labels: [],
           project: null,
+          parentTask: null,
           areaName: 'Test Alan',
         },
       ],

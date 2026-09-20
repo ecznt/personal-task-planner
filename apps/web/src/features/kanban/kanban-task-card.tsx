@@ -1,6 +1,7 @@
 'use client';
 
-import { CalendarClock } from 'lucide-react';
+import { useTaskInspector } from '@/features/tasks/task-inspector-context';
+import { CalendarClock, ListTree } from 'lucide-react';
 import { anchorLabel } from '@/features/labels/label-color';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -28,6 +29,11 @@ export type KanbanTask = {
     readonly color: string | null;
   }[];
   readonly project: { readonly id: string; readonly name: string } | null;
+  readonly parentTask: {
+    readonly id: string;
+    readonly title: string;
+    readonly canonicalStatus: string;
+  } | null;
   readonly areaName?: string;
 };
 
@@ -37,12 +43,15 @@ function formatShortDate(iso: string): string {
 
 export function KanbanTaskCard({ task, index }: { task: KanbanTask; index?: number }) {
   const anchor = anchorLabel(task.labels);
+  const { openTask } = useTaskInspector();
+  const parentTask = task.parentTask;
+  const isSubtask = task.parentTaskId !== null;
 
   return (
     <div
       className={`card-surface rounded-lg border border-border/70 bg-card p-3 shadow-surface transition-all duration-150 hover:border-border hover:shadow-surface-hover ${
         anchor !== undefined ? labelHoverSurfaceClass : ''
-      } hover:scale-[101%]`}
+      } ${isSubtask ? 'border-l-2 border-l-primary/50' : ''} hover:scale-[101%]`}
       style={{
         ...(anchor !== undefined ? labelSurfaceStyle(anchor.color) : {}),
         animationDelay: index === undefined ? undefined : `${Math.min(index, 8) * 40}ms`,
@@ -50,6 +59,23 @@ export function KanbanTaskCard({ task, index }: { task: KanbanTask; index?: numb
       }}
     >
       {anchor !== undefined && <TaskIdentityBar color={anchor.color} />}
+
+      {parentTask !== null && parentTask !== undefined && (
+        <div className="mb-1.5 flex items-start gap-1.5">
+          <button
+            type="button"
+            onClick={() => openTask(parentTask.id)}
+            className="flex min-w-0 items-start gap-1.5 rounded px-1 py-0.5 text-left text-xs text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground focus-visible:ring-2"
+            aria-label={`${parentTask.title} üst görevini aç`}
+            title={`Üst görev: ${parentTask.title}`}
+          >
+            <ListTree className="mt-0.5 size-3 shrink-0" aria-hidden="true" />
+            <span className="min-w-0 truncate font-medium text-foreground/80">
+              {parentTask.title}
+            </span>
+          </button>
+        </div>
+      )}
 
       <div className="truncate text-sm font-medium">{task.title}</div>
 

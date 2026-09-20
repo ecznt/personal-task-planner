@@ -312,6 +312,7 @@ export type KanbanTaskDto = {
     id: string;
     labels: Array<LabelSummaryDto>;
     lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+    parentTask?: TaskParentDataDto;
     parentTaskId?: string;
     plannedAt?: string;
     priority: 'LOW' | 'MEDIUM' | 'HIGH';

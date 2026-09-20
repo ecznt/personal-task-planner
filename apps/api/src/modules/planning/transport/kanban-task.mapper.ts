@@ -18,6 +18,13 @@ export function mapKanbanTaskSummary(task: KanbanTaskSummary): KanbanTaskDto {
     completedSubtaskCount: task.completedSubtaskCount,
     labels: serializeTaskLabels(task.labels),
     project: task.project ?? null,
+    parentTask: task.parentTask
+      ? {
+          id: task.parentTask.id,
+          title: task.parentTask.title,
+          canonicalStatus: task.parentTask.canonicalStatus,
+        }
+      : null,
     areaName: task.areaName,
   };
 }

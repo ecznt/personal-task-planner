@@ -456,6 +456,9 @@ export class KanbanTaskDto {
   @ApiProperty({ type: () => KanbanProjectDto, required: false })
   project!: KanbanProjectDto | null;
 
+  @ApiProperty({ type: () => TaskParentDataDto, required: false })
+  parentTask!: TaskParentDataDto | null;
+
   @ApiProperty({ type: String })
   areaName!: string;
 }

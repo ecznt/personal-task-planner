@@ -89,6 +89,7 @@ export type TaskSummary = {
 export type KanbanTaskSummary = TaskSummary & {
   readonly project: { id: string; name: string } | null;
   readonly areaName: string;
+  readonly parentTask: TaskParentSummary | null;
 };
 
 export type KanbanTaskFilter = {
