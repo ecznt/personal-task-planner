@@ -1,9 +1,13 @@
 # Personal Task Planner
 
 This repository contains the approved planning baseline and the Phase 3 modular-monolith
-workspace. The implemented authentication slices currently cover non-enumerating
-email/password registration and manual email verification. Login, sessions, recovery,
-account deletion, onboarding, and planning features have not started.
+workspace. The MVP is fully implemented and shipped on `opencode/develop`: authentication
+(registration, email verification, login, sessions, password recovery, account deletion),
+onboarding, Areas/Projects/Tasks, checklists and labels, List, Today, and Kanban work views,
+recurrence, search and filters, bulk actions, in-app notifications, Web Push reminders,
+Archive/Trash/purge lifecycle, responsive/accessibility hardening, and the post-MVP product
+slices (calendar, natural-language quick add, Kanban v2 drag-and-drop, label colors, and more)
+tracked in the lean backlog.
 
 ## Start here
 
