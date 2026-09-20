@@ -3,12 +3,12 @@
 | Field | Value |
 | --- | --- |
 | Status | L-001 through L-026 implemented (incl. Kanban v2 search/filter + drag-and-drop) |
-| Revision date | 2026-09-15 |
+| Revision date | 2026-09-20 |
 | Product scope | MVP, personal use only |
 | Document language | English |
 | Execution mode | Small vertical slices, but not one micro-story per technical concern |
 | Current completed baseline | EPIC-001; BL-007 through BL-011; BL-014; BL-015; BL-121; L-001 through L-026 |
-| Next slice | TBD — await product decision (candidates: email reminders, week view, saved search filters) |
+| Next slice | L-027 through L-031 planned (see §6) — await implementation decision |
 
 This document replaces the earlier over-granular execution queue. The approved PRD, UX, Domain, Data, API, Architecture, and ADR documents remain authoritative for product and technical rules. This backlog controls implementation order only.
 
@@ -455,6 +455,20 @@ Before each slice, verify the exact requirement IDs from PRD and API/Domain/Data
 **Tests:** API service/contract/DB suites; web component tests for filter → query param pass-through, URL persistence, debounced search, enriched cards; unit tests for `resolveDragMove` and `moveTaskBetweenColumns`. Full web suite 176/176, API contract 131/131, DB kanban suite 6/6, typecheck, lint, and Prettier green.
 
 **Excluded:** column collapse/expand, server-side pagination inside a column, dragging to reorder *within* a column, non-title full-text search, client-side filtering (all filtering is server-side).
+
+## 6a. Planned next slices (L-027 through L-031)
+
+Sourced from `docs/research/FEATURE_RESEARCH.md` and user selection on 2026-09-20. Slices are planned only; none implemented. Each has a decision-complete plan document in `docs/planning/`.
+
+| Slice | Goal | Plan document | Implementation status |
+| --- | --- | --- | --- |
+| L-027 | Sub-tasks (nested Tasks under a parent Task, single level, subtask cascade) | `docs/planning/L-027_SUBTASKS_PLAN.md` | Planned — not implemented |
+| L-028 | Task templates (save/apply template → instant Task with checklist, labels, priority) | `docs/planning/L-028_TASK_TEMPLATES_PLAN.md` | Planned — not implemented |
+| L-029 | Snooze / postpone (task-date snooze + reminder snooze) | `docs/planning/L-029_SNOOZE_PLAN.md` | Planned — not implemented |
+| L-030 | Markdown-supported rich notes on Task description (render-only, safe subset) | `docs/planning/L-030_MARKDOWN_NOTES_PLAN.md` | Planned — not implemented |
+| L-031 | Kanban improvements: Area board URL-persisted filters + new Project-scoped Kanban board | `docs/planning/L-031_KANBAN_IMPROVEMENTS_PLAN.md` | Planned — not implemented |
+
+Explicit user request on 2026-09-20: plan L-027 through L-030 plus Kanban (Area improvement + Project board). The order above is the current proposal; the user picks the next slice before implementation begins.
 
 ## 7. Backlog maintenance policy
 
