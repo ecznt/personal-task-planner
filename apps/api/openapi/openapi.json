@@ -442,6 +442,9 @@
             ],
             "type": "string"
           },
+          "completedSubtaskCount": {
+            "type": "number"
+          },
           "dueAt": {
             "format": "date-time",
             "type": "string"
@@ -464,6 +467,10 @@
             ],
             "type": "string"
           },
+          "parentTaskId": {
+            "format": "uuid",
+            "type": "string"
+          },
           "plannedAt": {
             "format": "date-time",
             "type": "string"
@@ -475,6 +482,9 @@
               "HIGH"
             ],
             "type": "string"
+          },
+          "subtaskCount": {
+            "type": "number"
           },
           "title": {
             "type": "string"
@@ -491,6 +501,8 @@
           "lifecycleState",
           "version",
           "areaId",
+          "subtaskCount",
+          "completedSubtaskCount",
           "labels"
         ],
         "type": "object"
@@ -667,6 +679,11 @@
             },
             "type": "array"
           },
+          "parentTaskId": {
+            "description": "Parent task id. When set, the task becomes a subtask of the parent.",
+            "format": "uuid",
+            "type": "string"
+          },
           "plannedAt": {
             "format": "date-time",
             "type": "string"
@@ -815,6 +832,11 @@
             },
             "type": "array"
           },
+          "parentTaskId": {
+            "description": "Parent task id. Set to null to detach the task from its parent.",
+            "format": "uuid",
+            "type": "string"
+          },
           "plannedAt": {
             "format": "date-time",
             "type": "string"
@@ -904,6 +926,11 @@
               "type": "string"
             },
             "type": "array"
+          },
+          "parentTaskId": {
+            "description": "Parent task id. When set, the task becomes a subtask of the parent.",
+            "format": "uuid",
+            "type": "string"
           },
           "plannedAt": {
             "format": "date-time",
@@ -1006,6 +1033,9 @@
             ],
             "type": "string"
           },
+          "completedSubtaskCount": {
+            "type": "number"
+          },
           "dueAt": {
             "format": "date-time",
             "type": "string"
@@ -1028,6 +1058,10 @@
             ],
             "type": "string"
           },
+          "parentTaskId": {
+            "format": "uuid",
+            "type": "string"
+          },
           "plannedAt": {
             "format": "date-time",
             "type": "string"
@@ -1042,6 +1076,9 @@
           },
           "project": {
             "$ref": "#/components/schemas/KanbanProjectDto"
+          },
+          "subtaskCount": {
+            "type": "number"
           },
           "title": {
             "type": "string"
@@ -1058,6 +1095,8 @@
           "lifecycleState",
           "version",
           "areaId",
+          "subtaskCount",
+          "completedSubtaskCount",
           "labels",
           "areaName"
         ],
@@ -1804,6 +1843,9 @@
             },
             "type": "array"
           },
+          "completedSubtaskCount": {
+            "type": "number"
+          },
           "description": {
             "type": "string"
           },
@@ -1829,6 +1871,10 @@
             ],
             "type": "string"
           },
+          "parentTaskId": {
+            "format": "uuid",
+            "type": "string"
+          },
           "plannedAt": {
             "format": "date-time",
             "type": "string"
@@ -1848,6 +1894,9 @@
           "recurrence": {
             "type": "object"
           },
+          "subtaskCount": {
+            "type": "number"
+          },
           "title": {
             "type": "string"
           },
@@ -1865,7 +1914,9 @@
           "lifecycleState",
           "version",
           "labels",
-          "checklistItems"
+          "checklistItems",
+          "subtaskCount",
+          "completedSubtaskCount"
         ],
         "type": "object"
       },
@@ -1917,6 +1968,9 @@
             ],
             "type": "string"
           },
+          "completedSubtaskCount": {
+            "type": "number"
+          },
           "dueAt": {
             "format": "date-time",
             "type": "string"
@@ -1939,6 +1993,10 @@
             ],
             "type": "string"
           },
+          "parentTaskId": {
+            "format": "uuid",
+            "type": "string"
+          },
           "plannedAt": {
             "format": "date-time",
             "type": "string"
@@ -1951,6 +2009,9 @@
             ],
             "type": "string"
           },
+          "subtaskCount": {
+            "type": "number"
+          },
           "title": {
             "type": "string"
           }
@@ -1961,6 +2022,8 @@
           "priority",
           "canonicalStatus",
           "lifecycleState",
+          "subtaskCount",
+          "completedSubtaskCount",
           "labels"
         ],
         "type": "object"
@@ -2024,6 +2087,9 @@
             ],
             "type": "string"
           },
+          "completedSubtaskCount": {
+            "type": "number"
+          },
           "dueAt": {
             "format": "date-time",
             "type": "string"
@@ -2046,6 +2112,10 @@
             ],
             "type": "string"
           },
+          "parentTaskId": {
+            "format": "uuid",
+            "type": "string"
+          },
           "plannedAt": {
             "format": "date-time",
             "type": "string"
@@ -2064,6 +2134,9 @@
             },
             "type": "array"
           },
+          "subtaskCount": {
+            "type": "number"
+          },
           "title": {
             "type": "string"
           }
@@ -2074,6 +2147,8 @@
           "priority",
           "canonicalStatus",
           "lifecycleState",
+          "subtaskCount",
+          "completedSubtaskCount",
           "labels",
           "reasons"
         ],
@@ -2141,6 +2216,9 @@
             ],
             "type": "string"
           },
+          "completedSubtaskCount": {
+            "type": "number"
+          },
           "dueAt": {
             "format": "date-time",
             "type": "string"
@@ -2163,6 +2241,10 @@
             ],
             "type": "string"
           },
+          "parentTaskId": {
+            "format": "uuid",
+            "type": "string"
+          },
           "plannedAt": {
             "format": "date-time",
             "type": "string"
@@ -2175,6 +2257,9 @@
             ],
             "type": "string"
           },
+          "subtaskCount": {
+            "type": "number"
+          },
           "title": {
             "type": "string"
           }
@@ -2185,6 +2270,8 @@
           "priority",
           "canonicalStatus",
           "lifecycleState",
+          "subtaskCount",
+          "completedSubtaskCount",
           "labels"
         ],
         "type": "object"

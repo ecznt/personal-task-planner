@@ -19,6 +19,9 @@ describe('task service — listGlobalTasks', () => {
           lifecycleState: 'ACTIVE',
           version: 1,
           areaId: 'area-id',
+          parentTaskId: null,
+          subtaskCount: 0,
+          completedSubtaskCount: 0,
           labels: [],
         },
       ],
@@ -74,6 +77,8 @@ describe('task service — listGlobalTasks', () => {
   });
 
   it('passes dateState bounds to repository', async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-09-20T12:00:00.000Z'));
     const repository = repositoryMock();
     repository.listGlobal.mockResolvedValue({ tasks: [] });
 
@@ -83,13 +88,14 @@ describe('task service — listGlobalTasks', () => {
       timezone: 'UTC',
     });
 
+    jest.useRealTimers();
     expect(repository.listGlobal).toHaveBeenCalledWith('user-id', {
       limit: 20,
       sort: 'plannedDate',
       order: 'asc',
       dateState: 'dueToday',
-      todayStart: new Date('2026-09-13T00:00:00.000Z'),
-      todayEnd: new Date('2026-09-14T00:00:00.000Z'),
+      todayStart: new Date('2026-09-20T00:00:00.000Z'),
+      todayEnd: new Date('2026-09-21T00:00:00.000Z'),
     });
   });
 
@@ -116,6 +122,8 @@ function repositoryMock(): jest.Mocked<TaskRepository> {
     listByArea: jest.fn(),
     listGlobal: jest.fn(),
     updateTask: jest.fn(),
+    findParentForSubtask: jest.fn(),
+    getSubtaskStats: jest.fn(),
     areaExists: jest.fn(),
     areaStatusBelongsToArea: jest.fn(),
     projectBelongsToArea: jest.fn(),

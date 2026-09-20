@@ -2,11 +2,13 @@
 
 import { apiClient } from '@planner/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ListTree } from 'lucide-react';
 import { useState } from 'react';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
 import { Checklist } from '@/features/checklist/checklist';
@@ -287,6 +289,16 @@ export function TaskInspector({ taskId, variant = 'page' }: TaskInspectorProps) 
         <Checklist taskId={taskId} />
       </div>
 
+      {current.parentTaskId === null && (
+        <SubtasksSection
+          taskId={taskId}
+          areaId={current.areaId}
+          subtaskCount={current.subtaskCount}
+          completedSubtaskCount={current.completedSubtaskCount}
+          csrfToken={csrfQuery.data?.token}
+        />
+      )}
+
       <ReminderManager
         taskId={taskId}
         plannedAt={current.plannedAt}
@@ -307,6 +319,112 @@ export function TaskInspector({ taskId, variant = 'page' }: TaskInspectorProps) 
   }
 
   return <div className="space-y-6">{sections}</div>;
+}
+
+function SubtasksSection({
+  taskId,
+  areaId,
+  subtaskCount,
+  completedSubtaskCount,
+  csrfToken,
+}: {
+  readonly taskId: string;
+  readonly areaId: string;
+  readonly subtaskCount: number;
+  readonly completedSubtaskCount: number;
+  readonly csrfToken: string | undefined;
+}) {
+  const queryClient = useQueryClient();
+  const [showForm, setShowForm] = useState(false);
+  const [title, setTitle] = useState('');
+
+  const createSubtask = useMutation({
+    mutationFn: async (value: string) => {
+      const csrf = csrfToken ?? (await fetchCsrf()).token;
+
+      const result = await apiClient.post({
+        url: '/api/v1/areas/{areaId}/tasks',
+        path: { areaId },
+        body: { title: value, parentTaskId: taskId },
+        headers: {
+          'X-CSRF-Token': csrf,
+          'Idempotency-Key': crypto.randomUUID(),
+        },
+      });
+
+      if (result.error !== undefined) {
+        throw apiError(result.error);
+      }
+
+      return result.data;
+    },
+    onSuccess: () => {
+      invalidateTaskCaches(queryClient, { areaId });
+      setTitle('');
+      setShowForm(false);
+    },
+  });
+
+  return (
+    <div className="rounded-xl border bg-card p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="text-sm font-medium text-muted-foreground">Alt Görevler</div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="transition-transform duration-150 active:scale-[0.97]"
+          onClick={() => {
+            setShowForm((open) => !open);
+            setTitle('');
+          }}
+        >
+          {showForm ? 'İptal' : '+ Alt görev ekle'}
+        </Button>
+      </div>
+
+      {subtaskCount > 0 && (
+        <div className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
+          <ListTree className="size-4" aria-hidden="true" />
+          {completedSubtaskCount}/{subtaskCount} alt görev tamamlandı
+        </div>
+      )}
+
+      {showForm && (
+        <form
+          className="mt-3 flex items-center gap-2"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const trimmed = title.trim();
+            if (trimmed.length > 0) {
+              createSubtask.mutate(trimmed);
+            }
+          }}
+        >
+          <Input
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            placeholder="Alt görev başlığı"
+            aria-label="Alt görev başlığı"
+          />
+          <Button
+            type="submit"
+            size="sm"
+            className="shrink-0 transition-transform duration-150 active:scale-[0.97]"
+            disabled={createSubtask.isPending || title.trim().length === 0}
+          >
+            {createSubtask.isPending ? 'Ekleniyor...' : 'Ekle'}
+          </Button>
+        </form>
+      )}
+
+      {createSubtask.isError && (
+        <p className="mt-2 text-sm text-destructive">
+          Alt görev eklenemedi: {createSubtask.error.message}
+        </p>
+      )}
+    </div>
+  );
 }
 
 const FREQUENCY_LABELS: Record<string, string> = {

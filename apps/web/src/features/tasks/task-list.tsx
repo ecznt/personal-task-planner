@@ -6,9 +6,15 @@ import { PencilIcon } from 'lucide-react';
 
 import { ListSkeleton } from '@/components/list-skeleton';
 import { TaskPriorityBadge } from '@/features/tasks/task-badge';
+import { SubtaskProgress } from '@/features/tasks/subtask-progress';
 import { useTaskInspector } from '@/features/tasks/task-inspector-context';
 import { anchorLabel } from '@/features/labels/label-color';
-import { LabelChip, TaskIdentityBar, labelHoverSurfaceClass, labelSurfaceStyle } from '@/features/labels/label-chip';
+import {
+  LabelChip,
+  TaskIdentityBar,
+  labelHoverSurfaceClass,
+  labelSurfaceStyle,
+} from '@/features/labels/label-chip';
 
 type TaskSummary = {
   readonly id: string;
@@ -18,7 +24,14 @@ type TaskSummary = {
   readonly dueAt: string | null;
   readonly plannedAt: string | null;
   readonly lifecycleState: string;
-  readonly labels: readonly { readonly id: string; readonly name: string; readonly color: string | null }[];
+  readonly parentTaskId: string | null;
+  readonly subtaskCount: number;
+  readonly completedSubtaskCount: number;
+  readonly labels: readonly {
+    readonly id: string;
+    readonly name: string;
+    readonly color: string | null;
+  }[];
 };
 
 type TaskListProps = {
@@ -85,6 +98,11 @@ export function TaskList({ areaId }: TaskListProps) {
                 <div className="truncate font-medium">{task.title}</div>
                 <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
                   <TaskPriorityBadge priority={task.priority} />
+                  <SubtaskProgress
+                    parentTaskId={task.parentTaskId}
+                    subtaskCount={task.subtaskCount}
+                    completedSubtaskCount={task.completedSubtaskCount}
+                  />
                   {task.dueAt && (
                     <span>Bitiş: {new Date(task.dueAt).toLocaleDateString('tr-TR')}</span>
                   )}
@@ -94,9 +112,7 @@ export function TaskList({ areaId }: TaskListProps) {
                         <LabelChip key={label.id} label={label} />
                       ))}
                       {labels.length > 2 && (
-                        <span className="text-xs text-muted-foreground">
-                          +{labels.length - 2}
-                        </span>
+                        <span className="text-xs text-muted-foreground">+{labels.length - 2}</span>
                       )}
                     </span>
                   )}

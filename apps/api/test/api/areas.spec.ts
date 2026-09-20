@@ -318,10 +318,13 @@ describe('area HTTP contract', () => {
           recurrenceRuleVersionId: null,
           occurrenceNumber: null,
           predecessorTaskId: null,
+          parentTaskId: null,
           generationKey: null,
         },
         etag: 2,
         canonicalStatus: 'TO_DO',
+        subtaskCount: 0,
+        completedSubtaskCount: 0,
       });
 
       const response = await request(app.getHttpServer())

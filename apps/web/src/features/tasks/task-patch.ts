@@ -53,6 +53,9 @@ export type TaskData = {
   readonly labels: readonly LabelSummary[];
   readonly checklistItems: readonly ChecklistItem[];
   readonly projectId: string | null;
+  readonly parentTaskId: string | null;
+  readonly subtaskCount: number;
+  readonly completedSubtaskCount: number;
   readonly recurrence: RecurrenceInfo;
 };
 
@@ -71,10 +74,7 @@ export function taskDetailQueryKey(taskId: string): readonly ['areas', 'tasks', 
   return ['areas', 'tasks', taskId] as const;
 }
 
-export function readTaskFromCache(
-  queryClient: QueryClient,
-  taskId: string,
-): TaskData | undefined {
+export function readTaskFromCache(queryClient: QueryClient, taskId: string): TaskData | undefined {
   return queryClient.getQueryData<{ data: TaskData }>(taskDetailQueryKey(taskId))?.data;
 }
 

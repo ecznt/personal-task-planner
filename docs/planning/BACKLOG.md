@@ -462,7 +462,7 @@ Sourced from `docs/research/FEATURE_RESEARCH.md` and user selection on 2026-09-2
 
 | Slice | Goal | Plan document | Implementation status |
 | --- | --- | --- | --- |
-| L-027 | Sub-tasks (nested Tasks under a parent Task, single level, subtask cascade) | `docs/planning/L-027_SUBTASKS_PLAN.md` | Planned — not implemented |
+| L-027 | Sub-tasks (nested Tasks under a parent Task, single level, subtask cascade) | `docs/planning/L-027_SUBTASKS_PLAN.md` | Implemented (API + web) — CI-verified² |
 | L-028 | Task templates (save/apply template → instant Task with checklist, labels, priority) | `docs/planning/L-028_TASK_TEMPLATES_PLAN.md` | Planned — not implemented |
 | L-029 | Snooze / postpone (task-date snooze + reminder snooze) | `docs/planning/L-029_SNOOZE_PLAN.md` | Planned — not implemented |
 | L-030 | Markdown-supported rich notes on Task description (render-only, safe subset) | `docs/planning/L-030_MARKDOWN_NOTES_PLAN.md` | Planned — not implemented |

@@ -147,6 +147,9 @@ function makeSummary(
     lifecycleState: 'ACTIVE',
     version: 1,
     areaId: 'inbox-id',
+    parentTaskId: null,
+    subtaskCount: 0,
+    completedSubtaskCount: 0,
     labels: [],
     ...overrides,
   };
@@ -159,6 +162,8 @@ function repositoryMock(): jest.Mocked<TaskRepository> {
     findById: jest.fn(),
     listByArea: jest.fn(),
     updateTask: jest.fn(),
+    findParentForSubtask: jest.fn(),
+    getSubtaskStats: jest.fn(),
     areaExists: jest.fn(),
     areaStatusBelongsToArea: jest.fn(),
     incrementVersion: jest.fn(),

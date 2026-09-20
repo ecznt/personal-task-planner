@@ -14,6 +14,27 @@ import type {
   TaskSummary,
 } from '../domain/task.entity';
 
+const SUBTASK_COUNT_SELECT = {
+  id: true,
+  areaStatus: { select: { canonicalStatus: true } },
+} as const;
+
+type SubtaskCountRow = {
+  readonly areaStatus: { readonly canonicalStatus: string };
+};
+
+export function toSubtaskStats(subtasks: readonly SubtaskCountRow[]): {
+  readonly subtaskCount: number;
+  readonly completedSubtaskCount: number;
+} {
+  return {
+    subtaskCount: subtasks.length,
+    completedSubtaskCount: subtasks.filter(
+      (subtask) => subtask.areaStatus.canonicalStatus === 'COMPLETED',
+    ).length,
+  };
+}
+
 @Injectable()
 export class TaskRepository {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
@@ -28,6 +49,7 @@ export class TaskRepository {
       readonly dueAt: Date | null;
       readonly priority: 'LOW' | 'MEDIUM' | 'HIGH';
       readonly projectId: string | null;
+      readonly parentTaskId: string | null;
       readonly labelIds: readonly string[];
       readonly checklistItems: readonly { text: string }[];
       readonly recurrence: {
@@ -69,6 +91,7 @@ export class TaskRepository {
           userId,
           areaId,
           projectId: input.projectId,
+          parentTaskId: input.parentTaskId,
           areaStatusId: defaultStatusId,
           title: input.title,
           description: input.description,
@@ -156,22 +179,52 @@ export class TaskRepository {
     });
   }
 
+  async findParentForSubtask(
+    userId: string,
+    parentTaskId: string,
+  ): Promise<{ id: string; areaId: string; parentTaskId: string | null } | null> {
+    return this.prisma.task.findFirst({
+      where: { id: parentTaskId, userId, lifecycleState: 'ACTIVE' },
+      select: { id: true, areaId: true, parentTaskId: true },
+    });
+  }
+
+  async getSubtaskStats(
+    userId: string,
+    taskId: string,
+  ): Promise<{ readonly subtaskCount: number; readonly completedSubtaskCount: number }> {
+    const subtasks = await this.prisma.task.findMany({
+      where: { parentTaskId: taskId, userId, lifecycleState: 'ACTIVE' },
+      select: SUBTASK_COUNT_SELECT,
+    });
+    return toSubtaskStats(subtasks);
+  }
+
   async findById(userId: string, taskId: string): Promise<TaskDetail | null> {
     const task = await this.prisma.task.findFirst({
       where: { id: taskId, userId, lifecycleState: 'ACTIVE' },
+      include: {
+        subtasks: {
+          where: { lifecycleState: 'ACTIVE' },
+          select: SUBTASK_COUNT_SELECT,
+        },
+      },
     });
 
     if (!task) {
       return null;
     }
 
+    const { subtasks, ...taskRow } = task;
+    const subtaskStats = toSubtaskStats(subtasks);
+
     const areaStatus = await this.prisma.areaStatus.findUnique({
-      where: { id: task.areaStatusId },
+      where: { id: taskRow.areaStatusId },
       select: { canonicalStatus: true },
     });
 
     const area = await this.prisma.area.findUnique({
-      where: { id: task.areaId },
+      where: { id: taskRow.areaId },
       select: { name: true },
     });
 
@@ -187,9 +240,9 @@ export class TaskRepository {
 
     let recurrence: RecurrenceSeriesDetail | null = null;
 
-    if (task.recurrenceSeriesId) {
+    if (taskRow.recurrenceSeriesId) {
       const series = await this.prisma.recurrenceSeries.findFirst({
-        where: { id: task.recurrenceSeriesId, userId },
+        where: { id: taskRow.recurrenceSeriesId, userId },
       });
 
       if (series) {
@@ -208,7 +261,7 @@ export class TaskRepository {
     }
 
     return {
-      task,
+      task: taskRow,
       canonicalStatus: areaStatus?.canonicalStatus ?? 'TO_DO',
       areaName: area?.name ?? '',
       labels: taskLabels.map((tl) => ({
@@ -219,6 +272,8 @@ export class TaskRepository {
       })),
       checklistItems,
       recurrence,
+      subtaskCount: subtaskStats.subtaskCount,
+      completedSubtaskCount: subtaskStats.completedSubtaskCount,
     };
   }
 
@@ -235,7 +290,13 @@ export class TaskRepository {
       ...(cursor !== undefined && { cursor: { id: cursor } }),
       include: {
         areaStatus: { select: { canonicalStatus: true } },
-        labels: { select: { label: { select: { id: true, name: true, color: true, version: true } } } },
+        labels: {
+          select: { label: { select: { id: true, name: true, color: true, version: true } } },
+        },
+        subtasks: {
+          where: { lifecycleState: 'ACTIVE' },
+          select: SUBTASK_COUNT_SELECT,
+        },
       },
     });
 
@@ -254,6 +315,8 @@ export class TaskRepository {
       lifecycleState: task.lifecycleState,
       version: task.version,
       areaId: task.areaId,
+      parentTaskId: task.parentTaskId,
+      ...toSubtaskStats(task.subtasks),
       labels: task.labels.map((tl) => ({
         id: tl.label.id,
         name: tl.label.name,
@@ -276,6 +339,7 @@ export class TaskRepository {
       readonly priority: 'LOW' | 'MEDIUM' | 'HIGH' | undefined;
       readonly areaStatusId: string | undefined;
       readonly projectId: string | null | undefined;
+      readonly parentTaskId: string | null | undefined;
     },
     version: number,
   ): Promise<Task | null> {
@@ -307,6 +371,10 @@ export class TaskRepository {
 
     if (input.projectId !== undefined) {
       data.projectId = input.projectId;
+    }
+
+    if (input.parentTaskId !== undefined) {
+      data.parentTaskId = input.parentTaskId;
     }
 
     const result = await this.prisma.task.updateMany({
@@ -456,7 +524,13 @@ export class TaskRepository {
       ...(options.cursor !== undefined && { cursor: { id: options.cursor } }),
       include: {
         areaStatus: { select: { canonicalStatus: true } },
-        labels: { select: { label: { select: { id: true, name: true, color: true, version: true } } } },
+        labels: {
+          select: { label: { select: { id: true, name: true, color: true, version: true } } },
+        },
+        subtasks: {
+          where: { lifecycleState: 'ACTIVE' },
+          select: SUBTASK_COUNT_SELECT,
+        },
       },
     });
 
@@ -475,6 +549,8 @@ export class TaskRepository {
       lifecycleState: task.lifecycleState,
       version: task.version,
       areaId: task.areaId,
+      parentTaskId: task.parentTaskId,
+      ...toSubtaskStats(task.subtasks),
       labels: task.labels.map((tl) => ({
         id: tl.label.id,
         name: tl.label.name,
@@ -504,7 +580,13 @@ export class TaskRepository {
       orderBy: [{ dueAt: 'asc' }, { plannedAt: 'asc' }, { priority: 'asc' }, { title: 'asc' }],
       include: {
         areaStatus: { select: { canonicalStatus: true } },
-        labels: { select: { label: { select: { id: true, name: true, color: true, version: true } } } },
+        labels: {
+          select: { label: { select: { id: true, name: true, color: true, version: true } } },
+        },
+        subtasks: {
+          where: { lifecycleState: 'ACTIVE' },
+          select: SUBTASK_COUNT_SELECT,
+        },
       },
     });
 
@@ -544,6 +626,8 @@ export class TaskRepository {
           lifecycleState: task.lifecycleState,
           version: task.version,
           areaId: task.areaId,
+          parentTaskId: task.parentTaskId,
+          ...toSubtaskStats(task.subtasks),
           labels: task.labels.map((tl) => ({
             id: tl.label.id,
             name: tl.label.name,
@@ -576,7 +660,13 @@ export class TaskRepository {
       orderBy: [{ dueAt: 'asc' }, { plannedAt: 'asc' }, { priority: 'asc' }, { title: 'asc' }],
       include: {
         areaStatus: { select: { canonicalStatus: true } },
-        labels: { select: { label: { select: { id: true, name: true, color: true, version: true } } } },
+        labels: {
+          select: { label: { select: { id: true, name: true, color: true, version: true } } },
+        },
+        subtasks: {
+          where: { lifecycleState: 'ACTIVE' },
+          select: SUBTASK_COUNT_SELECT,
+        },
       },
     });
 
@@ -590,6 +680,8 @@ export class TaskRepository {
       lifecycleState: task.lifecycleState,
       version: task.version,
       areaId: task.areaId,
+      parentTaskId: task.parentTaskId,
+      ...toSubtaskStats(task.subtasks),
       labels: task.labels.map((tl) => ({
         id: tl.label.id,
         name: tl.label.name,
@@ -614,7 +706,13 @@ export class TaskRepository {
         areaStatus: { select: { canonicalStatus: true } },
         area: { select: { name: true } },
         project: { select: { id: true, name: true } },
-        labels: { select: { label: { select: { id: true, name: true, color: true, version: true } } } },
+        labels: {
+          select: { label: { select: { id: true, name: true, color: true, version: true } } },
+        },
+        subtasks: {
+          where: { lifecycleState: 'ACTIVE' },
+          select: SUBTASK_COUNT_SELECT,
+        },
       },
     });
 
@@ -688,6 +786,8 @@ export class TaskRepository {
     readonly lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
     readonly version: number;
     readonly areaId: string;
+    readonly parentTaskId: string | null;
+    readonly subtasks: readonly SubtaskCountRow[];
     readonly areaStatus: { canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED' };
     readonly area: { name: string };
     readonly project: { id: string; name: string } | null;
@@ -710,12 +810,14 @@ export class TaskRepository {
       lifecycleState: task.lifecycleState,
       version: task.version,
       areaId: task.areaId,
+      parentTaskId: task.parentTaskId,
+      ...toSubtaskStats(task.subtasks),
       labels: task.labels.map((tl) => ({
-            id: tl.label.id,
-            name: tl.label.name,
-            color: tl.label.color,
-            version: tl.label.version,
-          })),
+        id: tl.label.id,
+        name: tl.label.name,
+        color: tl.label.color,
+        version: tl.label.version,
+      })),
       project: task.project,
       areaName: task.area.name,
     };
@@ -814,7 +916,13 @@ export class TaskRepository {
         areaStatus: { select: { id: true, canonicalStatus: true } },
         area: { select: { name: true } },
         project: { select: { id: true, name: true } },
-        labels: { select: { label: { select: { id: true, name: true, color: true, version: true } } } },
+        labels: {
+          select: { label: { select: { id: true, name: true, color: true, version: true } } },
+        },
+        subtasks: {
+          where: { lifecycleState: 'ACTIVE' },
+          select: SUBTASK_COUNT_SELECT,
+        },
       },
     });
 
@@ -992,7 +1100,13 @@ export class TaskRepository {
       ...(options.cursor !== undefined && { cursor: { id: options.cursor } }),
       include: {
         areaStatus: { select: { canonicalStatus: true } },
-        labels: { select: { label: { select: { id: true, name: true, color: true, version: true } } } },
+        labels: {
+          select: { label: { select: { id: true, name: true, color: true, version: true } } },
+        },
+        subtasks: {
+          where: { lifecycleState: 'ACTIVE' },
+          select: SUBTASK_COUNT_SELECT,
+        },
       },
     });
 
@@ -1027,6 +1141,8 @@ export class TaskRepository {
         lifecycleState: task.lifecycleState,
         version: task.version,
         areaId: task.areaId,
+        parentTaskId: task.parentTaskId,
+        ...toSubtaskStats(task.subtasks),
         labels: task.labels.map((tl) => ({
           id: tl.label.id,
           name: tl.label.name,

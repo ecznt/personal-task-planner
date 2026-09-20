@@ -161,6 +161,9 @@ function makeSummary(id: string, title: string) {
     lifecycleState: 'ACTIVE',
     version: 1,
     areaId: 'area-id',
+    parentTaskId: null,
+    subtaskCount: 0,
+    completedSubtaskCount: 0,
     labels: [],
   } as const;
 }

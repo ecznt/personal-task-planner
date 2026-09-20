@@ -51,6 +51,15 @@ export class TaskDataDto {
   @ApiProperty({ format: 'uuid', type: String, required: false })
   projectId!: string | null;
 
+  @ApiProperty({ format: 'uuid', type: String, required: false })
+  parentTaskId!: string | null;
+
+  @ApiProperty({ type: Number })
+  subtaskCount!: number;
+
+  @ApiProperty({ type: Number })
+  completedSubtaskCount!: number;
+
   @ApiProperty({ type: Object, required: false })
   recurrence?: Record<string, unknown> | null;
 }
@@ -76,6 +85,15 @@ export class TaskSummaryDto {
 
   @ApiProperty({ enum: ['ACTIVE', 'ARCHIVED', 'TRASHED'], type: String })
   lifecycleState!: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+
+  @ApiProperty({ format: 'uuid', type: String, required: false })
+  parentTaskId!: string | null;
+
+  @ApiProperty({ type: Number })
+  subtaskCount!: number;
+
+  @ApiProperty({ type: Number })
+  completedSubtaskCount!: number;
 
   @ApiProperty({ type: () => [LabelSummaryDto] })
   labels!: LabelSummaryDto[];
@@ -122,6 +140,14 @@ export class CreateTaskRequestDto {
 
   @ApiProperty({ format: 'uuid', type: String, required: false })
   projectId?: string | null;
+
+  @ApiProperty({
+    format: 'uuid',
+    type: String,
+    required: false,
+    description: 'Parent task id. When set, the task becomes a subtask of the parent.',
+  })
+  parentTaskId?: string | null;
 
   @ApiProperty({ type: [String], format: 'uuid', required: false })
   labelIds?: string[];
@@ -187,6 +213,14 @@ export class EditTaskRequestDto {
 
   @ApiProperty({ format: 'uuid', type: String, required: false })
   projectId?: string | null;
+
+  @ApiProperty({
+    format: 'uuid',
+    type: String,
+    required: false,
+    description: 'Parent task id. Set to null to detach the task from its parent.',
+  })
+  parentTaskId?: string | null;
 }
 
 export class TodayTaskSummaryDto {
@@ -210,6 +244,15 @@ export class TodayTaskSummaryDto {
 
   @ApiProperty({ enum: ['ACTIVE', 'ARCHIVED', 'TRASHED'], type: String })
   lifecycleState!: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+
+  @ApiProperty({ format: 'uuid', type: String, required: false })
+  parentTaskId!: string | null;
+
+  @ApiProperty({ type: Number })
+  subtaskCount!: number;
+
+  @ApiProperty({ type: Number })
+  completedSubtaskCount!: number;
 
   @ApiProperty({ type: () => [LabelSummaryDto] })
   labels!: LabelSummaryDto[];
@@ -298,6 +341,15 @@ export class CalendarTaskSummaryDto {
   @ApiProperty({ format: 'uuid', type: String })
   areaId!: string;
 
+  @ApiProperty({ format: 'uuid', type: String, required: false })
+  parentTaskId!: string | null;
+
+  @ApiProperty({ type: Number })
+  subtaskCount!: number;
+
+  @ApiProperty({ type: Number })
+  completedSubtaskCount!: number;
+
   @ApiProperty({ type: () => [LabelSummaryDto] })
   labels!: LabelSummaryDto[];
 }
@@ -348,6 +400,15 @@ export class KanbanTaskDto {
 
   @ApiProperty({ format: 'uuid', type: String })
   areaId!: string;
+
+  @ApiProperty({ format: 'uuid', type: String, required: false })
+  parentTaskId!: string | null;
+
+  @ApiProperty({ type: Number })
+  subtaskCount!: number;
+
+  @ApiProperty({ type: Number })
+  completedSubtaskCount!: number;
 
   @ApiProperty({ type: () => [LabelSummaryDto] })
   labels!: LabelSummaryDto[];

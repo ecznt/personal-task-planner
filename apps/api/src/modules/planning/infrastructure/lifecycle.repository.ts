@@ -445,6 +445,7 @@ export class LifecycleRepository {
       counts.tasks++;
     }
     await this.pauseRemindersAndRecurrence(tx, userId, id);
+    await this.archiveSubtasksUnder(tx, userId, id, operationId, now, counts);
     return { affected: counts };
   }
 
@@ -492,6 +493,7 @@ export class LifecycleRepository {
     if (!task) return { affected: counts };
     await this.trashTaskRecord(tx, task, operationId, now, purgeAfter, counts);
     await this.pauseRemindersAndRecurrence(tx, userId, id);
+    await this.trashSubtasksUnder(tx, userId, id, operationId, now, counts);
     return { affected: counts };
   }
 
@@ -598,83 +600,118 @@ export class LifecycleRepository {
       return { affected: counts, restored: true };
     }
 
-    const task = await tx.task.findFirst({
-      where: { id, userId, lifecycleState: { in: ['ARCHIVED', 'TRASHED'] } },
-    });
-    if (!task) return { affected: counts, restored: false };
-    const area = await tx.area.findFirst({
-      where: { id: task.areaId, userId, lifecycleState: 'ACTIVE' },
-    });
-    if (!area) {
-      if (!options.replacementAreaId) return { affected: counts, restored: false };
-      const replacementArea = await tx.area.findFirst({
-        where: { id: options.replacementAreaId, userId, lifecycleState: 'ACTIVE' },
+    if (kind === 'TASK') {
+      const task = await tx.task.findFirst({
+        where: { id, userId, lifecycleState: { in: ['ARCHIVED', 'TRASHED'] } },
       });
-      if (!replacementArea) return { affected: counts, restored: false };
-      await this.restoreTaskWithDestination(
-        tx,
-        userId,
-        task,
-        operationId,
-        now,
-        replacementArea.id,
-        null,
-        counts,
-      );
-      return { affected: counts, restored: true };
-    }
-    if (task.projectId) {
-      const project = await tx.project.findFirst({
-        where: { id: task.projectId, userId, lifecycleState: 'ACTIVE' },
+      if (!task) return { affected: counts, restored: false };
+      const area = await tx.area.findFirst({
+        where: { id: task.areaId, userId, lifecycleState: 'ACTIVE' },
       });
-      if (!project) {
-        if (options.replacementProjectId) {
-          const replacementProject = await tx.project.findFirst({
-            where: {
-              id: options.replacementProjectId,
-              userId,
-              lifecycleState: 'ACTIVE',
-              areaId: area.id,
-            },
-          });
-          if (replacementProject) {
-            await this.restoreTaskWithDestination(
-              tx,
-              userId,
-              task,
-              operationId,
-              now,
-              area.id,
-              replacementProject.id,
-              counts,
-            );
-            return { affected: counts, restored: true };
-          }
-        }
+      if (!area) {
+        if (!options.replacementAreaId) return { affected: counts, restored: false };
+        const replacementArea = await tx.area.findFirst({
+          where: { id: options.replacementAreaId, userId, lifecycleState: 'ACTIVE' },
+        });
+        if (!replacementArea) return { affected: counts, restored: false };
         await this.restoreTaskWithDestination(
           tx,
           userId,
           task,
           operationId,
           now,
-          area.id,
+          replacementArea.id,
+          null,
+          counts,
+        );
+        await this.restoreSubtasksUnder(
+          tx,
+          userId,
+          id,
+          operationId,
+          now,
+          replacementArea.id,
           null,
           counts,
         );
         return { affected: counts, restored: true };
       }
+      if (task.projectId) {
+        const project = await tx.project.findFirst({
+          where: { id: task.projectId, userId, lifecycleState: 'ACTIVE' },
+        });
+        if (!project) {
+          if (options.replacementProjectId) {
+            const replacementProject = await tx.project.findFirst({
+              where: {
+                id: options.replacementProjectId,
+                userId,
+                lifecycleState: 'ACTIVE',
+                areaId: area.id,
+              },
+            });
+            if (replacementProject) {
+              await this.restoreTaskWithDestination(
+                tx,
+                userId,
+                task,
+                operationId,
+                now,
+                area.id,
+                replacementProject.id,
+                counts,
+              );
+              await this.restoreSubtasksUnder(
+                tx,
+                userId,
+                id,
+                operationId,
+                now,
+                area.id,
+                replacementProject.id,
+                counts,
+              );
+              return { affected: counts, restored: true };
+            }
+          }
+          await this.restoreTaskWithDestination(
+            tx,
+            userId,
+            task,
+            operationId,
+            now,
+            area.id,
+            null,
+            counts,
+          );
+          await this.restoreSubtasksUnder(tx, userId, id, operationId, now, area.id, null, counts);
+          return { affected: counts, restored: true };
+        }
+      }
+      await this.restoreTaskWithDestination(
+        tx,
+        userId,
+        task,
+        operationId,
+        now,
+        task.areaId,
+        task.projectId,
+        counts,
+      );
+      await this.restoreSubtasksUnder(
+        tx,
+        userId,
+        id,
+        operationId,
+        now,
+        task.areaId,
+        task.projectId,
+        counts,
+      );
+      return { affected: counts, restored: true };
     }
-    await this.restoreTaskWithDestination(
-      tx,
-      userId,
-      task,
-      operationId,
-      now,
-      task.areaId,
-      task.projectId,
-      counts,
-    );
-    return { affected: counts, restored: true };
+
+    return { affected: counts, restored: false };
   }
 
   async permanentDelete(
@@ -1063,6 +1100,93 @@ export class LifecycleRepository {
     }
   }
 
+  private async archiveSubtasksUnder(
+    tx: Prisma.TransactionClient,
+    userId: string,
+    parentTaskId: string,
+    operationId: string,
+    now: Date,
+    counts: MutableCounts,
+  ): Promise<void> {
+    for (const subtask of await tx.task.findMany({
+      where: { parentTaskId, userId, lifecycleState: 'ACTIVE' },
+    })) {
+      await tx.task.update({
+        where: { id: subtask.id },
+        data: {
+          lifecycleState: 'ARCHIVED',
+          archivedAt: now,
+          currentLifecycleOperationId: operationId,
+          version: { increment: 1 },
+        },
+      });
+      await this.recordEffect(
+        tx,
+        operationId,
+        userId,
+        'TASK',
+        subtask.id,
+        'ACTIVE',
+        'ARCHIVED',
+        now,
+        null,
+        null,
+        null,
+      );
+      counts.tasks++;
+      await this.pauseRemindersAndRecurrence(tx, userId, subtask.id);
+    }
+  }
+
+  private async trashSubtasksUnder(
+    tx: Prisma.TransactionClient,
+    userId: string,
+    parentTaskId: string,
+    operationId: string,
+    now: Date,
+    counts: MutableCounts,
+  ): Promise<void> {
+    for (const subtask of await tx.task.findMany({
+      where: { parentTaskId, userId, lifecycleState: { in: ['ACTIVE', 'ARCHIVED'] } },
+    })) {
+      await this.trashTaskRecord(
+        tx,
+        subtask,
+        operationId,
+        now,
+        new Date(now.getTime() + 30 * 24 * 60 * 60 * 1_000),
+        counts,
+      );
+      await this.pauseRemindersAndRecurrence(tx, userId, subtask.id);
+    }
+  }
+
+  private async restoreSubtasksUnder(
+    tx: Prisma.TransactionClient,
+    userId: string,
+    parentTaskId: string,
+    operationId: string,
+    now: Date,
+    areaId: string,
+    projectId: string | null,
+    counts: MutableCounts,
+  ): Promise<void> {
+    for (const subtask of await tx.task.findMany({
+      where: { parentTaskId, userId, lifecycleState: { in: ['ARCHIVED', 'TRASHED'] } },
+    })) {
+      await this.restoreTaskWithDestination(
+        tx,
+        userId,
+        subtask,
+        operationId,
+        now,
+        areaId,
+        projectId,
+        counts,
+      );
+    }
+  }
+
   private async restoreChildProject(
     tx: Prisma.TransactionClient,
     userId: string,
@@ -1301,6 +1425,13 @@ export class LifecycleRepository {
     taskId: string,
     counts: MutableCounts,
   ): Promise<void> {
+    const subtasks = await tx.task.findMany({
+      where: { parentTaskId: taskId },
+      select: { id: true },
+    });
+    for (const subtask of subtasks) {
+      await this.deleteTaskRecords(tx, subtask.id, counts);
+    }
     const reminders = await tx.taskReminder.findMany({ where: { taskId }, select: { id: true } });
     for (const reminder of reminders) {
       await tx.notification.deleteMany({ where: { taskReminderId: reminder.id } });

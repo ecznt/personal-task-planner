@@ -2,7 +2,14 @@ import { Inject, Injectable } from '@nestjs/common';
 
 import { AreaService } from './area.service';
 import { TaskRepository } from '../infrastructure/task.repository';
-import type { DateStateValue, KanbanTaskFilter, KanbanTaskSummary, Task, TaskDetail, TaskSummary } from '../domain/task.entity';
+import type {
+  DateStateValue,
+  KanbanTaskFilter,
+  KanbanTaskSummary,
+  Task,
+  TaskDetail,
+  TaskSummary,
+} from '../domain/task.entity';
 import { RecurrenceService } from './recurrence.service';
 import { buildCalendarDayRanges, parseTodayRange } from './date-range';
 
@@ -28,6 +35,7 @@ export type CreateTaskCommand = {
   readonly dueAt: Date | null;
   readonly priority: 'LOW' | 'MEDIUM' | 'HIGH';
   readonly projectId?: string | null;
+  readonly parentTaskId?: string | null;
   readonly labelIds?: readonly string[];
   readonly checklistItems?: readonly CreateTaskChecklistItemInput[];
   readonly recurrence?: CreateTaskRecurrenceInput | null;
@@ -73,6 +81,7 @@ export type EditTaskCommand = {
   readonly areaStatusId?: string;
   readonly labelIds?: string[];
   readonly projectId?: string | null;
+  readonly parentTaskId?: string | null;
   readonly version: number;
 };
 
@@ -82,6 +91,8 @@ export type EditTaskResult =
       readonly task: Task;
       readonly etag: number;
       readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+      readonly subtaskCount: number;
+      readonly completedSubtaskCount: number;
     }
   | { readonly outcome: 'NOT_FOUND' }
   | { readonly outcome: 'STALE_VERSION' }
@@ -163,6 +174,8 @@ export type MoveKanbanTaskResult =
       readonly task: Task;
       readonly etag: number;
       readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+      readonly subtaskCount: number;
+      readonly completedSubtaskCount: number;
     }
   | { readonly outcome: 'NOT_FOUND' }
   | { readonly outcome: 'STALE_VERSION' }
@@ -203,6 +216,8 @@ export type MoveAreaKanbanTaskResult =
       readonly task: Task;
       readonly etag: number;
       readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+      readonly subtaskCount: number;
+      readonly completedSubtaskCount: number;
     }
   | { readonly outcome: 'NOT_FOUND' }
   | { readonly outcome: 'STALE_VERSION' }
@@ -269,7 +284,36 @@ export class TaskService {
       }
     }
 
-    const areaId = command.areaId ?? (await this.ensureInboxAreaId(userId));
+    let areaId = command.areaId ?? (await this.ensureInboxAreaId(userId));
+    let parentTaskId: string | null = command.parentTaskId ?? null;
+
+    if (parentTaskId !== null) {
+      const parent = await this.taskRepository.findParentForSubtask(userId, parentTaskId);
+
+      if (!parent) {
+        return {
+          outcome: 'VALIDATION_ERROR',
+          detail: 'Üst görev bulunamadı veya etkin değil.',
+        };
+      }
+
+      if (command.areaId !== undefined && command.areaId !== parent.areaId) {
+        return {
+          outcome: 'VALIDATION_ERROR',
+          detail: 'Alt görev, üst görev ile aynı alanda olmalıdır.',
+        };
+      }
+
+      if (parent.parentTaskId !== null) {
+        return {
+          outcome: 'VALIDATION_ERROR',
+          detail: 'Yalnızca tek seviye alt görev oluşturulabilir.',
+        };
+      }
+
+      areaId = parent.areaId;
+      parentTaskId = parent.id;
+    }
 
     const areaExists = await this.taskRepository.areaExists(userId, areaId);
 
@@ -367,6 +411,7 @@ export class TaskService {
         dueAt: command.dueAt,
         priority: command.priority,
         projectId: command.projectId ?? null,
+        parentTaskId,
         labelIds: command.labelIds ?? [],
         checklistItems: command.checklistItems ?? [],
         recurrence: command.recurrence ?? null,
@@ -612,8 +657,14 @@ export class TaskService {
     };
   }
 
-  async listKanbanTasks(userId: string, filters: KanbanTaskFilter = {}): Promise<ListKanbanTasksResult> {
-    const { todo, inProgress, completed } = await this.taskRepository.findKanbanTasks(userId, filters);
+  async listKanbanTasks(
+    userId: string,
+    filters: KanbanTaskFilter = {},
+  ): Promise<ListKanbanTasksResult> {
+    const { todo, inProgress, completed } = await this.taskRepository.findKanbanTasks(
+      userId,
+      filters,
+    );
 
     return {
       outcome: 'SUCCESS',
@@ -655,11 +706,15 @@ export class TaskService {
       await this.recurrenceService.generateNextOccurrence(userId, task.id);
     }
 
+    const subtaskStats = await this.taskRepository.getSubtaskStats(userId, task.id);
+
     return {
       outcome: 'SUCCESS',
       task,
       etag: task.version,
       canonicalStatus: command.targetCanonicalStatus,
+      subtaskCount: subtaskStats.subtaskCount,
+      completedSubtaskCount: subtaskStats.completedSubtaskCount,
     };
   }
 
@@ -674,7 +729,11 @@ export class TaskService {
       return { outcome: 'NOT_FOUND' };
     }
 
-    const { statuses, columns } = await this.taskRepository.findAreaKanbanTasks(userId, areaId, filters);
+    const { statuses, columns } = await this.taskRepository.findAreaKanbanTasks(
+      userId,
+      areaId,
+      filters,
+    );
     return { outcome: 'SUCCESS', statuses, columns };
   }
 
@@ -715,11 +774,15 @@ export class TaskService {
       await this.recurrenceService.generateNextOccurrence(userId, task.id);
     }
 
+    const subtaskStats = await this.taskRepository.getSubtaskStats(userId, task.id);
+
     return {
       outcome: 'SUCCESS',
       task,
       etag: task.version,
       canonicalStatus: canonicalStatus ?? 'TO_DO',
+      subtaskCount: subtaskStats.subtaskCount,
+      completedSubtaskCount: subtaskStats.completedSubtaskCount,
     };
   }
 
@@ -804,6 +867,51 @@ export class TaskService {
       }
     }
 
+    if (command.parentTaskId !== undefined && command.parentTaskId !== null) {
+      const existing = await this.taskRepository.findById(userId, command.taskId);
+
+      if (!existing) {
+        return { outcome: 'NOT_FOUND' };
+      }
+
+      if (existing.subtaskCount > 0) {
+        return {
+          outcome: 'VALIDATION_ERROR',
+          detail: 'Alt görevleri olan bir görev başka bir göreve taşınamaz.',
+        };
+      }
+
+      if (command.parentTaskId === command.taskId) {
+        return {
+          outcome: 'VALIDATION_ERROR',
+          detail: 'Bir görev kendisine alt görev olamaz.',
+        };
+      }
+
+      const parent = await this.taskRepository.findParentForSubtask(userId, command.parentTaskId);
+
+      if (!parent) {
+        return {
+          outcome: 'VALIDATION_ERROR',
+          detail: 'Üst görev bulunamadı veya etkin değil.',
+        };
+      }
+
+      if (parent.areaId !== existing.task.areaId) {
+        return {
+          outcome: 'VALIDATION_ERROR',
+          detail: 'Görev, parent ile aynı alanda olmalıdır.',
+        };
+      }
+
+      if (parent.parentTaskId !== null) {
+        return {
+          outcome: 'VALIDATION_ERROR',
+          detail: 'Yalnızca tek seviye alt görev oluşturulabilir.',
+        };
+      }
+    }
+
     const task = await this.taskRepository.updateTask(
       userId,
       command.taskId,
@@ -815,6 +923,7 @@ export class TaskService {
         priority: command.priority,
         areaStatusId: command.areaStatusId,
         projectId: command.projectId,
+        parentTaskId: command.parentTaskId,
       },
       command.version,
     );
@@ -835,11 +944,15 @@ export class TaskService {
 
     const canonicalStatus = await this.taskRepository.getCanonicalStatus(userId, task.areaStatusId);
 
+    const subtaskStats = await this.taskRepository.getSubtaskStats(userId, task.id);
+
     return {
       outcome: 'SUCCESS',
       task,
       etag: task.version,
       canonicalStatus: canonicalStatus ?? 'TO_DO',
+      subtaskCount: subtaskStats.subtaskCount,
+      completedSubtaskCount: subtaskStats.completedSubtaskCount,
     };
   }
 }

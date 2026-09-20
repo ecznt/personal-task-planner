@@ -79,15 +79,55 @@ describe('task repository — kanban filters and enrichment', () => {
 
     const statuses = await prisma.areaStatus.createManyAndReturn({
       data: [
-        { userId, areaId: areaA, name: 'Yapılacak', normalizedName: 'yapilacak', canonicalStatus: 'TO_DO', position: 1, isDefault: true },
-        { userId, areaId: areaA, name: 'Devam Ediyor', normalizedName: 'devam', canonicalStatus: 'IN_PROGRESS', position: 2, isDefault: true },
-        { userId, areaId: areaA, name: 'Tamamlandı', normalizedName: 'tamamlandi', canonicalStatus: 'COMPLETED', position: 3, isDefault: true },
-        { userId, areaId: areaB, name: 'Yapılacak', normalizedName: 'yapilacak', canonicalStatus: 'TO_DO', position: 1, isDefault: true },
+        {
+          userId,
+          areaId: areaA,
+          name: 'Yapılacak',
+          normalizedName: 'yapilacak',
+          canonicalStatus: 'TO_DO',
+          position: 1,
+          isDefault: true,
+        },
+        {
+          userId,
+          areaId: areaA,
+          name: 'Devam Ediyor',
+          normalizedName: 'devam',
+          canonicalStatus: 'IN_PROGRESS',
+          position: 2,
+          isDefault: true,
+        },
+        {
+          userId,
+          areaId: areaA,
+          name: 'Tamamlandı',
+          normalizedName: 'tamamlandi',
+          canonicalStatus: 'COMPLETED',
+          position: 3,
+          isDefault: true,
+        },
+        {
+          userId,
+          areaId: areaB,
+          name: 'Yapılacak',
+          normalizedName: 'yapilacak',
+          canonicalStatus: 'TO_DO',
+          position: 1,
+          isDefault: true,
+        },
       ],
     });
-    todoA = statuses.find((s) => s.areaId === areaA && s.canonicalStatus === 'TO_DO')!.id;
-    inProgressA = statuses.find((s) => s.areaId === areaA && s.canonicalStatus === 'IN_PROGRESS')!.id;
-    todoB = statuses.find((s) => s.areaId === areaB && s.canonicalStatus === 'TO_DO')!.id;
+    const todoAStatus = statuses.find((s) => s.areaId === areaA && s.canonicalStatus === 'TO_DO');
+    const inProgressAStatus = statuses.find(
+      (s) => s.areaId === areaA && s.canonicalStatus === 'IN_PROGRESS',
+    );
+    const todoBStatus = statuses.find((s) => s.areaId === areaB && s.canonicalStatus === 'TO_DO');
+    if (!todoAStatus || !inProgressAStatus || !todoBStatus) {
+      throw new Error('Required area statuses missing in test fixture');
+    }
+    todoA = todoAStatus.id;
+    inProgressA = inProgressAStatus.id;
+    todoB = todoBStatus.id;
 
     const project = await prisma.project.create({
       data: { userId, areaId: areaA, name: 'Alışveriş', normalizedName: 'alisveris' },
@@ -217,7 +257,9 @@ describe('task repository — kanban filters and enrichment', () => {
   it('excludes tasks outside the area in area kanban', async () => {
     const result = await repository.findAreaKanbanTasks(userId, areaA, {});
     const allTitles = result.columns.flatMap((c) => c.tasks.map((t) => t.title));
-    expect(allTitles).toEqual(expect.arrayContaining(['Marketten süt al', 'Bankaya git', 'Rapor yaz']));
+    expect(allTitles).toEqual(
+      expect.arrayContaining(['Marketten süt al', 'Bankaya git', 'Rapor yaz']),
+    );
     expect(allTitles).not.toContain('Bahçeyi sula');
   });
 });

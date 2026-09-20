@@ -34,6 +34,8 @@ describe('search service — searchTasks', () => {
   });
 
   it('passes dateState bounds to repository', async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-09-20T12:00:00.000Z'));
     const repository = repositoryMock();
     repository.searchTasks.mockResolvedValue({ tasks: [] });
 
@@ -48,13 +50,14 @@ describe('search service — searchTasks', () => {
       timezone: 'UTC',
     });
 
+    jest.useRealTimers();
     expect(repository.searchTasks).toHaveBeenCalledWith('user-id', 'taxes', {
       limit: 10,
       sort: 'dueDate',
       order: 'asc',
       dateState: 'overdue',
-      todayStart: new Date('2026-09-13T00:00:00.000Z'),
-      todayEnd: new Date('2026-09-14T00:00:00.000Z'),
+      todayStart: new Date('2026-09-20T00:00:00.000Z'),
+      todayEnd: new Date('2026-09-21T00:00:00.000Z'),
     });
   });
 });
@@ -62,5 +65,7 @@ describe('search service — searchTasks', () => {
 function repositoryMock(): jest.Mocked<TaskRepository> {
   return {
     searchTasks: jest.fn(),
+    findParentForSubtask: jest.fn(),
+    getSubtaskStats: jest.fn(),
   } as unknown as jest.Mocked<TaskRepository>;
 }

@@ -20,6 +20,7 @@ import {
   labelSurfaceStyle,
 } from '@/features/labels/label-chip';
 import { TaskPriorityBadge } from './task-badge';
+import { SubtaskProgress } from './subtask-progress';
 import { BulkActionBar } from './bulk-action-bar';
 import { useTaskInspector } from './task-inspector-context';
 
@@ -32,7 +33,14 @@ type TaskSummary = {
   readonly plannedAt: string | null;
   readonly lifecycleState: string;
   readonly version: number;
-  readonly labels: readonly { readonly id: string; readonly name: string; readonly color: string | null }[];
+  readonly parentTaskId: string | null;
+  readonly subtaskCount: number;
+  readonly completedSubtaskCount: number;
+  readonly labels: readonly {
+    readonly id: string;
+    readonly name: string;
+    readonly color: string | null;
+  }[];
 };
 
 type GlobalTaskListProps = {
@@ -69,10 +77,7 @@ function formatDate(iso: string | null): string {
   });
 }
 
-export function GlobalTaskList({
-  projectId,
-  embedded = false,
-}: GlobalTaskListProps) {
+export function GlobalTaskList({ projectId, embedded = false }: GlobalTaskListProps) {
   const standalone = projectId === undefined;
   const urlFilters = useUrlTaskFilters('/app/tasks');
   const [localStatusFilter, setLocalStatusFilter] = useState('');
@@ -307,9 +312,7 @@ export function GlobalTaskList({
                     <LabelChip key={label.id} label={label} />
                   ))}
                   {labels.length > 2 && (
-                    <span className="text-xs text-muted-foreground">
-                      +{labels.length - 2}
-                    </span>
+                    <span className="text-xs text-muted-foreground">+{labels.length - 2}</span>
                   )}
                 </span>
               ) : null;
@@ -362,6 +365,11 @@ export function GlobalTaskList({
                     <div className="truncate font-medium">{task.title}</div>
                     <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
                       <TaskPriorityBadge priority={task.priority} />
+                      <SubtaskProgress
+                        parentTaskId={task.parentTaskId}
+                        subtaskCount={task.subtaskCount}
+                        completedSubtaskCount={task.completedSubtaskCount}
+                      />
                       {task.plannedAt && <span>Plan: {formatDate(task.plannedAt)}</span>}
                       {task.dueAt && <span>Bitiş: {formatDate(task.dueAt)}</span>}
                       {labelReveal}
@@ -376,6 +384,11 @@ export function GlobalTaskList({
                     <div className="truncate font-medium">{task.title}</div>
                     <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
                       <TaskPriorityBadge priority={task.priority} />
+                      <SubtaskProgress
+                        parentTaskId={task.parentTaskId}
+                        subtaskCount={task.subtaskCount}
+                        completedSubtaskCount={task.completedSubtaskCount}
+                      />
                       {task.plannedAt && <span>Plan: {formatDate(task.plannedAt)}</span>}
                       {task.dueAt && <span>Bitiş: {formatDate(task.dueAt)}</span>}
                       {labelReveal}

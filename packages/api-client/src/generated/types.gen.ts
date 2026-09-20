@@ -121,12 +121,15 @@ export type CalendarResponseDto = {
 export type CalendarTaskSummaryDto = {
     areaId: string;
     canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+    completedSubtaskCount: number;
     dueAt?: string;
     id: string;
     labels: Array<LabelSummaryDto>;
     lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+    parentTaskId?: string;
     plannedAt?: string;
     priority: 'LOW' | 'MEDIUM' | 'HIGH';
+    subtaskCount: number;
     title: string;
     version: number;
 };
@@ -183,6 +186,10 @@ export type CreateTaskRequestDto = {
     description?: string;
     dueAt?: string;
     labelIds?: Array<string>;
+    /**
+     * Parent task id. When set, the task becomes a subtask of the parent.
+     */
+    parentTaskId?: string;
     plannedAt?: string;
     priority?: 'LOW' | 'MEDIUM' | 'HIGH';
     projectId?: string;
@@ -230,6 +237,10 @@ export type EditTaskRequestDto = {
     description?: string;
     dueAt?: string;
     labelIds?: Array<string>;
+    /**
+     * Parent task id. Set to null to detach the task from its parent.
+     */
+    parentTaskId?: string;
     plannedAt?: string;
     priority?: 'LOW' | 'MEDIUM' | 'HIGH';
     projectId?: string;
@@ -260,6 +271,10 @@ export type GlobalCreateTaskRequestDto = {
     description?: string;
     dueAt?: string;
     labelIds?: Array<string>;
+    /**
+     * Parent task id. When set, the task becomes a subtask of the parent.
+     */
+    parentTaskId?: string;
     plannedAt?: string;
     priority?: 'LOW' | 'MEDIUM' | 'HIGH';
     projectId?: string;
@@ -292,13 +307,16 @@ export type KanbanTaskDto = {
     areaId: string;
     areaName: string;
     canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+    completedSubtaskCount: number;
     dueAt?: string;
     id: string;
     labels: Array<LabelSummaryDto>;
     lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+    parentTaskId?: string;
     plannedAt?: string;
     priority: 'LOW' | 'MEDIUM' | 'HIGH';
     project?: KanbanProjectDto;
+    subtaskCount: number;
     title: string;
     version: number;
 };
@@ -505,17 +523,20 @@ export type TaskDataDto = {
     areaStatusId: string;
     canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
     checklistItems: Array<ChecklistItemDataDto>;
+    completedSubtaskCount: number;
     description?: string;
     dueAt?: string;
     id: string;
     labels: Array<LabelSummaryDto>;
     lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+    parentTaskId?: string;
     plannedAt?: string;
     priority: 'LOW' | 'MEDIUM' | 'HIGH';
     projectId?: string;
     recurrence?: {
         [key: string]: unknown;
     };
+    subtaskCount: number;
     title: string;
     version: number;
 };
@@ -535,12 +556,15 @@ export type TaskResponseDto = {
 
 export type TaskSummaryDto = {
     canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+    completedSubtaskCount: number;
     dueAt?: string;
     id: string;
     labels: Array<LabelSummaryDto>;
     lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+    parentTaskId?: string;
     plannedAt?: string;
     priority: 'LOW' | 'MEDIUM' | 'HIGH';
+    subtaskCount: number;
     title: string;
 };
 
@@ -560,13 +584,16 @@ export type TodaySectionDto = {
 
 export type TodayTaskSummaryDto = {
     canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+    completedSubtaskCount: number;
     dueAt?: string;
     id: string;
     labels: Array<LabelSummaryDto>;
     lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+    parentTaskId?: string;
     plannedAt?: string;
     priority: 'LOW' | 'MEDIUM' | 'HIGH';
     reasons: Array<string>;
+    subtaskCount: number;
     title: string;
 };
 
@@ -584,12 +611,15 @@ export type UpcomingResponseDto = {
 
 export type UpcomingTaskSummaryDto = {
     canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+    completedSubtaskCount: number;
     dueAt?: string;
     id: string;
     labels: Array<LabelSummaryDto>;
     lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+    parentTaskId?: string;
     plannedAt?: string;
     priority: 'LOW' | 'MEDIUM' | 'HIGH';
+    subtaskCount: number;
     title: string;
 };
 

@@ -3,8 +3,14 @@
 import { CalendarClock } from 'lucide-react';
 import { anchorLabel } from '@/features/labels/label-color';
 import { Badge } from '@/components/ui/badge';
-import { LabelChip, TaskIdentityBar, labelHoverSurfaceClass, labelSurfaceStyle } from '@/features/labels/label-chip';
+import {
+  LabelChip,
+  TaskIdentityBar,
+  labelHoverSurfaceClass,
+  labelSurfaceStyle,
+} from '@/features/labels/label-chip';
 import { TaskPriorityBadge } from '@/features/tasks/task-badge';
+import { SubtaskProgress } from '@/features/tasks/subtask-progress';
 
 export type KanbanTask = {
   readonly id: string;
@@ -13,7 +19,14 @@ export type KanbanTask = {
   readonly dueAt: string | null;
   readonly plannedAt: string | null;
   readonly version: number;
-  readonly labels: readonly { readonly id: string; readonly name: string; readonly color: string | null }[];
+  readonly parentTaskId: string | null;
+  readonly subtaskCount: number;
+  readonly completedSubtaskCount: number;
+  readonly labels: readonly {
+    readonly id: string;
+    readonly name: string;
+    readonly color: string | null;
+  }[];
   readonly project: { readonly id: string; readonly name: string } | null;
   readonly areaName?: string;
 };
@@ -42,6 +55,11 @@ export function KanbanTaskCard({ task, index }: { task: KanbanTask; index?: numb
 
       <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
         <TaskPriorityBadge priority={task.priority} />
+        <SubtaskProgress
+          parentTaskId={task.parentTaskId}
+          subtaskCount={task.subtaskCount}
+          completedSubtaskCount={task.completedSubtaskCount}
+        />
         {task.project && <Badge variant="primary">{task.project.name}</Badge>}
         {(task.labels ?? []).map((label) => (
           <LabelChip key={label.id} label={label} />

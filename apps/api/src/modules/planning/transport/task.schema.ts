@@ -42,6 +42,7 @@ const createTaskSchema = z.strictObject({
   dueAt: z.coerce.date().nullable().optional(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).default('MEDIUM'),
   projectId: z.string().uuid().nullable().optional(),
+  parentTaskId: z.string().uuid().nullable().optional(),
   labelIds: z.array(z.string().uuid()).optional(),
   checklistItems: z
     .array(createTaskChecklistItemSchema)
@@ -109,6 +110,7 @@ const editTaskSchema = z.strictObject({
   areaStatusId: z.string().uuid().nullable().optional(),
   labelIds: z.array(z.string().uuid()).optional(),
   projectId: z.string().uuid().nullable().optional(),
+  parentTaskId: z.string().uuid().nullable().optional(),
 });
 
 export type EditTaskInput = z.infer<typeof editTaskSchema>;

@@ -19,6 +19,9 @@ describe('task service — listKanbanTasks', () => {
           lifecycleState: 'ACTIVE',
           version: 1,
           areaId: 'area-id',
+          parentTaskId: null,
+          subtaskCount: 0,
+          completedSubtaskCount: 0,
           labels: [],
           project: null,
           areaName: 'Test Alan',
@@ -87,10 +90,12 @@ describe('task service — moveKanbanTask', () => {
         recurrenceRuleVersionId: null,
         occurrenceNumber: null,
         predecessorTaskId: null,
+        parentTaskId: null,
         generationKey: null,
       },
       defaultStatusId: 'status-2',
     });
+    repository.getSubtaskStats.mockResolvedValue({ subtaskCount: 0, completedSubtaskCount: 0 });
 
     const service = new TaskService(repository, recurrenceServiceMock());
     const result = await service.moveKanbanTask('user-id', {
@@ -109,6 +114,7 @@ describe('task service — moveKanbanTask', () => {
     const repository = repositoryMock();
     repository.moveTask.mockResolvedValue({ task: null, defaultStatusId: null });
     repository.findById.mockResolvedValue(null);
+    repository.getSubtaskStats.mockResolvedValue({ subtaskCount: 0, completedSubtaskCount: 0 });
 
     const service = new TaskService(repository, recurrenceServiceMock());
     const result = await service.moveKanbanTask('user-id', {
@@ -155,6 +161,8 @@ function repositoryMock(): jest.Mocked<TaskRepository> {
     moveTask: jest.fn(),
     moveAreaKanbanTask: jest.fn(),
     updateTask: jest.fn(),
+    findParentForSubtask: jest.fn(),
+    getSubtaskStats: jest.fn(),
     areaExists: jest.fn(),
     areaStatusBelongsToArea: jest.fn(),
     projectBelongsToArea: jest.fn(),

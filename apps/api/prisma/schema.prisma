@@ -439,6 +439,9 @@ model Task {
   predecessorTask          Task?                    @relation("PredecessorSuccessor", fields: [predecessorTaskId], references: [id])
   predecessorTaskId        String?                  @db.Uuid @unique
   successorTask            Task?                    @relation("PredecessorSuccessor")
+  parentTaskId             String?                  @db.Uuid
+  parentTask               Task?                    @relation("TaskSubtasks", fields: [parentTaskId], references: [id], onDelete: Restrict)
+  subtasks                 Task[]                   @relation("TaskSubtasks")
   generationKey            String?                  @unique
   currentOpenSeries        RecurrenceSeries?        @relation("CurrentOpenTask")
   lastCompletedBySeries    RecurrenceSeries?        @relation("LastCompletedBySeries")
@@ -449,6 +452,7 @@ model Task {
   @@index([userId, areaId, lifecycleState, areaRank, id], map: "task_area_rank_idx")
   @@index([userId, lifecycleState, globalRank, id], map: "task_global_rank_idx")
   @@index([userId, dueAt, id], map: "task_user_due_idx")
+  @@index([userId, parentTaskId], map: "task_user_parent_idx")
   @@index([recurrenceSeriesId, occurrenceNumber], map: "task_recurrence_series_occurrence_idx")
   @@index([userId, lifecycleState, purgeAfter, id], map: "task_user_purge_idx")
   @@map("tasks")

@@ -10,6 +10,9 @@ const task = (id: string): KanbanTask => ({
   dueAt: null,
   plannedAt: null,
   version: 1,
+  parentTaskId: null,
+  subtaskCount: 0,
+  completedSubtaskCount: 0,
   labels: [],
   project: null,
 });

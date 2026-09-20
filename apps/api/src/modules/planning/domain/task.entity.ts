@@ -66,6 +66,7 @@ export type Task = {
   readonly recurrenceRuleVersionId: string | null;
   readonly occurrenceNumber: number | null;
   readonly predecessorTaskId: string | null;
+  readonly parentTaskId: string | null;
   readonly generationKey: string | null;
 };
 
@@ -79,6 +80,9 @@ export type TaskSummary = {
   readonly lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
   readonly version: number;
   readonly areaId: string;
+  readonly parentTaskId: string | null;
+  readonly subtaskCount: number;
+  readonly completedSubtaskCount: number;
   readonly labels: readonly LabelSummary[];
 };
 
@@ -86,7 +90,6 @@ export type KanbanTaskSummary = TaskSummary & {
   readonly project: { id: string; name: string } | null;
   readonly areaName: string;
 };
-
 
 export type KanbanTaskFilter = {
   readonly q?: string | undefined;
@@ -103,4 +106,6 @@ export type TaskDetail = {
   readonly labels: readonly LabelSummary[];
   readonly checklistItems: readonly ChecklistItem[];
   readonly recurrence: RecurrenceSeriesDetail | null;
+  readonly subtaskCount: number;
+  readonly completedSubtaskCount: number;
 };

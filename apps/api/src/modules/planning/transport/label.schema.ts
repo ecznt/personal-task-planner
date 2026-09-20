@@ -5,11 +5,7 @@ import {
   type ValidationProblemItem,
 } from '../../../platform/http/api-problem.exception';
 
-const hexColor = {
-  color: z
-    .string()
-    .regex(/^#[0-9a-fA-F]{6}$/, 'Renk geçerli bir HEX değeri olmalıdır.'),
-} as const;
+const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Renk geçerli bir HEX değeri olmalıdır.');
 
 const createLabelSchema = z.strictObject({
   name: z
@@ -17,7 +13,7 @@ const createLabelSchema = z.strictObject({
     .trim()
     .min(1, 'Etiket adı zorunludur.')
     .max(100, 'Etiket adı en fazla 100 karakter olabilir.'),
-  color: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Renk geçerli bir HEX değeri olmalıdır.').optional(),
+  color: hexColor.optional(),
 });
 
 export type CreateLabelInput = z.infer<typeof createLabelSchema>;
@@ -43,10 +39,7 @@ const renameLabelSchema = z.strictObject({
     .trim()
     .min(1, 'Etiket adı zorunludur.')
     .max(100, 'Etiket adı en fazla 100 karakter olabilir.'),
-  color: z
-    .string()
-    .regex(/^#[0-9a-fA-F]{6}$/, 'Renk geçerli bir HEX değeri olmalıdır.')
-    .optional(),
+  color: hexColor.optional(),
 });
 
 export type RenameLabelInput = z.infer<typeof renameLabelSchema>;

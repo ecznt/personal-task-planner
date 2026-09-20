@@ -13,6 +13,7 @@ import { EmptyState } from '@/components/empty-state';
 import { ListSkeleton } from '@/components/list-skeleton';
 import { PageHeader } from '@/components/page-header';
 import { TaskPriorityBadge } from '@/features/tasks/task-badge';
+import { SubtaskProgress } from '@/features/tasks/subtask-progress';
 import { useTaskInspector } from '@/features/tasks/task-inspector-context';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
 import { anchorLabel } from '@/features/labels/label-color';
@@ -33,8 +34,15 @@ type TodayTask = {
   readonly lifecycleState: string;
   readonly version: number;
   readonly areaId: string;
+  readonly parentTaskId: string | null;
+  readonly subtaskCount: number;
+  readonly completedSubtaskCount: number;
   readonly reasons: readonly string[];
-  readonly labels: readonly { readonly id: string; readonly name: string; readonly color: string | null }[];
+  readonly labels: readonly {
+    readonly id: string;
+    readonly name: string;
+    readonly color: string | null;
+  }[];
 };
 
 type TodaySection = {
@@ -151,6 +159,11 @@ function TaskCard({
             </Badge>
           ))}
           <TaskPriorityBadge priority={task.priority} />
+          <SubtaskProgress
+            parentTaskId={task.parentTaskId}
+            subtaskCount={task.subtaskCount}
+            completedSubtaskCount={task.completedSubtaskCount}
+          />
           {task.plannedAt && <span>Plan: {formatTime(task.plannedAt)}</span>}
           {task.dueAt && (
             <span>

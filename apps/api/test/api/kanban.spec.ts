@@ -97,6 +97,9 @@ describe('kanban HTTP contract', () => {
             lifecycleState: 'ACTIVE',
             version: 1,
             areaId: 'a0000000-0000-4000-8000-000000000002',
+            parentTaskId: null,
+            subtaskCount: 0,
+            completedSubtaskCount: 0,
             labels: [{ id: 'label-1', name: 'Ev', color: '#0000ff', version: 1 }],
             project: null,
             areaName: 'İş',
@@ -113,7 +116,11 @@ describe('kanban HTTP contract', () => {
 
       expect(taskService.listKanbanTasks).toHaveBeenCalledWith(
         'user-id',
-        expect.objectContaining({ q: 'rapor', priority: 'HIGH', labelId: '00000000-0000-4000-8000-00000000000a' }),
+        expect.objectContaining({
+          q: 'rapor',
+          priority: 'HIGH',
+          labelId: '00000000-0000-4000-8000-00000000000a',
+        }),
       );
       expect(response.body.todo).toMatchObject({
         count: 1,
@@ -162,10 +169,13 @@ describe('kanban HTTP contract', () => {
           recurrenceRuleVersionId: null,
           occurrenceNumber: null,
           predecessorTaskId: null,
+          parentTaskId: null,
           generationKey: null,
         },
         etag: 2,
         canonicalStatus: 'IN_PROGRESS',
+        subtaskCount: 0,
+        completedSubtaskCount: 0,
       });
 
       const response = await request(app.getHttpServer())

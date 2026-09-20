@@ -199,6 +199,7 @@ export class TaskController {
       dueAt: input.dueAt ?? null,
       priority: input.priority,
       projectId: input.projectId ?? null,
+      parentTaskId: input.parentTaskId ?? null,
       labelIds: input.labelIds ?? [],
       checklistItems: input.checklistItems ?? [],
       recurrence:
@@ -483,6 +484,7 @@ export class TaskController {
         }),
       ...(input.labelIds !== undefined && { labelIds: input.labelIds }),
       ...(input.projectId !== undefined && { projectId: input.projectId }),
+      ...(input.parentTaskId !== undefined && { parentTaskId: input.parentTaskId }),
     });
 
     return this.handleEditResult(result, response);
@@ -548,6 +550,9 @@ export class TaskController {
               completedAt: item.completedAt?.toISOString() ?? null,
             })),
             projectId: result.data.task.projectId,
+            parentTaskId: result.data.task.parentTaskId,
+            subtaskCount: result.data.subtaskCount,
+            completedSubtaskCount: result.data.completedSubtaskCount,
             recurrence: result.data.recurrence
               ? {
                   series: {
@@ -609,6 +614,9 @@ export class TaskController {
             labels: [],
             checklistItems: [],
             projectId: result.task.projectId,
+            parentTaskId: result.task.parentTaskId,
+            subtaskCount: result.subtaskCount,
+            completedSubtaskCount: result.completedSubtaskCount,
           },
         };
       case 'NOT_FOUND':
@@ -652,6 +660,9 @@ export class TaskController {
             lifecycleState: task.lifecycleState,
             version: task.version,
             areaId: task.areaId,
+            parentTaskId: task.parentTaskId,
+            subtaskCount: task.subtaskCount,
+            completedSubtaskCount: task.completedSubtaskCount,
             labels: serializeTaskLabels(task.labels),
           })),
           meta: {
@@ -673,6 +684,9 @@ export class TaskController {
         lifecycleState: task.lifecycleState,
         version: task.version,
         areaId: task.areaId,
+        parentTaskId: task.parentTaskId,
+        subtaskCount: task.subtaskCount,
+        completedSubtaskCount: task.completedSubtaskCount,
         labels: serializeTaskLabels(task.labels),
         reasons: [...task.reasons],
       }));
@@ -711,6 +725,9 @@ export class TaskController {
         lifecycleState: task.lifecycleState,
         version: task.version,
         areaId: task.areaId,
+        parentTaskId: task.parentTaskId,
+        subtaskCount: task.subtaskCount,
+        completedSubtaskCount: task.completedSubtaskCount,
         labels: serializeTaskLabels(task.labels),
       }));
 
@@ -737,6 +754,9 @@ export class TaskController {
         lifecycleState: task.lifecycleState,
         version: task.version,
         areaId: task.areaId,
+        parentTaskId: task.parentTaskId,
+        subtaskCount: task.subtaskCount,
+        completedSubtaskCount: task.completedSubtaskCount,
         labels: serializeTaskLabels(task.labels),
       }));
 
@@ -774,6 +794,9 @@ export class TaskController {
             labels: [],
             checklistItems: [],
             projectId: result.task.projectId,
+            parentTaskId: result.task.parentTaskId,
+            subtaskCount: 0,
+            completedSubtaskCount: 0,
           },
         };
       case 'NOT_FOUND':
@@ -830,6 +853,9 @@ export class TaskController {
             labels: [],
             checklistItems: [],
             projectId: result.task.projectId,
+            parentTaskId: result.task.parentTaskId,
+            subtaskCount: result.subtaskCount,
+            completedSubtaskCount: result.completedSubtaskCount,
           },
         };
       case 'NOT_FOUND':

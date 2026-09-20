@@ -548,6 +548,7 @@ export class AreaController {
       dueAt: input.dueAt ?? null,
       priority: input.priority,
       projectId: input.projectId ?? null,
+      parentTaskId: input.parentTaskId ?? null,
       labelIds: input.labelIds ?? [],
       checklistItems: input.checklistItems ?? [],
       recurrence:
@@ -895,6 +896,9 @@ export class AreaController {
             labels: [],
             checklistItems: [],
             projectId: result.task.projectId,
+            parentTaskId: result.task.parentTaskId,
+            subtaskCount: 0,
+            completedSubtaskCount: 0,
           },
         };
       case 'NOT_FOUND':
@@ -932,6 +936,9 @@ export class AreaController {
             lifecycleState: task.lifecycleState,
             version: task.version,
             areaId: task.areaId,
+            parentTaskId: task.parentTaskId,
+            subtaskCount: task.subtaskCount,
+            completedSubtaskCount: task.completedSubtaskCount,
             labels: serializeTaskLabels(task.labels),
           })),
           meta: {
@@ -1007,6 +1014,9 @@ export class AreaController {
             labels: [],
             checklistItems: [],
             projectId: result.task.projectId,
+            parentTaskId: result.task.parentTaskId,
+            subtaskCount: result.subtaskCount,
+            completedSubtaskCount: result.completedSubtaskCount,
           },
         };
       case 'NOT_FOUND':

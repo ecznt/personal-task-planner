@@ -65,6 +65,9 @@ const taskData = (overrides: Partial<TaskData> = {}): TaskData => ({
   labels: [],
   checklistItems: [],
   projectId: null,
+  parentTaskId: null,
+  subtaskCount: 0,
+  completedSubtaskCount: 0,
   recurrence: null,
   ...overrides,
 });

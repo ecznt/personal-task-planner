@@ -147,6 +147,7 @@ describe('task service', () => {
       recurrenceRuleVersionId: null,
       occurrenceNumber: null,
       predecessorTaskId: null,
+      parentTaskId: null,
       generationKey: null,
     });
 
@@ -202,12 +203,15 @@ describe('task service', () => {
         recurrenceRuleVersionId: null,
         occurrenceNumber: null,
         predecessorTaskId: null,
+        parentTaskId: null,
         generationKey: null,
       },
       canonicalStatus: 'TO_DO',
       areaName: 'Test Area',
       labels: [],
       checklistItems: [],
+      subtaskCount: 0,
+      completedSubtaskCount: 0,
       recurrence: null,
     });
 
@@ -250,6 +254,9 @@ describe('task service', () => {
           lifecycleState: 'ACTIVE',
           version: 1,
           areaId: 'area-id',
+          parentTaskId: null,
+          subtaskCount: 0,
+          completedSubtaskCount: 0,
           labels: [],
         },
       ],
@@ -340,12 +347,15 @@ describe('task service', () => {
         recurrenceRuleVersionId: null,
         occurrenceNumber: null,
         predecessorTaskId: null,
+        parentTaskId: null,
         generationKey: null,
       },
       canonicalStatus: 'TO_DO',
       areaName: 'Test Area',
       labels: [],
       checklistItems: [],
+      subtaskCount: 0,
+      completedSubtaskCount: 0,
       recurrence: null,
     });
 
@@ -383,9 +393,11 @@ describe('task service', () => {
       recurrenceRuleVersionId: null,
       occurrenceNumber: null,
       predecessorTaskId: null,
+      parentTaskId: null,
       generationKey: null,
     });
     repository.getCanonicalStatus.mockResolvedValue('TO_DO');
+    repository.getSubtaskStats.mockResolvedValue({ subtaskCount: 0, completedSubtaskCount: 0 });
 
     const service = new TaskService(repository, recurrenceServiceMock());
     const result = await service.editTask('user-id', {
@@ -400,6 +412,8 @@ describe('task service', () => {
       task: expect.objectContaining({ id: 'task-id', title: 'New Title', version: 2 }),
       etag: 2,
       canonicalStatus: 'TO_DO',
+      subtaskCount: 0,
+      completedSubtaskCount: 0,
     });
   });
 });
@@ -420,6 +434,8 @@ function repositoryMock(): jest.Mocked<TaskRepository> {
     findById: jest.fn(),
     listByArea: jest.fn(),
     updateTask: jest.fn(),
+    findParentForSubtask: jest.fn(),
+    getSubtaskStats: jest.fn(),
     areaExists: jest.fn(),
     areaStatusBelongsToArea: jest.fn(),
     incrementVersion: jest.fn(),

@@ -1,7 +1,10 @@
 import { describe, expect, it, jest } from '@jest/globals';
 
 import type { AreaService } from '../../src/modules/planning/application/area.service';
-import { TaskService, type CreateTaskCommand } from '../../src/modules/planning/application/task.service';
+import {
+  TaskService,
+  type CreateTaskCommand,
+} from '../../src/modules/planning/application/task.service';
 import type { RecurrenceService } from '../../src/modules/planning/application/recurrence.service';
 import type { TaskRepository } from '../../src/modules/planning/infrastructure/task.repository';
 import type { TaskSummary } from '../../src/modules/planning/domain/task.entity';
@@ -62,11 +65,7 @@ describe('task service inbox resolution', () => {
     const repository = repositoryMock();
     repository.areaExists.mockResolvedValue(false);
 
-    const service = new TaskService(
-      repository,
-      recurrenceServiceMock(),
-      areaServiceMock(),
-    );
+    const service = new TaskService(repository, recurrenceServiceMock(), areaServiceMock());
 
     const result = await service.createTask('user-id', basicCommand());
 
@@ -121,7 +120,11 @@ describe('task service upcoming bucketing', () => {
       days: 3,
     });
 
-    expect(repository.findUpcomingTasks).toHaveBeenCalledWith('user-id', today.start, rangeDay(2).end);
+    expect(repository.findUpcomingTasks).toHaveBeenCalledWith(
+      'user-id',
+      today.start,
+      rangeDay(2).end,
+    );
     expect(result).toEqual({
       outcome: 'SUCCESS',
       timezone: 'Europe/Istanbul',
@@ -151,7 +154,10 @@ describe('task service upcoming bucketing', () => {
     repository.findUpcomingTasks.mockResolvedValue([]);
 
     const service = new TaskService(repository, recurrenceServiceMock(), areaServiceMock());
-    const result = await service.listUpcomingTasks('user-id', { timezone: 'Europe/Istanbul', days: 40 });
+    const result = await service.listUpcomingTasks('user-id', {
+      timezone: 'Europe/Istanbul',
+      days: 40,
+    });
 
     expect(result.outcome).toBe('SUCCESS');
     if (result.outcome !== 'SUCCESS') return;
@@ -193,6 +199,7 @@ function makeTask(id: string, areaId: string) {
     recurrenceRuleVersionId: null,
     occurrenceNumber: null,
     predecessorTaskId: null,
+    parentTaskId: null,
     generationKey: null,
   } as const;
 }
@@ -211,6 +218,9 @@ function makeSummary(
     lifecycleState: 'ACTIVE',
     version: 1,
     areaId: 'inbox-id',
+    parentTaskId: null,
+    subtaskCount: 0,
+    completedSubtaskCount: 0,
     labels: [],
     ...overrides,
   };
@@ -224,8 +234,12 @@ function rangeDay(offsetDays: number): { date: string; start: Date; end: Date } 
     day: '2-digit',
   }).format(new Date());
   const [year, month, day] = nowStr.split('-').map((part) => Number(part));
-  const start = new Date(Date.UTC(year ?? 0, (month ?? 1) - 1, (day ?? 1) + offsetDays, 0, 0, 0, 0));
-  const end = new Date(Date.UTC(year ?? 0, (month ?? 1) - 1, (day ?? 1) + offsetDays + 1, 0, 0, 0, 0));
+  const start = new Date(
+    Date.UTC(year ?? 0, (month ?? 1) - 1, (day ?? 1) + offsetDays, 0, 0, 0, 0),
+  );
+  const end = new Date(
+    Date.UTC(year ?? 0, (month ?? 1) - 1, (day ?? 1) + offsetDays + 1, 0, 0, 0, 0),
+  );
   const date = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'UTC',
     year: 'numeric',
@@ -257,6 +271,8 @@ function repositoryMock(): jest.Mocked<TaskRepository> {
     findById: jest.fn(),
     listByArea: jest.fn(),
     updateTask: jest.fn(),
+    findParentForSubtask: jest.fn(),
+    getSubtaskStats: jest.fn(),
     areaExists: jest.fn(),
     areaStatusBelongsToArea: jest.fn(),
     incrementVersion: jest.fn(),
