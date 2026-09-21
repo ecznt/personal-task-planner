@@ -4,7 +4,7 @@
 | --- | --- |
 | Slice | L-030 |
 | Goal | Task `description` alanını hafif Markdown ile zenginleştirme (okunur taraf) |
-| Status | Planlı — uygulanmadı |
+| Status | Tamamlandı — uygulandı (2026-09-21) |
 | Created | 2026-09-20 |
 | Dependencies | L-006 (Task CRUD), L-025 (Quick Add), DEC-110 (task sheet) |
 
@@ -84,3 +84,12 @@ renderMarkdown(source: string): MarkdownNode[]
 - Veri şeması korunur; Markdown yalnızca render/UX katmanı — `description` kaynak olarak düz string, gelecekte export/import uyumlu.
 - Kütüphane eklenmez; ~200 satırlık tokenizer proje felsefesiyle (lean, bağımsız) uyumludur. Gereksinim büyürse `react-markdown`+`rehype-sanitize`'e geçiş değerlendirilir (bu slice'ta öyle tutulmaz).
 - Nokta sıralı/gerçek liste derinliği (nested list) desteklenmez — v1 kapsamını sınırlar.
+
+## 8. Delivered Scope (2026-09-21)
+
+- **Renderer:** `apps/web/src/features/tasks/markdown-render.tsx` — bağımsız tokenizer, `renderMarkdown(source)` React ağacı döner. Desteklenen sentaks: `#`–`###` başlıklar, `**bold**`/`*italic*`/`_italic_` (intraword `_` hariç), sıralı/sırasız listeler, GFM task list checkbox (`- [ ]`/`- [x]` — salt görsel, soldurulmuş), `>` alıntı, fenced code block (```` ``` ````), satır içi/çok satırlı `code`, `[metin](link)`.
+- **Güvenlik:** React JSX çıktısı — `dangerouslySetInnerHTML` kullanılmaz; `sanitizeHref` yalnızca `http:`/`https:` mutlak bağlantıları kabul eder (`javascript:`/`data:`/`file:`/`vbscript:` ve bare text engellenir → düz metin); bağlantılar `target="_blank" rel="noopener noreferrer"`.
+- **UI:** `apps/web/src/features/tasks/task-description.tsx` — Task detay sayfası ve sağ taraftaki task sheet'inde (aynı `TaskInspector`, `variant "page"|"sheet"`) `description`'ı güvenli Markdown olarak render eder. Düzenleme: mevcut textarea korunur + başlıkta **Kaynak / Önizleme** toggle'ı; otomatik kaydetme akışı (600ms debounce, blur commit, Escape iptal) `InlineText` paritesinde sürer.
+- **Tests:** renderer XSS-odaklı unit/component testleri (28 yeni vitest) — `javascript:`/`data:`/malformed link, `<img onerror>`, intraword underscore; E2E `tests/e2e/task-detail.spec.ts` (markdown render + bloklanan linkler/HTML). Ayrıca tescil: `format:check`-parity prettier, `typecheck`, `lint`, `test:component` (237), `build`, `test:e2e -- task-detail`.
+- **Caveat:** `pnpm audit` `multer`/NestJS advisory'i (API bağımlılığı) nedeniyle yüksek seviyede başarısız — bu slice'la ilgisiz, önceden var olan durum; `tests/scan-secrets.mjs` temiz.
+- Web `test:component` kapsamı 209 → 237; card/liste kartları (TaskSummary) değişmedi.

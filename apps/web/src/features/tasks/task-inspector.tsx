@@ -17,6 +17,7 @@ import { TaskLifecycleActions } from '@/features/lifecycle/task-lifecycle-action
 import { ReminderManager } from '@/features/reminders/reminder-manager';
 
 import { AutosaveStatus, InlineDateTime, InlineSelect, InlineText } from './inline-field';
+import { TaskDescription } from './task-description';
 import { RecurrenceForm, WEEKDAY_LABELS } from './recurrence-form';
 import { PRIORITY_LABELS } from './task-badge';
 import {
@@ -271,13 +272,9 @@ export function TaskInspector({ taskId, variant = 'page' }: TaskInspectorProps) 
       </div>
 
       <div className="rounded-xl border bg-card p-4">
-        <div className="mb-1 text-sm font-medium text-muted-foreground">Açıklama</div>
-        <InlineText
-          multiline
+        <TaskDescription
           value={current.description ?? ''}
           placeholder="Açıklama ekle…"
-          rows={5}
-          required={false}
           onCommit={(next) => {
             saveFields({ description: next.length > 0 ? next : null });
           }}
