@@ -153,7 +153,7 @@ describe('AreaKanbanBoard', () => {
     });
   });
 
-  it('applies a typed search query to the area board request', async () => {
+  it('debounces the search into the URL', async () => {
     mockedApiClient.get.mockImplementation(({ url }: { url: string }) =>
       Promise.resolve(
         url === `/api/v1/areas/area-1/kanban`
@@ -174,9 +174,32 @@ describe('AreaKanbanBoard', () => {
     fireEvent.change(input, { target: { value: 'süt' } });
 
     await waitFor(() => {
+      expect(mocks.replace).toHaveBeenCalledWith('/app/areas/area-1?q=s%C3%BCt', { scroll: false });
+    });
+  });
+
+  it('sends URL filters as query params', async () => {
+    mocks.searchParams = new URLSearchParams('priority=HIGH&label=label-1&projectId=proj-1');
+    mockedApiClient.get.mockImplementation(({ url }: { url: string }) =>
+      Promise.resolve(
+        url === `/api/v1/areas/area-1/kanban`
+          ? {
+              data: {
+                statuses: [{ id: 's1', name: 'Yapılacak', canonicalStatus: 'TO_DO', position: 1 }],
+                columns: [{ statusId: 's1', count: 0, tasks: [] }],
+              },
+              error: undefined,
+            }
+          : { data: { data: [] }, error: undefined },
+      ),
+    );
+
+    renderAreaKanbanBoard();
+
+    await waitFor(() => {
       expect(mockedApiClient.get).toHaveBeenCalledWith({
         url: `/api/v1/areas/area-1/kanban`,
-        query: { q: 'süt' },
+        query: { priority: 'HIGH', labelId: 'label-1', projectId: 'proj-1' },
       });
     });
   });

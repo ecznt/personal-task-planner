@@ -35,10 +35,13 @@ type LabelSummary = { readonly id: string; readonly name: string };
 type UseKanbanBoardFiltersOptions =
   { readonly mode: 'url'; readonly pathname: string } | { readonly mode: 'local' };
 
+export type KanbanFiltersChange = Partial<Record<KanbanFilterKey | 'q', string | undefined>>;
+
 export function useKanbanBoardFilters(options: UseKanbanBoardFiltersOptions): {
   readonly filters: KanbanFilters;
   readonly setQ: (q: string) => void;
   readonly setFilter: (key: KanbanFilterKey, value: string | undefined) => void;
+  readonly setFilters: (changes: KanbanFiltersChange) => void;
   readonly clearAll: () => void;
 } {
   const isUrlMode = options.mode === 'url';
@@ -93,22 +96,56 @@ export function useKanbanBoardFilters(options: UseKanbanBoardFiltersOptions): {
     [isUrlMode, urlFilters],
   );
 
-  const clearAll = useCallback(() => {
-    setQ('');
-    for (const key of FILTER_KEYS) {
-      setFilter(key, undefined);
-    }
-  }, [setFilter, setQ]);
+  const setFilters = useCallback(
+    (changes: KanbanFiltersChange) => {
+      if (!isUrlMode) {
+        const { q, ...filterChanges } = changes;
+        setLocalFilters((prev) => ({
+          ...prev,
+          ...(q === undefined ? {} : { q }),
+          ...filterChanges,
+        }));
+        return;
+      }
 
-  return { filters, setQ, setFilter, clearAll };
+      const params = new URLSearchParams(searchParams.toString());
+
+      for (const [key, value] of Object.entries(changes)) {
+        const urlName = key === 'labelId' ? 'label' : key;
+        if (value === undefined || value.length === 0) {
+          params.delete(urlName);
+        } else {
+          params.set(urlName, value);
+        }
+      }
+
+      const qs = params.toString();
+      router.replace(qs.length > 0 ? `${pathname}?${qs}` : pathname, { scroll: false });
+    },
+    [isUrlMode, pathname, router, searchParams],
+  );
+
+  const clearAll = useCallback(() => {
+    setFilters({
+      q: '',
+      areaId: undefined,
+      projectId: undefined,
+      priority: undefined,
+      labelId: undefined,
+    });
+  }, [setFilters]);
+
+  return { filters, setQ, setFilter, setFilters, clearAll };
 }
 
 type KanbanToolbarProps = {
   readonly filters: KanbanFilters;
   readonly onQChange: (q: string) => void;
   readonly onFilterChange: (key: KanbanFilterKey, value: string | undefined) => void;
+  readonly onFiltersChange?: (changes: KanbanFiltersChange) => void;
   readonly onClearAll: () => void;
   readonly showArea: boolean;
+  readonly showProject?: boolean;
   readonly projectsAreaId: string | undefined;
 };
 
@@ -116,8 +153,10 @@ export function KanbanToolbar({
   filters,
   onQChange,
   onFilterChange,
+  onFiltersChange,
   onClearAll,
   showArea,
+  showProject = true,
   projectsAreaId,
 }: KanbanToolbarProps) {
   const [query, setQuery] = useState(filters.q);
@@ -178,6 +217,10 @@ export function KanbanToolbar({
   });
 
   const handleAreaChange = (value: string) => {
+    if (onFiltersChange !== undefined) {
+      onFiltersChange({ areaId: value || undefined, projectId: undefined });
+      return;
+    }
     onFilterChange('areaId', value || undefined);
     onFilterChange('projectId', undefined);
   };
@@ -220,24 +263,26 @@ export function KanbanToolbar({
         </div>
       )}
 
-      <div className="flex items-center gap-2">
-        <label className="text-sm text-muted-foreground" htmlFor="kanbanProject">
-          Proje:
-        </label>
-        <Select
-          id="kanbanProject"
-          value={filters.projectId ?? ''}
-          onChange={(e) => onFilterChange('projectId', e.target.value || undefined)}
-          disabled={projectsAreaId === undefined}
-        >
-          <option value="">Tümü</option>
-          {projects.data?.map((project) => (
-            <option key={project.id} value={project.id}>
-              {project.name}
-            </option>
-          ))}
-        </Select>
-      </div>
+      {showProject && (
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-muted-foreground" htmlFor="kanbanProject">
+            Proje:
+          </label>
+          <Select
+            id="kanbanProject"
+            value={filters.projectId ?? ''}
+            onChange={(e) => onFilterChange('projectId', e.target.value || undefined)}
+            disabled={projectsAreaId === undefined}
+          >
+            <option value="">Tümü</option>
+            {projects.data?.map((project) => (
+              <option key={project.id} value={project.id}>
+                {project.name}
+              </option>
+            ))}
+          </Select>
+        </div>
+      )}
 
       <div className="flex items-center gap-2">
         <label className="text-sm text-muted-foreground" htmlFor="kanbanPriority">

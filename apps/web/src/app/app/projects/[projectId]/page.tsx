@@ -6,15 +6,11 @@ export const metadata: Metadata = {
   title: 'Proje',
 };
 
-export default async function ProjectPage({
-  params,
-}: {
-  params: Promise<{ projectId: string }>;
-}) {
+export default async function ProjectPage({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
 
   return (
-    <div className="mx-auto w-full max-w-2xl">
+    <div className="mx-auto w-full max-w-5xl">
       <ProjectDetail projectId={projectId} />
     </div>
   );

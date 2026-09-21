@@ -21,6 +21,7 @@ import { AccountsRepository } from '../../accounts/infrastructure/accounts.repos
 import { AuthSecurityService } from '../../accounts/security/auth-security.service';
 import { parseCookieValue, sessionCookieName } from '../../accounts/transport/auth-cookie';
 import { ProjectService } from '../application/project.service';
+import { TaskService } from '../application/task.service';
 import type {
   CreateProjectResult,
   GetProjectResult,
@@ -28,19 +29,32 @@ import type {
   MoveProjectResult,
   RenameProjectResult,
 } from '../application/project.service';
-import { parseCreateProjectInput, parseListProjectsQuery, parseUpdateProjectInput } from './project.schema';
+import { mapKanbanTaskSummary } from './kanban-task.mapper';
+import {
+  parseCreateProjectInput,
+  parseListProjectsQuery,
+  parseUpdateProjectInput,
+} from './project.schema';
 import {
   CreateProjectRequestDto,
   ProjectListResponseDto,
   ProjectResponseDto,
   UpdateProjectRequestDto,
 } from './project.dto';
+import { parseListProjectKanbanTasksQuery, parseMoveAreaKanbanTaskInput } from './task.schema';
+import { AreaKanbanResponseDto, MoveAreaKanbanTaskRequestDto, TaskResponseDto } from './task.dto';
+import type {
+  ListAreaKanbanTasksResult,
+  MoveProjectKanbanTaskCommand,
+  MoveProjectKanbanTaskResult,
+} from '../application/task.service';
 
 @ApiTags('Projects')
 @Controller('projects')
 export class ProjectController {
   constructor(
     @Inject(ProjectService) private readonly projectService: ProjectService,
+    @Inject(TaskService) private readonly taskService: TaskService,
     @Inject(AccountsRepository) private readonly accounts: AccountsRepository,
     @Inject(AuthSecurityService) private readonly security: AuthSecurityService,
   ) {}
@@ -155,6 +169,116 @@ export class ProjectController {
     const result = await this.projectService.getProject(userId, { projectId });
 
     return this.handleGetResult(result, response);
+  }
+
+  @Get(':projectId/kanban')
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    operationId: 'listProjectKanbanTasks',
+    summary: 'List Tasks in a Project as Kanban columns',
+  })
+  @ApiParam({ name: 'projectId', type: String, format: 'uuid' })
+  @ApiQuery({ name: 'q', type: String, required: false })
+  @ApiQuery({ name: 'priority', type: String, required: false })
+  @ApiQuery({ name: 'labelId', type: String, format: 'uuid', required: false })
+  @ApiResponse({
+    status: 200,
+    type: AreaKanbanResponseDto,
+  })
+  @ApiResponse({
+    description: 'No valid authenticated session is present.',
+    status: 401,
+  })
+  @ApiResponse({
+    description: 'Project not found.',
+    status: 404,
+  })
+  async listProjectKanbanTasks(
+    @Req() request: Request,
+    @Param('projectId') projectId: string,
+    @Query() query: unknown,
+  ): Promise<AreaKanbanResponseDto> {
+    const userId = await this.resolveUserId(request);
+
+    const input = parseListProjectKanbanTasksQuery(query);
+
+    const result = await this.taskService.listProjectKanbanTasks(userId, projectId, input);
+
+    return this.handleProjectKanbanResult(result);
+  }
+
+  @Post(':projectId/kanban-moves')
+  @HttpCode(200)
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    operationId: 'moveProjectKanbanTask',
+    summary: 'Move a Task between Project Kanban columns',
+  })
+  @ApiParam({ name: 'projectId', type: String, format: 'uuid' })
+  @ApiBody({ type: MoveAreaKanbanTaskRequestDto })
+  @ApiResponse({
+    status: 200,
+    type: TaskResponseDto,
+  })
+  @ApiResponse({
+    description: 'No valid authenticated session is present.',
+    status: 401,
+  })
+  @ApiResponse({
+    description: 'Task or target status not found.',
+    status: 404,
+  })
+  @ApiResponse({
+    description: 'Version conflict.',
+    status: 409,
+  })
+  @ApiResponse({
+    description: 'Target status does not belong to the Project Area.',
+    status: 422,
+  })
+  @ApiResponse({
+    description: 'If-Match header required.',
+    status: 428,
+  })
+  async moveProjectKanbanTask(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+    @Param('projectId') projectId: string,
+    @Body() body: unknown,
+    @Headers('if-match') ifMatch?: string,
+  ): Promise<TaskResponseDto> {
+    const userId = await this.resolveUserId(request);
+
+    const input = parseMoveAreaKanbanTaskInput(body);
+
+    if (!ifMatch) {
+      throw new ApiProblemException({
+        status: 428,
+        code: 'PRECONDITION_REQUIRED',
+        detail: 'If-Match başlığı gereklidir.',
+      });
+    }
+
+    const version = parseInt(ifMatch, 10);
+
+    if (isNaN(version)) {
+      throw new ApiProblemException({
+        status: 422,
+        code: 'VALIDATION_FAILED',
+        detail: 'If-Match başlığı geçerli bir sayı olmalıdır.',
+      });
+    }
+
+    const command: MoveProjectKanbanTaskCommand = {
+      projectId,
+      taskId: input.taskId,
+      targetAreaStatusId: input.targetAreaStatusId,
+      version,
+    };
+
+    const result = await this.taskService.moveProjectKanbanTask(userId, command);
+
+    return this.handleMoveProjectKanbanResult(result, response);
   }
 
   @Patch(':projectId')
@@ -438,6 +562,94 @@ export class ProjectController {
           status: 422,
           code: 'VALIDATION_FAILED',
           detail: result.detail,
+        });
+    }
+  }
+
+  private handleProjectKanbanResult(result: ListAreaKanbanTasksResult): AreaKanbanResponseDto {
+    switch (result.outcome) {
+      case 'SUCCESS':
+        return {
+          statuses: result.statuses.map((s) => ({
+            id: s.id,
+            name: s.name,
+            canonicalStatus: s.canonicalStatus,
+            position: s.position,
+          })),
+          columns: result.columns.map((col) => ({
+            statusId: col.statusId,
+            count: col.count,
+            tasks: col.tasks.map(mapKanbanTaskSummary),
+          })),
+        };
+      case 'NOT_FOUND':
+        throw new ApiProblemException({
+          status: 404,
+          code: 'RESOURCE_NOT_FOUND',
+          detail: 'Kaynak bulunamadı.',
+        });
+      case 'UNAUTHENTICATED':
+        throw new ApiProblemException({
+          status: 401,
+          code: 'AUTHENTICATION_REQUIRED',
+          detail: 'Oturum açmanız gerekiyor.',
+        });
+    }
+  }
+
+  private handleMoveProjectKanbanResult(
+    result: MoveProjectKanbanTaskResult,
+    response: Response,
+  ): TaskResponseDto {
+    switch (result.outcome) {
+      case 'SUCCESS':
+        response.setHeader('ETag', String(result.etag));
+        return {
+          data: {
+            id: result.task.id,
+            areaId: result.task.areaId,
+            title: result.task.title,
+            description: result.task.description,
+            plannedAt: result.task.plannedAt?.toISOString() ?? null,
+            dueAt: result.task.dueAt?.toISOString() ?? null,
+            priority: result.task.priority,
+            areaStatusId: result.task.areaStatusId,
+            canonicalStatus: result.canonicalStatus,
+            lifecycleState: result.task.lifecycleState,
+            version: result.task.version,
+            labels: [],
+            checklistItems: [],
+            projectId: result.task.projectId,
+            parentTaskId: result.task.parentTaskId,
+            subtaskCount: result.subtaskCount,
+            completedSubtaskCount: result.completedSubtaskCount,
+            parentTask: null,
+            subtasks: [],
+          },
+        };
+      case 'NOT_FOUND':
+        throw new ApiProblemException({
+          status: 404,
+          code: 'RESOURCE_NOT_FOUND',
+          detail: 'Kaynak bulunamadı.',
+        });
+      case 'STALE_VERSION':
+        throw new ApiProblemException({
+          status: 409,
+          code: 'VERSION_CONFLICT',
+          detail: 'Çakışma oluştu. Lütfen sayfayı yenileyin.',
+        });
+      case 'INVALID_TARGET':
+        throw new ApiProblemException({
+          status: 422,
+          code: 'INVALID_TARGET_STATUS',
+          detail: 'Hedef durum bu projenin alanına ait değil.',
+        });
+      case 'UNAUTHENTICATED':
+        throw new ApiProblemException({
+          status: 401,
+          code: 'AUTHENTICATION_REQUIRED',
+          detail: 'Oturum açmanız gerekiyor.',
         });
     }
   }

@@ -225,6 +225,27 @@ export type MoveAreaKanbanTaskResult =
   | { readonly outcome: 'VALIDATION_ERROR'; readonly detail: string }
   | { readonly outcome: 'UNAUTHENTICATED' };
 
+export type MoveProjectKanbanTaskCommand = {
+  readonly projectId: string;
+  readonly taskId: string;
+  readonly targetAreaStatusId: string;
+  readonly version: number;
+};
+
+export type MoveProjectKanbanTaskResult =
+  | {
+      readonly outcome: 'SUCCESS';
+      readonly task: Task;
+      readonly etag: number;
+      readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+      readonly subtaskCount: number;
+      readonly completedSubtaskCount: number;
+    }
+  | { readonly outcome: 'NOT_FOUND' }
+  | { readonly outcome: 'STALE_VERSION' }
+  | { readonly outcome: 'INVALID_TARGET' }
+  | { readonly outcome: 'UNAUTHENTICATED' };
+
 export type SnoozeTaskDatesCommand = {
   readonly taskId: string;
   readonly version: number;
@@ -807,6 +828,68 @@ export class TaskService {
       subtaskCount: subtaskStats.subtaskCount,
       completedSubtaskCount: subtaskStats.completedSubtaskCount,
     };
+  }
+
+  async listProjectKanbanTasks(
+    userId: string,
+    projectId: string,
+    filters: KanbanTaskFilter = {},
+  ): Promise<ListAreaKanbanTasksResult> {
+    const projectExists = await this.taskRepository.projectExists(userId, projectId);
+
+    if (!projectExists) {
+      return { outcome: 'NOT_FOUND' };
+    }
+
+    const { statuses, columns } = await this.taskRepository.findProjectKanbanTasks(
+      userId,
+      projectId,
+      filters,
+    );
+    return { outcome: 'SUCCESS', statuses, columns };
+  }
+
+  async moveProjectKanbanTask(
+    userId: string,
+    command: MoveProjectKanbanTaskCommand,
+  ): Promise<MoveProjectKanbanTaskResult> {
+    const result = await this.taskRepository.moveProjectKanbanTask(
+      userId,
+      command.projectId,
+      command.taskId,
+      command.targetAreaStatusId,
+      command.version,
+    );
+
+    switch (result.outcome) {
+      case 'NOT_FOUND':
+        return { outcome: 'NOT_FOUND' };
+      case 'STALE_VERSION':
+        return { outcome: 'STALE_VERSION' };
+      case 'INVALID_TARGET':
+        return { outcome: 'INVALID_TARGET' };
+      case 'MOVED': {
+        const canonicalStatus = await this.taskRepository.getCanonicalStatus(
+          userId,
+          command.targetAreaStatusId,
+        );
+
+        if (canonicalStatus === 'COMPLETED' && result.task.recurrenceSeriesId) {
+          await this.recurrenceService.generateNextOccurrence(userId, result.task.id);
+        }
+
+        const subtaskStats = await this.taskRepository.getSubtaskStats(userId, result.task.id);
+
+        return {
+          outcome: 'SUCCESS',
+          task: result.task,
+          etag: result.task.version,
+          canonicalStatus: canonicalStatus ?? 'TO_DO',
+          subtaskCount: subtaskStats.subtaskCount,
+          completedSubtaskCount: subtaskStats.completedSubtaskCount,
+        };
+      }
+    }
   }
 
   async editTask(userId: string, command: EditTaskCommand): Promise<EditTaskResult> {

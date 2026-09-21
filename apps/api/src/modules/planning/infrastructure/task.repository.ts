@@ -23,6 +23,26 @@ type SubtaskCountRow = {
   readonly areaStatus: { readonly canonicalStatus: string };
 };
 
+export type AreaKanbanBucketResult = {
+  readonly statuses: ReadonlyArray<{
+    readonly id: string;
+    readonly name: string;
+    readonly canonicalStatus: string;
+    readonly position: number;
+  }>;
+  readonly columns: ReadonlyArray<{
+    readonly statusId: string;
+    readonly count: number;
+    readonly tasks: readonly KanbanTaskSummary[];
+  }>;
+};
+
+export type ProjectKanbanMoveResult =
+  | { readonly outcome: 'MOVED'; readonly task: Task }
+  | { readonly outcome: 'NOT_FOUND' }
+  | { readonly outcome: 'STALE_VERSION' }
+  | { readonly outcome: 'INVALID_TARGET' };
+
 export function toSubtaskStats(subtasks: readonly SubtaskCountRow[]): {
   readonly subtaskCount: number;
   readonly completedSubtaskCount: number;
@@ -832,7 +852,9 @@ export class TaskRepository {
     readonly parentTask: {
       readonly id: string;
       readonly title: string;
-      readonly areaStatus: { readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED' } | null;
+      readonly areaStatus: {
+        readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+      } | null;
     } | null;
     readonly labels: ReadonlyArray<{
       readonly label: {
@@ -940,19 +962,43 @@ export class TaskRepository {
     userId: string,
     areaId: string,
     filters: KanbanTaskFilter = {},
-  ): Promise<{
-    readonly statuses: ReadonlyArray<{
-      readonly id: string;
-      readonly name: string;
-      readonly canonicalStatus: string;
-      readonly position: number;
-    }>;
-    readonly columns: ReadonlyArray<{
-      readonly statusId: string;
-      readonly count: number;
-      readonly tasks: readonly KanbanTaskSummary[];
-    }>;
-  }> {
+  ): Promise<AreaKanbanBucketResult> {
+    return this.findStatusBuckets(userId, areaId, filters);
+  }
+
+  async projectExists(userId: string, projectId: string): Promise<boolean> {
+    const project = await this.prisma.project.findFirst({
+      where: { id: projectId, userId, lifecycleState: 'ACTIVE' },
+      select: { id: true },
+    });
+    return project !== null;
+  }
+
+  async findProjectKanbanTasks(
+    userId: string,
+    projectId: string,
+    filters: KanbanTaskFilter = {},
+  ): Promise<AreaKanbanBucketResult> {
+    const project = await this.prisma.project.findFirst({
+      where: { id: projectId, userId, lifecycleState: 'ACTIVE' },
+      select: { areaId: true },
+    });
+
+    if (!project) {
+      return { statuses: [], columns: [] };
+    }
+
+    return this.findStatusBuckets(userId, project.areaId, {
+      ...filters,
+      projectId,
+    });
+  }
+
+  private async findStatusBuckets(
+    userId: string,
+    areaId: string,
+    filters: KanbanTaskFilter,
+  ): Promise<AreaKanbanBucketResult> {
     const statuses = await this.prisma.areaStatus.findMany({
       where: { userId, areaId, active: true },
       orderBy: { position: 'asc' },
@@ -1004,6 +1050,82 @@ export class TaskRepository {
     }));
 
     return { statuses, columns };
+  }
+
+  async moveProjectKanbanTask(
+    userId: string,
+    projectId: string,
+    taskId: string,
+    targetAreaStatusId: string,
+    version: number,
+  ): Promise<ProjectKanbanMoveResult> {
+    const project = await this.prisma.project.findFirst({
+      where: { id: projectId, userId, lifecycleState: 'ACTIVE' },
+      select: { areaId: true },
+    });
+
+    if (!project) {
+      return { outcome: 'NOT_FOUND' };
+    }
+
+    const task = await this.prisma.task.findFirst({
+      where: { id: taskId, userId, projectId, lifecycleState: 'ACTIVE' },
+      select: { id: true, areaId: true, version: true },
+    });
+
+    if (!task) {
+      return { outcome: 'NOT_FOUND' };
+    }
+
+    if (task.version !== version) {
+      return { outcome: 'STALE_VERSION' };
+    }
+
+    if (task.areaId !== project.areaId) {
+      return { outcome: 'INVALID_TARGET' };
+    }
+
+    const targetStatus = await this.prisma.areaStatus.findFirst({
+      where: { id: targetAreaStatusId, userId, areaId: project.areaId, active: true },
+      select: { id: true },
+    });
+
+    if (!targetStatus) {
+      return { outcome: 'INVALID_TARGET' };
+    }
+
+    const maxRank = await this.prisma.task.findFirst({
+      where: {
+        userId,
+        areaId: project.areaId,
+        areaStatusId: targetAreaStatusId,
+        lifecycleState: 'ACTIVE',
+      },
+      orderBy: { areaRank: 'desc' },
+      select: { areaRank: true },
+    });
+
+    const nextRank = maxRank ? incrementRank(maxRank.areaRank) : '000000000000000000000001';
+
+    const result = await this.prisma.task.updateMany({
+      where: { id: taskId, userId, version, lifecycleState: 'ACTIVE' },
+      data: {
+        areaStatusId: targetAreaStatusId,
+        areaRank: nextRank,
+        version: { increment: 1 },
+      },
+    });
+
+    if (result.count === 0) {
+      return { outcome: 'STALE_VERSION' };
+    }
+
+    const updatedTask = await this.prisma.task.findUnique({ where: { id: taskId } });
+    if (!updatedTask) {
+      return { outcome: 'NOT_FOUND' };
+    }
+
+    return { outcome: 'MOVED', task: updatedTask };
   }
 
   async moveAreaKanbanTask(

@@ -1,7 +1,13 @@
 'use client';
 
 import { apiClient } from '@planner/api-client';
-import { DragDropProvider, DragOverlay, KeyboardSensor, PointerSensor, type DragEndEvent } from '@dnd-kit/react';
+import {
+  DragDropProvider,
+  DragOverlay,
+  KeyboardSensor,
+  PointerSensor,
+  type DragEndEvent,
+} from '@dnd-kit/react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight, Kanban, PencilIcon } from 'lucide-react';
@@ -153,7 +159,7 @@ function buildGlobalKanbanQuery(filters: KanbanFilters): Record<string, string> 
 
 export function KanbanBoard() {
   const queryClient = useQueryClient();
-  const { filters, setQ, setFilter, clearAll } = useKanbanBoardFilters({
+  const { filters, setQ, setFilter, setFilters, clearAll } = useKanbanBoardFilters({
     mode: 'url',
     pathname: '/app/kanban',
   });
@@ -284,6 +290,7 @@ export function KanbanBoard() {
         filters={filters}
         onQChange={setQ}
         onFilterChange={setFilter}
+        onFiltersChange={setFilters}
         onClearAll={clearAll}
         showArea
         projectsAreaId={filters.areaId}

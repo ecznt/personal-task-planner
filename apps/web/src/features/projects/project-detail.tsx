@@ -9,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
+import { ProjectKanbanBoard } from '@/features/kanban/project-kanban-board';
 import { QuickCreateDialog } from '@/features/tasks/quick-create-dialog';
 import { GlobalTaskList } from '@/features/tasks/global-task-list';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
@@ -34,6 +35,7 @@ export function ProjectDetail({ projectId }: { readonly projectId: string }) {
   const [editingName, setEditingName] = useState(false);
   const [editName, setEditName] = useState('');
   const [targetAreaId, setTargetAreaId] = useState('');
+  const [view, setView] = useState<'list' | 'kanban'>('list');
   const queryClient = useQueryClient();
 
   const project = useQuery({
@@ -158,7 +160,12 @@ export function ProjectDetail({ projectId }: { readonly projectId: string }) {
               >
                 {renameProject.isPending ? 'Kaydediliyor...' : 'Kaydet'}
               </Button>
-              <Button type="button" variant="outline" size="sm" onClick={() => setEditingName(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setEditingName(false)}
+              >
                 İptal
               </Button>
             </div>
@@ -218,7 +225,12 @@ export function ProjectDetail({ projectId }: { readonly projectId: string }) {
             variant="outline"
             disabled={targetAreaId === '' || moveProject.isPending}
             onClick={() => {
-              if (!window.confirm('Bu projedeki tüm görevler hedef alandaki varsayılan durumlara taşınacak. Devam etmek istiyor musunuz?')) return;
+              if (
+                !window.confirm(
+                  'Bu projedeki tüm görevler hedef alandaki varsayılan durumlara taşınacak. Devam etmek istiyor musunuz?',
+                )
+              )
+                return;
               moveProject.mutate({ targetAreaId, version: data.version });
             }}
           >
@@ -230,15 +242,45 @@ export function ProjectDetail({ projectId }: { readonly projectId: string }) {
         </div>
       )}
 
-      <div className="flex items-center justify-end">
-        <QuickCreateDialog
-          initialAreaId={data.areaId}
-          initialProjectId={projectId}
-          triggerLabel="Yeni Görev"
-        />
+      <div className="mb-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="flex rounded-lg border bg-muted p-0.5">
+            <button
+              type="button"
+              onClick={() => setView('list')}
+              className={`rounded-md px-3 py-1 text-sm font-medium transition-colors duration-150 ${
+                view === 'list'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground'
+              }`}
+            >
+              Liste
+            </button>
+            <button
+              type="button"
+              onClick={() => setView('kanban')}
+              className={`rounded-md px-3 py-1 text-sm font-medium transition-colors duration-150 ${
+                view === 'kanban'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground'
+              }`}
+            >
+              Kanban
+            </button>
+          </div>
+          <QuickCreateDialog
+            initialAreaId={data.areaId}
+            initialProjectId={projectId}
+            triggerLabel="Yeni Görev"
+          />
+        </div>
       </div>
 
-      <GlobalTaskList projectId={projectId} embedded />
+      {view === 'list' ? (
+        <GlobalTaskList projectId={projectId} embedded />
+      ) : (
+        <ProjectKanbanBoard projectId={projectId} areaId={data.areaId} />
+      )}
     </div>
   );
 }

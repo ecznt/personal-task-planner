@@ -482,7 +482,7 @@ Sourced from `docs/research/FEATURE_RESEARCH.md` and user selection on 2026-09-2
 | L-028 | Task templates (save/apply template → instant Task with checklist, labels, priority) | `docs/planning/L-028_TASK_TEMPLATES_PLAN.md` | Implemented (API + web) — CI-verified² |
 | L-029 | Snooze / postpone (task-date snooze + reminder snooze) | `docs/planning/L-029_SNOOZE_PLAN.md` | Implemented (API + web) — CI-verified² |
 | L-030 | Markdown-supported rich notes on Task description (render-only, safe subset) | `docs/planning/L-030_MARKDOWN_NOTES_PLAN.md` | Implemented (web render-only) — App-suite verified (typecheck, lint, component, e2e, build, secret scan) |
-| L-031 | Kanban improvements: Area board URL-persisted filters + new Project-scoped Kanban board | `docs/planning/L-031_KANBAN_IMPROVEMENTS_PLAN.md` | Planned — not implemented |
+| L-031 | Kanban improvements: Area board URL-persisted filters + new Project-scoped Kanban board | `docs/planning/L-031_KANBAN_IMPROVEMENTS_PLAN.md` | Implemented — API (project kanban list/moves) + shared `StatusKanbanBoard` (area+project URL-mode) + project-detail toggle. App-suite verified (api typecheck/lint/unit/api, contract, web typecheck/lint/component 243, build, e2e project-kanban 3/3, secret scan) |
 
 Explicit user request on 2026-09-20: plan L-027 through L-030 plus Kanban (Area improvement + Project board). The order above is the current proposal; the user picks the next slice before implementation begins.
 

@@ -4,7 +4,7 @@
 | --- | --- |
 | Slice | L-031 |
 | Goal | Mevcut Alan Kanban'ı iyileştir + her Proje için kendi Kanban board'unu ekle |
-| Status | Planlı — uygulanmadı |
+| Status | Tamamlandı — uygulandı (2026-09-21) |
 | Created | 2026-09-20 |
 | Dependencies | L-012 (Area Kanban), L-026 (Kanban v2), L-008 (Projects) |
 
@@ -102,3 +102,15 @@ POST /api/v1/projects/:projectId/kanban-moves
 - Proje board **Area'nın canonical status gruplarını** kullanır (proje → tek Area; özel proje status'leri yok) — L-020'daki Area status modeliyle tutarlı ve en az kod yüzeyi.
 - Area filtreleri URL-persist'e geçer; global board ile parite — kullanıcı sayfa dışındayken filtre kaybolmaz.
 - DnD/optimistic/kart/toolbar tüm board'larda tek implementasyon (DRY) — proje board Area bazlı akışa mirasçıdır.
+- **(Kullanıcı onaylı, 2026-09-21)** Proje kanban list yanıtı **Area şeklini** (`{statuses, columns}`) kullanır ve shared board'da area+project aynı implementasyondur; `targetAreaStatusId` ile move paritesi.
+- **(Karar kaydı)** Proje `kanban-moves`'ta eksik `If-Match` → **428 PRECONDITION_REQUIRED** (plan niyeti Area paritesinden daha katıdır; area controller hâlâ 422 döner — bilinçli fark).
+- **(Karar kaydı)** E2E, card üzerindeki **ok butonlarıyla** move kapsar; fare ile sürükleme kapsam dışı (component testlerinde).
+
+## 8. Delivered Scope (2026-09-21)
+
+- **API:** `GET /api/v1/projects/:projectId/kanban` (`q`, `priority`, `labelId`) ve `POST /api/v1/projects/:projectId/kanban-moves` (`If-Match`); `TaskService.listProjectKanbanTasks` / `moveProjectKanbanTask`; `TaskRepository.findStatusBuckets` (area ile ortak sıralama), `projectExists`, `findProjectKanbanTasks`, `moveProjectKanbanTask` (MOVED/NOT_FOUND/STALE_VERSION/INVALID_TARGET); 428/422 `INVALID_TARGET_STATUS` dahil hata kodları; OpenAPI + api-client regen.
+- **Web (shared board):** `apps/web/src/features/kanban/status-kanban-board.tsx` — area+project için tek board (`KanbanBoardScope`), `useKanbanBoardFilters({ mode:'url', pathname })`, optimistic move + If-Match, dnd, toolbar, boş-durum. `area-kanban-board.tsx` thin wrapper; `project-kanban-board.tsx` yeni (proje select gizli).
+- **Web (kanban-toolbar):** `showProject?: boolean` prop.
+- **Web (proje sayfası):** `project-detail.tsx` Liste/Kanban toggle (+ `ProjectKanbanBoard projectId areaId`); `/app/projects/[projectId]` container `max-w-2xl` → `max-w-5xl`.
+- **Tests:** API unit `task.service.project-kanban.spec.ts`; API contract `projects.spec.ts` (GET/POST kanban, 401/404/409/422/428); web component `project-kanban-board.test.tsx` (+ URL-mode round-trip `area-kanban-board.test.tsx`); E2E `tests/e2e/project-kanban.spec.ts` (load via toggle, URL-persist filtresi, ok-butonu move → POST body + If-Match).
+- **Verification sonuçları:** API typecheck/lint, unit 172, api 157, contract deterministik `428e338bc510`; web typecheck/lint/prettier, component 243, build, e2e `project-kanban` 3/3 (full suite 19/20 — kalan 1 `calendar.spec.ts` live-stack/bakım ortam testi, bu slice'tan bağımsız); secret scan temiz. Caveat: `test:db` (testcontainers) yerelde yok; `pnpm audit` multer advisory pre-existing.

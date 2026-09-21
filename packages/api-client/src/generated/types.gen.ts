@@ -1915,6 +1915,74 @@ export type UpdateProjectResponses = {
 
 export type UpdateProjectResponse = UpdateProjectResponses[keyof UpdateProjectResponses];
 
+export type ListProjectKanbanTasksData = {
+    body?: never;
+    path: {
+        projectId: string;
+    };
+    query?: {
+        labelId?: string;
+        priority?: string;
+        q?: string;
+    };
+    url: '/api/v1/projects/{projectId}/kanban';
+};
+
+export type ListProjectKanbanTasksErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Project not found.
+     */
+    404: unknown;
+};
+
+export type ListProjectKanbanTasksResponses = {
+    200: AreaKanbanResponseDto;
+};
+
+export type ListProjectKanbanTasksResponse = ListProjectKanbanTasksResponses[keyof ListProjectKanbanTasksResponses];
+
+export type MoveProjectKanbanTaskData = {
+    body: MoveAreaKanbanTaskRequestDto;
+    path: {
+        projectId: string;
+    };
+    query?: never;
+    url: '/api/v1/projects/{projectId}/kanban-moves';
+};
+
+export type MoveProjectKanbanTaskErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Task or target status not found.
+     */
+    404: unknown;
+    /**
+     * Version conflict.
+     */
+    409: unknown;
+    /**
+     * Target status does not belong to the Project Area.
+     */
+    422: unknown;
+    /**
+     * If-Match header required.
+     */
+    428: unknown;
+};
+
+export type MoveProjectKanbanTaskResponses = {
+    200: TaskResponseDto;
+};
+
+export type MoveProjectKanbanTaskResponse = MoveProjectKanbanTaskResponses[keyof MoveProjectKanbanTaskResponses];
+
 export type UnregisterData = {
     body: {
         endpoint: string;

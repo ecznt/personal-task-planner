@@ -166,4 +166,52 @@ describe('KanbanBoard', () => {
       expect(mocks.replace).toHaveBeenCalledWith('/app/kanban?q=z', { scroll: false });
     });
   });
+
+  it('writes the area filter to the URL atomically when the area changes', async () => {
+    mocks.searchParams = new URLSearchParams('projectId=proj-1');
+    mockedApiClient.get.mockImplementation(({ url }: { url: string }) =>
+      Promise.resolve(
+        url === '/api/v1/tasks/kanban'
+          ? { data: EMPTY_BOARD, error: undefined }
+          : url === '/api/v1/areas'
+            ? {
+                data: {
+                  data: [
+                    { id: 'area-1', name: 'İş' },
+                    { id: 'area-2', name: 'Kişisel' },
+                  ],
+                },
+                error: undefined,
+              }
+            : { data: { data: [] }, error: undefined },
+      ),
+    );
+
+    renderKanbanBoard();
+
+    const area = await screen.findByRole('combobox', { name: 'Alan:' });
+    await waitFor(() => {
+      expect(area.querySelector('option[value="area-2"]')).not.toBeNull();
+    });
+    fireEvent.change(area, { target: { value: 'area-2' } });
+
+    await waitFor(() => {
+      expect(mocks.replace).toHaveBeenCalledTimes(1);
+    });
+    expect(mocks.replace).toHaveBeenCalledWith('/app/kanban?areaId=area-2', { scroll: false });
+  });
+
+  it('clears all kanban filters with a single URL write', async () => {
+    mocks.searchParams = new URLSearchParams('q=rapor&areaId=area-1&priority=HIGH&label=label-1');
+    mockLookups();
+
+    renderKanbanBoard();
+
+    const clearAll = await screen.findByRole('button', { name: /Temizle/ });
+    fireEvent.click(clearAll);
+
+    await waitFor(() => {
+      expect(mocks.replace).toHaveBeenCalledWith('/app/kanban', { scroll: false });
+    });
+  });
 });

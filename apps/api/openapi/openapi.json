@@ -4577,6 +4577,126 @@
         ]
       }
     },
+    "/api/v1/projects/{projectId}/kanban": {
+      "get": {
+        "operationId": "listProjectKanbanTasks",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "labelId",
+            "required": false,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "priority",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AreaKanbanResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "404": {
+            "description": "Project not found."
+          }
+        },
+        "summary": "List Tasks in a Project as Kanban columns",
+        "tags": [
+          "Projects"
+        ]
+      }
+    },
+    "/api/v1/projects/{projectId}/kanban-moves": {
+      "post": {
+        "operationId": "moveProjectKanbanTask",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "projectId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MoveAreaKanbanTaskRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "404": {
+            "description": "Task or target status not found."
+          },
+          "409": {
+            "description": "Version conflict."
+          },
+          "422": {
+            "description": "Target status does not belong to the Project Area."
+          },
+          "428": {
+            "description": "If-Match header required."
+          }
+        },
+        "summary": "Move a Task between Project Kanban columns",
+        "tags": [
+          "Projects"
+        ]
+      }
+    },
     "/api/v1/push-subscriptions": {
       "delete": {
         "operationId": "unregister",

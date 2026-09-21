@@ -347,6 +347,29 @@ export function parseMoveAreaKanbanTaskInput(value: unknown): MoveAreaKanbanTask
   });
 }
 
+const listProjectKanbanTasksQuerySchema = z.object({
+  q: z.string().max(200).optional(),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
+  labelId: z.string().uuid().optional(),
+});
+
+export type ListProjectKanbanTasksQueryInput = z.infer<typeof listProjectKanbanTasksQuerySchema>;
+
+export function parseListProjectKanbanTasksQuery(value: unknown): ListProjectKanbanTasksQueryInput {
+  const result = listProjectKanbanTasksQuerySchema.safeParse(value);
+
+  if (result.success) {
+    return result.data;
+  }
+
+  throw new ApiProblemException({
+    status: 422,
+    code: 'VALIDATION_FAILED',
+    detail: 'Sorgu parametrelerini kontrol edin.',
+    errors: result.error.issues.map(toValidationProblem),
+  });
+}
+
 function toValidationProblem(issue: z.core.$ZodIssue): ValidationProblemItem {
   return {
     code: zodIssueCode(issue),
