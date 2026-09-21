@@ -5,7 +5,7 @@
 | Repository | `ecznt/personal-task-planner` |
 | Document role | Authoritative planning index and decision record |
 | Document language | English |
-| Last updated | 2026-09-20 |
+| Last updated | 2026-09-21 |
 
 ## Product vision
 
@@ -302,7 +302,7 @@ The product boundary is defined in the approved PRD, and UX decisions are record
 | `docs/planning/L-026_KANBAN_V2_PLAN.md` | Implementation plan for L-026 Kanban v2 (search/filter toolbar + drag-and-drop). | Implemented; DEC-109 |
 | `docs/planning/L-027_SUBTASKS_PLAN.md` | Implementation plan for L-027 sub-tasks (single-level nested Tasks with lifecycle cascade). | Implemented; DEC-111, kanban parent-child (b032545) |
 | `docs/planning/L-028_TASK_TEMPLATES_PLAN.md` | Implementation plan for L-028 task templates (define and apply). | Implemented; DEC-112 |
-| `docs/planning/L-029_SNOOZE_PLAN.md` | Implementation plan for L-029 snooze/postpone (task dates + reminders). | Planned; DEC-111 |
+| `docs/planning/L-029_SNOOZE_PLAN.md` | Implementation plan for L-029 snooze/postpone (task dates + reminders). | Implemented; DEC-111 |
 | `docs/planning/L-030_MARKDOWN_NOTES_PLAN.md` | Implementation plan for L-030 Markdown-supported rich notes on Task description. | Planned; DEC-111 |
 | `docs/planning/L-031_KANBAN_IMPROVEMENTS_PLAN.md` | Implementation plan for L-031 Kanban improvements (Area board URL filters + Project board). | Planned; DEC-111 |
 | `README.md` | Contributor entry point, current implementation status, pinned runtime, local PostgreSQL/bootstrap commands, required quality gates, and generated-artifact workflow. | Current; updated through DEC-110 and L-026 |

@@ -14,6 +14,7 @@ import { ListSkeleton } from '@/components/list-skeleton';
 import { PageHeader } from '@/components/page-header';
 import { TaskPriorityBadge } from '@/features/tasks/task-badge';
 import { SubtaskProgress } from '@/features/tasks/subtask-progress';
+import { TaskSnoozeMenu, SnoozeDialog } from '@/features/tasks/task-snooze';
 import { useTaskInspector } from '@/features/tasks/task-inspector-context';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
 import { anchorLabel } from '@/features/labels/label-color';
@@ -23,6 +24,7 @@ import {
   labelHoverSurfaceClass,
   labelSurfaceStyle,
 } from '@/features/labels/label-chip';
+import { useKeyboardShortcut } from '@/features/shortcuts/use-keyboard-shortcut';
 
 type TodayTask = {
   readonly id: string;
@@ -117,6 +119,8 @@ function TaskCard({
   task,
   index,
   onStatusChange,
+  onFocus,
+  onBlur,
 }: {
   task: TodayTask;
   index: number;
@@ -125,6 +129,8 @@ function TaskCard({
     target: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED',
     version: number,
   ) => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
 }) {
   const { openTask } = useTaskInspector();
   const isCompleted = task.canonicalStatus === 'COMPLETED';
@@ -144,6 +150,8 @@ function TaskCard({
       <button
         type="button"
         onClick={() => openTask(task.id)}
+        onFocus={onFocus}
+        onBlur={onBlur}
         className="min-w-0 flex-1 cursor-pointer rounded-lg text-left"
       >
         <div className="truncate font-medium">{task.title}</div>
@@ -183,6 +191,12 @@ function TaskCard({
         </div>
       </button>
       <div className="flex shrink-0 gap-1">
+        <TaskSnoozeMenu
+          taskId={task.id}
+          version={task.version}
+          hasPlannedAt={!!task.plannedAt}
+          hasDueAt={!!task.dueAt}
+        />
         {!isCompleted && task.canonicalStatus !== 'IN_PROGRESS' && (
           <button
             type="button"
@@ -222,6 +236,14 @@ export function TodayView() {
     planned: true,
     due: true,
   });
+  const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null);
+  const [snoozeDialogOpen, setSnoozeDialogOpen] = useState(false);
+  const [snoozeDialogTask, setSnoozeDialogTask] = useState<{
+    taskId: string;
+    version: number;
+    hasPlannedAt: boolean;
+    hasDueAt: boolean;
+  } | null>(null);
   const toggleSection = (key: string) =>
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
   const queryClient = useQueryClient();
@@ -242,6 +264,31 @@ export function TodayView() {
       return result.data as TodayResponse;
     },
   });
+
+  useKeyboardShortcut(
+    { key: 'd' },
+    () => {
+      if (focusedTaskId && today.data) {
+        const allTasks = [
+          ...today.data.overdue.tasks,
+          ...today.data.plannedToday.tasks,
+          ...today.data.dueToday.tasks,
+          ...today.data.completedToday.tasks,
+        ];
+        const task = allTasks.find((t) => t.id === focusedTaskId);
+        if (task && (task.plannedAt || task.dueAt)) {
+          setSnoozeDialogTask({
+            taskId: task.id,
+            version: task.version,
+            hasPlannedAt: !!task.plannedAt,
+            hasDueAt: !!task.dueAt,
+          });
+          setSnoozeDialogOpen(true);
+        }
+      }
+    },
+    { skipWhenEditable: true },
+  );
 
   const moveMutation = useMutation({
     mutationFn: async ({
@@ -349,6 +396,8 @@ export function TodayView() {
                       task={task}
                       index={index}
                       onStatusChange={handleStatusChange}
+                      onFocus={() => setFocusedTaskId(task.id)}
+                      onBlur={() => setFocusedTaskId(null)}
                     />
                   ))}
                 </div>
@@ -373,6 +422,8 @@ export function TodayView() {
                       task={task}
                       index={index}
                       onStatusChange={handleStatusChange}
+                      onFocus={() => setFocusedTaskId(task.id)}
+                      onBlur={() => setFocusedTaskId(null)}
                     />
                   ))}
                 </div>
@@ -397,6 +448,8 @@ export function TodayView() {
                       task={task}
                       index={index}
                       onStatusChange={handleStatusChange}
+                      onFocus={() => setFocusedTaskId(task.id)}
+                      onBlur={() => setFocusedTaskId(null)}
                     />
                   ))}
                 </div>
@@ -432,6 +485,8 @@ export function TodayView() {
                           task={task}
                           index={index}
                           onStatusChange={handleStatusChange}
+                          onFocus={() => setFocusedTaskId(task.id)}
+                          onBlur={() => setFocusedTaskId(null)}
                         />
                       ))}
                     </div>
@@ -442,6 +497,14 @@ export function TodayView() {
           )}
         </div>
       )}
+      <SnoozeDialog
+        open={snoozeDialogOpen}
+        onOpenChange={setSnoozeDialogOpen}
+        taskId={snoozeDialogTask?.taskId ?? ''}
+        version={snoozeDialogTask?.version ?? 0}
+        hasPlannedAt={snoozeDialogTask?.hasPlannedAt ?? false}
+        hasDueAt={snoozeDialogTask?.hasDueAt ?? false}
+      />
     </div>
   );
 }

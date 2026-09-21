@@ -4,8 +4,9 @@
 | --- | --- |
 | Slice | L-029 |
 | Goal | Görev tarihlerini ve tetiklenmiş hatırlatıcıları tek eylemle ertesi zaman aralığına alma |
-| Status | Planlı — uygulanmadı |
+| Status | Tamamlandı |
 | Created | 2026-09-20 |
+| Completed | 2026-09-21 |
 | Dependencies | L-010 (Today), L-018 (in-app notifications), L-026 (Kanban v2), Reminder worker |
 
 ## 1. Story Goal

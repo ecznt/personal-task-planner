@@ -12,6 +12,7 @@ import { EmptyState } from '@/components/empty-state';
 import { ListSkeleton } from '@/components/list-skeleton';
 import { PageHeader } from '@/components/page-header';
 import { TaskPriorityBadge } from '@/features/tasks/task-badge';
+import { TaskSnoozeMenu } from '@/features/tasks/task-snooze';
 import { useTaskInspector } from '@/features/tasks/task-inspector-context';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
 import { anchorLabel } from '@/features/labels/label-color';
@@ -32,7 +33,11 @@ type UpcomingTask = {
   readonly lifecycleState: string;
   readonly version: number;
   readonly areaId: string;
-  readonly labels: readonly { readonly id: string; readonly name: string; readonly color: string | null }[];
+  readonly labels: readonly {
+    readonly id: string;
+    readonly name: string;
+    readonly color: string | null;
+  }[];
 };
 
 type UpcomingDayGroup = {
@@ -161,7 +166,11 @@ function TaskCard({
         <div className="truncate font-medium">{task.title}</div>
         <div className="mt-1 flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
           <TaskPriorityBadge priority={task.priority} />
-          {task.plannedAt && <span>Plan: {formatDate(task.plannedAt)} {formatTime(task.plannedAt)}</span>}
+          {task.plannedAt && (
+            <span>
+              Plan: {formatDate(task.plannedAt)} {formatTime(task.plannedAt)}
+            </span>
+          )}
           {task.dueAt && (
             <span>
               Bitiş: {formatDate(task.dueAt)} {formatTime(task.dueAt)}
@@ -180,6 +189,12 @@ function TaskCard({
         </div>
       </button>
       <div className="flex shrink-0 gap-1">
+        <TaskSnoozeMenu
+          taskId={task.id}
+          version={task.version}
+          hasPlannedAt={!!task.plannedAt}
+          hasDueAt={!!task.dueAt}
+        />
         {!isCompleted && task.canonicalStatus !== 'IN_PROGRESS' && (
           <button
             type="button"
@@ -279,7 +294,8 @@ export function UpcomingView() {
   }
 
   const data = upcoming.data;
-  const hasAnyTasks = data.overdue.length > 0 || data.days.some((day) => day.planned.length + day.due.length > 0);
+  const hasAnyTasks =
+    data.overdue.length > 0 || data.days.some((day) => day.planned.length + day.due.length > 0);
 
   return (
     <div className="space-y-6">

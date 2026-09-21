@@ -3,6 +3,10 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ReminderRepository } from '../infrastructure/reminder.repository';
 import { TaskRepository } from '../infrastructure/task.repository';
 import type { TaskReminder } from '../domain/reminder.entity';
+import {
+  computeSnoozedReminderAt,
+  type SnoozeUnit,
+} from '../domain/snooze-time';
 
 export type CreateReminderCommand = {
   readonly userId: string;
@@ -17,6 +21,19 @@ export type CreateReminderResult = {
   readonly outcome: 'SUCCESS' | 'TASK_NOT_FOUND' | 'TASK_NO_TIME' | 'DUPLICATE_REMINDER';
   readonly reminder?: TaskReminder;
 };
+
+export type SnoozeReminderCommand = {
+  readonly userId: string;
+  readonly taskId: string;
+  readonly reminderId: string;
+  readonly amount: number;
+  readonly unit: SnoozeUnit;
+};
+
+export type SnoozeReminderResult =
+  | { readonly outcome: 'SUCCESS'; readonly reminder: TaskReminder }
+  | { readonly outcome: 'REMINDER_NOT_FOUND' }
+  | { readonly outcome: 'INVALID_STATE' };
 
 @Injectable()
 export class ReminderService {
@@ -92,5 +109,53 @@ export class ReminderService {
 
   async cancelReminder(userId: string, reminderId: string): Promise<boolean> {
     return this.reminderRepository.cancelReminder(userId, reminderId);
+  }
+
+  async snoozeReminder(command: SnoozeReminderCommand): Promise<SnoozeReminderResult> {
+    const existing = await this.reminderRepository.findReminderById(command.userId, command.reminderId);
+
+    if (!existing || existing.taskId !== command.taskId) {
+      return { outcome: 'REMINDER_NOT_FOUND' };
+    }
+
+    if (existing.state !== 'TRIGGERED' && existing.state !== 'SCHEDULED') {
+      return { outcome: 'INVALID_STATE' };
+    }
+
+    if (existing.state === 'TRIGGERED') {
+      await this.reminderRepository.markNotificationReadByReminder(command.userId, command.reminderId);
+    }
+
+    const newScheduledAt = computeSnoozedReminderAt({
+      state: existing.state,
+      scheduledAt: existing.scheduledAt,
+      amount: command.amount,
+      unit: command.unit,
+      now: new Date(),
+    });
+
+    const atTime =
+      existing.ruleType === 'AT_TIME' ? newScheduledAt : undefined;
+
+    const updated = await this.reminderRepository.snoozeReminder(
+      command.userId,
+      command.reminderId,
+      { scheduledAt: newScheduledAt, atTime },
+    );
+
+    if (!updated) {
+      return { outcome: 'INVALID_STATE' };
+    }
+
+    const reminder = await this.reminderRepository.findReminderById(
+      command.userId,
+      command.reminderId,
+    );
+
+    if (!reminder) {
+      return { outcome: 'REMINDER_NOT_FOUND' };
+    }
+
+    return { outcome: 'SUCCESS', reminder };
   }
 }

@@ -73,6 +73,8 @@ export class NotificationController {
         readState: n.readState,
         version: n.version,
         createdAt: n.createdAt.toISOString(),
+        taskReminderId: n.taskReminderId,
+        taskId: n.taskId,
         taskTitle: n.taskTitle,
         taskDueAt: n.taskDueAt?.toISOString() ?? null,
       })),

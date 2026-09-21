@@ -12,6 +12,7 @@ import type {
 } from '../domain/task.entity';
 import { RecurrenceService } from './recurrence.service';
 import { buildCalendarDayRanges, parseTodayRange } from './date-range';
+import { addSnoozeDelta, type SnoozeTarget, type SnoozeUnit } from '../domain/snooze-time';
 
 export type CreateTaskChecklistItemInput = {
   readonly text: string;
@@ -211,6 +212,28 @@ export type MoveAreaKanbanTaskCommand = {
 };
 
 export type MoveAreaKanbanTaskResult =
+  | {
+      readonly outcome: 'SUCCESS';
+      readonly task: Task;
+      readonly etag: number;
+      readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+      readonly subtaskCount: number;
+      readonly completedSubtaskCount: number;
+    }
+  | { readonly outcome: 'NOT_FOUND' }
+  | { readonly outcome: 'STALE_VERSION' }
+  | { readonly outcome: 'VALIDATION_ERROR'; readonly detail: string }
+  | { readonly outcome: 'UNAUTHENTICATED' };
+
+export type SnoozeTaskDatesCommand = {
+  readonly taskId: string;
+  readonly version: number;
+  readonly target: SnoozeTarget;
+  readonly amount: number;
+  readonly unit: SnoozeUnit;
+};
+
+export type SnoozeTaskDatesResult =
   | {
       readonly outcome: 'SUCCESS';
       readonly task: Task;
@@ -940,6 +963,102 @@ export class TaskService {
 
     if (command.labelIds !== undefined) {
       await this.taskRepository.setTaskLabels(userId, command.taskId, command.labelIds);
+    }
+
+    const canonicalStatus = await this.taskRepository.getCanonicalStatus(userId, task.areaStatusId);
+
+    const subtaskStats = await this.taskRepository.getSubtaskStats(userId, task.id);
+
+    return {
+      outcome: 'SUCCESS',
+      task,
+      etag: task.version,
+      canonicalStatus: canonicalStatus ?? 'TO_DO',
+      subtaskCount: subtaskStats.subtaskCount,
+      completedSubtaskCount: subtaskStats.completedSubtaskCount,
+    };
+  }
+
+  async snoozeTaskDates(
+    userId: string,
+    command: SnoozeTaskDatesCommand,
+  ): Promise<SnoozeTaskDatesResult> {
+    const existing = await this.taskRepository.findById(userId, command.taskId);
+
+    if (!existing) {
+      return { outcome: 'NOT_FOUND' };
+    }
+
+    const hasPlannedAt = existing.task.plannedAt !== null;
+    const hasDueAt = existing.task.dueAt !== null;
+
+    if (command.target === 'PLANNED' && !hasPlannedAt) {
+      return {
+        outcome: 'VALIDATION_ERROR',
+        detail: 'Planlanan tarihi olmayan bir görev ötelenemez.',
+      };
+    }
+
+    if (command.target === 'DUE' && !hasDueAt) {
+      return {
+        outcome: 'VALIDATION_ERROR',
+        detail: 'Bitiş tarihi olmayan bir görev ötelenemez.',
+      };
+    }
+
+    if (command.target === 'BOTH' && !hasPlannedAt && !hasDueAt) {
+      return {
+        outcome: 'VALIDATION_ERROR',
+        detail: 'Planlanan veya bitiş tarihi olmayan bir görev ötelenemez.',
+      };
+    }
+
+    const shiftPlanned = command.target === 'PLANNED' || command.target === 'BOTH';
+    const shiftDue = command.target === 'DUE' || command.target === 'BOTH';
+
+    const plannedAt = shiftPlanned
+      ? existing.task.plannedAt !== null
+        ? addSnoozeDelta(existing.task.plannedAt, command.amount, command.unit)
+        : null
+      : existing.task.plannedAt;
+
+    const dueAt = shiftDue
+      ? existing.task.dueAt !== null
+        ? addSnoozeDelta(existing.task.dueAt, command.amount, command.unit)
+        : null
+      : existing.task.dueAt;
+
+    if (plannedAt !== null && dueAt !== null && dueAt < plannedAt) {
+      return {
+        outcome: 'VALIDATION_ERROR',
+        detail: 'Bitiş tarihi, başlangıç tarihinden önce olamaz.',
+      };
+    }
+
+    const task = await this.taskRepository.updateTask(
+      userId,
+      command.taskId,
+      {
+        plannedAt,
+        dueAt,
+        title: undefined,
+        description: undefined,
+        priority: undefined,
+        areaStatusId: undefined,
+        projectId: undefined,
+        parentTaskId: undefined,
+      },
+      command.version,
+    );
+
+    if (!task) {
+      const stillExists = await this.taskRepository.findById(userId, command.taskId);
+
+      if (!stillExists) {
+        return { outcome: 'NOT_FOUND' };
+      }
+
+      return { outcome: 'STALE_VERSION' };
     }
 
     const canonicalStatus = await this.taskRepository.getCanonicalStatus(userId, task.areaStatusId);

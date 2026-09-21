@@ -11,6 +11,7 @@ import { EmptyState } from '@/components/empty-state';
 import { ListSkeleton } from '@/components/list-skeleton';
 import { PageHeader } from '@/components/page-header';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
+import { ReminderSnoozeButton } from '@/features/tasks/task-snooze';
 
 type NotificationItem = {
   readonly id: string;
@@ -21,6 +22,8 @@ type NotificationItem = {
   readonly createdAt: string;
   readonly taskTitle: string | null;
   readonly taskDueAt: string | null;
+  readonly taskReminderId: string | null;
+  readonly taskId: string | null;
 };
 
 type NotificationsPageData = {
@@ -228,6 +231,14 @@ export function NotificationsView() {
                     >
                       Okundu
                     </Button>
+                  )}
+                  {notification.taskReminderId && notification.taskId && (
+                    <ReminderSnoozeButton
+                      taskId={notification.taskId}
+                      reminderId={notification.taskReminderId}
+                      version={notification.version}
+                      className="ml-1"
+                    />
                   )}
                 </div>
               </div>

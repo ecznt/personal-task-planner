@@ -22,6 +22,7 @@ import {
 import { TaskPriorityBadge } from './task-badge';
 import { SubtaskProgress } from './subtask-progress';
 import { BulkActionBar } from './bulk-action-bar';
+import { TaskSnoozeMenu } from './task-snooze';
 import { useTaskInspector } from './task-inspector-context';
 
 type TaskSummary = {
@@ -403,6 +404,14 @@ export function GlobalTaskList({ projectId, embedded = false }: GlobalTaskListPr
                       ? 'Devam Ediyor'
                       : 'Tamamlandı'}
                 </div>
+
+                <TaskSnoozeMenu
+                  taskId={task.id}
+                  version={task.version}
+                  hasPlannedAt={!!task.plannedAt}
+                  hasDueAt={!!task.dueAt}
+                  className="ml-2"
+                />
 
                 {!selectionMode && (
                   <span

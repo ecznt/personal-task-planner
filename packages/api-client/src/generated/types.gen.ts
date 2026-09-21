@@ -496,6 +496,11 @@ export type RegistrationAcceptedResponseDto = {
     data: RegistrationAcceptedDataDto;
 };
 
+export type ReminderSnoozeActionRequestDto = {
+    amount: number;
+    unit: 'MINUTES' | 'HOURS' | 'DAYS';
+};
+
 export type RenameAreaRequestDto = {
     name: string;
 };
@@ -576,6 +581,12 @@ export type TaskParentDataDto = {
 
 export type TaskResponseDto = {
     data: TaskDataDto;
+};
+
+export type TaskSnoozeActionRequestDto = {
+    amount: number;
+    target: 'PLANNED' | 'DUE' | 'BOTH';
+    unit: 'MINUTES' | 'HOURS' | 'DAYS';
 };
 
 export type TaskSubtaskDataDto = {
@@ -2675,6 +2686,75 @@ export type CancelReminderResponses = {
 };
 
 export type CancelReminderResponse = CancelReminderResponses[keyof CancelReminderResponses];
+
+export type SnoozeReminderData = {
+    body: ReminderSnoozeActionRequestDto;
+    headers: {
+        'If-Match': string;
+    };
+    path: {
+        reminderId: string;
+        taskId: string;
+    };
+    query?: never;
+    url: '/api/v1/tasks/{taskId}/reminders/{reminderId}/snooze-actions';
+};
+
+export type SnoozeReminderErrors = {
+    /**
+     * Unauthorized.
+     */
+    401: unknown;
+    /**
+     * Reminder not found.
+     */
+    404: unknown;
+    /**
+     * Reminder cannot be snoozed in current state.
+     */
+    409: unknown;
+};
+
+export type SnoozeReminderResponses = {
+    /**
+     * Reminder snoozed.
+     */
+    200: unknown;
+};
+
+export type SnoozeTaskDatesData = {
+    body: TaskSnoozeActionRequestDto;
+    path: {
+        taskId: string;
+    };
+    query?: never;
+    url: '/api/v1/tasks/{taskId}/snooze-actions';
+};
+
+export type SnoozeTaskDatesErrors = {
+    /**
+     * Unauthorized.
+     */
+    401: unknown;
+    /**
+     * Task not found.
+     */
+    404: unknown;
+    /**
+     * Version conflict.
+     */
+    409: unknown;
+    /**
+     * Validation failed.
+     */
+    422: unknown;
+};
+
+export type SnoozeTaskDatesResponses = {
+    200: TaskResponseDto;
+};
+
+export type SnoozeTaskDatesResponse = SnoozeTaskDatesResponses[keyof SnoozeTaskDatesResponses];
 
 export type ExecuteBulkActionsData = {
     body: {

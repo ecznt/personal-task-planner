@@ -32,6 +32,7 @@ export type Notification = {
 };
 
 export type NotificationDetail = Notification & {
+  readonly taskId: string;
   readonly taskTitle: string | null;
   readonly taskDueAt: Date | null;
 };

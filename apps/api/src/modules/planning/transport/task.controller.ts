@@ -31,6 +31,7 @@ import type {
   ListTodayTasksResult,
   ListUpcomingTasksResult,
   MoveKanbanTaskResult,
+  SnoozeTaskDatesResult,
   TodayTaskSummary,
 } from '../application/task.service';
 import type { KanbanTaskSummary, TaskSummary } from '../domain/task.entity';
@@ -46,6 +47,7 @@ import {
   parseListUpcomingTasksQuery,
   parseMoveKanbanTaskInput,
 } from './task.schema';
+import { parseTaskSnoozeActionInput } from './snooze.schema';
 import {
   CalendarResponseDto,
   EditTaskRequestDto,
@@ -57,6 +59,7 @@ import {
   TodayResponseDto,
   UpcomingResponseDto,
 } from './task.dto';
+import { TaskSnoozeActionRequestDto } from './snooze.dto';
 
 @ApiTags('Tasks')
 @Controller('tasks')
@@ -490,6 +493,49 @@ export class TaskController {
     return this.handleEditResult(result, response);
   }
 
+  @Post(':taskId/snooze-actions')
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({ operationId: 'snoozeTaskDates', summary: 'Snooze task dates' })
+  @ApiParam({ name: 'taskId', type: String, format: 'uuid' })
+  @ApiBody({ type: TaskSnoozeActionRequestDto })
+  @ApiResponse({ status: 200, type: TaskResponseDto })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  @ApiResponse({ status: 404, description: 'Task not found.' })
+  @ApiResponse({ status: 409, description: 'Version conflict.' })
+  @ApiResponse({ status: 422, description: 'Validation failed.' })
+  async snoozeTaskDates(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+    @Param('taskId') taskId: string,
+    @Body() body: unknown,
+    @Headers('if-match') ifMatch?: string,
+    @Headers('idempotency-key') idempotencyKey?: string,
+  ): Promise<TaskResponseDto> {
+    const userId = await this.resolveUserId(request);
+
+    if (!idempotencyKey) {
+      throw new ApiProblemException({
+        status: 422,
+        code: 'VALIDATION_FAILED',
+        detail: 'Idempotency-Key başlığı gereklidir.',
+      });
+    }
+
+    const input = parseTaskSnoozeActionInput(body);
+
+    const version = ifMatch !== undefined ? parseInt(ifMatch, 10) : NaN;
+
+    const result = await this.taskService.snoozeTaskDates(userId, {
+      taskId,
+      version,
+      target: input.target,
+      amount: input.amount,
+      unit: input.unit,
+    });
+
+    return this.handleSnoozeResult(result, response);
+  }
+
   private async resolveUserId(request: Request): Promise<string> {
     const token = parseCookieValue(request.headers.cookie, sessionCookieName());
 
@@ -611,6 +657,60 @@ export class TaskController {
   }
 
   private handleEditResult(result: EditTaskResult, response: Response): TaskResponseDto {
+    switch (result.outcome) {
+      case 'SUCCESS':
+        response.setHeader('ETag', String(result.etag));
+        return {
+          data: {
+            id: result.task.id,
+            areaId: result.task.areaId,
+            title: result.task.title,
+            description: result.task.description,
+            plannedAt: result.task.plannedAt?.toISOString() ?? null,
+            dueAt: result.task.dueAt?.toISOString() ?? null,
+            priority: result.task.priority,
+            areaStatusId: result.task.areaStatusId,
+            canonicalStatus: result.canonicalStatus,
+            lifecycleState: result.task.lifecycleState,
+            version: result.task.version,
+            labels: [],
+            checklistItems: [],
+            projectId: result.task.projectId,
+            parentTaskId: result.task.parentTaskId,
+            subtaskCount: result.subtaskCount,
+            completedSubtaskCount: result.completedSubtaskCount,
+            parentTask: null,
+            subtasks: [],
+          },
+        };
+      case 'NOT_FOUND':
+        throw new ApiProblemException({
+          status: 404,
+          code: 'RESOURCE_NOT_FOUND',
+          detail: 'Kaynak bulunamadı.',
+        });
+      case 'STALE_VERSION':
+        throw new ApiProblemException({
+          status: 409,
+          code: 'VERSION_CONFLICT',
+          detail: 'Çakışma oluştu. Lütfen sayfayı yenileyin.',
+        });
+      case 'VALIDATION_ERROR':
+        throw new ApiProblemException({
+          status: 422,
+          code: 'VALIDATION_FAILED',
+          detail: result.detail,
+        });
+      case 'UNAUTHENTICATED':
+        throw new ApiProblemException({
+          status: 401,
+          code: 'AUTHENTICATION_REQUIRED',
+          detail: 'Oturum açmanız gerekiyor.',
+        });
+    }
+  }
+
+  private handleSnoozeResult(result: SnoozeTaskDatesResult, response: Response): TaskResponseDto {
     switch (result.outcome) {
       case 'SUCCESS':
         response.setHeader('ETag', String(result.etag));

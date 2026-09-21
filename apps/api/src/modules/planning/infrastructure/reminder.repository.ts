@@ -123,14 +123,56 @@ export class ReminderRepository {
     return result.count > 0;
   }
 
+  async snoozeReminder(
+    userId: string,
+    reminderId: string,
+    input: {
+      readonly scheduledAt: Date;
+      readonly atTime: Date | null | undefined;
+    },
+  ): Promise<boolean> {
+    const data: Record<string, unknown> = {
+      state: 'SCHEDULED',
+      scheduledAt: input.scheduledAt,
+      version: { increment: 1 },
+    };
+
+    if (input.atTime !== undefined) {
+      data.atTime = input.atTime;
+    }
+
+    const result = await this.prisma.taskReminder.updateMany({
+      where: { id: reminderId, userId, state: { in: ['TRIGGERED', 'SCHEDULED'] } },
+      data,
+    });
+
+    return result.count > 0;
+  }
+
+  async markNotificationReadByReminder(userId: string, reminderId: string): Promise<boolean> {
+    const result = await this.prisma.notification.updateMany({
+      where: { userId, taskReminderId: reminderId, readState: 'UNREAD' },
+      data: { readState: 'READ', version: { increment: 1 } },
+    });
+    return result.count > 0;
+  }
+
   async createNotification(
     userId: string,
     taskReminderId: string,
     title: string,
     body: string | null,
   ): Promise<Notification> {
-    return this.prisma.notification.create({
-      data: {
+    return this.prisma.notification.upsert({
+      where: { taskReminderId },
+      update: {
+        title,
+        body,
+        readState: 'UNREAD',
+        version: { increment: 1 },
+        createdAt: new Date(),
+      },
+      create: {
         userId,
         taskReminderId,
         title,
@@ -171,7 +213,7 @@ export class ReminderRepository {
         taskReminder: {
           include: {
             task: {
-              select: { title: true, dueAt: true },
+              select: { id: true, title: true, dueAt: true },
             },
           },
         },
@@ -193,6 +235,7 @@ export class ReminderRepository {
       version: n.version,
       createdAt: n.createdAt,
       updatedAt: n.updatedAt,
+      taskId: n.taskReminder.task.id,
       taskTitle: n.taskReminder.task.title,
       taskDueAt: n.taskReminder.task.dueAt,
     }));

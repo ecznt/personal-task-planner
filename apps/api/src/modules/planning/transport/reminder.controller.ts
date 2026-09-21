@@ -19,6 +19,9 @@ import { AccountsRepository } from '../../accounts/infrastructure/accounts.repos
 import { AuthSecurityService } from '../../accounts/security/auth-security.service';
 import { parseCookieValue, sessionCookieName } from '../../accounts/transport/auth-cookie';
 import { ReminderService } from '../application/reminder.service';
+import { parseReminderSnoozeActionInput } from '../transport/snooze.schema';
+import { ReminderSnoozeActionRequestDto } from '../transport/snooze.dto';
+import type { ReminderResponseDto } from '../transport/snooze.dto';
 
 @ApiTags('Task Reminders')
 @Controller('tasks')
@@ -145,6 +148,97 @@ export class ReminderController {
         });
         break;
       }
+    }
+  }
+
+  @Post(':taskId/reminders/:reminderId/snooze-actions')
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({ summary: 'Snooze a reminder' })
+  @ApiParam({ name: 'taskId', type: String, format: 'uuid' })
+  @ApiParam({ name: 'reminderId', type: String, format: 'uuid' })
+  @ApiBody({ type: ReminderSnoozeActionRequestDto })
+  @ApiHeader({ name: 'If-Match', required: true })
+  @ApiResponse({ status: 200, description: 'Reminder snoozed.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  @ApiResponse({ status: 404, description: 'Reminder not found.' })
+  @ApiResponse({ status: 409, description: 'Reminder cannot be snoozed in current state.' })
+  async snoozeReminder(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+    @Param('taskId') taskId: string,
+    @Param('reminderId') reminderId: string,
+    @Body() body: unknown,
+    @Headers('if-match') ifMatch?: string,
+    @Headers('idempotency-key') idempotencyKey?: string,
+  ): Promise<ReminderResponseDto> {
+    const userId = await this.resolveUserId(request);
+
+    if (!idempotencyKey) {
+      throw new ApiProblemException({
+        status: 422,
+        code: 'VALIDATION_FAILED',
+        detail: 'Idempotency-Key başlığı gereklidir.',
+      });
+    }
+
+    if (!ifMatch) {
+      throw new ApiProblemException({
+        status: 428,
+        code: 'PRECONDITION_REQUIRED',
+        detail: 'If-Match başlığı gerekli.',
+      });
+    }
+
+    const version = parseInt(ifMatch, 10);
+
+    if (isNaN(version)) {
+      throw new ApiProblemException({
+        status: 422,
+        code: 'VALIDATION_FAILED',
+        detail: 'If-Match başlığı geçerli bir sayı olmalıdır.',
+      });
+    }
+
+    const input = parseReminderSnoozeActionInput(body);
+
+    const result = await this.reminderService.snoozeReminder({
+      userId,
+      taskId,
+      reminderId,
+      amount: input.amount,
+      unit: input.unit,
+    });
+
+    switch (result.outcome) {
+      case 'SUCCESS': {
+        const reminder = result.reminder;
+        response.setHeader('ETag', String(reminder.version));
+        return {
+          data: {
+            id: reminder.id,
+            taskId: reminder.taskId,
+            anchorType: reminder.anchorType,
+            ruleType: reminder.ruleType,
+            offsetMinutes: reminder.offsetMinutes,
+            atTime: reminder.atTime?.toISOString() ?? null,
+            scheduledAt: reminder.scheduledAt.toISOString(),
+            state: reminder.state,
+            version: reminder.version,
+          },
+        };
+      }
+      case 'REMINDER_NOT_FOUND':
+        throw new ApiProblemException({
+          status: 404,
+          code: 'RESOURCE_NOT_FOUND',
+          detail: 'Hatırlatma bulunamadı.',
+        });
+      case 'INVALID_STATE':
+        throw new ApiProblemException({
+          status: 409,
+          code: 'INVALID_REMINDER_STATE',
+          detail: 'Hatırlatma şu anda ertelenemez.',
+        });
     }
   }
 

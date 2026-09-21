@@ -1756,6 +1756,29 @@
         ],
         "type": "object"
       },
+      "ReminderSnoozeActionRequestDto": {
+        "properties": {
+          "amount": {
+            "example": 15,
+            "maximum": 365,
+            "minimum": 1,
+            "type": "number"
+          },
+          "unit": {
+            "enum": [
+              "MINUTES",
+              "HOURS",
+              "DAYS"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "amount",
+          "unit"
+        ],
+        "type": "object"
+      },
       "RenameAreaRequestDto": {
         "properties": {
           "name": {
@@ -2060,6 +2083,38 @@
         },
         "required": [
           "data"
+        ],
+        "type": "object"
+      },
+      "TaskSnoozeActionRequestDto": {
+        "properties": {
+          "amount": {
+            "example": 1,
+            "maximum": 365,
+            "minimum": 1,
+            "type": "number"
+          },
+          "target": {
+            "enum": [
+              "PLANNED",
+              "DUE",
+              "BOTH"
+            ],
+            "type": "string"
+          },
+          "unit": {
+            "enum": [
+              "MINUTES",
+              "HOURS",
+              "DAYS"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "target",
+          "amount",
+          "unit"
         ],
         "type": "object"
       },
@@ -5789,6 +5844,121 @@
         "summary": "Cancel a reminder",
         "tags": [
           "Task Reminders"
+        ]
+      }
+    },
+    "/api/v1/tasks/{taskId}/reminders/{reminderId}/snooze-actions": {
+      "post": {
+        "operationId": "snoozeReminder",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "If-Match",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "reminderId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "taskId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReminderSnoozeActionRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Reminder snoozed."
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "Reminder not found."
+          },
+          "409": {
+            "description": "Reminder cannot be snoozed in current state."
+          }
+        },
+        "summary": "Snooze a reminder",
+        "tags": [
+          "Task Reminders"
+        ]
+      }
+    },
+    "/api/v1/tasks/{taskId}/snooze-actions": {
+      "post": {
+        "operationId": "snoozeTaskDates",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "taskId",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskSnoozeActionRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "Task not found."
+          },
+          "409": {
+            "description": "Version conflict."
+          },
+          "422": {
+            "description": "Validation failed."
+          }
+        },
+        "summary": "Snooze task dates",
+        "tags": [
+          "Tasks"
         ]
       }
     },
