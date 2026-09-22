@@ -450,7 +450,7 @@ export function CalendarView() {
   return (
     <DragDropProvider
       sensors={[
-        { plugin: PointerSensor, options: { activationConstraint: { distance: 4 } } },
+        { plugin: PointerSensor, options: { preventActivation: () => false } },
         KeyboardSensor,
       ]}
       onDragStart={(event) => {
