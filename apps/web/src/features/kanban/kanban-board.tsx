@@ -28,6 +28,7 @@ import {
 } from '@/features/kanban/kanban-dnd';
 import { KanbanTaskCard, type KanbanTask } from '@/features/kanban/kanban-task-card';
 import { useTaskInspector } from '@/features/tasks/task-inspector-context';
+import { celebrateTaskCompleted } from '@/features/today/celebration-store';
 import {
   KanbanToolbar,
   useKanbanBoardFilters,
@@ -223,7 +224,10 @@ export function KanbanBoard() {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks', 'kanban'] });
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
+      if (variables.target === 'COMPLETED') {
+        celebrateTaskCompleted();
+      }
       toast.success('Görev taşındı');
     },
   });

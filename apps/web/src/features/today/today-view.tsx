@@ -25,7 +25,7 @@ import {
   labelSurfaceStyle,
 } from '@/features/labels/label-chip';
 import { useKeyboardShortcut } from '@/features/shortcuts/use-keyboard-shortcut';
-import { Celebration } from './celebration';
+import { celebrateTaskCompleted } from './celebration-store';
 import { TodayBriefing } from './today-briefing';
 import { WeeklyStats } from './weekly-stats';
 
@@ -247,7 +247,6 @@ export function TodayView() {
     hasPlannedAt: boolean;
     hasDueAt: boolean;
   } | null>(null);
-  const [celebrationKey, setCelebrationKey] = useState(0);
   const toggleSection = (key: string) =>
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
   const queryClient = useQueryClient();
@@ -325,7 +324,7 @@ export function TodayView() {
       queryClient.invalidateQueries({ queryKey: ['tasks', 'kanban'] });
       queryClient.invalidateQueries({ queryKey: ['tasks', 'statistics'] });
       if (variables.target === 'COMPLETED') {
-        setCelebrationKey((key) => key + 1);
+        celebrateTaskCompleted();
       }
       toast.success('Durum güncellendi');
     },
@@ -523,7 +522,6 @@ export function TodayView() {
         hasPlannedAt={snoozeDialogTask?.hasPlannedAt ?? false}
         hasDueAt={snoozeDialogTask?.hasDueAt ?? false}
       />
-      <Celebration triggerKey={celebrationKey} />
     </div>
   );
 }

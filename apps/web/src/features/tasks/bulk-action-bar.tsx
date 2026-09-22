@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
+import { celebrateTaskCompleted } from '@/features/today/celebration-store';
 
 type BulkActionResult = {
   readonly taskId: string;
@@ -69,9 +70,12 @@ export function BulkActionBar({ selectedTasks, onClearSelection, onResult }: Bul
 
       return result.data as BulkActionsResponse;
     },
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       const succeeded = data.results.filter((r) => r.status === 'SUCCEEDED').length;
       const failed = data.results.filter((r) => r.status === 'FAILED').length;
+      if (variables === 'COMPLETED' && succeeded > 0) {
+        celebrateTaskCompleted();
+      }
       onResult({ succeeded, failed });
       queryClient.invalidateQueries({ queryKey: ['tasks', 'global'] });
       onClearSelection();

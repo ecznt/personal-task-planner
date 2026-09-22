@@ -181,3 +181,21 @@ test('moves a task between statuses with the arrow button', async ({ page }) => 
   });
   expect(moveRequests[0].ifMatch).toBe('4');
 });
+
+test('completing a task fires the completion celebration', async ({ page }) => {
+  await mockAuthenticatedSession(page);
+  await mockProjectDetail(page);
+  await mockKanban(page);
+  await mockKanbanMove(page);
+
+  await openProjectKanban(page);
+
+  const celebrationLayer = page.locator('div.pointer-events-none.fixed.inset-0.z-50');
+
+  await expect(celebrationLayer).toBeVisible();
+  await expect(celebrationLayer.locator('span')).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Baslık taslağı görevini sonraki duruma taşı' }).click();
+
+  await expect.poll(() => celebrationLayer.locator('span').count()).toBeGreaterThan(0);
+});

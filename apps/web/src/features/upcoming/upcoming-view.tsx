@@ -14,6 +14,7 @@ import { PageHeader } from '@/components/page-header';
 import { TaskPriorityBadge } from '@/features/tasks/task-badge';
 import { TaskSnoozeMenu } from '@/features/tasks/task-snooze';
 import { useTaskInspector } from '@/features/tasks/task-inspector-context';
+import { celebrateTaskCompleted } from '@/features/today/celebration-store';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
 import { anchorLabel } from '@/features/labels/label-color';
 import {
@@ -269,10 +270,13 @@ export function UpcomingView() {
       if (result.error !== undefined) throw apiError(result.error);
       return result.data;
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['tasks', 'upcoming'] });
       queryClient.invalidateQueries({ queryKey: ['tasks', 'today'] });
       queryClient.invalidateQueries({ queryKey: ['tasks', 'kanban'] });
+      if (variables.target === 'COMPLETED') {
+        celebrateTaskCompleted();
+      }
       toast.success('Durum güncellendi');
     },
   });

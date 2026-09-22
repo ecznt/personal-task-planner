@@ -2,15 +2,14 @@
 
 import { useEffect, useRef } from 'react';
 
+import { useCelebrationTrigger } from '@/features/today/celebration-store';
+
 const COLORS = ['#5e6ad2', '#8b93e0', '#22c55e', '#f59e0b', '#f43f5e'];
 const PARTICLE_COUNT = 32;
 
-type CelebrationProps = {
-  readonly triggerKey: number;
-};
-
-export function Celebration({ triggerKey }: CelebrationProps) {
+export function Celebration() {
   const layerRef = useRef<HTMLDivElement>(null);
+  const triggerKey = useCelebrationTrigger();
 
   useEffect(() => {
     if (triggerKey === 0) return;
