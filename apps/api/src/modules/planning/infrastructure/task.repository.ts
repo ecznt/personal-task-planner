@@ -703,6 +703,24 @@ export class TaskRepository {
     return result;
   }
 
+  async findCompletedTasksBetween(
+    userId: string,
+    rangeStart: Date,
+    rangeEnd: Date,
+  ): Promise<readonly { readonly id: string; readonly updatedAt: Date }[]> {
+    const tasks = await this.prisma.task.findMany({
+      where: {
+        userId,
+        lifecycleState: 'ACTIVE',
+        areaStatus: { canonicalStatus: 'COMPLETED' },
+        updatedAt: { gte: rangeStart, lt: rangeEnd },
+      },
+      select: { id: true, updatedAt: true },
+    });
+
+    return tasks.map((task) => ({ id: task.id, updatedAt: task.updatedAt }));
+  }
+
   async findUpcomingTasks(
     userId: string,
     rangeStart: Date,

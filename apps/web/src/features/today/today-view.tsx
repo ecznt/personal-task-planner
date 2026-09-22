@@ -25,6 +25,9 @@ import {
   labelSurfaceStyle,
 } from '@/features/labels/label-chip';
 import { useKeyboardShortcut } from '@/features/shortcuts/use-keyboard-shortcut';
+import { Celebration } from './celebration';
+import { TodayBriefing } from './today-briefing';
+import { WeeklyStats } from './weekly-stats';
 
 type TodayTask = {
   readonly id: string;
@@ -244,6 +247,7 @@ export function TodayView() {
     hasPlannedAt: boolean;
     hasDueAt: boolean;
   } | null>(null);
+  const [celebrationKey, setCelebrationKey] = useState(0);
   const toggleSection = (key: string) =>
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
   const queryClient = useQueryClient();
@@ -316,9 +320,13 @@ export function TodayView() {
       if (result.error !== undefined) throw apiError(result.error);
       return result.data;
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['tasks', 'today'] });
       queryClient.invalidateQueries({ queryKey: ['tasks', 'kanban'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks', 'statistics'] });
+      if (variables.target === 'COMPLETED') {
+        setCelebrationKey((key) => key + 1);
+      }
       toast.success('Durum güncellendi');
     },
   });
@@ -362,6 +370,15 @@ export function TodayView() {
           year: 'numeric',
         })} · ${data.timezone}`}
       />
+
+      {hasAnyTasks ? (
+        <TodayBriefing
+          overdue={data.overdue.tasks}
+          plannedToday={data.plannedToday.tasks}
+          dueToday={data.dueToday.tasks}
+          completedToday={data.completedToday.tasks}
+        />
+      ) : null}
 
       {!hasAnyTasks ? (
         <EmptyState
@@ -497,6 +514,7 @@ export function TodayView() {
           )}
         </div>
       )}
+      <WeeklyStats />
       <SnoozeDialog
         open={snoozeDialogOpen}
         onOpenChange={setSnoozeDialogOpen}
@@ -505,6 +523,7 @@ export function TodayView() {
         hasPlannedAt={snoozeDialogTask?.hasPlannedAt ?? false}
         hasDueAt={snoozeDialogTask?.hasDueAt ?? false}
       />
+      <Celebration triggerKey={celebrationKey} />
     </div>
   );
 }

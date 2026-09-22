@@ -19,6 +19,7 @@ describe('today task list HTTP contract', () => {
     editTask: jest.fn<TaskService['editTask']>(),
     listGlobalTasks: jest.fn<TaskService['listGlobalTasks']>(),
     listTodayTasks: jest.fn<TaskService['listTodayTasks']>(),
+    getWeeklyStatistics: jest.fn<TaskService['getWeeklyStatistics']>(),
   };
   const accountsRepository = {
     findAuthenticatedSession: jest
@@ -102,6 +103,59 @@ describe('today task list HTTP contract', () => {
       accountsRepository.findAuthenticatedSession.mockResolvedValue(null);
 
       await request(app.getHttpServer()).get('/tasks/today').expect(401);
+    });
+  });
+
+  describe('GET /tasks/statistics/weekly', () => {
+    it('returns weekly completion buckets with default timezone', async () => {
+      taskService.getWeeklyStatistics.mockResolvedValue({
+        outcome: 'SUCCESS',
+        timezone: 'Europe/Istanbul',
+        totalCompleted: 3,
+        days: [
+          { date: '2026-09-16', count: 1 },
+          { date: '2026-09-17', count: 0 },
+          { date: '2026-09-18', count: 0 },
+          { date: '2026-09-19', count: 1 },
+          { date: '2026-09-20', count: 0 },
+          { date: '2026-09-21', count: 0 },
+          { date: '2026-09-22', count: 1 },
+        ],
+      });
+
+      const response = await request(app.getHttpServer())
+        .get('/tasks/statistics/weekly')
+        .set('Cookie', 'planner-session=token')
+        .expect(200);
+
+      expect(response.body.totalCompleted).toBe(3);
+      expect(response.body.days).toHaveLength(7);
+      expect(response.body.days[0]).toEqual({ date: '2026-09-16', count: 1 });
+
+      expect(taskService.getWeeklyStatistics).toHaveBeenCalledWith('user-id', 'Europe/Istanbul');
+    });
+
+    it('passes timezone parameter', async () => {
+      taskService.getWeeklyStatistics.mockResolvedValue({
+        outcome: 'SUCCESS',
+        timezone: 'America/New_York',
+        totalCompleted: 0,
+        days: [],
+      });
+
+      await request(app.getHttpServer())
+        .get('/tasks/statistics/weekly')
+        .query({ timezone: 'America/New_York' })
+        .set('Cookie', 'planner-session=token')
+        .expect(200);
+
+      expect(taskService.getWeeklyStatistics).toHaveBeenCalledWith('user-id', 'America/New_York');
+    });
+
+    it('returns 401 without session', async () => {
+      accountsRepository.findAuthenticatedSession.mockResolvedValue(null);
+
+      await request(app.getHttpServer()).get('/tasks/statistics/weekly').expect(401);
     });
   });
 });

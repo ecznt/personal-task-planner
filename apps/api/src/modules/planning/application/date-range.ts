@@ -25,6 +25,46 @@ export function parseTodayRange(timezone: string): TodayRange {
   return { todayStart, todayEnd, todayStr };
 }
 
+export type PastDayRange = {
+  date: string;
+  start: Date;
+  end: Date;
+};
+
+export function buildPastDayRangesInTimeZone(timezone: string, days: number): PastDayRange[] {
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+
+  const todayParts = formatter.format(now).split('-');
+  const todayStart = Date.UTC(
+    Number(todayParts[0]),
+    Number(todayParts[1]) - 1,
+    Number(todayParts[2]),
+  );
+
+  const ranges: PastDayRange[] = [];
+
+  for (let offset = days - 1; offset >= 0; offset -= 1) {
+    const start = new Date(todayStart - offset * 86_400_000);
+    const end = new Date(start.getTime() + 86_400_000);
+    const dateFormatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'UTC',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+
+    ranges.push({ date: dateFormatter.format(start), start, end });
+  }
+
+  return ranges;
+}
+
 export type CalendarDayRange = {
   date: string;
   start: Date;

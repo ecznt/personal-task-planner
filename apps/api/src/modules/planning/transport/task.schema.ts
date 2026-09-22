@@ -243,6 +243,27 @@ export function parseListTodayTasksQuery(value: unknown): ListTodayTasksQueryInp
   });
 }
 
+const listWeeklyStatisticsQuerySchema = z.object({
+  timezone: z.string().min(1).default('Europe/Istanbul'),
+});
+
+export type ListWeeklyStatisticsQueryInput = z.infer<typeof listWeeklyStatisticsQuerySchema>;
+
+export function parseListWeeklyStatisticsQuery(value: unknown): ListWeeklyStatisticsQueryInput {
+  const result = listWeeklyStatisticsQuerySchema.safeParse(value);
+
+  if (result.success) {
+    return result.data;
+  }
+
+  throw new ApiProblemException({
+    status: 422,
+    code: 'VALIDATION_FAILED',
+    detail: 'Sorgu parametrelerini kontrol edin.',
+    errors: result.error.issues.map(toValidationProblem),
+  });
+}
+
 const listUpcomingTasksQuerySchema = z.object({
   timezone: z.string().min(1).default('Europe/Istanbul'),
   days: z.coerce.number().int().min(1).max(31).default(14),

@@ -443,6 +443,25 @@ export class CalendarResponseDto {
   days!: CalendarDayGroupDto[];
 }
 
+export class WeeklyCompletionDayDto {
+  @ApiProperty({ type: String })
+  date!: string;
+
+  @ApiProperty({ type: Number })
+  count!: number;
+}
+
+export class WeeklyStatisticsResponseDto {
+  @ApiProperty({ type: String })
+  timezone!: string;
+
+  @ApiProperty({ type: Number })
+  totalCompleted!: number;
+
+  @ApiProperty({ type: () => [WeeklyCompletionDayDto] })
+  days!: WeeklyCompletionDayDto[];
+}
+
 export class KanbanTaskDto {
   @ApiProperty({ format: 'uuid', type: String })
   id!: string;

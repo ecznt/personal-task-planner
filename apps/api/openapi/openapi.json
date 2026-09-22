@@ -2833,6 +2833,43 @@
           "version"
         ],
         "type": "object"
+      },
+      "WeeklyCompletionDayDto": {
+        "properties": {
+          "count": {
+            "type": "number"
+          },
+          "date": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "count"
+        ],
+        "type": "object"
+      },
+      "WeeklyStatisticsResponseDto": {
+        "properties": {
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/WeeklyCompletionDayDto"
+            },
+            "type": "array"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "totalCompleted": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "timezone",
+          "totalCompleted",
+          "days"
+        ],
+        "type": "object"
       }
     }
   },
@@ -6325,6 +6362,40 @@
           }
         },
         "summary": "Move Task between Kanban groups",
+        "tags": [
+          "Tasks"
+        ]
+      }
+    },
+    "/api/v1/tasks/statistics/weekly": {
+      "get": {
+        "operationId": "getWeeklyStatistics",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "timezone",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeeklyStatisticsResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          }
+        },
+        "summary": "Get completed Task statistics for the trailing 7 days",
         "tags": [
           "Tasks"
         ]

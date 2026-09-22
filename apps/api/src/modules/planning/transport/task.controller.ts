@@ -33,6 +33,7 @@ import type {
   MoveKanbanTaskResult,
   SnoozeTaskDatesResult,
   TodayTaskSummary,
+  WeeklyStatisticsResult,
 } from '../application/task.service';
 import type { KanbanTaskSummary, TaskSummary } from '../domain/task.entity';
 import { mapKanbanTaskSummary } from './kanban-task.mapper';
@@ -45,6 +46,7 @@ import {
   parseListKanbanTasksQuery,
   parseListTodayTasksQuery,
   parseListUpcomingTasksQuery,
+  parseListWeeklyStatisticsQuery,
   parseMoveKanbanTaskInput,
 } from './task.schema';
 import { parseTaskSnoozeActionInput } from './snooze.schema';
@@ -58,6 +60,7 @@ import {
   TaskResponseDto,
   TodayResponseDto,
   UpcomingResponseDto,
+  WeeklyStatisticsResponseDto,
 } from './task.dto';
 import { TaskSnoozeActionRequestDto } from './snooze.dto';
 
@@ -150,6 +153,34 @@ export class TaskController {
     });
 
     return this.handleListTodayTasksResult(result);
+  }
+
+  @Get('statistics/weekly')
+  @Header('Cache-Control', 'no-store')
+  @ApiOperation({
+    operationId: 'getWeeklyStatistics',
+    summary: 'Get completed Task statistics for the trailing 7 days',
+  })
+  @ApiQuery({ name: 'timezone', type: String, required: false })
+  @ApiResponse({
+    status: 200,
+    type: WeeklyStatisticsResponseDto,
+  })
+  @ApiResponse({
+    description: 'No valid authenticated session is present.',
+    status: 401,
+  })
+  async getWeeklyStatistics(
+    @Req() request: Request,
+    @Query() query: unknown,
+  ): Promise<WeeklyStatisticsResponseDto> {
+    const userId = await this.resolveUserId(request);
+
+    const input = parseListWeeklyStatisticsQuery(query);
+
+    const result = await this.taskService.getWeeklyStatistics(userId, input.timezone);
+
+    return this.handleListWeeklyStatisticsResult(result);
   }
 
   @Post()
@@ -835,6 +866,17 @@ export class TaskController {
         count: result.completedToday.length,
         tasks: mapTasks(result.completedToday),
       },
+    };
+  }
+
+  private handleListWeeklyStatisticsResult(result: WeeklyStatisticsResult): WeeklyStatisticsResponseDto {
+    return {
+      timezone: result.timezone,
+      totalCompleted: result.totalCompleted,
+      days: result.days.map((day) => ({
+        date: day.date,
+        count: day.count,
+      })),
     };
   }
 

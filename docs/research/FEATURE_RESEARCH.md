@@ -142,7 +142,7 @@ Uygulanmış özellikler (2026-09-22 kod kontrolü) puan tablosunda **tamamland�
 2. **F-07 Haftalık hedefler + weekly review** — Sunsama/OmniFocus'tan ilham; haftalık planlama ritüeli kullanıcı bağlılığını güçlendirir.
 3. **F-06 Today "Bu akşam" + gün sonu rollover** — Küçük UX iyileştirmesi; gün sonunda kalan işleri otomatik ertesi güne taşıma seçeneği.
 
-L-027 (F-01), L-028 (F-05), L-029 (F-02), L-030 (F-08), L-032 (F-04) ile özgün sekiz "Adopt" özelliğinden beşi tamamlanmıştır.
+L-027 (F-01), L-028 (F-05), L-029 (F-02), L-030 (F-08), L-032 (F-04) ile özgün sekiz "Adopt" özelliğinden beşi tamamlanmıştır. 2026-09-22'de kullanıcı araştırma adaylarının dışına çıkıp bir "günlük keyif" üçlüsü seçti (L-033, `docs/planning/L-033_TODAY_DELIGHT_PLAN.md`): Today'de **Gün Özeti** briefing, tamamlanınca **confetti + progress ring** kutlaması ve **haftalık tamamlanan istatistikleri**. Tümü API + web'de uygulanıp `opencode/develop`'a yayınlandı.
 
 ## 7. BACKLOG adayı — önerilen "next slice" paketleri
 

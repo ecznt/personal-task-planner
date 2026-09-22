@@ -765,6 +765,17 @@ export type VersionResponseDto = {
     version: string;
 };
 
+export type WeeklyCompletionDayDto = {
+    count: number;
+    date: string;
+};
+
+export type WeeklyStatisticsResponseDto = {
+    days: Array<WeeklyCompletionDayDto>;
+    timezone: string;
+    totalCompleted: number;
+};
+
 export type LoginRequestDtoWritable = {
     email: string;
     password: string;
@@ -2949,6 +2960,28 @@ export type MoveKanbanTaskResponses = {
 };
 
 export type MoveKanbanTaskResponse = MoveKanbanTaskResponses[keyof MoveKanbanTaskResponses];
+
+export type GetWeeklyStatisticsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        timezone?: string;
+    };
+    url: '/api/v1/tasks/statistics/weekly';
+};
+
+export type GetWeeklyStatisticsErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+};
+
+export type GetWeeklyStatisticsResponses = {
+    200: WeeklyStatisticsResponseDto;
+};
+
+export type GetWeeklyStatisticsResponse = GetWeeklyStatisticsResponses[keyof GetWeeklyStatisticsResponses];
 
 export type ListTodayTasksData = {
     body?: never;

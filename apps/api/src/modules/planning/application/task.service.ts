@@ -11,7 +11,7 @@ import type {
   TaskSummary,
 } from '../domain/task.entity';
 import { RecurrenceService } from './recurrence.service';
-import { buildCalendarDayRanges, parseTodayRange } from './date-range';
+import { buildCalendarDayRanges, buildPastDayRangesInTimeZone, parseTodayRange } from './date-range';
 import { addSnoozeDelta, type SnoozeTarget, type SnoozeUnit } from '../domain/snooze-time';
 
 export type CreateTaskChecklistItemInput = {
@@ -286,6 +286,18 @@ export type ListCalendarTasksResult = {
   readonly outcome: 'SUCCESS';
   readonly timezone: string;
   readonly days: readonly CalendarDayGroup[];
+};
+
+export type WeeklyCompletionDay = {
+  readonly date: string;
+  readonly count: number;
+};
+
+export type WeeklyStatisticsResult = {
+  readonly outcome: 'SUCCESS';
+  readonly timezone: string;
+  readonly totalCompleted: number;
+  readonly days: readonly WeeklyCompletionDay[];
 };
 
 @Injectable()
@@ -700,6 +712,44 @@ export class TaskService {
         date: range.date,
         planned: dayGroups.get(range.date)?.planned ?? [],
         due: dayGroups.get(range.date)?.due ?? [],
+      })),
+    };
+  }
+
+  async getWeeklyStatistics(userId: string, timezone: string): Promise<WeeklyStatisticsResult> {
+    const ranges = buildPastDayRangesInTimeZone(timezone, 7);
+    const rangeStart = ranges[0]?.start;
+    const rangeEnd = ranges[ranges.length - 1]?.end;
+
+    if (rangeStart === undefined || rangeEnd === undefined) {
+      return { outcome: 'SUCCESS', timezone, totalCompleted: 0, days: [] };
+    }
+
+    const completed = await this.taskRepository.findCompletedTasksBetween(
+      userId,
+      rangeStart,
+      rangeEnd,
+    );
+
+    const counts = new Map<string, number>();
+
+    for (const task of completed) {
+      const day = ranges.find(
+        (range) => task.updatedAt >= range.start && task.updatedAt < range.end,
+      );
+
+      if (day) {
+        counts.set(day.date, (counts.get(day.date) ?? 0) + 1);
+      }
+    }
+
+    return {
+      outcome: 'SUCCESS',
+      timezone,
+      totalCompleted: completed.length,
+      days: ranges.map((range) => ({
+        date: range.date,
+        count: counts.get(range.date) ?? 0,
       })),
     };
   }
