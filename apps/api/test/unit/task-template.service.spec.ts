@@ -159,9 +159,20 @@ describe('task template service — applyTemplate', () => {
     const repository = repositoryMock();
     const taskService = taskServiceMock();
     const labels = labelRepositoryMock();
-    jest.mocked(labels.findManyByNames).mockResolvedValue([
-      { id: 'label-1', userId: 'user-id', name: 'Ev', normalizedName: 'ev', color: null, version: 1, createdAt: new Date(), updatedAt: new Date() },
-    ]);
+    jest
+      .mocked(labels.findManyByNames)
+      .mockResolvedValue([
+        {
+          id: 'label-1',
+          userId: 'user-id',
+          name: 'Ev',
+          normalizedName: 'ev',
+          color: null,
+          version: 1,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ]);
     jest.mocked(taskService.createTask).mockImplementation(async () => ({
       outcome: 'SUCCESS',
       task: {
@@ -172,6 +183,7 @@ describe('task template service — applyTemplate', () => {
         description: 'İlerleme raporunu hazırla',
         plannedAt: new Date(),
         dueAt: null,
+        durationMinutes: null,
         priority: 'HIGH',
         areaStatusId: 'status-1',
         projectId: null,

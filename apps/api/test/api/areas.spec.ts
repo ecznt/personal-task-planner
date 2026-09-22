@@ -304,6 +304,7 @@ describe('area HTTP contract', () => {
           description: null,
           plannedAt: null,
           dueAt: null,
+          durationMinutes: null,
           priority: 'MEDIUM',
           areaStatusId: STATUS_ID,
           globalRank: '001',

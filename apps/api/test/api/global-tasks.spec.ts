@@ -67,6 +67,7 @@ describe('global task list HTTP contract', () => {
             canonicalStatus: 'TO_DO',
             dueAt: null,
             plannedAt: null,
+            durationMinutes: null,
             lifecycleState: 'ACTIVE',
             version: 1,
             areaId: 'area-id',

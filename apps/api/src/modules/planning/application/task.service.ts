@@ -34,6 +34,7 @@ export type CreateTaskCommand = {
   readonly description: string | null;
   readonly plannedAt: Date | null;
   readonly dueAt: Date | null;
+  readonly durationMinutes?: number | null;
   readonly priority: 'LOW' | 'MEDIUM' | 'HIGH';
   readonly projectId?: string | null;
   readonly parentTaskId?: string | null;
@@ -78,6 +79,7 @@ export type EditTaskCommand = {
   readonly description?: string | null;
   readonly plannedAt?: Date | null;
   readonly dueAt?: Date | null;
+  readonly durationMinutes?: number | null;
   readonly priority?: 'LOW' | 'MEDIUM' | 'HIGH';
   readonly areaStatusId?: string;
   readonly labelIds?: string[];
@@ -453,6 +455,7 @@ export class TaskService {
         description: command.description,
         plannedAt: command.plannedAt,
         dueAt: command.dueAt,
+        durationMinutes: command.durationMinutes ?? null,
         priority: command.priority,
         projectId: command.projectId ?? null,
         parentTaskId,
@@ -1026,6 +1029,7 @@ export class TaskService {
         description: command.description,
         plannedAt: command.plannedAt,
         dueAt: command.dueAt,
+        durationMinutes: command.durationMinutes,
         priority: command.priority,
         areaStatusId: command.areaStatusId,
         projectId: command.projectId,
@@ -1124,6 +1128,7 @@ export class TaskService {
       {
         plannedAt,
         dueAt,
+        durationMinutes: undefined,
         title: undefined,
         description: undefined,
         priority: undefined,

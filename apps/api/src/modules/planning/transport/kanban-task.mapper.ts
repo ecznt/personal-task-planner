@@ -10,6 +10,7 @@ export function mapKanbanTaskSummary(task: KanbanTaskSummary): KanbanTaskDto {
     canonicalStatus: task.canonicalStatus,
     dueAt: task.dueAt?.toISOString() ?? null,
     plannedAt: task.plannedAt?.toISOString() ?? null,
+    durationMinutes: task.durationMinutes,
     lifecycleState: task.lifecycleState,
     version: task.version,
     areaId: task.areaId,

@@ -414,9 +414,127 @@ export function InlineDateTime({ value, onCommit, placeholder, label }: InlineDa
             empty && 'text-muted-foreground',
           )}
         >
-          <span className="truncate">{empty ? (placeholder ?? 'Tarih') : formatDateTime(value)}</span>
+          <span className="truncate">
+            {empty ? (placeholder ?? 'Tarih') : formatDateTime(value)}
+          </span>
           {empty && (
             <PencilIcon className="size-3.5 shrink-0 opacity-0 transition-opacity duration-150 group-hover/editable:opacity-90" />
+          )}
+        </button>
+      )}
+    </div>
+  );
+}
+type InlineNumberProps = {
+  readonly value: number | null;
+  readonly onCommit: (next: number | null) => void;
+  readonly placeholder?: string;
+  readonly label?: string;
+};
+
+export function InlineNumber({ value, onCommit, placeholder, label }: InlineNumberProps) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState('');
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const displayRef = useRef<HTMLButtonElement | null>(null);
+  const onCommitRef = useRef(onCommit);
+  const committedRef = useRef(value);
+
+  useEffect(() => {
+    onCommitRef.current = onCommit;
+    committedRef.current = value;
+  });
+
+  useEffect(() => {
+    if (editing) {
+      inputRef.current?.focus();
+    }
+  }, [editing]);
+
+  const openEditor = () => {
+    setDraft(value === null ? '' : String(value));
+    setEditing(true);
+  };
+
+  const commit = (raw: string) => {
+    const trimmed = raw.trim();
+    if (trimmed === '') {
+      onCommitRef.current(null);
+    } else {
+      const num = Number(trimmed);
+      if (!Number.isNaN(num) && num >= 1 && num <= 1440) {
+        onCommitRef.current(num);
+      }
+    }
+    setEditing(false);
+  };
+
+  const cancelEdit = () => {
+    setEditing(false);
+    requestAnimationFrame(() => displayRef.current?.focus());
+  };
+
+  const empty = value === null;
+
+  return (
+    <div className="space-y-1">
+      {label !== undefined && (
+        <span className="block text-xs font-medium text-muted-foreground">{label}</span>
+      )}
+      {editing ? (
+        <div className="flex items-center gap-1.5">
+          <input
+            ref={inputRef}
+            type="number"
+            min="1"
+            max="1440"
+            step="5"
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            onBlur={(event) => commit(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') {
+                event.preventDefault();
+                event.stopPropagation();
+                cancelEdit();
+              }
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                commit(event.currentTarget.value);
+              }
+            }}
+            className="w-full h-8 rounded-lg border border-input bg-background/40 px-2.5 text-sm shadow-inner-edge outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            aria-label={label ?? placeholder}
+          />
+        </div>
+      ) : (
+        <button
+          ref={displayRef}
+          type="button"
+          onClick={openEditor}
+          aria-label={label ?? placeholder}
+          className="inline-flex h-8 max-w-full items-center gap-1.5 rounded-lg border border-border/70 bg-muted/60 px-2.5 text-sm font-medium transition-colors duration-150 hover:bg-accent focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-[0.97]"
+        >
+          <span className="truncate">{empty ? (placeholder ?? 'Süre') : `${value} dk`}</span>
+          {empty && (
+            <svg
+              className="size-3.5 shrink-0 opacity-0 transition-opacity duration-150 group-hover/editable:opacity-90"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5a2.121 2.121 0 0 1 3 3z"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           )}
         </button>
       )}

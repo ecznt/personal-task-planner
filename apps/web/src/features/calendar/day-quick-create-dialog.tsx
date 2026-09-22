@@ -42,6 +42,7 @@ function dayLabel(dateKey: string): string {
 function DayQuickCreateForm({ dateKey, onClose }: DayQuickCreateFormProps) {
   const [title, setTitle] = useState('');
   const [plannedAt, setPlannedAt] = useState(`${dateKey}T09:00`);
+  const [durationMinutes, setDurationMinutes] = useState<number | ''>('');
   const [error, setError] = useState<string | undefined>(undefined);
   const queryClient = useQueryClient();
 
@@ -67,6 +68,7 @@ function DayQuickCreateForm({ dateKey, onClose }: DayQuickCreateFormProps) {
         body: {
           title: parsed?.title ?? title.trim(),
           plannedAt: parsedPlannedAt !== undefined ? parsedPlannedAt.toISOString() : plannedAt,
+          ...(durationMinutes !== '' && { durationMinutes }),
           ...(parsed?.priority !== undefined && { priority: parsed.priority }),
           ...(parsed?.recurrence !== undefined && { recurrence: parsed.recurrence }),
         },
@@ -141,6 +143,21 @@ function DayQuickCreateForm({ dateKey, onClose }: DayQuickCreateFormProps) {
             type="datetime-local"
             value={effectivePlannedAt}
             onChange={(event) => setPlannedAt(event.target.value)}
+          />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="day-quick-duration">Süre (dk)</FieldLabel>
+          <Input
+            id="day-quick-duration"
+            type="number"
+            min="1"
+            max="1440"
+            step="5"
+            value={durationMinutes}
+            onChange={(event) =>
+              setDurationMinutes(event.target.value === '' ? '' : Number(event.target.value))
+            }
+            placeholder="Örn: 45"
           />
         </Field>
         <div className="flex gap-2">

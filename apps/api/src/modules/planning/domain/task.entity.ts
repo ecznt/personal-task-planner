@@ -54,6 +54,7 @@ export type Task = {
   readonly description: string | null;
   readonly plannedAt: Date | null;
   readonly dueAt: Date | null;
+  readonly durationMinutes: number | null;
   readonly priority: TaskPriority;
   readonly completedAt: Date | null;
   readonly lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
@@ -77,6 +78,7 @@ export type TaskSummary = {
   readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
   readonly dueAt: Date | null;
   readonly plannedAt: Date | null;
+  readonly durationMinutes: number | null;
   readonly lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
   readonly version: number;
   readonly areaId: string;

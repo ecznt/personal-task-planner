@@ -158,6 +158,7 @@ function makeSummary(id: string, title: string) {
     canonicalStatus: 'TO_DO',
     dueAt: null,
     plannedAt: null,
+    durationMinutes: null,
     lifecycleState: 'ACTIVE',
     version: 1,
     areaId: 'area-id',

@@ -262,6 +262,20 @@ export function CreateTaskFields({
           </Select>
         </Field>
       </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field>
+          <FieldLabel htmlFor="durationMinutes">Süre (dk)</FieldLabel>
+          <Input
+            id="durationMinutes"
+            type="number"
+            min="1"
+            max="1440"
+            step="5"
+            placeholder="Örn: 45"
+            {...form.register('durationMinutes', { valueAsNumber: true })}
+          />
+        </Field>
+      </div>
 
       <LabelManager
         selectedLabelIds={selectedLabelIds}

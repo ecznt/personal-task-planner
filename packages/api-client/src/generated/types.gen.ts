@@ -129,6 +129,7 @@ export type CalendarTaskSummaryDto = {
     canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
     completedSubtaskCount: number;
     dueAt?: string;
+    durationMinutes?: number;
     id: string;
     labels: Array<LabelSummaryDto>;
     lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
@@ -191,6 +192,10 @@ export type CreateTaskRequestDto = {
     checklistItems?: Array<CreateTaskChecklistItemRequestDto>;
     description?: string;
     dueAt?: string;
+    /**
+     * Estimated duration in minutes. Set to null to clear.
+     */
+    durationMinutes?: number;
     labelIds?: Array<string>;
     /**
      * Parent task id. When set, the task becomes a subtask of the parent.
@@ -251,6 +256,10 @@ export type EditTaskRequestDto = {
     areaStatusId?: string;
     description?: string;
     dueAt?: string;
+    /**
+     * Estimated duration in minutes. Set to null to clear.
+     */
+    durationMinutes?: number;
     labelIds?: Array<string>;
     /**
      * Parent task id. Set to null to detach the task from its parent.
@@ -285,6 +294,10 @@ export type GlobalCreateTaskRequestDto = {
     checklistItems?: Array<CreateTaskChecklistItemRequestDto>;
     description?: string;
     dueAt?: string;
+    /**
+     * Estimated duration in minutes. Set to null to clear.
+     */
+    durationMinutes?: number;
     labelIds?: Array<string>;
     /**
      * Parent task id. When set, the task becomes a subtask of the parent.
@@ -324,6 +337,7 @@ export type KanbanTaskDto = {
     canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
     completedSubtaskCount: number;
     dueAt?: string;
+    durationMinutes?: number;
     id: string;
     labels: Array<LabelSummaryDto>;
     lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
@@ -547,6 +561,7 @@ export type TaskDataDto = {
     completedSubtaskCount: number;
     description?: string;
     dueAt?: string;
+    durationMinutes?: number;
     id: string;
     labels: Array<LabelSummaryDto>;
     lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
@@ -603,6 +618,7 @@ export type TaskSummaryDto = {
     canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
     completedSubtaskCount: number;
     dueAt?: string;
+    durationMinutes?: number;
     id: string;
     labels: Array<LabelSummaryDto>;
     lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
@@ -669,6 +685,7 @@ export type TodayTaskSummaryDto = {
     canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
     completedSubtaskCount: number;
     dueAt?: string;
+    durationMinutes?: number;
     id: string;
     labels: Array<LabelSummaryDto>;
     lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
@@ -696,6 +713,7 @@ export type UpcomingTaskSummaryDto = {
     canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
     completedSubtaskCount: number;
     dueAt?: string;
+    durationMinutes?: number;
     id: string;
     labels: Array<LabelSummaryDto>;
     lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';

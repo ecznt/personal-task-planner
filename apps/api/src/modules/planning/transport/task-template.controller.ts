@@ -76,11 +76,7 @@ export class TaskTemplateController {
 
     const input = parseListTaskTemplatesQuery(query);
 
-    const result = await this.taskTemplateService.listTemplates(
-      userId,
-      input.cursor,
-      input.limit,
-    );
+    const result = await this.taskTemplateService.listTemplates(userId, input.cursor, input.limit);
 
     return this.handleListResult(result);
   }
@@ -396,10 +392,7 @@ export class TaskTemplateController {
     }
   }
 
-  private handleDeleteResult(
-    result: DeleteTaskTemplateResult,
-    response: Response,
-  ): void {
+  private handleDeleteResult(result: DeleteTaskTemplateResult, response: Response): void {
     switch (result.outcome) {
       case 'SUCCESS':
         response.status(204).send();
@@ -439,20 +432,18 @@ export class TaskTemplateController {
   }
 }
 
-function toTemplateDataDto(
-  template: {
-    readonly id: string;
-    readonly title: string;
-    readonly description: string | null;
-    readonly priority: 'LOW' | 'MEDIUM' | 'HIGH';
-    readonly checklistSteps: readonly string[];
-    readonly labelNames: readonly string[];
-    readonly defaultPlannedAtOffsetDays: number | null;
-    readonly version: number;
-    readonly createdAt: Date;
-    readonly updatedAt: Date;
-  },
-): TaskTemplateResponseDto['data'] {
+function toTemplateDataDto(template: {
+  readonly id: string;
+  readonly title: string;
+  readonly description: string | null;
+  readonly priority: 'LOW' | 'MEDIUM' | 'HIGH';
+  readonly checklistSteps: readonly string[];
+  readonly labelNames: readonly string[];
+  readonly defaultPlannedAtOffsetDays: number | null;
+  readonly version: number;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+}): TaskTemplateResponseDto['data'] {
   return {
     id: template.id,
     title: template.title,
@@ -468,7 +459,25 @@ function toTemplateDataDto(
 }
 
 function toTaskDataDto(
-  result: { readonly outcome: 'SUCCESS'; readonly task: { readonly id: string; readonly areaId: string; readonly title: string; readonly description: string | null; readonly plannedAt: Date | null; readonly dueAt: Date | null; readonly priority: 'LOW' | 'MEDIUM' | 'HIGH'; readonly areaStatusId: string; readonly projectId: string | null; readonly parentTaskId: string | null; readonly version: number; readonly lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED' }; readonly etag: number },
+  result: {
+    readonly outcome: 'SUCCESS';
+    readonly task: {
+      readonly id: string;
+      readonly areaId: string;
+      readonly title: string;
+      readonly description: string | null;
+      readonly plannedAt: Date | null;
+      readonly dueAt: Date | null;
+      readonly durationMinutes: number | null;
+      readonly priority: 'LOW' | 'MEDIUM' | 'HIGH';
+      readonly areaStatusId: string;
+      readonly projectId: string | null;
+      readonly parentTaskId: string | null;
+      readonly version: number;
+      readonly lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
+    };
+    readonly etag: number;
+  },
   response: Response,
 ): TaskResponseDto {
   response.setHeader('ETag', String(result.etag));
@@ -482,6 +491,7 @@ function toTaskDataDto(
       description: result.task.description,
       plannedAt: result.task.plannedAt?.toISOString() ?? null,
       dueAt: result.task.dueAt?.toISOString() ?? null,
+      durationMinutes: result.task.durationMinutes,
       priority: result.task.priority,
       areaStatusId: result.task.areaStatusId,
       canonicalStatus: 'TO_DO',

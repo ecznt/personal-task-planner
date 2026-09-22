@@ -61,6 +61,7 @@ export type TaskData = {
   readonly description: string | null;
   readonly plannedAt: string | null;
   readonly dueAt: string | null;
+  readonly durationMinutes: number | null;
   readonly priority: 'LOW' | 'MEDIUM' | 'HIGH';
   readonly areaStatusId: string;
   readonly canonicalStatus: string;

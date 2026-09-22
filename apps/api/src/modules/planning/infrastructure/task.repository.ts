@@ -67,6 +67,7 @@ export class TaskRepository {
       readonly description: string | null;
       readonly plannedAt: Date | null;
       readonly dueAt: Date | null;
+      readonly durationMinutes: number | null;
       readonly priority: 'LOW' | 'MEDIUM' | 'HIGH';
       readonly projectId: string | null;
       readonly parentTaskId: string | null;
@@ -117,6 +118,7 @@ export class TaskRepository {
           description: input.description,
           plannedAt: input.plannedAt,
           dueAt: input.dueAt,
+          durationMinutes: input.durationMinutes,
           priority: input.priority,
           globalRank: nextGlobalRank,
           areaRank: nextAreaRank,
@@ -363,6 +365,7 @@ export class TaskRepository {
       canonicalStatus: task.areaStatus.canonicalStatus,
       dueAt: task.dueAt,
       plannedAt: task.plannedAt,
+      durationMinutes: task.durationMinutes,
       lifecycleState: task.lifecycleState,
       version: task.version,
       areaId: task.areaId,
@@ -387,6 +390,7 @@ export class TaskRepository {
       readonly description: string | null | undefined;
       readonly plannedAt: Date | null | undefined;
       readonly dueAt: Date | null | undefined;
+      readonly durationMinutes: number | null | undefined;
       readonly priority: 'LOW' | 'MEDIUM' | 'HIGH' | undefined;
       readonly areaStatusId: string | undefined;
       readonly projectId: string | null | undefined;
@@ -410,6 +414,10 @@ export class TaskRepository {
 
     if (input.dueAt !== undefined) {
       data.dueAt = input.dueAt;
+    }
+
+    if (input.durationMinutes !== undefined) {
+      data.durationMinutes = input.durationMinutes;
     }
 
     if (input.priority !== undefined) {
@@ -597,6 +605,7 @@ export class TaskRepository {
       canonicalStatus: task.areaStatus.canonicalStatus,
       dueAt: task.dueAt,
       plannedAt: task.plannedAt,
+      durationMinutes: task.durationMinutes,
       lifecycleState: task.lifecycleState,
       version: task.version,
       areaId: task.areaId,
@@ -674,6 +683,7 @@ export class TaskRepository {
           canonicalStatus,
           dueAt: task.dueAt,
           plannedAt: task.plannedAt,
+          durationMinutes: task.durationMinutes,
           lifecycleState: task.lifecycleState,
           version: task.version,
           areaId: task.areaId,
@@ -728,6 +738,7 @@ export class TaskRepository {
       canonicalStatus: task.areaStatus.canonicalStatus,
       dueAt: task.dueAt,
       plannedAt: task.plannedAt,
+      durationMinutes: task.durationMinutes,
       lifecycleState: task.lifecycleState,
       version: task.version,
       areaId: task.areaId,
@@ -841,6 +852,7 @@ export class TaskRepository {
     readonly priority: TaskPriority;
     readonly dueAt: Date | null;
     readonly plannedAt: Date | null;
+    readonly durationMinutes: number | null;
     readonly lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
     readonly version: number;
     readonly areaId: string;
@@ -872,6 +884,7 @@ export class TaskRepository {
       canonicalStatus: task.areaStatus.canonicalStatus,
       dueAt: task.dueAt,
       plannedAt: task.plannedAt,
+      durationMinutes: task.durationMinutes,
       lifecycleState: task.lifecycleState,
       version: task.version,
       areaId: task.areaId,
@@ -1317,6 +1330,7 @@ export class TaskRepository {
         canonicalStatus: task.areaStatus.canonicalStatus,
         dueAt: task.dueAt,
         plannedAt: task.plannedAt,
+        durationMinutes: task.durationMinutes,
         lifecycleState: task.lifecycleState,
         version: task.version,
         areaId: task.areaId,

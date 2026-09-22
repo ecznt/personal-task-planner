@@ -612,6 +612,7 @@ export class ProjectController {
             description: result.task.description,
             plannedAt: result.task.plannedAt?.toISOString() ?? null,
             dueAt: result.task.dueAt?.toISOString() ?? null,
+            durationMinutes: result.task.durationMinutes,
             priority: result.task.priority,
             areaStatusId: result.task.areaStatusId,
             canonicalStatus: result.canonicalStatus,

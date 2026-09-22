@@ -246,6 +246,7 @@ describe('task template HTTP contract', () => {
           description: null,
           plannedAt: null,
           dueAt: null,
+          durationMinutes: null,
           priority: 'HIGH',
           areaStatusId: 'status-1',
           projectId: null,

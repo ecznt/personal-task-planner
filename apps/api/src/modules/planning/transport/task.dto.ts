@@ -61,6 +61,9 @@ export class TaskDataDto {
   @ApiProperty({ type: String, format: 'date-time', required: false })
   dueAt!: string | null;
 
+  @ApiProperty({ type: Number, required: false, minimum: 1, maximum: 1440 })
+  durationMinutes!: number | null;
+
   @ApiProperty({ enum: ['LOW', 'MEDIUM', 'HIGH'], type: String })
   priority!: 'LOW' | 'MEDIUM' | 'HIGH';
 
@@ -123,6 +126,9 @@ export class TaskSummaryDto {
   @ApiProperty({ type: String, format: 'date-time', required: false })
   plannedAt!: string | null;
 
+  @ApiProperty({ type: Number, required: false, minimum: 1, maximum: 1440 })
+  durationMinutes!: number | null;
+
   @ApiProperty({ enum: ['ACTIVE', 'ARCHIVED', 'TRASHED'], type: String })
   lifecycleState!: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
 
@@ -166,6 +172,15 @@ export class CreateTaskRequestDto {
 
   @ApiProperty({ type: String, format: 'date-time', required: false })
   plannedAt?: string | null;
+
+  @ApiProperty({
+    type: Number,
+    required: false,
+    minimum: 1,
+    maximum: 1440,
+    description: 'Estimated duration in minutes. Set to null to clear.',
+  })
+  durationMinutes?: number | null;
 
   @ApiProperty({ type: String, format: 'date-time', required: false })
   dueAt?: string | null;
@@ -235,6 +250,15 @@ export class EditTaskRequestDto {
   @ApiProperty({ type: String, format: 'date-time', required: false })
   plannedAt?: string | null;
 
+  @ApiProperty({
+    type: Number,
+    required: false,
+    minimum: 1,
+    maximum: 1440,
+    description: 'Estimated duration in minutes. Set to null to clear.',
+  })
+  durationMinutes?: number | null;
+
   @ApiProperty({ type: String, format: 'date-time', required: false })
   dueAt?: string | null;
 
@@ -281,6 +305,9 @@ export class TodayTaskSummaryDto {
 
   @ApiProperty({ type: String, format: 'date-time', required: false })
   plannedAt!: string | null;
+
+  @ApiProperty({ type: Number, required: false, minimum: 1, maximum: 1440 })
+  durationMinutes!: number | null;
 
   @ApiProperty({ enum: ['ACTIVE', 'ARCHIVED', 'TRASHED'], type: String })
   lifecycleState!: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
@@ -372,6 +399,9 @@ export class CalendarTaskSummaryDto {
   @ApiProperty({ type: String, format: 'date-time', required: false })
   plannedAt!: string | null;
 
+  @ApiProperty({ type: Number, required: false, minimum: 1, maximum: 1440 })
+  durationMinutes!: number | null;
+
   @ApiProperty({ enum: ['ACTIVE', 'ARCHIVED', 'TRASHED'], type: String })
   lifecycleState!: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
 
@@ -431,6 +461,9 @@ export class KanbanTaskDto {
 
   @ApiProperty({ type: String, format: 'date-time', required: false })
   plannedAt!: string | null;
+
+  @ApiProperty({ type: Number, required: false, minimum: 1, maximum: 1440 })
+  durationMinutes!: number | null;
 
   @ApiProperty({ enum: ['ACTIVE', 'ARCHIVED', 'TRASHED'], type: String })
   lifecycleState!: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';

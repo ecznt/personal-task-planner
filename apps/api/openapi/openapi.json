@@ -468,6 +468,11 @@
             "format": "date-time",
             "type": "string"
           },
+          "durationMinutes": {
+            "maximum": 1440,
+            "minimum": 1,
+            "type": "number"
+          },
           "id": {
             "format": "uuid",
             "type": "string"
@@ -691,6 +696,12 @@
             "format": "date-time",
             "type": "string"
           },
+          "durationMinutes": {
+            "description": "Estimated duration in minutes. Set to null to clear.",
+            "maximum": 1440,
+            "minimum": 1,
+            "type": "number"
+          },
           "labelIds": {
             "items": {
               "format": "uuid",
@@ -892,6 +903,12 @@
             "format": "date-time",
             "type": "string"
           },
+          "durationMinutes": {
+            "description": "Estimated duration in minutes. Set to null to clear.",
+            "maximum": 1440,
+            "minimum": 1,
+            "type": "number"
+          },
           "labelIds": {
             "items": {
               "format": "uuid",
@@ -986,6 +1003,12 @@
           "dueAt": {
             "format": "date-time",
             "type": "string"
+          },
+          "durationMinutes": {
+            "description": "Estimated duration in minutes. Set to null to clear.",
+            "maximum": 1440,
+            "minimum": 1,
+            "type": "number"
           },
           "labelIds": {
             "items": {
@@ -1106,6 +1129,11 @@
           "dueAt": {
             "format": "date-time",
             "type": "string"
+          },
+          "durationMinutes": {
+            "maximum": 1440,
+            "minimum": 1,
+            "type": "number"
           },
           "id": {
             "format": "uuid",
@@ -1946,6 +1974,11 @@
             "format": "date-time",
             "type": "string"
           },
+          "durationMinutes": {
+            "maximum": 1440,
+            "minimum": 1,
+            "type": "number"
+          },
           "id": {
             "format": "uuid",
             "type": "string"
@@ -2185,6 +2218,11 @@
           "dueAt": {
             "format": "date-time",
             "type": "string"
+          },
+          "durationMinutes": {
+            "maximum": 1440,
+            "minimum": 1,
+            "type": "number"
           },
           "id": {
             "format": "uuid",
@@ -2453,6 +2491,11 @@
             "format": "date-time",
             "type": "string"
           },
+          "durationMinutes": {
+            "maximum": 1440,
+            "minimum": 1,
+            "type": "number"
+          },
           "id": {
             "format": "uuid",
             "type": "string"
@@ -2581,6 +2624,11 @@
           "dueAt": {
             "format": "date-time",
             "type": "string"
+          },
+          "durationMinutes": {
+            "maximum": 1440,
+            "minimum": 1,
+            "type": "number"
           },
           "id": {
             "format": "uuid",

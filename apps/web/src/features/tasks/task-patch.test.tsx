@@ -57,6 +57,7 @@ const taskData = (overrides: Partial<TaskData> = {}): TaskData => ({
   description: null,
   plannedAt: null,
   dueAt: null,
+  durationMinutes: null,
   priority: 'MEDIUM',
   areaStatusId: 'status-todo',
   canonicalStatus: 'TO_DO',

@@ -413,6 +413,7 @@ model Task {
   description    String?
   plannedAt      DateTime?              @db.Timestamptz(3)
   dueAt          DateTime?              @db.Timestamptz(3)
+  durationMinutes Int?
   priority       TaskPriority           @default(MEDIUM)
   completedAt    DateTime?              @db.Timestamptz(3)
   lifecycleState PlanningLifecycleState @default(ACTIVE)

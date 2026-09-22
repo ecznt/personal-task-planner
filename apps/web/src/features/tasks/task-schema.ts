@@ -27,6 +27,7 @@ export const createTaskSchema = z.object({
   description: z.string().max(5000, 'Görev açıklaması en fazla 5000 karakter olabilir.').optional(),
   plannedAt: z.string().optional(),
   dueAt: z.string().optional(),
+  durationMinutes: z.number().int().min(1).max(1440).nullable().optional(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH']),
   projectId: z.string().nullable().optional(),
   labelIds: z.array(z.string()).optional(),
@@ -51,6 +52,7 @@ export const editTaskSchema = z.object({
   description: z.string().max(5000, 'Görev açıklaması en fazla 5000 karakter olabilir.').optional(),
   plannedAt: z.string().optional(),
   dueAt: z.string().optional(),
+  durationMinutes: z.number().int().min(1).max(1440).nullable().optional(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
   projectId: z.string().optional(),
 });

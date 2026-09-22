@@ -16,7 +16,13 @@ import { LabelManager } from '@/features/labels/label-manager';
 import { TaskLifecycleActions } from '@/features/lifecycle/task-lifecycle-actions';
 import { ReminderManager } from '@/features/reminders/reminder-manager';
 
-import { AutosaveStatus, InlineDateTime, InlineSelect, InlineText } from './inline-field';
+import {
+  AutosaveStatus,
+  InlineDateTime,
+  InlineNumber,
+  InlineSelect,
+  InlineText,
+} from './inline-field';
 import { TaskDescription } from './task-description';
 import { RecurrenceForm, WEEKDAY_LABELS } from './recurrence-form';
 import { PRIORITY_LABELS } from './task-badge';
@@ -266,6 +272,14 @@ export function TaskInspector({ taskId, variant = 'page' }: TaskInspectorProps) 
             placeholder="Bitiş ekle"
             onCommit={(iso) => {
               saveFields({ dueAt: iso });
+            }}
+          />
+          <InlineNumber
+            label="Süre (dk)"
+            value={current.durationMinutes}
+            placeholder="Süre ekle"
+            onCommit={(next) => {
+              saveFields({ durationMinutes: next });
             }}
           />
         </div>
