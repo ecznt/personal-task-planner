@@ -5,6 +5,7 @@ import { axe } from 'vitest-axe';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PreferencesForm } from './preferences-form';
+import type * as ThemeProviderModule from '@/components/theme/theme-provider';
 
 const mocks = vi.hoisted(() => ({
   fetchCsrf: vi.fn(),
@@ -30,6 +31,24 @@ vi.mock('@/features/auth/auth-api', () => ({
 vi.mock('@/features/push/use-push-channel', () => ({
   usePushChannel: mocks.usePushChannel,
 }));
+
+const mocksTheme = vi.hoisted(() => ({
+  setAccentColor: vi.fn(),
+}));
+
+vi.mock('@/components/theme/theme-provider', async (importOriginal) => {
+  const actual: typeof ThemeProviderModule = await importOriginal();
+  return {
+    ...actual,
+    useTheme: () => ({
+      theme: 'system',
+      resolvedTheme: 'light',
+      setTheme: vi.fn(),
+      accentColor: actual.ACCENT_COLORS[0],
+      setAccentColor: mocksTheme.setAccentColor,
+    }),
+  };
+});
 
 function renderPreferencesForm(queryClient = new QueryClient()) {
   return render(
@@ -76,11 +95,34 @@ describe('PreferencesForm', () => {
     renderPreferencesForm();
 
     expect(await screen.findByRole('heading', { name: 'Saat dilimi' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Vurgu rengi' })).toBeInTheDocument();
     expect(screen.getByLabelText('Saat dilimi')).toHaveValue('Europe/Istanbul');
     expect(screen.getByRole('checkbox', { name: 'Uygulama içi bildirimler' })).toBeChecked();
     expect(screen.getByRole('checkbox', { name: 'Tarayıcı bildirimleri' })).toBeChecked();
     expect(
       screen.getByRole('heading', { name: 'Bildirimler' }),
+    ).toBeInTheDocument();
+  });
+
+  it('selects an accent color from the swatches', async () => {
+    renderPreferencesForm();
+
+    await screen.findByRole('heading', { name: 'Saat dilimi' });
+
+    await userEvent.click(screen.getByRole('radio', { name: 'Zümrüt' }));
+
+    expect(mocksTheme.setAccentColor).toHaveBeenCalledWith('emerald');
+  });
+
+  it('marks the current accent color as selected', async () => {
+    renderPreferencesForm();
+
+    await screen.findByRole('heading', { name: 'Saat dilimi' });
+
+    expect(screen.getByRole('radio', { name: 'Mor' })).toBeChecked();
+    expect(screen.getByRole('radio', { name: 'Çivit' })).not.toBeChecked();
+    expect(
+      screen.getByText((content) => content.trim().startsWith('Seçili vurgu:')),
     ).toBeInTheDocument();
   });
 

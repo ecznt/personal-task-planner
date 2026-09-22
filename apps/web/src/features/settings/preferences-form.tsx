@@ -13,6 +13,8 @@ import { Select } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
 import { usePushChannel } from '@/features/push/use-push-channel';
+import { ACCENT_COLORS, useTheme } from '@/components/theme/theme-provider';
+import { cn } from '@/lib/utils';
 
 import {
   detectedBrowserTimeZone,
@@ -236,6 +238,20 @@ export function PreferencesForm() {
       <Card>
         <CardHeader>
           <CardTitle role="heading" aria-level={2}>
+            Vurgu rengi
+          </CardTitle>
+          <CardDescription>
+            Uygulamanın odak ve vurgu rengini seçin. Seçiminiz bu cihazda saklanır.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AccentColorPicker />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle role="heading" aria-level={2}>
             Saat dilimi
           </CardTitle>
           <CardDescription>
@@ -336,6 +352,58 @@ export function PreferencesForm() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function AccentColorPicker() {
+  const { accentColor, setAccentColor } = useTheme();
+
+  return (
+    <FieldGroup>
+      <div className="flex flex-wrap gap-3" role="radiogroup" aria-label="Vurgu rengi">
+        {ACCENT_COLORS.map((color) => {
+          const selected = color.id === accentColor.id;
+          return (
+            <button
+              key={color.id}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              aria-label={color.name}
+              onClick={() => setAccentColor(color.id)}
+              className={cn(
+                'flex h-10 w-10 items-center justify-center rounded-full border transition-transform duration-[var(--duration-fast)] active:scale-90 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none',
+                selected ? 'border-foreground ring-2 ring-foreground/20' : 'border-border hover:scale-105',
+              )}
+              style={{
+                backgroundColor: color.lightPrimary,
+                ...(selected
+                  ? {
+                      boxShadow: `0 0 0 4px var(--card), 0 0 0 6px ${color.lightPrimary}40`,
+                    }
+                  : {}),
+              }}
+            >
+              {selected ? (
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={3}
+                  className="size-4 text-white"
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m5 13 4 4L19 7" />
+                </svg>
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
+      <FieldDescription>
+        Seçili vurgu: <span className="font-medium text-foreground">{accentColor.name}</span>
+      </FieldDescription>
+    </FieldGroup>
   );
 }
 

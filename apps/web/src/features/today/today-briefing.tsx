@@ -3,8 +3,6 @@
 import { Sparkles } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
-import { TaskPriorityBadge } from '@/features/tasks/task-badge';
-import { useTaskInspector } from '@/features/tasks/task-inspector-context';
 import { ProgressRing } from './progress-ring';
 
 type TodayTask = {
@@ -21,52 +19,17 @@ type TodayBriefingProps = {
   readonly completedToday: readonly TodayTask[];
 };
 
-const PRIORITY_WEIGHT: Record<'LOW' | 'MEDIUM' | 'HIGH', number> = {
-  HIGH: 3,
-  MEDIUM: 2,
-  LOW: 1,
-};
-
-const REASON_LABELS: Record<string, string> = {
-  overdue: 'Gecikmiş',
-  plannedToday: 'Bugün planlandı',
-  dueToday: 'Bugün bitiş',
-};
-
-function greeting(now: Date): string {
-  const hour = now.getHours();
-
-  if (hour < 6) return 'İyi geceler';
-  if (hour < 12) return 'Günaydın';
-  if (hour < 18) return 'İyi günler';
-  if (hour < 23) return 'İyi akşamlar';
-  return 'İyi geceler';
-}
-
 export function TodayBriefing({
   overdue,
   plannedToday,
   dueToday,
   completedToday,
 }: TodayBriefingProps) {
-  const { openTask } = useTaskInspector();
-
   const remaining = [...overdue, ...plannedToday, ...dueToday];
   const completed = completedToday.length;
   const total = completed + remaining.length;
   const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
   const allDone = total > 0 && completed === total;
-
-  const focusTasks = [...remaining]
-    .sort((left, right) => {
-      const weightDiff = PRIORITY_WEIGHT[right.priority] - PRIORITY_WEIGHT[left.priority];
-      if (weightDiff !== 0) return weightDiff;
-
-      const leftOverdue = left.reasons.includes('overdue') ? 1 : 0;
-      const rightOverdue = right.reasons.includes('overdue') ? 1 : 0;
-      return rightOverdue - leftOverdue;
-    })
-    .slice(0, 3);
 
   return (
     <section
@@ -113,35 +76,16 @@ export function TodayBriefing({
           </span>
         </div>
       </div>
-
-      {focusTasks.length > 0 && !allDone ? (
-        <div className="relative mt-4 space-y-1 border-t border-border/70 pt-3">
-          <p className="text-xs font-medium text-muted-foreground">
-            {focusTasks.length > 1 ? 'Önce şunlara odaklan' : 'Önce şuna odaklan'}
-          </p>
-          <ul className="space-y-1">
-            {focusTasks.map((task, index) => (
-              <li key={task.id}>
-                <button
-                  type="button"
-                  onClick={() => openTask(task.id)}
-                  className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition-colors duration-150 hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
-                  style={{ animationDelay: `${Math.min(index, 3) * 40}ms` }}
-                >
-                  <span className="w-4 shrink-0 text-xs text-muted-foreground tabular-nums">
-                    {index + 1}.
-                  </span>
-                  <span className="min-w-0 flex-1 truncate">{task.title}</span>
-                  <TaskPriorityBadge priority={task.priority} />
-                  {task.reasons.includes('overdue') ? (
-                    <Badge variant="danger">{REASON_LABELS.overdue}</Badge>
-                  ) : null}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
     </section>
   );
+}
+
+function greeting(now: Date): string {
+  const hour = now.getHours();
+
+  if (hour < 6) return 'İyi geceler';
+  if (hour < 12) return 'Günaydın';
+  if (hour < 18) return 'İyi günler';
+  if (hour < 23) return 'İyi akşamlar';
+  return 'İyi geceler';
 }

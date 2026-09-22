@@ -26,6 +26,7 @@ import {
 } from '@/features/labels/label-chip';
 import { useKeyboardShortcut } from '@/features/shortcuts/use-keyboard-shortcut';
 import { celebrateTaskCompleted } from './celebration-store';
+import { NextActionCard } from './next-action-card';
 import { TodayBriefing } from './today-briefing';
 import { WeeklyStats } from './weekly-stats';
 
@@ -378,6 +379,15 @@ export function TodayView() {
           completedToday={data.completedToday.tasks}
         />
       ) : null}
+
+<NextActionCard
+        remaining={[
+          ...data.overdue.tasks,
+          ...data.plannedToday.tasks,
+          ...data.dueToday.tasks,
+        ]}
+        onComplete={({ id, version }) => handleStatusChange(id, 'COMPLETED', version)}
+      />
 
       {!hasAnyTasks ? (
         <EmptyState
