@@ -2,13 +2,13 @@
 
 | Field | Value |
 | --- | --- |
-| Status | L-001 through L-026 implemented (incl. Kanban v2 search/filter + drag-and-drop) |
-| Revision date | 2026-09-20 |
+| Status | L-001 through L-026 implemented; L-027 through L-032 implemented (see § 6a) |
+| Revision date | 2026-09-22 |
 | Product scope | MVP, personal use only |
 | Document language | English |
 | Execution mode | Small vertical slices, but not one micro-story per technical concern |
-| Current completed baseline | EPIC-001; BL-007 through BL-011; BL-014; BL-015; BL-121; L-001 through L-026 |
-| Next slice | L-027 through L-031 planned (see §6) — await implementation decision |
+| Current completed baseline | EPIC-001; BL-007 through BL-011; BL-014; BL-015; BL-121; L-001 through L-032 |
+| Next slice | Kalan research adayları: F-03 (kayıtlı filtreler), F-06 (Today "Bu akşam" + rollover), F-07 (haftalık hedefler + weekly review) — seçim kullanıcıda |
 
 This document replaces the earlier over-granular execution queue. The approved PRD, UX, Domain, Data, API, Architecture, and ADR documents remain authoritative for product and technical rules. This backlog controls implementation order only.
 
@@ -485,7 +485,7 @@ Sourced from `docs/research/FEATURE_RESEARCH.md` and user selection on 2026-09-2
 | L-031 | Kanban improvements: Area board URL-persisted filters + new Project-scoped Kanban board | `docs/planning/L-031_KANBAN_IMPROVEMENTS_PLAN.md` | Implemented — API (project kanban list/moves) + shared `StatusKanbanBoard` (area+project URL-mode) + project-detail toggle. App-suite verified (api typecheck/lint/unit/api, contract, web typecheck/lint/component 243, build, e2e project-kanban 3/3, secret scan) |
 | L-032 | Task duration (`durationMinutes`) + Calendar drag-reschedule (move chip to another day, time preserved) | `docs/planning/L-032_CALENDAR_RESCHEDULE_PLAN.md` | Implemented — DB column + migration, API (create/edit + all response DTOs), web (quick-add + create form + inspector `InlineNumber` + calendar chip time/duration badge), dnd reschedule with optimistic move + rollback. App-suite verified (api typecheck/lint/unit 172/api 157, contract deterministic, web typecheck/lint/component 245, build) |
 
-Explicit user request on 2026-09-20: plan L-027 through L-030 plus Kanban (Area improvement + Project board). The order above is the current proposal; the user picks the next slice before implementation begins.
+Explicit user request on 2026-09-20: plan L-027 through L-030 plus Kanban (Area improvement + Project board). All five research "Adopt" features from `docs/research/FEATURE_RESEARCH.md` are now implemented as L-027 (F-01), L-028 (F-05), L-029 (F-02), L-030 (F-08), and L-032 (F-04). Remaining research candidates wait for the user to pick the next slice: F-03 (saved filters/smart lists), F-06 (Today "Bu akşam" + end-of-day rollover), F-07 (weekly goals + review).
 
 ## 7. Backlog maintenance policy
 

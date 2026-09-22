@@ -3,6 +3,7 @@
 | Alan | Değer |
 | --- | --- |
 | Tarih | 2026-09-20 |
+| Son güncelleme | 2026-09-22 — kod kontrolü; L-027–L-032 kapsamında uygulanan özellikler işaretlendi |
 | Amaç | Geliştirilen kişisel görev planlayıcıya değer katacak özellikleri sektördeki benzer uygulamalardan araştırmak, analiz etmek ve öncelikli kısa liste halinde raporlamak |
 | Kapsam | Yalnızca okuma/araştırma; uygulama kodu değişmez |
 | Kaynak dokümanlar | `docs/PROJECT_MASTER.md`, `docs/planning/BACKLOG.md`, `docs/product/PRD.md` |
@@ -14,16 +15,18 @@ Benchmark setindeki 9 uygulamanın (Todoist, Things 3, TickTick, Microsoft To Do
 
 Araştırma, değer/efor oranına göre **8 özelliği "kazandırmaya değer"** olarak işaretledi:
 
-1. **Alt görevler (nested/sub-tasks)** — 9 uygulamanın 7'sinde standart; mevcut kontrol listesinin ötesinde gerçek görev hiyerarşisi.
-2. **Erteleme / snooze** — görev ve hatırlatıcıları tek tuşla ertesi güne/akışa taşıma (Sunsama, TickTick, Linear).
-3. **Kayıtlı filtreler / akıllı listeler** — URL filtrelerini kalıcı, isimlendirilebilir, sidebar'da liste haline getirme (Todoist, Linear, TickTick; PRD FC-007).
-4. **Takvimde sürükle-bırak ile yeniden planlama + görev süresi** — L-024'te bilinçli olarak dışarıda bırakılan drag-reschedule, mevcut dnd altyapısıyla ucuza eklenebilir.
-5. **Görev/proje şablonları** — tekrar eden iş akışlarını tek tıkla kopyalama (Todoist, TickTick, Linear).
-6. **Today "Bu akşam" bölümü + gün sonu rollover** — Things/My Day benzeri, küçük ama kullanım hissini iyileştiren bir rutin özelliği.
-7. **Haftalık hedefler + gözden geçirme (weekly review) akışı** — Sunsama/OmniFocus'tan ilham, kendi kendine üretkenlik değeri.
-8. **Zengin not / Markdown** — açıklama metnini basit markdown zenginliğiyle geliştirme (Things, Notion; PRD FC-008'in hafif adımı).
+1. **Alt görevler (nested/sub-tasks)** — 9 uygulamanın 7'sinde standart; mevcut kontrol listesinin ötesinde gerçek görev hiyerarşisi. ✅ **Uygulandı (L-027)**.
+2. **Erteleme / snooze** — görev ve hatırlatıcıları tek tuşla ertesi güne/akışa taşıma (Sunsama, TickTick, Linear). ✅ **Uygulandı (L-029)**.
+3. **Kayıtlı filtreler / akıllı listeler** — URL filtrelerini kalıcı, isimlendirilebilir, sidebar'da liste haline getirme (Todoist, Linear, TickTick; PRD FC-007). ⬜ **Kalan aday**.
+4. **Takvimde sürükle-bırak ile yeniden planlama + görev süresi** — L-024'te bilinçli olarak dışarıda bırakılan drag-reschedule, mevcut dnd altyapısıyla ucuza eklenebilir. ✅ **Uygulandı (L-032)**.
+5. **Görev/proje şablonları** — tekrar eden iş akışlarını tek tıkla kopyalama (Todoist, TickTick, Linear). ✅ **Uygulandı (L-028)**.
+6. **Today "Bu akşam" bölümü + gün sonu rollover** — Things/My Day benzeri, küçük ama kullanım hissini iyileştiren bir rutin özelliği. ⬜ **Kalan aday**.
+7. **Haftalık hedefler + gözden geçirme (weekly review) akışı** — Sunsama/OmniFocus'tan ilham, kendi kendine üretkenlik değeri. ⬜ **Kalan aday**.
+8. **Zengin not / Markdown** — açıklama metnini basit markdown zenginliğiyle geliştirme (Things, Notion; PRD FC-008'in hafif adımı). ✅ **Uygulandı (L-030)**.
 
-Ertelenenler: görev süresi + manuel zaman bloklama, e-posta ile görev alma (SMTP altyapısı mevcut ama inbound gerekli), web clipper/uzantı, harici takvim senkronu (NG-009/FC-004 kapsamı). **Tamamen dışarıda bırakılanlar**: Motion tarzı AI otomatik zamanlama, pomodoro/focus timer, habit/streak, Eisenhower matrisi, "Someday" listesi ve tüm AI araçları (Ramble, Filter Assist vb.) — ya proje felsefesiyle (lean, kişisel planlama) çelişiyor ya da değer/efor oranı düşük.
+Uygulanma durumu 2026-09-22'de kod kontrolüyle doğrulandı: L-027→F-01, L-028→F-05, L-029→F-02, L-030→F-08, L-032→F-04. Kalan "Adopt" adayları yalnızca F-03, F-06 ve F-07'dir (bkz. § 6).
+
+Ertelenenler: manuel zaman bloklama (F-09; görev süresi alanı L-032 ile tamamlandı, bloklama/planning UI kaldı), e-posta ile görev alma (SMTP altyapısı mevcut ama inbound gerekli, F-10), web clipper/uzantı (F-11), harici takvim senkronu (F-12; NG-009/FC-004 kapsamı), proje bölümleri/sections (F-19). **Tamamen dışarıda bırakılanlar**: Motion tarzı AI otomatik zamanlama, pomodoro/focus timer, habit/streak, Eisenhower matrisi, "Someday" listesi ve tüm AI araçları (Ramble, Filter Assist vb.) — ya proje felsefesiyle (lean, kişisel planlama) çelişiyor ya da değer/efor oranı düşük.
 
 ## 2. Metodoloji
 
@@ -84,14 +87,14 @@ Her aday; karşılığı, PRD uyumu, efor ve öneriyle tabloda. Karar sütunu: *
 
 | # | Aday özellik | Nereden | Mevcut durum / gap | PRD uyumu | Efor | Karar |
 | --- | --- | --- | --- | --- | --- | --- |
-| F-01 | **Alt görevler (nested tasks)** | Todoist, TickTick, MS To Do, Sunsama, Motion, Notion, Linear | Kontrol listesi var ama gerçek alt görev yok (tarih/status/label taşıyan, parent'ta rollup). | FC-008 ile çakışmayan, doğal uzantı | Orta | **Adopt** |
-| F-02 | **Ertele/snooze (görev + hatırlatıcı)** | Sunsama, TickTick, Linear, Motion | Snooze yok; Today "erteleme" ve hatırlatıcı erteleme tek akıştan yapılamıyor. | Uyumlu | Küçük | **Adopt** |
-| F-03 | **Kayıtlı filtreler / akıllı listeler** | Todoist, Linear, TickTick, OmniFocus | URL filtreleri var, kalıcı isimli presets yok. | FC-007 doğrudan | Orta | **Adopt** |
-| F-04 | **Takvim drag-reschedule + görev süresi** | TickTick, OmniFocus, Notion, Sunsama | L-024 bilinçli olarak drag-reschedule dışarıda bıraktı; duration alanı yok. | Uyumlu | Orta | **Adopt** |
-| F-05 | **Görev/proje şablonları** | Todoist, TickTick, Linear, Notion | Hiç yok; tekrar eden iş kalıpları her sefer çiğden yazılıyor. | Uyumlu | Orta | **Adopt** |
-| F-06 | **Today "Bu akşam" bölümü + gün sonu rollover** | Things, MS To Do | Today kovaları var; akşam segmenti ve bugünün taşınması yok. | Uyumlu | Küçük | **Adopt** |
-| F-07 | **Haftalık hedefler + weekly review** | Sunsama, OmniFocus | Hedef/review akışı yok. | Uyumlu | Orta | **Adopt** |
-| F-08 | **Zengin not (markdown)** | Things, Notion, TickTick, Linear | Açıklama düz metin; markdown/format yok. | FC-008 hafif adım | Küçük-orta | **Adopt** |
+| F-01 | **Alt görevler (nested tasks)** | Todoist, TickTick, MS To Do, Sunsama, Motion, Notion, Linear | ✅ **Uygulandı (L-027)**: `Task.parentTaskId` + ağaç API, List/Kanban/Today rollup, inspector "Alt görev ekle". | FC-008 ile çakışmayan, doğal uzantı | Orta | **Uygulandı** |
+| F-02 | **Ertele/snooze (görev + hatırlatıcı)** | Sunsama, TickTick, Linear, Motion | ✅ **Uygulandı (L-029)**: `POST /tasks/:id/snooze-actions` + reminder snooze, Today `D` kısayolu, `TaskSnoozeMenu`/`SnoozeDialog`. | Uyumlu | Küçük | **Uygulandı** |
+| F-03 | **Kayıtlı filtreler / akıllı listeler** | Todoist, Linear, TickTick, OmniFocus | URL filtreleri (`url-task-filters.ts` + `task-filter-bar.tsx`) var; kalıcı isimli preset/sidebar sabitleme yok. | FC-007 doğrudan | Orta | **Adopt (kalan)** |
+| F-04 | **Takvim drag-reschedule + görev süresi** | TickTick, OmniFocus, Notion, Sunsama | ✅ **Uygulandı (L-032)**: `durationMinutes` alanı + takvim çipi `HH:mm · Xdk`, çip → gün drag ile `plannedAt` güncelleme. | Uyumlu | Orta | **Uygulandı** |
+| F-05 | **Görev/proje şablonları** | Todoist, TickTick, Linear, Notion | ✅ **Uygulandı (L-028)**: `TaskTemplate` modeli, `/api/v1/task-templates` CRUD + `/apply`, `/app/templates` sayfası, hızlı ekleme "Şablon" sekmesi. | Uyumlu | Orta | **Uygulandı** |
+| F-06 | **Today "Bu akşam" bölümü + gün sonu rollover** | Things, MS To Do | Today kovaları var; akşam segmenti ve bugünün taşınması yok. | Uyumlu | Küçük | **Adopt (kalan)** |
+| F-07 | **Haftalık hedefler + weekly review** | Sunsama, OmniFocus | Hedef/review akışı yok. | Uyumlu | Orta | **Adopt (kalan)** |
+| F-08 | **Zengin not (markdown)** | Things, Notion, TickTick, Linear | ✅ **Uygulandı (L-030)**: render-only güvenli alt küme (`markdown-render.tsx`: başlık, kalın, kod, liste, alıntı, http/https link). | FC-008 hafif adım | Küçük-orta | **Uygulandı** |
 | F-09 | Görev süresi + manuel zaman bloklama | Sunsama, Motion, TickTick | Duration üstü tam time-blocking solver gerektirir. | Uyumlu | Büyük | Later |
 | F-10 | E-posta ile görev alımı | Todoist, Things, TickTick, Motion | SMTP **çıkış** altyapısı var; **giriş** (inbound) SMTP gerektirir. | NG-007 sadece "bildirim" kapsar; yakalama dışı | Büyük | Later |
 | F-11 | Web clipper / tarayıcı uzantısı | Todoist, TickTick, Notion | Hiç yok; uzantı altyapısı kurulumu gerekir. | Uyumlu | Orta-büyük | Later |
@@ -110,17 +113,19 @@ Aşağıdaki puan `Değer × Uyum ÷ Efor` üzerinden hesaplanır (her ölçek 1
 
 ### Tablo — skorlanmış adaylar (Adopt + Later)
 
+Uygulanmış özellikler (2026-09-22 kod kontrolü) puan tablosunda **tamamlandı** olarak işaretlendi; yalnızca kalan adaylar sıralamaya girer.
+
 | Özellik | Değer (D) | Uyum (U) | Efor (E) | Puan (D×U÷E) | Karar |
 | --- | --- | --- | --- | --- | --- |
-| F-01 Alt görevler | 5 | 5 | 3 | 8.3 | **Adopt** |
-| F-02 Ertele/snooze | 4 | 5 | 4 | 5.0 | **Adopt** |
-| F-03 Kayıtlı filtreler | 4 | 4 | 3 | 5.3 | **Adopt** |
-| F-04 Drag-reschedule + süre | 4 | 5 | 3 | 6.7 | **Adopt** |
-| F-05 Şablonlar | 3 | 4 | 3 | 4.0 | **Adopt** |
-| F-06 Bu akşam + rollover | 3 | 5 | 4 | 3.75 | **Adopt** |
-| F-07 Haftalık hedef + review | 3 | 4 | 3 | 4.0 | **Adopt** |
-| F-08 Markdown not | 3 | 5 | 4 | 3.75 | **Adopt** |
-| F-09 Zaman bloklama (manual) | 3 | 4 | 2 | 6.0 | Later (F-04'ün uzantısı) |
+| F-01 Alt görevler | 5 | 5 | 3 | 8.3 | ✅ Tamamlandı (L-027) |
+| F-02 Ertele/snooze | 4 | 5 | 4 | 5.0 | ✅ Tamamlandı (L-029) |
+| F-03 Kayıtlı filtreler | 4 | 4 | 3 | 5.3 | **Adopt (kalan)** |
+| F-04 Drag-reschedule + süre | 4 | 5 | 3 | 6.7 | ✅ Tamamlandı (L-032) |
+| F-05 Şablonlar | 3 | 4 | 3 | 4.0 | ✅ Tamamlandı (L-028) |
+| F-06 Bu akşam + rollover | 3 | 5 | 4 | 3.75 | **Adopt (kalan)** |
+| F-07 Haftalık hedef + review | 3 | 4 | 3 | 4.0 | **Adopt (kalan)** |
+| F-08 Markdown not | 3 | 5 | 4 | 3.75 | ✅ Tamamlandı (L-030) |
+| F-09 Zaman bloklama (manual) | 3 | 4 | 2 | 6.0 | Later (kalan; F-04'ün uzantısı) |
 | F-10 E-posta ile görev | 3 | 3 | 1 | 9.0 | Later (altyapı) |
 | F-11 Web clipper/uzantı | 3 | 4 | 2 | 6.0 | Later |
 | F-12 Harici takvim senkronu | 4 | 2 | 1 | 8.0 | Later (PRD gate) |
@@ -131,26 +136,23 @@ Aşağıdaki puan `Değer × Uyum ÷ Efor` üzerinden hesaplanır (her ölçek 1
 | F-18 AI araçları | 2 | 1 | 2 | 1.0 | Skip |
 | F-19 Sections | 2 | 4 | 3 | 2.7 | Later |
 
-### Öncelikli kısa liste (önem sırası)
+### Öncelikli kısa liste (kalan adaylar, önem sırası)
 
-1. **F-01 Alt görevler** — Sektörün de facto standardı; mevcut kontrol listesinden gerçek görev hiyerarşisine geçiş. (Schema: `Task.parentId` + ağaç sorguları; List/Kanban/Today'e rollup; kapatınca parent'larda doğrulanan çocuk ilerlemesi.)
-2. **F-04 Takvimde drag-reschedule + görev süresi** — L-024'te bilinçli dışarıda bırakılan parça; `@dnd-kit` altyapısı hazır. Görev süresi (duration) alanı eklenip takvimde saat bloğu gösterilmek, time-blocking yolunun ilk adımı.
-3. **F-03 Kayıtlı filtreler / akıllı listeler** — Mevcut URL filtresi altyapısı kalıcı isimli presetlere dönüşür; sidebar'a sabitlenebilir. FC-007'ye doğrudan hizmet.
-4. **F-02 Ertele/snooze** — Today + hatırlatıcı + takvimde tek tuş (`D` benzeri) erteleme; Web Push ile uyumlu küçük bir eklenti.
-5. **F-07 Haftalık hedefler + weekly review** — Sunsama/OmniFocus'tan ilham; haftalık planlama ritüeli kullanıcı bağlılığını güçlendirir.
-6. **F-05 Görev/proje şablonları** — Tekrar eden iş kalıplarını (örn. "haftalık rapor") tek tıkla canlandırma.
-7. **F-06 Today "Bu akşam" + gün sonu rollover** — Küçük UX iyileştirmesi; gün sonunda kalan işleri otomatik ertesi güne taşıma seçeneği.
-8. **F-08 Zengin not (markdown)** — Açıklamayı başlık/madde/kalın/bağlantı destekleyen hafif markdown'a taşıma (mevcut textarea + hafif ayrıştırıcı).
+1. **F-03 Kayıtlı filtreler / akıllı listeler** — Mevcut URL filtresi altyapısı kalıcı isimli presetlere dönüşür; sidebar'a sabitlenebilir. FC-007'ye doğrudan hizmet.
+2. **F-07 Haftalık hedefler + weekly review** — Sunsama/OmniFocus'tan ilham; haftalık planlama ritüeli kullanıcı bağlılığını güçlendirir.
+3. **F-06 Today "Bu akşam" + gün sonu rollover** — Küçük UX iyileştirmesi; gün sonunda kalan işleri otomatik ertesi güne taşıma seçeneği.
+
+L-027 (F-01), L-028 (F-05), L-029 (F-02), L-030 (F-08), L-032 (F-04) ile özgün sekiz "Adopt" özelliğinden beşi tamamlanmıştır.
 
 ## 7. BACKLOG adayı — önerilen "next slice" paketleri
 
-Mevcut BACKLOG "Next slice — TBD" durumunda. Bu raporun ürettiği üç net slice adayı:
+Mevcut BACKLOG "Next slice" durumunda. Rapordaki beş "Adopt" özelliği (F-01, F-02, F-04, F-05, F-08) L-027–L-030 + L-032 olarak tamamlandı; kalan net slice adayları:
 
 | Öneri | İçerik | Gerekçe |
 | --- | --- | --- |
-| **Slice A — Alt görevler** | `Task.parentId` schema + ağaç API + List/Kanban rollup + inspector UI | En yüksek puan; çoğu rakibin standart hiyerarşisiyle hizalanır |
-| **Slice B — Takvim drag-reschedule + duration** | duration alanı + takvimde sürükleme + Today/Upcoming etkisi | L-024'ün bilinçli dışarıda bıraktığı parçayı kapatır; dnd altyapısı hazır |
-| **Slice C — Kayıtlı filtreler + erteleme** | Filtre presets + snooze (görev/hatırlatıcı) | İki küçük, yüksek frekanslı iyileştirme; mevcut URL-filtre + reminder tabanı üzerine |
+| **Slice A — Kayıtlı filtreler / akıllı listeler** | URL filtrelerini kalıcı isimli presetlere dönüştürme + sidebar sabitleme (FC-007) | Kalan adayların en yüksek puanı (5.3); mevcut URL-filtre alt yapısı üzerine |
+| **Slice B — Haftalık hedefler + weekly review** | Haftalık hedef modeli + haftalık gözden geçirme akışı | Üretkenlik ritüeli; Sunsama/OmniFocus'tan ilham |
+| **Slice C — Today "Bu akşam" + gün sonu rollover** | Today'de akşam segmenti + kalan işleri ertesi güne taşıma | Küçük (3.75) ama yüksek frekanslı UX iyileştirmesi |
 
 Bu paketlerden birinin seçimi ve detaylı implementation planı, ayrı bir onayla ayrı bir çalışma olarak yapılmalıdır. Bu doküman yalnızca araştırma/öneri niteliğindedir.
 
