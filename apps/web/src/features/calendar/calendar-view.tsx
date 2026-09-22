@@ -95,6 +95,21 @@ function monthGridStart(year: number, month: number): Date {
   return new Date(year, month, 1 - mondayOffset);
 }
 
+function startOfWeek(date: Date): Date {
+  const result = new Date(date);
+  const mondayOffset = (result.getDay() + 6) % 7;
+  result.setDate(result.getDate() - mondayOffset);
+  return result;
+}
+
+function weekLabel(start: Date, end: Date): string {
+  const sameMonth = start.getFullYear() === end.getFullYear() && start.getMonth() === end.getMonth();
+  if (sameMonth) {
+    return `${MONTH_NAMES[start.getMonth()]} ${start.getDate()}–${end.getDate()} ${start.getFullYear()}`;
+  }
+  return `${MONTH_NAMES[start.getMonth()]} ${start.getDate()} – ${MONTH_NAMES[end.getMonth()]} ${end.getDate()} ${end.getFullYear()}`;
+}
+
 function addDays(date: Date, days: number): Date {
   const result = new Date(date);
   result.setDate(result.getDate() + days);
@@ -245,17 +260,21 @@ export function CalendarView() {
   const { openTask } = useTaskInspector();
   const queryClient = useQueryClient();
   const now = new Date();
-  const [cursorYear, setCursorYear] = useState(now.getFullYear());
-  const [cursorMonth, setCursorMonth] = useState(now.getMonth());
+  const [anchor, setAnchor] = useState<Date>(() => new Date());
+  const [view, setView] = useState<'month' | 'week'>('month');
   const [quickAddDate, setQuickAddDate] = useState<string | null>(null);
   const [activeTask, setActiveTask] = useState<CalendarTask | null>(null);
   const today = todayKey();
 
-  const gridStart = monthGridStart(cursorYear, cursorMonth);
-  const gridEnd = addDays(gridStart, 41);
+  const cursorYear = anchor.getFullYear();
+  const cursorMonth = anchor.getMonth();
+
+  const gridStart = view === 'month' ? monthGridStart(cursorYear, cursorMonth) : startOfWeek(anchor);
+  const gridLength = view === 'month' ? 42 : 7;
+  const gridEnd = addDays(gridStart, gridLength - 1);
 
   const query = useQuery({
-    queryKey: ['tasks', 'calendar', `${cursorYear}-${String(cursorMonth + 1).padStart(2, '0')}`],
+    queryKey: ['tasks', 'calendar', view, toLocalKey(gridStart)],
     queryFn: async () => {
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const start = toLocalKey(gridStart);
@@ -274,29 +293,41 @@ export function CalendarView() {
     },
   });
 
-  function prevMonth() {
-    if (cursorMonth === 0) {
-      setCursorMonth(11);
-      setCursorYear((y) => y - 1);
+  function moveAnchor(days: number) {
+    setAnchor((current) => addDays(current, days));
+  }
+
+  function prevPeriod() {
+    if (view === 'month') {
+      if (cursorMonth === 0) {
+        setAnchor(new Date(cursorYear - 1, 11, 1));
+      } else {
+        setAnchor(new Date(cursorYear, cursorMonth - 1, 1));
+      }
     } else {
-      setCursorMonth((m) => m - 1);
+      moveAnchor(-7);
     }
   }
 
-  function nextMonth() {
-    if (cursorMonth === 11) {
-      setCursorMonth(0);
-      setCursorYear((y) => y + 1);
+  function nextPeriod() {
+    if (view === 'month') {
+      if (cursorMonth === 11) {
+        setAnchor(new Date(cursorYear + 1, 0, 1));
+      } else {
+        setAnchor(new Date(cursorYear, cursorMonth + 1, 1));
+      }
     } else {
-      setCursorMonth((m) => m + 1);
+      moveAnchor(7);
     }
   }
 
   function goToday() {
-    const d = new Date();
-    setCursorYear(d.getFullYear());
-    setCursorMonth(d.getMonth());
+    setAnchor(new Date());
   }
+
+  const isCurrentPeriod = view === 'month'
+    ? cursorYear === now.getFullYear() && cursorMonth === now.getMonth()
+    : toLocalKey(startOfWeek(now)) === toLocalKey(startOfWeek(anchor));
 
   const moveMutation = useMutation({
     mutationFn: async ({
@@ -330,7 +361,7 @@ export function CalendarView() {
     onMutate: async ({ taskId, newPlannedAt }) => {
       await queryClient.cancelQueries({ queryKey: ['tasks', 'calendar'] });
 
-      const previousData = queryClient.getQueryData<CalendarResponse>(['tasks', 'calendar']);
+      const previousData = queryClient.getQueryData<CalendarResponse>(['tasks', 'calendar', view, toLocalKey(gridStart)]);
 
       if (previousData) {
         const newDays = previousData.days.map((dayGroup) => {
@@ -363,17 +394,17 @@ export function CalendarView() {
           return dayGroup;
         });
 
-        queryClient.setQueryData(['tasks', 'calendar'], {
+        queryClient.setQueryData(['tasks', 'calendar', view, toLocalKey(gridStart)], {
           ...previousData,
           days: newDays,
         });
       }
 
-      return { previousData };
+      return { previousData, activeKey: ['tasks', 'calendar', view, toLocalKey(gridStart)] as const };
     },
     onError: (_error, _variables, context) => {
-      if (context?.previousData) {
-        queryClient.setQueryData(['tasks', 'calendar'], context.previousData);
+      if (context?.previousData && context?.activeKey) {
+        queryClient.setQueryData(context.activeKey, context.previousData);
       }
       toast.error('Görev taşınamadı.');
     },
@@ -413,8 +444,8 @@ export function CalendarView() {
         <PageHeader title="Takvim" eyebrow="Takvim" />
         <div className="space-y-4">
           <div className="h-10 animate-pulse rounded-lg bg-muted" />
-          <div className="grid grid-cols-7 gap-px rounded-xl border border-border/70 bg-border/50 overflow-hidden">
-            {Array.from({ length: 42 }, (_, i) => (
+          <div className={cn('grid grid-cols-7 gap-px rounded-xl border border-border/70 bg-border/50 overflow-hidden')}>
+            {Array.from({ length: gridLength }, (_, i) => (
               <div key={i} className="h-28 bg-card" />
             ))}
           </div>
@@ -440,12 +471,15 @@ export function CalendarView() {
     daysByDate.set(day.date, day);
   }
 
-  const gridCells = Array.from({ length: 42 }, (_, i) => {
+  const gridCells = Array.from({ length: gridLength }, (_, i) => {
     const date = addDays(gridStart, i);
     return { date, key: toLocalKey(date) };
   });
 
-  const isCurrentMonth = cursorYear === now.getFullYear() && cursorMonth === now.getMonth();
+  const viewDescription =
+    view === 'month'
+      ? `${MONTH_NAMES[cursorMonth]} ${cursorYear} · ${query.data.timezone}`
+      : `${weekLabel(gridStart, gridEnd)} · ${query.data.timezone}`;
 
   return (
     <DragDropProvider
@@ -463,36 +497,72 @@ export function CalendarView() {
         <PageHeader
           title="Takvim"
           eyebrow="Takvim"
-          description={`${MONTH_NAMES[cursorMonth]} ${cursorYear} · ${query.data.timezone}`}
+          description={viewDescription}
         />
 
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-1.5">
             <button
               type="button"
-              onClick={prevMonth}
+              onClick={prevPeriod}
               className="inline-flex h-8 items-center justify-center rounded-lg text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-foreground active:scale-[0.97]"
-              aria-label="Önceki ay"
+              aria-label={view === 'month' ? 'Önceki ay' : 'Önceki hafta'}
             >
               <ChevronLeft className="size-4" />
             </button>
             <button
               type="button"
-              onClick={nextMonth}
+              onClick={nextPeriod}
               className="inline-flex h-8 items-center justify-center rounded-lg text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-foreground active:scale-[0.97]"
-              aria-label="Sonraki ay"
+              aria-label={view === 'month' ? 'Sonraki ay' : 'Sonraki hafta'}
             >
               <ChevronRight className="size-4" />
             </button>
           </div>
-          <button
-            type="button"
-            onClick={goToday}
-            disabled={isCurrentMonth}
-            className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border/70 bg-card px-3 text-sm font-medium text-muted-foreground shadow-surface transition-colors duration-150 hover:bg-accent hover:text-foreground active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40"
-          >
-            Bugün
-          </button>
+          <div className="flex items-center gap-1.5">
+            <div
+              className="inline-flex items-center rounded-lg border border-border/70 bg-card p-0.5 shadow-surface"
+              role="tablist"
+              aria-label="Takvim görünümü"
+            >
+              <button
+                type="button"
+                role="tab"
+                aria-selected={view === 'month'}
+                onClick={() => setView('month')}
+                className={cn(
+                  'inline-flex h-7 items-center px-3 rounded-md text-sm font-medium transition-colors duration-150',
+                  view === 'month'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-accent hover:text-foreground',
+                )}
+              >
+                Ay
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={view === 'week'}
+                onClick={() => setView('week')}
+                className={cn(
+                  'inline-flex h-7 items-center px-3 rounded-md text-sm font-medium transition-colors duration-150',
+                  view === 'week'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-accent hover:text-foreground',
+                )}
+              >
+                Hafta
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={goToday}
+              disabled={isCurrentPeriod}
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border/70 bg-card px-3 text-sm font-medium text-muted-foreground shadow-surface transition-colors duration-150 hover:bg-accent hover:text-foreground active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40"
+            >
+              Bugün
+            </button>
+          </div>
         </div>
 
         <div className="rounded-xl border border-border/70 bg-card shadow-surface overflow-hidden">
@@ -512,14 +582,16 @@ export function CalendarView() {
               const day = daysByDate.get(key);
               const allTasks = mergeDayTasks(day);
               const isToday = key === today;
-              const isCurrent = date.getMonth() === cursorMonth;
+              const isCurrent = view === 'month' && date.getMonth() === cursorMonth;
+              const visibleTasks = view === 'week' ? allTasks : allTasks.slice(0, 3);
 
               return (
                 <DroppableCalendarDay
                   key={key}
                   id={key}
                   className={cn(
-                    'flex flex-col gap-1 h-28 overflow-hidden sm:h-32 p-1.5 transition-colors duration-150',
+                    'flex flex-col gap-1 overflow-hidden p-1.5 transition-colors duration-150',
+                    view === 'week' ? 'min-h-56 sm:min-h-72' : 'h-28 sm:h-32',
                     isToday && 'bg-primary/5 ring-2 ring-inset ring-primary/30',
                     !isCurrent && 'bg-muted/30 text-muted-foreground/50',
                   )}
@@ -544,10 +616,10 @@ export function CalendarView() {
                   </div>
 
                   <div className="flex min-h-0 flex-1 flex-col gap-px overflow-hidden">
-                    {allTasks.slice(0, 3).map((task) => (
+                    {visibleTasks.map((task) => (
                       <DraggableCalendarTask key={task.id} task={task} onOpen={openTask} />
                     ))}
-                    {allTasks.length > 3 && (
+                    {view === 'month' && allTasks.length > 3 && (
                       <span className="truncate px-1 text-[10px] text-muted-foreground/70">
                         +{allTasks.length - 3} daha
                       </span>

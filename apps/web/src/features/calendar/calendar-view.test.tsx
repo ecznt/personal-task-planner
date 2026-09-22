@@ -303,4 +303,63 @@ describe('CalendarView', () => {
     });
     expect(screen.getByLabelText('Başlangıç Tarihi')).toBeInTheDocument();
   });
+
+  it('switches to the week view and fetches a one-week range', async () => {
+    mocks.apiGet.mockResolvedValue(emptyCalendarResponse());
+
+    renderCalendarView();
+
+    await waitFor(() => {
+      expect(screen.getByText('Pzt')).toBeInTheDocument();
+    });
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('tab', { name: 'Hafta' }));
+
+    await waitFor(() => {
+      const calls = mocks.apiGet.mock.calls;
+      const weekCall = calls.find((call) => {
+        const query = (call[0] as { query?: { start?: string; end?: string } }).query;
+        return query?.start === '2026-09-21' && query?.end === '2026-09-27';
+      });
+      expect(weekCall).toBeDefined();
+    });
+
+    expect(screen.getByRole('tab', { name: 'Ay' })).toHaveAttribute('aria-selected', 'false');
+    expect(screen.getByRole('tab', { name: 'Hafta' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getAllByRole('button', { name: /tarihine görev ekle/ }).length).toBe(7);
+  });
+
+  it('navigates week by week with the arrow buttons', async () => {
+    mocks.apiGet.mockResolvedValue(emptyCalendarResponse());
+
+    renderCalendarView();
+
+    await waitFor(() => {
+      expect(screen.getByText('Pzt')).toBeInTheDocument();
+    });
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('tab', { name: 'Hafta' }));
+
+    await waitFor(() => {
+      const calls = mocks.apiGet.mock.calls;
+      const weekCall = calls.find((call) => {
+        const query = (call[0] as { query?: { start?: string; end?: string } }).query;
+        return query?.start === '2026-09-21' && query?.end === '2026-09-27';
+      });
+      expect(weekCall).toBeDefined();
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Sonraki hafta' }));
+
+    await waitFor(() => {
+      const calls = mocks.apiGet.mock.calls;
+      const weekCall = calls.find((call) => {
+        const query = (call[0] as { query?: { start?: string; end?: string } }).query;
+        return query?.start === '2026-09-28' && query?.end === '2026-10-04';
+      });
+      expect(weekCall).toBeDefined();
+    });
+  });
 });
