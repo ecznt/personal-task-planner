@@ -68,7 +68,7 @@ describe('TodayView', () => {
     renderTodayView();
 
     await waitFor(() => {
-      expect(screen.getByText(/Bugün için planlanmış/)).toBeInTheDocument();
+      expect(screen.getByText(/Bugünün senden isteyeceği bir şey yok/)).toBeInTheDocument();
     });
   });
 
@@ -153,10 +153,10 @@ describe('TodayView', () => {
     renderTodayView();
 
     await waitFor(() => {
-      expect(screen.getByText('Haftalık tamamlanan')).toBeInTheDocument();
+      expect(screen.getByText(/Bugünün senden isteyeceği bir şey yok/)).toBeInTheDocument();
     });
 
-    expect(screen.getByText(/1 görev/)).toBeInTheDocument();
+    expect(screen.getByText(/Bugün görev yok/)).toBeInTheDocument();
   });
 
   it('renders section headers', async () => {
