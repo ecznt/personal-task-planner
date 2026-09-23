@@ -682,6 +682,14 @@
       },
       "CreateTaskRequestDto": {
         "properties": {
+          "blockedByTaskIds": {
+            "description": "The task ids that this task depends on. When any of them is not completed, the task is considered blocked.",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
           "checklistItems": {
             "description": "Checklist items to create with the task",
             "items": {
@@ -896,6 +904,14 @@
             "format": "uuid",
             "type": "string"
           },
+          "blockedByTaskIds": {
+            "description": "Full replacement list of task ids this task depends on. When any of them is not completed, the task is considered blocked.",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
           "description": {
             "type": "string"
           },
@@ -989,6 +1005,14 @@
             "description": "Inbox (Gelen Kutusu) is used when omitted.",
             "format": "uuid",
             "type": "string"
+          },
+          "blockedByTaskIds": {
+            "description": "The task ids that this task depends on. When any of them is not completed, the task is considered blocked.",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
           },
           "checklistItems": {
             "description": "Checklist items to create with the task",
@@ -1115,6 +1139,21 @@
           "areaName": {
             "type": "string"
           },
+          "blockedByTaskIds": {
+            "description": "The task ids that this task depends on.",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "blockedByTasks": {
+            "description": "The tasks that this task depends on (blocker tasks).",
+            "items": {
+              "$ref": "#/components/schemas/TaskParentDataDto"
+            },
+            "type": "array"
+          },
           "canonicalStatus": {
             "enum": [
               "TO_DO",
@@ -1138,6 +1177,10 @@
           "id": {
             "format": "uuid",
             "type": "string"
+          },
+          "isBlocked": {
+            "description": "Whether this task is blocked by an uncompleted blocker.",
+            "type": "boolean"
           },
           "labels": {
             "items": {
@@ -1196,6 +1239,9 @@
           "subtaskCount",
           "completedSubtaskCount",
           "labels",
+          "blockedByTaskIds",
+          "blockedByTasks",
+          "isBlocked",
           "areaName"
         ],
         "type": "object"
@@ -1950,6 +1996,19 @@
             "format": "uuid",
             "type": "string"
           },
+          "blockedByTaskIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "blockedByTasks": {
+            "items": {
+              "$ref": "#/components/schemas/TaskParentDataDto"
+            },
+            "type": "array"
+          },
           "canonicalStatus": {
             "enum": [
               "TO_DO",
@@ -1982,6 +2041,9 @@
           "id": {
             "format": "uuid",
             "type": "string"
+          },
+          "isBlocked": {
+            "type": "boolean"
           },
           "labels": {
             "items": {
@@ -2052,6 +2114,9 @@
           "checklistItems",
           "subtaskCount",
           "completedSubtaskCount",
+          "blockedByTaskIds",
+          "blockedByTasks",
+          "isBlocked",
           "subtasks"
         ],
         "type": "object"
@@ -2204,6 +2269,13 @@
       },
       "TaskSummaryDto": {
         "properties": {
+          "blockedByTaskIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
           "canonicalStatus": {
             "enum": [
               "TO_DO",
@@ -2273,6 +2345,7 @@
           "lifecycleState",
           "subtaskCount",
           "completedSubtaskCount",
+          "blockedByTaskIds",
           "labels"
         ],
         "type": "object"
@@ -2476,6 +2549,13 @@
       },
       "TodayTaskSummaryDto": {
         "properties": {
+          "blockedByTaskIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
           "canonicalStatus": {
             "enum": [
               "TO_DO",
@@ -2499,6 +2579,9 @@
           "id": {
             "format": "uuid",
             "type": "string"
+          },
+          "isBlocked": {
+            "type": "boolean"
           },
           "labels": {
             "items": {
@@ -2551,6 +2634,8 @@
           "lifecycleState",
           "subtaskCount",
           "completedSubtaskCount",
+          "blockedByTaskIds",
+          "isBlocked",
           "labels",
           "reasons"
         ],
@@ -2610,6 +2695,13 @@
       },
       "UpcomingTaskSummaryDto": {
         "properties": {
+          "blockedByTaskIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
           "canonicalStatus": {
             "enum": [
               "TO_DO",
@@ -2679,6 +2771,7 @@
           "lifecycleState",
           "subtaskCount",
           "completedSubtaskCount",
+          "blockedByTaskIds",
           "labels"
         ],
         "type": "object"

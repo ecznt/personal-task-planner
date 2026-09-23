@@ -23,6 +23,7 @@ describe('task service — listGlobalTasks', () => {
           parentTaskId: null,
           subtaskCount: 0,
           completedSubtaskCount: 0,
+          blockedByTaskIds: [],
           labels: [],
         },
       ],

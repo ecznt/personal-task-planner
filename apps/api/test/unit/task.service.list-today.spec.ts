@@ -42,7 +42,9 @@ describe('task service — listTodayTasks', () => {
         parentTaskId: null,
         subtaskCount: 0,
         completedSubtaskCount: 0,
+        blockedByTaskIds: [],
         labels: [],
+        isBlocked: false,
         reasons: ['overdue'],
       },
     ]);
@@ -77,7 +79,9 @@ describe('task service — listTodayTasks', () => {
         parentTaskId: null,
         subtaskCount: 0,
         completedSubtaskCount: 0,
+        blockedByTaskIds: [],
         labels: [],
+        isBlocked: false,
         reasons: ['plannedToday', 'dueToday'],
       },
     ]);

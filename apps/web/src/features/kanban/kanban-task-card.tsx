@@ -1,7 +1,7 @@
 'use client';
 
 import { useTaskInspector } from '@/features/tasks/task-inspector-context';
-import { CalendarClock, ListTree } from 'lucide-react';
+import { CalendarClock, ListTree, Lock } from 'lucide-react';
 import { anchorLabel } from '@/features/labels/label-color';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -23,6 +23,12 @@ export type KanbanTask = {
   readonly parentTaskId: string | null;
   readonly subtaskCount: number;
   readonly completedSubtaskCount: number;
+  readonly isBlocked?: boolean;
+  readonly blockedByTasks?: readonly {
+    readonly id: string;
+    readonly title: string;
+    readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+  }[];
   readonly labels: readonly {
     readonly id: string;
     readonly name: string;
@@ -86,6 +92,18 @@ export function KanbanTaskCard({ task, index }: { task: KanbanTask; index?: numb
           subtaskCount={task.subtaskCount}
           completedSubtaskCount={task.completedSubtaskCount}
         />
+        {task.isBlocked === true && (
+          <Badge
+            variant="neutral"
+            title={task.blockedByTasks
+              ?.map((blocker) => blocker.title)
+              .join(', ')}
+            className="gap-1"
+          >
+            <Lock className="size-3" aria-hidden="true" />
+            Bloke
+          </Badge>
+        )}
         {task.project && <Badge variant="primary">{task.project.name}</Badge>}
         {(task.labels ?? []).map((label) => (
           <LabelChip key={label.id} label={label} />

@@ -149,6 +149,7 @@ describe('task service', () => {
       occurrenceNumber: null,
       predecessorTaskId: null,
       parentTaskId: null,
+      blockedByTaskIds: [],
       generationKey: null,
     });
 
@@ -166,6 +167,8 @@ describe('task service', () => {
       outcome: 'SUCCESS',
       task: expect.objectContaining({ id: 'task-id', title: 'Test Task' }),
       etag: 1,
+      blockedByTasks: [],
+      isBlocked: false,
     });
   });
 
@@ -206,6 +209,7 @@ describe('task service', () => {
         occurrenceNumber: null,
         predecessorTaskId: null,
         parentTaskId: null,
+        blockedByTaskIds: [],
         generationKey: null,
       },
       canonicalStatus: 'TO_DO',
@@ -215,6 +219,8 @@ describe('task service', () => {
       subtaskCount: 0,
       completedSubtaskCount: 0,
       parentTask: null,
+      blockedByTasks: [],
+      isBlocked: false,
       subtasks: [],
       recurrence: null,
     });
@@ -262,6 +268,7 @@ describe('task service', () => {
           parentTaskId: null,
           subtaskCount: 0,
           completedSubtaskCount: 0,
+          blockedByTaskIds: [],
           labels: [],
         },
       ],
@@ -354,6 +361,7 @@ describe('task service', () => {
         occurrenceNumber: null,
         predecessorTaskId: null,
         parentTaskId: null,
+        blockedByTaskIds: [],
         generationKey: null,
       },
       canonicalStatus: 'TO_DO',
@@ -363,6 +371,8 @@ describe('task service', () => {
       subtaskCount: 0,
       completedSubtaskCount: 0,
       parentTask: null,
+      blockedByTasks: [],
+      isBlocked: false,
       subtasks: [],
       recurrence: null,
     });
@@ -403,6 +413,7 @@ describe('task service', () => {
       occurrenceNumber: null,
       predecessorTaskId: null,
       parentTaskId: null,
+      blockedByTaskIds: [],
       generationKey: null,
     });
     repository.getCanonicalStatus.mockResolvedValue('TO_DO');
@@ -423,6 +434,8 @@ describe('task service', () => {
       canonicalStatus: 'TO_DO',
       subtaskCount: 0,
       completedSubtaskCount: 0,
+      blockedByTasks: [],
+      isBlocked: false,
     });
   });
 });
@@ -444,7 +457,8 @@ function repositoryMock(): jest.Mocked<TaskRepository> {
     listByArea: jest.fn(),
     updateTask: jest.fn(),
     findParentForSubtask: jest.fn(),
-    getSubtaskStats: jest.fn(),
+    getSubtaskStats: jest.fn(async () => ({ subtaskCount: 0, completedSubtaskCount: 0 })),
+    loadBlockedBy: jest.fn(async () => new Map()),
     areaExists: jest.fn(),
     areaStatusBelongsToArea: jest.fn(),
     incrementVersion: jest.fn(),

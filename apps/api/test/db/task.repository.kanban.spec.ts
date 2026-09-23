@@ -153,6 +153,7 @@ describe('task repository — kanban filters and enrichment', () => {
         projectId: projectA,
         globalRank: rank(1),
         areaRank: rank(1),
+        blockedByTaskIds: [],
         labels: { create: [{ userId, labelId: labelA }] },
       },
     });
@@ -165,6 +166,7 @@ describe('task repository — kanban filters and enrichment', () => {
         priority: 'LOW',
         globalRank: rank(2),
         areaRank: rank(2),
+        blockedByTaskIds: [],
         labels: { create: [{ userId, labelId: labelB }] },
       },
     });
@@ -205,6 +207,7 @@ describe('task repository — kanban filters and enrichment', () => {
     expect(todo[0]).toMatchObject({
       areaName: 'İş',
       project: { id: projectA, name: 'Alışveriş' },
+      blockedByTaskIds: [],
       labels: [{ id: labelA, name: 'Ev' }],
       canonicalStatus: 'TO_DO',
     });

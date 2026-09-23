@@ -26,6 +26,13 @@ export function mapKanbanTaskSummary(task: KanbanTaskSummary): KanbanTaskDto {
           canonicalStatus: task.parentTask.canonicalStatus,
         }
       : null,
+    blockedByTaskIds: [...task.blockedByTaskIds],
+    blockedByTasks: task.blockedByTasks.map((blocker) => ({
+      id: blocker.id,
+      title: blocker.title,
+      canonicalStatus: blocker.canonicalStatus,
+    })),
+    isBlocked: task.isBlocked,
     areaName: task.areaName,
   };
 }

@@ -165,6 +165,7 @@ function makeSummary(id: string, title: string) {
     parentTaskId: null,
     subtaskCount: 0,
     completedSubtaskCount: 0,
+    blockedByTaskIds: [],
     labels: [],
   } as const;
 }

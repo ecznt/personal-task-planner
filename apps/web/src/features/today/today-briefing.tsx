@@ -1,6 +1,6 @@
 'use client';
 
-import { Sparkles } from 'lucide-react';
+import { Lock, Sparkles } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { ProgressRing } from './progress-ring';
@@ -10,6 +10,7 @@ type TodayTask = {
   readonly title: string;
   readonly priority: 'LOW' | 'MEDIUM' | 'HIGH';
   readonly reasons: readonly string[];
+  readonly isBlocked?: boolean;
 };
 
 type TodayBriefingProps = {
@@ -28,10 +29,13 @@ export function TodayBriefing({
   const remaining = [...overdue, ...plannedToday, ...dueToday];
   const completed = completedToday.length;
   const total = completed + remaining.length;
+  const blockedTasks = remaining.filter((task) => task.isBlocked === true);
+  const blocked = blockedTasks.length;
   const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
   const allDone = total > 0 && completed === total;
 
   return (
+    <>
     <section
       aria-label="Gün özeti"
       className="card-surface animate-fade-slide-in relative overflow-hidden rounded-xl border border-border/70 bg-card p-4 shadow-surface"
@@ -65,6 +69,9 @@ export function TodayBriefing({
             {dueToday.length > 0 ? (
               <Badge variant="warning">{dueToday.length} bitiş</Badge>
             ) : null}{' '}
+            {blocked > 0 ? (
+              <Badge variant="neutral">{blocked} bloke</Badge>
+            ) : null}{' '}
             {completed > 0 ? <Badge variant="success">{completed} tamamlandı</Badge> : null}
           </p>
         </div>
@@ -77,6 +84,30 @@ export function TodayBriefing({
         </div>
       </div>
     </section>
+
+    {blockedTasks.length > 0 && (
+      <section
+        aria-label="Seni bekleyenler"
+        className="card-surface animate-fade-slide-in rounded-xl border border-border/70 bg-card p-4 shadow-surface"
+        style={{ animationDelay: '140ms' }}
+      >
+        <div className="space-y-2">
+          <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            <Lock className="size-3.5 text-primary" aria-hidden="true" />
+            Seni bekleyenler
+          </p>
+          <ul className="space-y-2">
+            {blockedTasks.map((task) => (
+              <li key={task.id} className="flex items-center gap-2 text-sm">
+                <Lock className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                <span className="min-w-0 flex-1 truncate">{task.title}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )}
+    </>
   );
 }
 

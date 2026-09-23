@@ -236,6 +236,7 @@ export class TaskController {
       projectId: input.projectId ?? null,
       parentTaskId: input.parentTaskId ?? null,
       labelIds: input.labelIds ?? [],
+      blockedByTaskIds: input.blockedByTaskIds ?? [],
       checklistItems: input.checklistItems ?? [],
       recurrence:
         input.recurrence === null || input.recurrence === undefined
@@ -521,6 +522,7 @@ export class TaskController {
       ...(input.labelIds !== undefined && { labelIds: input.labelIds }),
       ...(input.projectId !== undefined && { projectId: input.projectId }),
       ...(input.parentTaskId !== undefined && { parentTaskId: input.parentTaskId }),
+      ...(input.blockedByTaskIds !== undefined && { blockedByTaskIds: input.blockedByTaskIds }),
     });
 
     return this.handleEditResult(result, response);
@@ -633,6 +635,13 @@ export class TaskController {
             parentTaskId: result.data.task.parentTaskId,
             subtaskCount: result.data.subtaskCount,
             completedSubtaskCount: result.data.completedSubtaskCount,
+            blockedByTaskIds: [...result.data.task.blockedByTaskIds],
+            blockedByTasks: result.data.blockedByTasks.map((blocker) => ({
+              id: blocker.id,
+              title: blocker.title,
+              canonicalStatus: blocker.canonicalStatus,
+            })),
+            isBlocked: result.data.isBlocked,
             parentTask: result.data.parentTask
               ? {
                   id: result.data.parentTask.id,
@@ -714,6 +723,13 @@ export class TaskController {
             parentTaskId: result.task.parentTaskId,
             subtaskCount: result.subtaskCount,
             completedSubtaskCount: result.completedSubtaskCount,
+            blockedByTaskIds: [...result.task.blockedByTaskIds],
+            blockedByTasks: result.blockedByTasks.map((blocker) => ({
+              id: blocker.id,
+              title: blocker.title,
+              canonicalStatus: blocker.canonicalStatus,
+            })),
+            isBlocked: result.isBlocked,
             parentTask: null,
             subtasks: [],
           },
@@ -769,6 +785,13 @@ export class TaskController {
             parentTaskId: result.task.parentTaskId,
             subtaskCount: result.subtaskCount,
             completedSubtaskCount: result.completedSubtaskCount,
+            blockedByTaskIds: [...result.task.blockedByTaskIds],
+            blockedByTasks: result.blockedByTasks.map((blocker) => ({
+              id: blocker.id,
+              title: blocker.title,
+              canonicalStatus: blocker.canonicalStatus,
+            })),
+            isBlocked: result.isBlocked,
             parentTask: null,
             subtasks: [],
           },
@@ -819,6 +842,7 @@ export class TaskController {
             subtaskCount: task.subtaskCount,
             completedSubtaskCount: task.completedSubtaskCount,
             labels: serializeTaskLabels(task.labels),
+            blockedByTaskIds: [...task.blockedByTaskIds],
           })),
           meta: {
             ...(result.nextCursor !== undefined && { nextCursor: result.nextCursor }),
@@ -844,6 +868,8 @@ export class TaskController {
         subtaskCount: task.subtaskCount,
         completedSubtaskCount: task.completedSubtaskCount,
         labels: serializeTaskLabels(task.labels),
+        blockedByTaskIds: [...task.blockedByTaskIds],
+        isBlocked: task.isBlocked,
         reasons: [...task.reasons],
       }));
 
@@ -897,6 +923,7 @@ export class TaskController {
         subtaskCount: task.subtaskCount,
         completedSubtaskCount: task.completedSubtaskCount,
         labels: serializeTaskLabels(task.labels),
+        blockedByTaskIds: [...task.blockedByTaskIds],
       }));
 
     return {
@@ -927,6 +954,7 @@ export class TaskController {
         subtaskCount: task.subtaskCount,
         completedSubtaskCount: task.completedSubtaskCount,
         labels: serializeTaskLabels(task.labels),
+        blockedByTaskIds: [...task.blockedByTaskIds],
       }));
 
     return {
@@ -967,6 +995,13 @@ export class TaskController {
             parentTaskId: result.task.parentTaskId,
             subtaskCount: 0,
             completedSubtaskCount: 0,
+            blockedByTaskIds: [...result.task.blockedByTaskIds],
+            blockedByTasks: result.blockedByTasks.map((blocker) => ({
+              id: blocker.id,
+              title: blocker.title,
+              canonicalStatus: blocker.canonicalStatus,
+            })),
+            isBlocked: result.isBlocked,
             parentTask: null,
             subtasks: [],
           },
@@ -1029,6 +1064,13 @@ export class TaskController {
             parentTaskId: result.task.parentTaskId,
             subtaskCount: result.subtaskCount,
             completedSubtaskCount: result.completedSubtaskCount,
+            blockedByTaskIds: [...result.task.blockedByTaskIds],
+            blockedByTasks: result.blockedByTasks.map((blocker) => ({
+              id: blocker.id,
+              title: blocker.title,
+              canonicalStatus: blocker.canonicalStatus,
+            })),
+            isBlocked: result.isBlocked,
             parentTask: null,
             subtasks: [],
           },

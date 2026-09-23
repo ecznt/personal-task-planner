@@ -199,9 +199,12 @@ describe('task template service — applyTemplate', () => {
         recurrenceRuleVersionId: null,
         occurrenceNumber: null,
         predecessorTaskId: null,
+        blockedByTaskIds: [],
         generationKey: null,
       },
       etag: 1,
+      blockedByTasks: [],
+      isBlocked: false,
     }));
     const service = serviceFrom(repository, taskService, labels);
 

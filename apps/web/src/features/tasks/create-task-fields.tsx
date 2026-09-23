@@ -36,6 +36,11 @@ type ChecklistDraft = {
   text: string;
 };
 
+type AreaTaskOption = {
+  readonly id: string;
+  readonly title: string;
+};
+
 type CreateTaskFieldsProps = {
   readonly areaId: string;
   readonly initialProjectId?: string;
@@ -80,6 +85,7 @@ export function CreateTaskFields({
   onCancel,
 }: CreateTaskFieldsProps) {
   const [selectedLabelIds, setSelectedLabelIds] = useState<readonly string[]>([]);
+  const [blockedByTaskIds, setBlockedByTaskIds] = useState<readonly string[]>([]);
   const [checklistItems, setChecklistItems] = useState<ChecklistDraft[]>([]);
   const [recurrence, setRecurrence] = useState<RecurrenceFormValues | null>(null);
   const [showRecurrence, setShowRecurrence] = useState(false);
@@ -89,6 +95,20 @@ export function CreateTaskFields({
     queryKey: csrfQueryKey,
     queryFn: fetchCsrf,
     staleTime: 20 * 60 * 1_000,
+  });
+
+  const areaTasks = useQuery({
+    queryKey: ['areas', areaId, 'tasks'],
+    queryFn: async () => {
+      const result = await apiClient.get({
+        url: '/api/v1/areas/{areaId}/tasks',
+        path: { areaId },
+      });
+      if (result.error !== undefined) {
+        return [];
+      }
+      return (result.data as { data: AreaTaskOption[] }).data ?? [];
+    },
   });
 
   const projects = useQuery({
@@ -130,6 +150,7 @@ export function CreateTaskFields({
         priority: values.priority,
         projectId: values.projectId || null,
         labelIds: [...selectedLabelIds],
+        blockedByTaskIds: blockedByTaskIds.length > 0 ? [...blockedByTaskIds] : undefined,
         checklistItems: checklistItems
           .map((item) => ({ text: item.text }))
           .filter((item) => item.text.trim().length > 0),
@@ -169,6 +190,7 @@ export function CreateTaskFields({
   function resetForm() {
     form.reset();
     setSelectedLabelIds([]);
+    setBlockedByTaskIds([]);
     setChecklistItems([]);
     setRecurrence(null);
     setShowRecurrence(false);
@@ -285,6 +307,42 @@ export function CreateTaskFields({
           );
         }}
       />
+
+      <div className="rounded-lg border bg-card p-3">
+        <div className="flex items-center justify-between">
+          <h4 className="text-sm font-medium text-muted-foreground">Bu görev şunları bloke ediyor</h4>
+        </div>
+        {areaTasks.isLoading ? (
+          <p className="mt-2 text-sm text-muted-foreground">Görevler yükleniyor...</p>
+        ) : (areaTasks.data ?? []).length === 0 ? (
+          <p className="mt-2 text-sm text-muted-foreground">
+            Bu alanda başka görev yok; bağımlılık eklemek için önce görev oluşturun.
+          </p>
+        ) : (
+          <div className="mt-2 max-h-48 space-y-1 overflow-y-auto pr-1">
+            {(areaTasks.data ?? []).map((task) => (
+              <label
+                key={task.id}
+                className="flex cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 text-sm transition-colors duration-150 hover:bg-accent"
+              >
+                <input
+                  type="checkbox"
+                  className="mt-0.5 accent-primary"
+                  checked={blockedByTaskIds.includes(task.id)}
+                  onChange={() => {
+                    setBlockedByTaskIds((prev) =>
+                      prev.includes(task.id)
+                        ? prev.filter((id) => id !== task.id)
+                        : [...prev, task.id],
+                    );
+                  }}
+                />
+                <span className="min-w-0 break-words">{task.title}</span>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="rounded-lg border bg-card p-3">
         <div className="flex items-center justify-between">

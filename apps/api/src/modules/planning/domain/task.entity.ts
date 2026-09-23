@@ -67,6 +67,7 @@ export type Task = {
   readonly recurrenceRuleVersionId: string | null;
   readonly occurrenceNumber: number | null;
   readonly predecessorTaskId: string | null;
+  readonly blockedByTaskIds: readonly string[];
   readonly parentTaskId: string | null;
   readonly generationKey: string | null;
 };
@@ -85,6 +86,7 @@ export type TaskSummary = {
   readonly parentTaskId: string | null;
   readonly subtaskCount: number;
   readonly completedSubtaskCount: number;
+  readonly blockedByTaskIds: readonly string[];
   readonly labels: readonly LabelSummary[];
 };
 
@@ -92,6 +94,13 @@ export type KanbanTaskSummary = TaskSummary & {
   readonly project: { id: string; name: string } | null;
   readonly areaName: string;
   readonly parentTask: TaskParentSummary | null;
+  readonly blockedByTasks: readonly { id: string; title: string; canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED' }[];
+  readonly isBlocked: boolean;
+};
+
+export type TodayTaskSummary = TaskSummary & {
+  readonly reasons: readonly string[];
+  readonly isBlocked: boolean;
 };
 
 export type KanbanTaskFilter = {
@@ -129,4 +138,6 @@ export type TaskDetail = {
   readonly completedSubtaskCount: number;
   readonly parentTask: TaskParentSummary | null;
   readonly subtasks: readonly TaskSubtaskSummary[];
+  readonly blockedByTasks: readonly { id: string; title: string; canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED' }[];
+  readonly isBlocked: boolean;
 };

@@ -15,6 +15,7 @@ export type NextActionTask = {
   readonly reasons: readonly string[];
   readonly plannedAt: string | null;
   readonly dueAt: string | null;
+  readonly isBlocked?: boolean;
 };
 
 type NextActionCardProps = {
@@ -23,7 +24,9 @@ type NextActionCardProps = {
 };
 
 function sortByUrgency(tasks: readonly NextActionTask[]): NextActionTask[] {
-  return [...tasks].sort((left, right) => {
+  return [...tasks]
+    .filter((task) => task.isBlocked !== true)
+    .sort((left, right) => {
     const rank = (task: NextActionTask): number => {
       if (task.reasons.includes('overdue')) return 0;
       if (task.reasons.includes('dueToday')) return 1;

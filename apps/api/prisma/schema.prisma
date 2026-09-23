@@ -441,6 +441,7 @@ model Task {
   predecessorTask          Task?                    @relation("PredecessorSuccessor", fields: [predecessorTaskId], references: [id])
   predecessorTaskId        String?                  @db.Uuid @unique
   successorTask            Task?                    @relation("PredecessorSuccessor")
+  blockedByTaskIds         String[]                 @default([])
   parentTaskId             String?                  @db.Uuid
   parentTask               Task?                    @relation("TaskSubtasks", fields: [parentTaskId], references: [id], onDelete: Restrict)
   subtasks                 Task[]                   @relation("TaskSubtasks")

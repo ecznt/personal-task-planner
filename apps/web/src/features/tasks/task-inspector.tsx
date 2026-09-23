@@ -2,7 +2,7 @@
 
 import { apiClient } from '@planner/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ListTree } from 'lucide-react';
+import { ListTree, Lock } from 'lucide-react';
 import { useState } from 'react';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -126,6 +126,61 @@ export function TaskInspector({ taskId, variant = 'page' }: TaskInspectorProps) 
         url: '/api/v1/tasks/{taskId}',
         path: { taskId },
         body: { labelIds: next },
+        headers: {
+          'X-CSRF-Token': csrf.token,
+          'If-Match': String(current.version),
+        },
+      });
+
+      if (result.error !== undefined) {
+        throw apiError(result.error);
+      }
+
+      return result.data;
+    },
+    onSuccess: () => {
+      const current = readTaskFromCache(queryClient, taskId);
+      if (current !== undefined) {
+        invalidateTaskCaches(queryClient, current);
+      }
+    },
+  });
+
+  const blockerOptions = useQuery({
+    queryKey: ['areas', areaId, 'tasks'],
+    queryFn: async () => {
+      if (!areaId) return [];
+      const result = await apiClient.get({
+        url: '/api/v1/areas/{areaId}/tasks',
+        path: { areaId },
+      });
+
+      if (result.error !== undefined) {
+        return [];
+      }
+
+      return (result.data as { data: readonly { id: string; title: string }[] }).data ?? [];
+    },
+    enabled: !!areaId,
+  });
+
+  const toggleBlocker = useMutation({
+    mutationFn: async (blockerId: string) => {
+      const current = readTaskFromCache(queryClient, taskId);
+      if (current === undefined) throw new Error('Görev bulunamadı.');
+
+      const hasBlocker = (current.blockedByTaskIds ?? []).includes(blockerId);
+      const next = hasBlocker
+        ? (current.blockedByTaskIds ?? []).filter((id) => id !== blockerId)
+        : [...(current.blockedByTaskIds ?? []), blockerId];
+
+      const csrf = csrfQuery.data ?? (await fetchCsrf());
+      queryClient.setQueryData(csrfQueryKey, csrf);
+
+      const result = await apiClient.patch({
+        url: '/api/v1/tasks/{taskId}',
+        path: { taskId },
+        body: { blockedByTaskIds: next },
         headers: {
           'X-CSRF-Token': csrf.token,
           'If-Match': String(current.version),
@@ -312,6 +367,46 @@ export function TaskInspector({ taskId, variant = 'page' }: TaskInspectorProps) 
           }}
         />
       </div>
+
+      {(current.blockedByTasks ?? []).length > 0 && (
+        <div className="rounded-xl border bg-card p-4">
+  <div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+    <Lock className="size-3.5" aria-hidden="true" />
+    Bu görevi bloke edenler
+    {(current.blockedByTasks ?? []).length > 0 && (
+      <Badge variant="neutral">{(current.blockedByTasks ?? []).length}</Badge>
+    )}
+  </div>
+  {blockerOptions.isLoading ? (
+    <p className="mt-2 text-sm text-muted-foreground">Görevler yükleniyor...</p>
+  ) : (
+    <div className="mt-2 max-h-64 space-y-1 overflow-y-auto pr-1">
+      {(blockerOptions.data ?? []).map((option) => {
+        const isSelected = (current.blockedByTaskIds ?? []).includes(option.id);
+        const isSelf = option.id === taskId;
+        return (
+          <label
+            key={option.id}
+            className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 transition-colors duration-150 hover:bg-accent"
+          >
+            <input
+              type="checkbox"
+              className="accent-primary"
+              checked={isSelected}
+              disabled={isSelf}
+              onChange={() => toggleBlocker.mutate(option.id)}
+            />
+            <span className="min-w-0 flex-1 truncate">
+              {option.title}
+              {isSelf ? ' (bu görev)' : ''}
+            </span>
+          </label>
+        );
+      })}
+    </div>
+  )}
+</div>
+      )}
 
       <div className="rounded-xl border bg-card p-4">
         <Checklist taskId={taskId} />

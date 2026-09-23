@@ -459,25 +459,7 @@ function toTemplateDataDto(template: {
 }
 
 function toTaskDataDto(
-  result: {
-    readonly outcome: 'SUCCESS';
-    readonly task: {
-      readonly id: string;
-      readonly areaId: string;
-      readonly title: string;
-      readonly description: string | null;
-      readonly plannedAt: Date | null;
-      readonly dueAt: Date | null;
-      readonly durationMinutes: number | null;
-      readonly priority: 'LOW' | 'MEDIUM' | 'HIGH';
-      readonly areaStatusId: string;
-      readonly projectId: string | null;
-      readonly parentTaskId: string | null;
-      readonly version: number;
-      readonly lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
-    };
-    readonly etag: number;
-  },
+  result: Extract<CreateTaskResult, { readonly outcome: 'SUCCESS' }>,
   response: Response,
 ): TaskResponseDto {
   response.setHeader('ETag', String(result.etag));
@@ -503,6 +485,13 @@ function toTaskDataDto(
       parentTaskId: result.task.parentTaskId,
       subtaskCount: 0,
       completedSubtaskCount: 0,
+      blockedByTaskIds: [...result.task.blockedByTaskIds],
+      blockedByTasks: result.blockedByTasks.map((blocker) => ({
+        id: blocker.id,
+        title: blocker.title,
+        canonicalStatus: blocker.canonicalStatus,
+      })),
+      isBlocked: result.isBlocked,
       parentTask: null,
       subtasks: [],
     },

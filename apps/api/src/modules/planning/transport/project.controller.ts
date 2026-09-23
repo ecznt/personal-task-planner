@@ -624,6 +624,13 @@ export class ProjectController {
             parentTaskId: result.task.parentTaskId,
             subtaskCount: result.subtaskCount,
             completedSubtaskCount: result.completedSubtaskCount,
+            blockedByTaskIds: [...result.task.blockedByTaskIds],
+            blockedByTasks: result.blockedByTasks.map((blocker) => ({
+              id: blocker.id,
+              title: blocker.title,
+              canonicalStatus: blocker.canonicalStatus,
+            })),
+            isBlocked: result.isBlocked,
             parentTask: null,
             subtasks: [],
           },

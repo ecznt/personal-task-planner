@@ -100,6 +100,15 @@ export class TaskDataDto {
   @ApiProperty({ type: () => TaskParentDataDto, required: false })
   parentTask!: TaskParentDataDto | null;
 
+  @ApiProperty({ type: [String], format: 'uuid' })
+  blockedByTaskIds!: string[];
+
+  @ApiProperty({ type: () => [TaskParentDataDto] })
+  blockedByTasks!: TaskParentDataDto[];
+
+  @ApiProperty({ type: Boolean })
+  isBlocked!: boolean;
+
   @ApiProperty({ type: () => [TaskSubtaskDataDto] })
   subtasks!: TaskSubtaskDataDto[];
 
@@ -140,6 +149,9 @@ export class TaskSummaryDto {
 
   @ApiProperty({ type: Number })
   completedSubtaskCount!: number;
+
+  @ApiProperty({ type: [String], format: 'uuid' })
+  blockedByTaskIds!: string[];
 
   @ApiProperty({ type: () => [LabelSummaryDto] })
   labels!: LabelSummaryDto[];
@@ -206,6 +218,14 @@ export class CreateTaskRequestDto {
 
   @ApiProperty({ type: [String], format: 'uuid', required: false })
   labelIds?: string[];
+
+  @ApiProperty({
+    type: [String],
+    format: 'uuid',
+    required: false,
+    description: 'The task ids that this task depends on. When any of them is not completed, the task is considered blocked.',
+  })
+  blockedByTaskIds?: string[];
 
   @ApiProperty({
     type: () => [CreateTaskChecklistItemRequestDto],
@@ -285,6 +305,14 @@ export class EditTaskRequestDto {
     description: 'Parent task id. Set to null to detach the task from its parent.',
   })
   parentTaskId?: string | null;
+
+  @ApiProperty({
+    type: [String],
+    format: 'uuid',
+    required: false,
+    description: 'Full replacement list of task ids this task depends on. When any of them is not completed, the task is considered blocked.',
+  })
+  blockedByTaskIds?: string[];
 }
 
 export class TodayTaskSummaryDto {
@@ -320,6 +348,12 @@ export class TodayTaskSummaryDto {
 
   @ApiProperty({ type: Number })
   completedSubtaskCount!: number;
+
+  @ApiProperty({ type: [String], format: 'uuid' })
+  blockedByTaskIds!: string[];
+
+  @ApiProperty({ type: Boolean })
+  isBlocked!: boolean;
 
   @ApiProperty({ type: () => [LabelSummaryDto] })
   labels!: LabelSummaryDto[];
@@ -510,6 +544,25 @@ export class KanbanTaskDto {
 
   @ApiProperty({ type: () => TaskParentDataDto, required: false })
   parentTask!: TaskParentDataDto | null;
+
+  @ApiProperty({
+    type: [String],
+    format: 'uuid',
+    description: 'The task ids that this task depends on.',
+  })
+  blockedByTaskIds!: string[];
+
+  @ApiProperty({
+    type: () => [TaskParentDataDto],
+    description: 'The tasks that this task depends on (blocker tasks).',
+  })
+  blockedByTasks!: TaskParentDataDto[];
+
+  @ApiProperty({
+    type: Boolean,
+    description: 'Whether this task is blocked by an uncompleted blocker.',
+  })
+  isBlocked!: boolean;
 
   @ApiProperty({ type: String })
   areaName!: string;

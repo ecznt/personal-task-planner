@@ -74,6 +74,7 @@ describe('global task list HTTP contract', () => {
             parentTaskId: null,
             subtaskCount: 0,
             completedSubtaskCount: 0,
+            blockedByTaskIds: [],
             labels: [],
           },
         ],

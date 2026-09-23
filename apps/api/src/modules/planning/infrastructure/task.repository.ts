@@ -12,6 +12,7 @@ import type {
   TaskDetail,
   TaskPriority,
   TaskSummary,
+  TodayTaskSummary,
 } from '../domain/task.entity';
 
 const SUBTASK_COUNT_SELECT = {
@@ -73,6 +74,7 @@ export class TaskRepository {
       readonly parentTaskId: string | null;
       readonly labelIds: readonly string[];
       readonly checklistItems: readonly { text: string }[];
+      readonly blockedByTaskIds: readonly string[];
       readonly recurrence: {
         readonly mode: 'CALENDAR_BASED' | 'COMPLETION_BASED';
         readonly frequency: 'DAILY' | 'WEEKDAYS' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
@@ -113,6 +115,7 @@ export class TaskRepository {
           areaId,
           projectId: input.projectId,
           parentTaskId: input.parentTaskId,
+          blockedByTaskIds: [...input.blockedByTaskIds],
           areaStatusId: defaultStatusId,
           title: input.title,
           description: input.description,
@@ -255,6 +258,13 @@ export class TaskRepository {
     const { subtasks, parentTask, ...taskRow } = task;
     const subtaskStats = toSubtaskStats(subtasks);
 
+    const blockedByRows = await this.loadBlockedBy(userId, [
+      { id: taskRow.id, blockedByTaskIds: taskRow.blockedByTaskIds },
+    ]);
+
+    const blockedByTasks = blockedByRows.get(taskRow.id) ?? [];
+    const isBlocked = blockedByTasks.some((blocker) => blocker.canonicalStatus !== 'COMPLETED');
+
     const areaStatus = await this.prisma.areaStatus.findUnique({
       where: { id: taskRow.areaStatusId },
       select: { canonicalStatus: true },
@@ -327,6 +337,8 @@ export class TaskRepository {
         dueAt: subtask.dueAt,
         lifecycleState: subtask.lifecycleState,
       })),
+      blockedByTasks,
+      isBlocked,
     };
   }
 
@@ -370,6 +382,7 @@ export class TaskRepository {
       version: task.version,
       areaId: task.areaId,
       parentTaskId: task.parentTaskId,
+      blockedByTaskIds: [...task.blockedByTaskIds],
       ...toSubtaskStats(task.subtasks),
       labels: task.labels.map((tl) => ({
         id: tl.label.id,
@@ -395,6 +408,7 @@ export class TaskRepository {
       readonly areaStatusId: string | undefined;
       readonly projectId: string | null | undefined;
       readonly parentTaskId: string | null | undefined;
+      readonly blockedByTaskIds: readonly string[] | undefined;
     },
     version: number,
   ): Promise<Task | null> {
@@ -434,6 +448,10 @@ export class TaskRepository {
 
     if (input.parentTaskId !== undefined) {
       data.parentTaskId = input.parentTaskId;
+    }
+
+    if (input.blockedByTaskIds !== undefined) {
+      data.blockedByTaskIds = [...input.blockedByTaskIds];
     }
 
     const result = await this.prisma.task.updateMany({
@@ -499,6 +517,60 @@ export class TaskRepository {
     });
 
     return labels.length === labelIds.length;
+  }
+
+  async tasksBelongToUser(userId: string, taskIds: readonly string[]): Promise<boolean> {
+    if (taskIds.length === 0) {
+      return true;
+    }
+
+    const tasks = await this.prisma.task.findMany({
+      where: { id: { in: [...taskIds] }, userId, lifecycleState: 'ACTIVE' },
+      select: { id: true },
+    });
+
+    return tasks.length === taskIds.length;
+  }
+
+  async blockingCreatesCycle(
+    userId: string,
+    taskId: string,
+    newBlockedByTaskIds: readonly string[],
+    existingBlockedByTaskIds: readonly string[],
+  ): Promise<boolean> {
+    const allRelevantIds = [...new Set([...existingBlockedByTaskIds, ...newBlockedByTaskIds])];
+
+    if (allRelevantIds.length === 0) {
+      return false;
+    }
+
+    const tasks = await this.prisma.task.findMany({
+      where: { id: { in: [...allRelevantIds] }, userId, lifecycleState: 'ACTIVE' },
+      select: { id: true, blockedByTaskIds: true },
+    });
+
+    const blockedByMap = new Map(tasks.map((task) => [task.id, task.blockedByTaskIds]));
+    const removed = new Set(existingBlockedByTaskIds);
+    const queue = [...newBlockedByTaskIds];
+    const visited = new Set<string>();
+
+    while (queue.length > 0) {
+      const current = queue.shift() as string;
+      const blockers = (blockedByMap.get(current) ?? []).filter((blockerId) => !removed.has(blockerId));
+
+      if (blockers.includes(taskId)) {
+        return true;
+      }
+
+      for (const blockerId of blockers) {
+        if (!visited.has(blockerId)) {
+          visited.add(blockerId);
+          queue.push(blockerId);
+        }
+      }
+    }
+
+    return false;
   }
 
   async incrementVersion(userId: string, taskId: string): Promise<Task | null> {
@@ -610,6 +682,7 @@ export class TaskRepository {
       version: task.version,
       areaId: task.areaId,
       parentTaskId: task.parentTaskId,
+      blockedByTaskIds: [...task.blockedByTaskIds],
       ...toSubtaskStats(task.subtasks),
       labels: task.labels.map((tl) => ({
         id: tl.label.id,
@@ -626,7 +699,7 @@ export class TaskRepository {
     userId: string,
     todayStart: Date,
     todayEnd: Date,
-  ): Promise<readonly (TaskSummary & { readonly reasons: readonly string[] })[]> {
+  ): Promise<readonly TodayTaskSummary[]> {
     const tasks = await this.prisma.task.findMany({
       where: {
         userId,
@@ -688,6 +761,7 @@ export class TaskRepository {
           version: task.version,
           areaId: task.areaId,
           parentTaskId: task.parentTaskId,
+          blockedByTaskIds: [...task.blockedByTaskIds],
           ...toSubtaskStats(task.subtasks),
           labels: task.labels.map((tl) => ({
             id: tl.label.id,
@@ -700,7 +774,17 @@ export class TaskRepository {
       }
     }
 
-    return result;
+    const blockedByMap = await this.loadBlockedBy(userId, result);
+
+    return result.map((task) => {
+      const blockers = blockedByMap.get(task.id) ?? [];
+      return {
+        ...task,
+        isBlocked:
+          blockers.length > 0 &&
+          blockers.some((blocker) => blocker.canonicalStatus !== 'COMPLETED'),
+      };
+    });
   }
 
   async findCompletedTasksBetween(
@@ -761,6 +845,7 @@ export class TaskRepository {
       version: task.version,
       areaId: task.areaId,
       parentTaskId: task.parentTaskId,
+      blockedByTaskIds: [...task.blockedByTaskIds],
       ...toSubtaskStats(task.subtasks),
       labels: task.labels.map((tl) => ({
         id: tl.label.id,
@@ -807,8 +892,10 @@ export class TaskRepository {
     const inProgress: KanbanTaskSummary[] = [];
     const completed: KanbanTaskSummary[] = [];
 
+    const blockedBy = await this.loadBlockedBy(userId, tasks);
+
     for (const task of tasks) {
-      const summary = this.toKanbanTaskSummary(task);
+      const summary = this.toKanbanTaskSummary(task, blockedBy.get(task.id) ?? []);
 
       switch (task.areaStatus.canonicalStatus) {
         case 'TO_DO':
@@ -864,6 +951,47 @@ export class TaskRepository {
     return where;
   }
 
+  async loadBlockedBy(
+    userId: string,
+    tasks: readonly { readonly id: string; readonly blockedByTaskIds: readonly string[] }[],
+  ): Promise<Map<string, readonly { id: string; title: string; canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED' }[]>> {
+    const ids = [...new Set(tasks.flatMap((task) => task.blockedByTaskIds))];
+
+    if (ids.length === 0) {
+      return new Map(tasks.map((task) => [task.id, []]));
+    }
+
+    const blockers = await this.prisma.task.findMany({
+      where: { id: { in: ids }, userId, lifecycleState: 'ACTIVE' },
+      select: {
+        id: true,
+        title: true,
+        areaStatus: { select: { canonicalStatus: true } },
+      },
+    });
+
+    const byId = new Map(blockers.map((blocker) => [blocker.id, blocker]));
+    const result = new Map<string, readonly { id: string; title: string; canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED' }[]>();
+
+    for (const task of tasks) {
+      result.set(
+        task.id,
+        task.blockedByTaskIds
+          .map((id) => byId.get(id))
+          .filter(
+            (blocker): blocker is (typeof blockers)[number] => blocker !== undefined,
+          )
+          .map((blocker) => ({
+            id: blocker.id,
+            title: blocker.title,
+            canonicalStatus: blocker.areaStatus.canonicalStatus,
+          })),
+      );
+    }
+
+    return result;
+  }
+
   private toKanbanTaskSummary(task: {
     readonly id: string;
     readonly title: string;
@@ -894,7 +1022,8 @@ export class TaskRepository {
         readonly version: number;
       };
     }>;
-  }): KanbanTaskSummary {
+    readonly blockedByTaskIds: readonly string[];
+  }, blockedByTasks: readonly { id: string; title: string; canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED' }[] = []): KanbanTaskSummary {
     return {
       id: task.id,
       title: task.title,
@@ -907,6 +1036,7 @@ export class TaskRepository {
       version: task.version,
       areaId: task.areaId,
       parentTaskId: task.parentTaskId,
+      blockedByTaskIds: [...task.blockedByTaskIds],
       ...toSubtaskStats(task.subtasks),
       labels: task.labels.map((tl) => ({
         id: tl.label.id,
@@ -923,6 +1053,8 @@ export class TaskRepository {
             canonicalStatus: task.parentTask.areaStatus?.canonicalStatus ?? 'TO_DO',
           }
         : null,
+      blockedByTasks,
+      isBlocked: blockedByTasks.length > 0 && blockedByTasks.some((b) => b.canonicalStatus !== 'COMPLETED'),
     };
   }
 
@@ -1066,11 +1198,13 @@ export class TaskRepository {
       taskMap.set(status.id, []);
     }
 
+    const blockedBy = await this.loadBlockedBy(userId, tasks);
+
     for (const task of tasks) {
       const bucket = taskMap.get(task.areaStatus.id);
 
       if (bucket) {
-        bucket.push(this.toKanbanTaskSummary(task));
+        bucket.push(this.toKanbanTaskSummary(task, blockedBy.get(task.id) ?? []));
       }
     }
 
@@ -1353,6 +1487,7 @@ export class TaskRepository {
         version: task.version,
         areaId: task.areaId,
         parentTaskId: task.parentTaskId,
+        blockedByTaskIds: [...task.blockedByTaskIds],
         ...toSubtaskStats(task.subtasks),
         labels: task.labels.map((tl) => ({
           id: tl.label.id,

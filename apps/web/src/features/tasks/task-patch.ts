@@ -75,6 +75,9 @@ export type TaskData = {
   readonly completedSubtaskCount: number;
   readonly parentTask: TaskParent | null;
   readonly subtasks: readonly TaskSubtask[];
+  readonly blockedByTasks?: readonly TaskParent[];
+  readonly blockedByTaskIds?: readonly string[];
+  readonly isBlocked?: boolean;
   readonly recurrence: RecurrenceInfo;
 };
 

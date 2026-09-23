@@ -45,6 +45,7 @@ const createTaskSchema = z.strictObject({
   projectId: z.string().uuid().nullable().optional(),
   parentTaskId: z.string().uuid().nullable().optional(),
   labelIds: z.array(z.string().uuid()).optional(),
+  blockedByTaskIds: z.array(z.string().uuid()).optional(),
   checklistItems: z
     .array(createTaskChecklistItemSchema)
     .max(100, 'En fazla 100 kontrol maddesi eklenebilir.')
@@ -113,6 +114,7 @@ const editTaskSchema = z.strictObject({
   labelIds: z.array(z.string().uuid()).optional(),
   projectId: z.string().uuid().nullable().optional(),
   parentTaskId: z.string().uuid().nullable().optional(),
+  blockedByTaskIds: z.array(z.string().uuid()).optional(),
 });
 
 export type EditTaskInput = z.infer<typeof editTaskSchema>;

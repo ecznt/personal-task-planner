@@ -2,7 +2,7 @@
 
 import { apiClient } from '@planner/api-client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { CheckCircle2, PlayCircle, CircleDot, CalendarX2 } from 'lucide-react';
+import { CheckCircle2, PlayCircle, CircleDot, CalendarX2, Lock } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -43,6 +43,7 @@ type TodayTask = {
   readonly parentTaskId: string | null;
   readonly subtaskCount: number;
   readonly completedSubtaskCount: number;
+  readonly isBlocked: boolean;
   readonly reasons: readonly string[];
   readonly labels: readonly {
     readonly id: string;
@@ -138,6 +139,7 @@ function TaskCard({
 }) {
   const { openTask } = useTaskInspector();
   const isCompleted = task.canonicalStatus === 'COMPLETED';
+  const isBlocked = task.isBlocked === true && !isCompleted;
   const labels = task.labels ?? [];
   const anchor = anchorLabel(labels);
 
@@ -170,6 +172,12 @@ function TaskCard({
               {REASON_LABELS[reason] ?? reason}
             </Badge>
           ))}
+          {isBlocked ? (
+            <Badge variant="neutral" className="gap-1">
+              <Lock className="size-3" aria-hidden="true" />
+              Bloke
+            </Badge>
+          ) : null}
           <TaskPriorityBadge priority={task.priority} />
           <SubtaskProgress
             parentTaskId={task.parentTaskId}

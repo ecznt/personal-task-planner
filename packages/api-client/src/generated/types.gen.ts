@@ -187,6 +187,10 @@ export type CreateTaskChecklistItemRequestDto = {
 
 export type CreateTaskRequestDto = {
     /**
+     * The task ids that this task depends on. When any of them is not completed, the task is considered blocked.
+     */
+    blockedByTaskIds?: Array<string>;
+    /**
      * Checklist items to create with the task
      */
     checklistItems?: Array<CreateTaskChecklistItemRequestDto>;
@@ -254,6 +258,10 @@ export type EditChecklistItemRequestDto = {
 
 export type EditTaskRequestDto = {
     areaStatusId?: string;
+    /**
+     * Full replacement list of task ids this task depends on. When any of them is not completed, the task is considered blocked.
+     */
+    blockedByTaskIds?: Array<string>;
     description?: string;
     dueAt?: string;
     /**
@@ -288,6 +296,10 @@ export type GlobalCreateTaskRequestDto = {
      * Inbox (Gelen Kutusu) is used when omitted.
      */
     areaId?: string;
+    /**
+     * The task ids that this task depends on. When any of them is not completed, the task is considered blocked.
+     */
+    blockedByTaskIds?: Array<string>;
     /**
      * Checklist items to create with the task
      */
@@ -334,11 +346,23 @@ export type KanbanResponseDto = {
 export type KanbanTaskDto = {
     areaId: string;
     areaName: string;
+    /**
+     * The task ids that this task depends on.
+     */
+    blockedByTaskIds: Array<string>;
+    /**
+     * The tasks that this task depends on (blocker tasks).
+     */
+    blockedByTasks: Array<TaskParentDataDto>;
     canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
     completedSubtaskCount: number;
     dueAt?: string;
     durationMinutes?: number;
     id: string;
+    /**
+     * Whether this task is blocked by an uncompleted blocker.
+     */
+    isBlocked: boolean;
     labels: Array<LabelSummaryDto>;
     lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
     parentTask?: TaskParentDataDto;
@@ -556,6 +580,8 @@ export type StopRecurrenceSuccessResponseDto = {
 export type TaskDataDto = {
     areaId: string;
     areaStatusId: string;
+    blockedByTaskIds: Array<string>;
+    blockedByTasks: Array<TaskParentDataDto>;
     canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
     checklistItems: Array<ChecklistItemDataDto>;
     completedSubtaskCount: number;
@@ -563,6 +589,7 @@ export type TaskDataDto = {
     dueAt?: string;
     durationMinutes?: number;
     id: string;
+    isBlocked: boolean;
     labels: Array<LabelSummaryDto>;
     lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
     parentTask?: TaskParentDataDto;
@@ -615,6 +642,7 @@ export type TaskSubtaskDataDto = {
 };
 
 export type TaskSummaryDto = {
+    blockedByTaskIds: Array<string>;
     canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
     completedSubtaskCount: number;
     dueAt?: string;
@@ -682,11 +710,13 @@ export type TodaySectionDto = {
 };
 
 export type TodayTaskSummaryDto = {
+    blockedByTaskIds: Array<string>;
     canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
     completedSubtaskCount: number;
     dueAt?: string;
     durationMinutes?: number;
     id: string;
+    isBlocked: boolean;
     labels: Array<LabelSummaryDto>;
     lifecycleState: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
     parentTaskId?: string;
@@ -710,6 +740,7 @@ export type UpcomingResponseDto = {
 };
 
 export type UpcomingTaskSummaryDto = {
+    blockedByTaskIds: Array<string>;
     canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
     completedSubtaskCount: number;
     dueAt?: string;

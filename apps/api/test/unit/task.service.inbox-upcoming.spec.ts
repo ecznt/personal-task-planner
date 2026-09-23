@@ -38,6 +38,8 @@ describe('task service inbox resolution', () => {
       outcome: 'SUCCESS',
       task: expect.objectContaining({ id: 'task-id', areaId: 'inbox-id' }),
       etag: 1,
+      blockedByTasks: [],
+      isBlocked: false,
     });
   });
 
@@ -58,6 +60,8 @@ describe('task service inbox resolution', () => {
       outcome: 'SUCCESS',
       task: expect.objectContaining({ id: 'task-id' }),
       etag: 1,
+      blockedByTasks: [],
+      isBlocked: false,
     });
   });
 
@@ -201,6 +205,7 @@ function makeTask(id: string, areaId: string) {
     occurrenceNumber: null,
     predecessorTaskId: null,
     parentTaskId: null,
+    blockedByTaskIds: [],
     generationKey: null,
   } as const;
 }
@@ -223,6 +228,7 @@ function makeSummary(
     parentTaskId: null,
     subtaskCount: 0,
     completedSubtaskCount: 0,
+    blockedByTaskIds: [],
     labels: [],
     ...overrides,
   };
@@ -274,7 +280,8 @@ function repositoryMock(): jest.Mocked<TaskRepository> {
     listByArea: jest.fn(),
     updateTask: jest.fn(),
     findParentForSubtask: jest.fn(),
-    getSubtaskStats: jest.fn(),
+    getSubtaskStats: jest.fn(async () => ({ subtaskCount: 0, completedSubtaskCount: 0 })),
+    loadBlockedBy: jest.fn(async () => new Map()),
     areaExists: jest.fn(),
     areaStatusBelongsToArea: jest.fn(),
     incrementVersion: jest.fn(),

@@ -40,14 +40,27 @@ export type CreateTaskCommand = {
   readonly parentTaskId?: string | null;
   readonly labelIds?: readonly string[];
   readonly checklistItems?: readonly CreateTaskChecklistItemInput[];
+  readonly blockedByTaskIds?: readonly string[];
   readonly recurrence?: CreateTaskRecurrenceInput | null;
 };
 
 export type CreateTaskResult =
-  | { readonly outcome: 'SUCCESS'; readonly task: Task; readonly etag: number }
+  | {
+      readonly outcome: 'SUCCESS';
+      readonly task: Task;
+      readonly etag: number;
+      readonly blockedByTasks: readonly BlockedBySummary[];
+      readonly isBlocked: boolean;
+    }
   | { readonly outcome: 'NOT_FOUND' }
   | { readonly outcome: 'VALIDATION_ERROR'; readonly detail: string }
   | { readonly outcome: 'UNAUTHENTICATED' };
+
+export type BlockedBySummary = {
+  readonly id: string;
+  readonly title: string;
+  readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+};
 
 export type GetTaskQuery = {
   readonly taskId: string;
@@ -85,6 +98,7 @@ export type EditTaskCommand = {
   readonly labelIds?: string[];
   readonly projectId?: string | null;
   readonly parentTaskId?: string | null;
+  readonly blockedByTaskIds?: string[];
   readonly version: number;
 };
 
@@ -96,6 +110,8 @@ export type EditTaskResult =
       readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
       readonly subtaskCount: number;
       readonly completedSubtaskCount: number;
+      readonly blockedByTasks: readonly BlockedBySummary[];
+      readonly isBlocked: boolean;
     }
   | { readonly outcome: 'NOT_FOUND' }
   | { readonly outcome: 'STALE_VERSION' }
@@ -128,6 +144,7 @@ export type ListTodayTasksQuery = {
 
 export type TodayTaskSummary = TaskSummary & {
   readonly reasons: readonly string[];
+  readonly isBlocked: boolean;
 };
 
 export type ListTodayTasksResult = {
@@ -179,6 +196,8 @@ export type MoveKanbanTaskResult =
       readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
       readonly subtaskCount: number;
       readonly completedSubtaskCount: number;
+      readonly blockedByTasks: readonly BlockedBySummary[];
+      readonly isBlocked: boolean;
     }
   | { readonly outcome: 'NOT_FOUND' }
   | { readonly outcome: 'STALE_VERSION' }
@@ -221,6 +240,8 @@ export type MoveAreaKanbanTaskResult =
       readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
       readonly subtaskCount: number;
       readonly completedSubtaskCount: number;
+      readonly blockedByTasks: readonly BlockedBySummary[];
+      readonly isBlocked: boolean;
     }
   | { readonly outcome: 'NOT_FOUND' }
   | { readonly outcome: 'STALE_VERSION' }
@@ -242,6 +263,8 @@ export type MoveProjectKanbanTaskResult =
       readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
       readonly subtaskCount: number;
       readonly completedSubtaskCount: number;
+      readonly blockedByTasks: readonly BlockedBySummary[];
+      readonly isBlocked: boolean;
     }
   | { readonly outcome: 'NOT_FOUND' }
   | { readonly outcome: 'STALE_VERSION' }
@@ -264,6 +287,8 @@ export type SnoozeTaskDatesResult =
       readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
       readonly subtaskCount: number;
       readonly completedSubtaskCount: number;
+      readonly blockedByTasks: readonly BlockedBySummary[];
+      readonly isBlocked: boolean;
     }
   | { readonly outcome: 'NOT_FOUND' }
   | { readonly outcome: 'STALE_VERSION' }
@@ -405,6 +430,20 @@ export class TaskService {
       }
     }
 
+    if (command.blockedByTaskIds !== undefined && command.blockedByTaskIds.length > 0) {
+      const blockedByBelong = await this.taskRepository.tasksBelongToUser(
+        userId,
+        command.blockedByTaskIds,
+      );
+
+      if (!blockedByBelong) {
+        return {
+          outcome: 'VALIDATION_ERROR',
+          detail: 'Bloke eden görevlerden biri veya birkaçı bulunamadı.',
+        };
+      }
+    }
+
     if (command.recurrence !== undefined && command.recurrence !== null) {
       if (command.recurrence.interval < 1) {
         return {
@@ -473,12 +512,26 @@ export class TaskService {
         parentTaskId,
         labelIds: command.labelIds ?? [],
         checklistItems: command.checklistItems ?? [],
+        blockedByTaskIds: command.blockedByTaskIds ?? [],
         recurrence: command.recurrence ?? null,
       },
       defaultStatus.id,
     );
 
-    return { outcome: 'SUCCESS', task, etag: task.version };
+    const blockedByMap = await this.taskRepository.loadBlockedBy(userId, [
+      { id: task.id, blockedByTaskIds: task.blockedByTaskIds },
+    ]);
+    const blockedByTasks = blockedByMap.get(task.id) ?? [];
+
+    return {
+      outcome: 'SUCCESS',
+      task,
+      etag: task.version,
+      blockedByTasks,
+      isBlocked:
+        blockedByTasks.length > 0 &&
+        blockedByTasks.some((blocker) => blocker.canonicalStatus !== 'COMPLETED'),
+    };
   }
 
   private async ensureInboxAreaId(userId: string): Promise<string> {
@@ -805,6 +858,12 @@ export class TaskService {
 
     const subtaskStats = await this.taskRepository.getSubtaskStats(userId, task.id);
 
+
+    const blockedByMap = await this.taskRepository.loadBlockedBy(userId, [
+      { id: task.id, blockedByTaskIds: task.blockedByTaskIds },
+    ]);
+    const blockedByTasks = blockedByMap.get(task.id) ?? [];
+
     return {
       outcome: 'SUCCESS',
       task,
@@ -812,6 +871,10 @@ export class TaskService {
       canonicalStatus: command.targetCanonicalStatus,
       subtaskCount: subtaskStats.subtaskCount,
       completedSubtaskCount: subtaskStats.completedSubtaskCount,
+      blockedByTasks,
+      isBlocked:
+        blockedByTasks.length > 0 &&
+        blockedByTasks.some((blocker) => blocker.canonicalStatus !== 'COMPLETED'),
     };
   }
 
@@ -873,6 +936,12 @@ export class TaskService {
 
     const subtaskStats = await this.taskRepository.getSubtaskStats(userId, task.id);
 
+
+    const blockedByMap = await this.taskRepository.loadBlockedBy(userId, [
+      { id: task.id, blockedByTaskIds: task.blockedByTaskIds },
+    ]);
+    const blockedByTasks = blockedByMap.get(task.id) ?? [];
+
     return {
       outcome: 'SUCCESS',
       task,
@@ -880,6 +949,10 @@ export class TaskService {
       canonicalStatus: canonicalStatus ?? 'TO_DO',
       subtaskCount: subtaskStats.subtaskCount,
       completedSubtaskCount: subtaskStats.completedSubtaskCount,
+      blockedByTasks,
+      isBlocked:
+        blockedByTasks.length > 0 &&
+        blockedByTasks.some((blocker) => blocker.canonicalStatus !== 'COMPLETED'),
     };
   }
 
@@ -933,6 +1006,11 @@ export class TaskService {
 
         const subtaskStats = await this.taskRepository.getSubtaskStats(userId, result.task.id);
 
+        const blockedByMap = await this.taskRepository.loadBlockedBy(userId, [
+          { id: result.task.id, blockedByTaskIds: result.task.blockedByTaskIds },
+        ]);
+        const blockedByTasks = blockedByMap.get(result.task.id) ?? [];
+
         return {
           outcome: 'SUCCESS',
           task: result.task,
@@ -940,6 +1018,10 @@ export class TaskService {
           canonicalStatus: canonicalStatus ?? 'TO_DO',
           subtaskCount: subtaskStats.subtaskCount,
           completedSubtaskCount: subtaskStats.completedSubtaskCount,
+          blockedByTasks,
+          isBlocked:
+            blockedByTasks.length > 0 &&
+            blockedByTasks.some((blocker) => blocker.canonicalStatus !== 'COMPLETED'),
         };
       }
     }
@@ -1071,6 +1153,47 @@ export class TaskService {
       }
     }
 
+    if (command.blockedByTaskIds !== undefined) {
+      const existing = await this.taskRepository.findById(userId, command.taskId);
+
+      if (!existing) {
+        return { outcome: 'NOT_FOUND' };
+      }
+
+      if (command.blockedByTaskIds.includes(command.taskId)) {
+        return {
+          outcome: 'VALIDATION_ERROR',
+          detail: 'Bir görev kendisini bloke edemez.',
+        };
+      }
+
+      const blockedByBelong = await this.taskRepository.tasksBelongToUser(
+        userId,
+        command.blockedByTaskIds,
+      );
+
+      if (!blockedByBelong) {
+        return {
+          outcome: 'VALIDATION_ERROR',
+          detail: 'Bloke eden görevlerden biri veya birkaçı bulunamadı.',
+        };
+      }
+
+      const createsCycle = await this.taskRepository.blockingCreatesCycle(
+        userId,
+        command.taskId,
+        command.blockedByTaskIds,
+        existing.task.blockedByTaskIds,
+      );
+
+      if (createsCycle) {
+        return {
+          outcome: 'VALIDATION_ERROR',
+          detail: 'Bu bağımlılık bir döngü oluşturur.',
+        };
+      }
+    }
+
     const task = await this.taskRepository.updateTask(
       userId,
       command.taskId,
@@ -1084,6 +1207,7 @@ export class TaskService {
         areaStatusId: command.areaStatusId,
         projectId: command.projectId,
         parentTaskId: command.parentTaskId,
+        blockedByTaskIds: command.blockedByTaskIds,
       },
       command.version,
     );
@@ -1106,6 +1230,11 @@ export class TaskService {
 
     const subtaskStats = await this.taskRepository.getSubtaskStats(userId, task.id);
 
+    const blockedByMap = await this.taskRepository.loadBlockedBy(userId, [
+      { id: task.id, blockedByTaskIds: task.blockedByTaskIds },
+    ]);
+    const blockedByTasks = blockedByMap.get(task.id) ?? [];
+
     return {
       outcome: 'SUCCESS',
       task,
@@ -1113,6 +1242,10 @@ export class TaskService {
       canonicalStatus: canonicalStatus ?? 'TO_DO',
       subtaskCount: subtaskStats.subtaskCount,
       completedSubtaskCount: subtaskStats.completedSubtaskCount,
+      blockedByTasks,
+      isBlocked:
+        blockedByTasks.length > 0 &&
+        blockedByTasks.some((blocker) => blocker.canonicalStatus !== 'COMPLETED'),
     };
   }
 
@@ -1185,6 +1318,7 @@ export class TaskService {
         areaStatusId: undefined,
         projectId: undefined,
         parentTaskId: undefined,
+        blockedByTaskIds: undefined,
       },
       command.version,
     );
@@ -1203,6 +1337,11 @@ export class TaskService {
 
     const subtaskStats = await this.taskRepository.getSubtaskStats(userId, task.id);
 
+    const blockedByMap = await this.taskRepository.loadBlockedBy(userId, [
+      { id: task.id, blockedByTaskIds: task.blockedByTaskIds },
+    ]);
+    const blockedByTasks = blockedByMap.get(task.id) ?? [];
+
     return {
       outcome: 'SUCCESS',
       task,
@@ -1210,6 +1349,10 @@ export class TaskService {
       canonicalStatus: canonicalStatus ?? 'TO_DO',
       subtaskCount: subtaskStats.subtaskCount,
       completedSubtaskCount: subtaskStats.completedSubtaskCount,
+      blockedByTasks,
+      isBlocked:
+        blockedByTasks.length > 0 &&
+        blockedByTasks.some((blocker) => blocker.canonicalStatus !== 'COMPLETED'),
     };
   }
 }

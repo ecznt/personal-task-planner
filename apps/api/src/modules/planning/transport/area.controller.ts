@@ -551,6 +551,7 @@ export class AreaController {
       projectId: input.projectId ?? null,
       parentTaskId: input.parentTaskId ?? null,
       labelIds: input.labelIds ?? [],
+      blockedByTaskIds: input.blockedByTaskIds ?? [],
       checklistItems: input.checklistItems ?? [],
       recurrence:
         input.recurrence === null || input.recurrence === undefined
@@ -901,6 +902,13 @@ export class AreaController {
             parentTaskId: result.task.parentTaskId,
             subtaskCount: 0,
             completedSubtaskCount: 0,
+            blockedByTaskIds: [...result.task.blockedByTaskIds],
+            blockedByTasks: result.blockedByTasks.map((blocker) => ({
+              id: blocker.id,
+              title: blocker.title,
+              canonicalStatus: blocker.canonicalStatus,
+            })),
+            isBlocked: result.isBlocked,
             parentTask: null,
             subtasks: [],
           },
@@ -945,6 +953,7 @@ export class AreaController {
             subtaskCount: task.subtaskCount,
             completedSubtaskCount: task.completedSubtaskCount,
             labels: serializeTaskLabels(task.labels),
+            blockedByTaskIds: [...task.blockedByTaskIds],
           })),
           meta: {
             ...(result.nextCursor !== undefined && { nextCursor: result.nextCursor }),
@@ -1023,6 +1032,13 @@ export class AreaController {
             parentTaskId: result.task.parentTaskId,
             subtaskCount: result.subtaskCount,
             completedSubtaskCount: result.completedSubtaskCount,
+            blockedByTaskIds: [...result.task.blockedByTaskIds],
+            blockedByTasks: result.blockedByTasks.map((blocker) => ({
+              id: blocker.id,
+              title: blocker.title,
+              canonicalStatus: blocker.canonicalStatus,
+            })),
+            isBlocked: result.isBlocked,
             parentTask: null,
             subtasks: [],
           },
