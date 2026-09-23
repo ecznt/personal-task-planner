@@ -124,10 +124,10 @@ export function LifecycleListView({
       <PageHeader title={title} description={description} />
 
       {entries.length === 0 ? (
-        <EmptyState
+<EmptyState
           icon={<Archive className="size-5" aria-hidden="true" />}
-          title="Öğe yok"
-          description="Bu bölüm şu an boş. Öğeler taşındığında burada görünür."
+          title="Burada henüz bir şey yok"
+          description="Taşıdığın görevler listeye düşer. Şimdilik bomboş — dilediğin gibi doldurabilirsin."
         />
       ) : (
         <div className="space-y-2">

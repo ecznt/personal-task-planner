@@ -85,8 +85,8 @@ function getBoardConfig(scope: KanbanBoardScope): BoardConfig {
       showProject: true,
       projectsAreaId: scope.areaId,
       ariaLabel: 'Alan Kanban panosu, yatay kaydırılabilir',
-      emptyText: 'Bu alanda henüz görev yok.',
-      createHref: `/app/areas/${scope.areaId}/tasks/new`,
+    emptyText: 'Bu alanda henüz görev yok. İlk görevi buraya taşıdığında pano canlanır.',
+    createHref: `/app/areas/${scope.areaId}/tasks/new`,
     };
   }
 

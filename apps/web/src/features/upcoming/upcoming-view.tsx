@@ -312,8 +312,8 @@ export function UpcomingView() {
       {!hasAnyTasks ? (
         <EmptyState
           icon={<CalendarClock className="size-5" aria-hidden="true" />}
-          title="Yaklaşan görev yok"
-          description="Önümüzdeki 14 gün içinde planlanmış veya bitiş tarihi olan görev bulunmuyor."
+          title="Yaklaşan yok"
+          description="Önümüzdeki 14 gün bomboş görünüyor. Nefes almak için kötü bir zaman değil — ama istersen bugüne bir göz at."
           action={
             <Link
               href="/app/today"

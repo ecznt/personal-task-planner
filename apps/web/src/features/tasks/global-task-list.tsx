@@ -297,8 +297,8 @@ export function GlobalTaskList({ projectId, embedded = false }: GlobalTaskListPr
           }
           description={
             hasActiveFilters
-              ? 'Filtreleri temizleyip tekrar deneyin.'
-              : 'İlk görevinizi oluşturduğunuzda burada görünür.'
+              ? 'Filtreleri temizleyip tekrar bakmaya ne dersin?'
+              : 'İlk görevi buraya bırak; birlikte yol almaya başlayalım.'
           }
         />
       ) : (

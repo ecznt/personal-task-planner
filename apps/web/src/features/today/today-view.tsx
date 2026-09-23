@@ -393,7 +393,7 @@ export function TodayView() {
         <EmptyState
           icon={<CalendarX2 className="size-5" aria-hidden="true" />}
           title="Bugün görev yok"
-          description="Bugün için planlanmış, gecikmiş veya bitiş tarihi olan görev bulunmuyor."
+          description="Bugünün senden isteyeceği bir şey yok. Keyfini çıkar; günü dilersen kendine göre planlayabilirsin."
           action={
             <Link
               href="/app/tasks"

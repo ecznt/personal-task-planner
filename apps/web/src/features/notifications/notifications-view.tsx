@@ -180,7 +180,7 @@ export function NotificationsView() {
           <EmptyState
             icon={<Bell className="size-5" aria-hidden="true" />}
             title="Bildirimler kapalı"
-            description="Yaklaşan tarihli görevler için uygulama içi bildirimler kapalı. Hatırlatıcı tanımlarınız korunur; yalnızca bildirim üretimi durduruldu. Tercihlerden yeniden açabilirsiniz."
+            description="Şu an sana hatırlatmıyorum ama endişelenme — bildirim ayarların duruyor. İstediğin an geri açarız, tek seçimle."
             action={
               <Button asChild variant="outline" size="sm">
                 <Link href="/app/settings/preferences">Bildirimleri Aç</Link>
@@ -191,7 +191,7 @@ export function NotificationsView() {
           <EmptyState
             icon={<Bell className="size-5" aria-hidden="true" />}
             title="Henüz bildirim yok"
-            description="Bitiş ve plan yaklaşan görevlerle ilgili bildirimler burada görünür."
+            description="Şimdilik her şey yolunda. Bitiş ve plan yaklaşan görevler olduğunda buradan haberdar olursun."
           />
         )
       ) : (
