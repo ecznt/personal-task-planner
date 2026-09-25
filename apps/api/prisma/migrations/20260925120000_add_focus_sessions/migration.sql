@@ -1,7 +1,7 @@
 -- CreateTable
 CREATE TABLE "focus_sessions" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
+    "id" UUID NOT NULL,
+    "userId" UUID NOT NULL,
     "startedAt" TIMESTAMP(3) NOT NULL,
     "completedAt" TIMESTAMP(3) NOT NULL,
     "durationMinutes" INTEGER NOT NULL,
