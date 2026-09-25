@@ -4,8 +4,10 @@ import { cn } from '@/lib/utils';
 
 import { labelTextColor, labelTint, resolveLabelColor, type LabelLike } from './label-color';
 
+export const LABEL_HOVER_TINT_PERCENT = 20;
+
 export const labelHoverSurfaceClass =
-  'hover:bg-[color-mix(in_oklch,var(--task-label)_90%,transparent)]';
+  'hover:bg-[color-mix(in_oklch,var(--task-label)_20%,transparent)]';
 
 export function labelSurfaceStyle(color: string | null | undefined): CSSProperties {
   return { '--task-label': resolveLabelColor(color) } as CSSProperties;
