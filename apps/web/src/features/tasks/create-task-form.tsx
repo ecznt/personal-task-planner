@@ -19,18 +19,13 @@ export function CreateTaskForm({ areaId, onSuccess }: CreateTaskFormProps) {
   }
 
   return (
-    <div className="rounded-lg border bg-card p-4">
-      <h3 className="text-lg font-medium">Yeni Görev Oluştur</h3>
-      <div className="mt-3">
-        <CreateTaskFields
-          areaId={areaId}
-          onCancel={() => setShowForm(false)}
-          onSuccess={() => {
-            setShowForm(false);
-            onSuccess?.();
-          }}
-        />
-      </div>
-    </div>
+    <CreateTaskFields
+      areaId={areaId}
+      onCancel={() => setShowForm(false)}
+      onSuccess={() => {
+        setShowForm(false);
+        onSuccess?.();
+      }}
+    />
   );
 }
