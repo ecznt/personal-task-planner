@@ -3,10 +3,18 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { apiClient } from '@planner/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { CalendarClock, FolderKanban, ListChecks, Lock, Repeat } from 'lucide-react';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
@@ -147,6 +155,7 @@ export function CreateTaskFields({
         description: values.description || null,
         plannedAt: values.plannedAt || null,
         dueAt: values.dueAt || null,
+        durationMinutes: values.durationMinutes ?? null,
         priority: values.priority,
         projectId: values.projectId || null,
         labelIds: [...selectedLabelIds],
@@ -225,6 +234,14 @@ export function CreateTaskFields({
     setRecurrenceError(undefined);
   };
 
+  const watchedDuration = useWatch({ control: form.control, name: 'durationMinutes' });
+  const watchedProjectId = useWatch({ control: form.control, name: 'projectId' });
+  const summaryChips = {
+    duration:
+      watchedDuration === null || watchedDuration === undefined ? undefined : `${watchedDuration} dk`,
+    project: projects.data?.find((project) => project.id === watchedProjectId)?.name,
+  };
+
   return (
     <form onSubmit={form.handleSubmit((values) => create.mutate(values))} className="space-y-4">
       {create.isError && (
@@ -233,203 +250,294 @@ export function CreateTaskFields({
           <AlertDescription>{create.error.message}</AlertDescription>
         </Alert>
       )}
-      <Field>
-        <FieldLabel htmlFor="title">Başlık</FieldLabel>
-        <Input id="title" placeholder="Örn: Marketten süt al" {...form.register('title')} />
-        {form.formState.errors.title && (
-          <FieldError>{form.formState.errors.title.message}</FieldError>
-        )}
-      </Field>
-      <Field>
-        <FieldLabel htmlFor="description">Açıklama (isteğe bağlı)</FieldLabel>
-        <textarea
-          id="description"
-          rows={3}
-          className="w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm"
-          placeholder="Görev detayları..."
-          {...form.register('description')}
-        />
-        {form.formState.errors.description && (
-          <FieldError>{form.formState.errors.description.message}</FieldError>
-        )}
-      </Field>
-      <div className="grid gap-4 sm:grid-cols-2">
+
+      <div className="space-y-4">
         <Field>
-          <FieldLabel htmlFor="plannedAt">Başlangıç Tarihi</FieldLabel>
-          <Input id="plannedAt" type="datetime-local" {...form.register('plannedAt')} />
+          <FieldLabel htmlFor="title">Başlık</FieldLabel>
+          <Input id="title" placeholder="Örn: Marketten süt al" {...form.register('title')} />
+          {form.formState.errors.title && (
+            <FieldError>{form.formState.errors.title.message}</FieldError>
+          )}
         </Field>
         <Field>
-          <FieldLabel htmlFor="dueAt">Bitiş Tarihi</FieldLabel>
-          <Input id="dueAt" type="datetime-local" {...form.register('dueAt')} />
-        </Field>
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field>
-          <FieldLabel htmlFor="priority">Öncelik</FieldLabel>
-          <Select id="priority" {...form.register('priority')}>
-            <option value="LOW">Düşük</option>
-            <option value="MEDIUM">Orta</option>
-            <option value="HIGH">Yüksek</option>
-          </Select>
-        </Field>
-        <Field>
-          <FieldLabel htmlFor="projectId">Proje</FieldLabel>
-          <Select id="projectId" {...form.register('projectId')}>
-            <option value="">Proje yok</option>
-            {(projects.data ?? []).map((project) => (
-              <option key={project.id} value={project.id}>
-                {project.name}
-              </option>
-            ))}
-          </Select>
-        </Field>
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field>
-          <FieldLabel htmlFor="durationMinutes">Süre (dk)</FieldLabel>
-          <Input
-            id="durationMinutes"
-            type="number"
-            min="1"
-            max="1440"
-            step="5"
-            placeholder="Örn: 45"
-            {...form.register('durationMinutes', { valueAsNumber: true })}
+          <FieldLabel htmlFor="description">Açıklama (isteğe bağlı)</FieldLabel>
+          <textarea
+            id="description"
+            rows={3}
+            className="w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm"
+            placeholder="Görev detayları..."
+            {...form.register('description')}
           />
+          {form.formState.errors.description && (
+            <FieldError>{form.formState.errors.description.message}</FieldError>
+          )}
         </Field>
       </div>
 
-      <LabelManager
-        selectedLabelIds={selectedLabelIds}
-        onToggleLabel={(id) => {
-          setSelectedLabelIds((prev) =>
-            prev.includes(id) ? prev.filter((l) => l !== id) : [...prev, id],
-          );
-        }}
-      />
-
-      <div className="rounded-lg border bg-card p-3">
-        <div className="flex items-center justify-between">
-          <h4 className="text-sm font-medium text-muted-foreground">Bu görev şunları bloke ediyor</h4>
-        </div>
-        {areaTasks.isLoading ? (
-          <p className="mt-2 text-sm text-muted-foreground">Görevler yükleniyor...</p>
-        ) : (areaTasks.data ?? []).length === 0 ? (
-          <p className="mt-2 text-sm text-muted-foreground">
-            Bu alanda başka görev yok; bağımlılık eklemek için önce görev oluşturun.
-          </p>
-        ) : (
-          <div className="mt-2 max-h-48 space-y-1 overflow-y-auto pr-1">
-            {(areaTasks.data ?? []).map((task) => (
-              <label
-                key={task.id}
-                className="flex cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 text-sm transition-colors duration-150 hover:bg-accent"
-              >
-                <input
-                  type="checkbox"
-                  className="mt-0.5 accent-primary"
-                  checked={blockedByTaskIds.includes(task.id)}
-                  onChange={() => {
-                    setBlockedByTaskIds((prev) =>
-                      prev.includes(task.id)
-                        ? prev.filter((id) => id !== task.id)
-                        : [...prev, task.id],
-                    );
-                  }}
-                />
-                <span className="min-w-0 break-words">{task.title}</span>
-              </label>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="rounded-lg border bg-card p-3">
-        <div className="flex items-center justify-between">
-          <h4 className="text-sm font-medium text-muted-foreground">Kontrol Listesi</h4>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={addChecklistItem}
-            disabled={checklistItems.length >= 100}
-          >
-            + Madde Ekle
-          </Button>
-        </div>
-        {checklistItems.length === 0 ? (
-          <p className="mt-2 text-sm text-muted-foreground">
-            Görev için kontrol listesi eklemek üzere madde oluşturabilirsiniz.
-          </p>
-        ) : (
-          <div className="mt-2 space-y-2">
-            {checklistItems.map((item) => (
-              <div key={item.key} className="flex items-center gap-2">
-                <Input
-                  value={item.text}
-                  onChange={(e) => updateChecklistItem(item.key, e.target.value)}
-                  placeholder="Madde başlığı"
-                  className="h-8"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 shrink-0 p-0 text-muted-foreground transition-colors duration-150 hover:text-destructive"
-                  onClick={() => removeChecklistItem(item.key)}
-                >
-                  <svg
-                    className="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </Button>
+      <Accordion type="multiple" defaultValue={['planning', 'organize']}>
+        <AccordionItem value="planning">
+          <AccordionTrigger>
+            <span className="flex items-center gap-2">
+              <CalendarClock className="size-4 text-muted-foreground" aria-hidden="true" />
+              Planlama
+              {summaryChips.duration !== undefined && (
+                <Badge variant="outline" className="font-normal">
+                  {summaryChips.duration}
+                </Badge>
+              )}
+            </span>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field>
+                  <FieldLabel htmlFor="plannedAt">Başlangıç Tarihi</FieldLabel>
+                  <Input id="plannedAt" type="datetime-local" {...form.register('plannedAt')} />
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="dueAt">Bitiş Tarihi</FieldLabel>
+                  <Input id="dueAt" type="datetime-local" {...form.register('dueAt')} />
+                </Field>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field>
+                  <FieldLabel htmlFor="priority">Öncelik</FieldLabel>
+                  <Select id="priority" {...form.register('priority')}>
+                    <option value="LOW">Düşük</option>
+                    <option value="MEDIUM">Orta</option>
+                    <option value="HIGH">Yüksek</option>
+                  </Select>
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="durationMinutes">Süre (dk)</FieldLabel>
+                  <Input
+                    id="durationMinutes"
+                    type="number"
+                    min="1"
+                    max="1440"
+                    step="5"
+                    placeholder="Örn: 45"
+                    {...form.register('durationMinutes', {
+                      setValueAs: (value) => {
+                        const raw = String(value ?? '').trim();
+                        if (raw === '') {
+                          return null;
+                        }
+                        const parsed = Number(raw);
+                        return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+                      },
+                    })}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    İsteğe bağlı — boş bırakılırsa süre atanmaz.
+                  </p>
+                </Field>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
 
-      <div className="rounded-lg border bg-card p-3">
-        <div className="flex items-center justify-between">
-          <h4 className="text-sm font-medium text-muted-foreground">Tekrarlama</h4>
-          {recurrence ? (
-            <div className="flex items-center gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={handleRemoveRecurrence}>
-                Kaldır
+        <AccordionItem value="organize">
+          <AccordionTrigger>
+            <span className="flex items-center gap-2">
+              <FolderKanban className="size-4 text-muted-foreground" aria-hidden="true" />
+              Proje &amp; Etiketler
+              {summaryChips.project !== undefined && (
+                <Badge variant="neutral" className="font-normal">
+                  {summaryChips.project}
+                </Badge>
+              )}
+              {selectedLabelIds.length > 0 && (
+                <Badge variant="outline" className="font-normal">
+                  {selectedLabelIds.length} etiket
+                </Badge>
+              )}
+            </span>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="space-y-4">
+              <Field>
+                <FieldLabel htmlFor="projectId">Proje</FieldLabel>
+                <Select id="projectId" {...form.register('projectId')}>
+                  <option value="">Proje yok</option>
+                  {(projects.data ?? []).map((project) => (
+                    <option key={project.id} value={project.id}>
+                      {project.name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <LabelManager
+                selectedLabelIds={selectedLabelIds}
+                onToggleLabel={(id) => {
+                  setSelectedLabelIds((prev) =>
+                    prev.includes(id) ? prev.filter((l) => l !== id) : [...prev, id],
+                  );
+                }}
+              />
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="dependencies">
+          <AccordionTrigger>
+            <span className="flex items-center gap-2">
+              <Lock className="size-4 text-muted-foreground" aria-hidden="true" />
+              Bağımlılıklar
+              {blockedByTaskIds.length > 0 && (
+                <Badge variant="outline" className="font-normal">
+                  {blockedByTaskIds.length} bloke edecek
+                </Badge>
+              )}
+            </span>
+          </AccordionTrigger>
+          <AccordionContent>
+            {areaTasks.isLoading ? (
+              <p className="text-sm text-muted-foreground">Görevler yükleniyor...</p>
+            ) : (areaTasks.data ?? []).length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Bu alanda başka görev yok; bağımlılık eklemek için önce görev oluşturun.
+              </p>
+            ) : (
+              <div className="max-h-48 space-y-1 overflow-y-auto pr-1">
+                {(areaTasks.data ?? []).map((task) => (
+                  <label
+                    key={task.id}
+                    className="flex cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 text-sm transition-colors duration-150 hover:bg-accent"
+                  >
+                    <input
+                      type="checkbox"
+                      className="mt-0.5 accent-primary"
+                      checked={blockedByTaskIds.includes(task.id)}
+                      onChange={() => {
+                        setBlockedByTaskIds((prev) =>
+                          prev.includes(task.id)
+                            ? prev.filter((id) => id !== task.id)
+                            : [...prev, task.id],
+                        );
+                      }}
+                    />
+                    <span className="min-w-0 break-words">{task.title}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="checklist">
+          <AccordionTrigger>
+            <span className="flex items-center gap-2">
+              <ListChecks className="size-4 text-muted-foreground" aria-hidden="true" />
+              Kontrol Listesi
+              {checklistItems.length > 0 && (
+                <Badge variant="outline" className="font-normal">
+                  {checklistItems.length} madde
+                </Badge>
+              )}
+            </span>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="space-y-2">
+              {checklistItems.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Görev için kontrol listesi eklemek üzere madde oluşturabilirsiniz.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {checklistItems.map((item) => (
+                    <div key={item.key} className="flex items-center gap-2">
+                      <Input
+                        value={item.text}
+                        onChange={(e) => updateChecklistItem(item.key, e.target.value)}
+                        placeholder="Madde başlığı"
+                        className="h-8"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 shrink-0 p-0 text-muted-foreground transition-colors duration-150 hover:text-destructive"
+                        onClick={() => removeChecklistItem(item.key)}
+                      >
+                        <svg
+                          className="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={addChecklistItem}
+                disabled={checklistItems.length >= 100}
+              >
+                + Madde Ekle
               </Button>
             </div>
-          ) : (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowRecurrence(!showRecurrence)}
-            >
-              {showRecurrence ? 'İptal' : '+ Tekrarlama Ayarla'}
-            </Button>
-          )}
-        </div>
-        {recurrence && (
-          <p className="mt-2 text-sm text-muted-foreground">{describeRecurrence(recurrence)}</p>
-        )}
-        {!recurrence && showRecurrence && (
-          <div className="mt-3">
-            <RecurrenceForm
-              onSubmit={handleRecurrenceSubmit}
-              onCancel={() => setShowRecurrence(false)}
-              isPending={false}
-              error={recurrenceError}
-            />
-          </div>
-        )}
-      </div>
+          </AccordionContent>
+        </AccordionItem>
 
-      <div className="flex gap-2">
+        <AccordionItem value="recurrence">
+          <AccordionTrigger>
+            <span className="flex items-center gap-2">
+              <Repeat className="size-4 text-muted-foreground" aria-hidden="true" />
+              Tekrarlama
+              {recurrence && (
+                <Badge variant="outline" className="max-w-48 truncate font-normal">
+                  {describeRecurrence(recurrence)}
+                </Badge>
+              )}
+            </span>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="space-y-3">
+              {recurrence && (
+                <p className="text-sm text-muted-foreground">{describeRecurrence(recurrence)}</p>
+              )}
+              {!recurrence && showRecurrence && (
+                <RecurrenceForm
+                  onSubmit={handleRecurrenceSubmit}
+                  onCancel={() => setShowRecurrence(false)}
+                  isPending={false}
+                  error={recurrenceError}
+                />
+              )}
+              {recurrence ? (
+                <Button type="button" variant="outline" size="sm" onClick={handleRemoveRecurrence}>
+                  Tekrarlamayı kaldır
+                </Button>
+              ) : (
+                !showRecurrence && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowRecurrence(true)}
+                  >
+                    + Tekrarlama Ayarla
+                  </Button>
+                )
+              )}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+
+      <div className="flex justify-end gap-2 border-t border-border/60 pt-4">
         {onCancel && (
           <Button
             type="button"
@@ -443,7 +551,7 @@ export function CreateTaskFields({
           </Button>
         )}
         <Button type="submit" disabled={create.isPending}>
-          {create.isPending ? 'Oluşturuluyor...' : 'Oluştur'}
+          {create.isPending ? 'Oluşturuluyor...' : 'Görevi Oluştur'}
         </Button>
       </div>
     </form>

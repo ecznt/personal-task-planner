@@ -64,7 +64,7 @@ export function LoginForm() {
   const passwordReset = searchParams.get('passwordReset') === '1';
 
   return (
-    <form noValidate onSubmit={form.handleSubmit((values) => login.mutate(values))}>
+    <form method="POST" noValidate onSubmit={form.handleSubmit((values) => login.mutate(values))}>
       <FieldGroup>
         {signedOut ? (
           <Alert aria-live="polite">
