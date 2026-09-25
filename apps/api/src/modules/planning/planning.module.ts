@@ -4,6 +4,7 @@ import { AccountsModule } from '../accounts/accounts.module';
 import { AreaService } from './application/area.service';
 import { BulkActionService } from './application/bulk-action.service';
 import { ChecklistItemService } from './application/checklist-item.service';
+import { FocusSessionService } from './application/focus-session.service';
 import { LabelService } from './application/label.service';
 import { LifecycleService } from './application/lifecycle.service';
 import { NotificationService } from './application/notification.service';
@@ -17,6 +18,7 @@ import { TaskService } from './application/task.service';
 import { TaskTemplateService } from './application/task-template.service';
 import { AreaRepository } from './infrastructure/area.repository';
 import { ChecklistItemRepository } from './infrastructure/checklist-item.repository';
+import { FocusSessionRepository } from './infrastructure/focus-session.repository';
 import { LabelRepository } from './infrastructure/label.repository';
 import { LifecycleRepository } from './infrastructure/lifecycle.repository';
 import { ProjectRepository } from './infrastructure/project.repository';
@@ -31,6 +33,7 @@ import { ArchiveController } from './transport/archive.controller';
 import { BulkActionController } from './transport/bulk.controller';
 import { ChecklistController } from './transport/checklist.controller';
 import { ChecklistOrderController } from './transport/checklist-order.controller';
+import { FocusSessionController } from './transport/focus-session.controller';
 import { LabelController } from './transport/label.controller';
 import { LifecycleActionsController } from './transport/lifecycle-actions.controller';
 import { NotificationController } from './transport/notification.controller';
@@ -49,6 +52,7 @@ import { TrashController } from './transport/trash.controller';
     AreaController,
     TaskController,
     TaskTemplateController,
+    FocusSessionController,
     RecurrenceController,
     ReminderController,
     NotificationController,
@@ -66,6 +70,8 @@ import { TrashController } from './transport/trash.controller';
   providers: [
     AreaService,
     AreaRepository,
+    FocusSessionService,
+    FocusSessionRepository,
     TaskService,
     TaskRepository,
     TaskTemplateService,

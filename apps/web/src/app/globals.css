@@ -435,6 +435,22 @@ body {
   animation: fadeSlideIn 200ms var(--ease-out) both;
 }
 
+/* Focus Plant */
+@keyframes focus-plant-sway {
+  0%,
+  100% {
+    transform: rotate(-1.4deg);
+  }
+  50% {
+    transform: rotate(1.4deg);
+  }
+}
+.focus-plant-sway {
+  animation: focus-plant-sway 4.5s ease-in-out infinite;
+  transform-origin: 60px 152px;
+  transform-box: view-box;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

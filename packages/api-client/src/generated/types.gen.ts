@@ -171,6 +171,13 @@ export type CreateAreaStatusRequestDto = {
     name: string;
 };
 
+export type CreateFocusSessionRequestDto = {
+    clientKey: string;
+    completedAt: string;
+    durationMinutes: number;
+    startedAt: string;
+};
+
 export type CreateLabelRequestDto = {
     color?: string;
     name: string;
@@ -289,6 +296,49 @@ export type EmailVerificationRequestAcceptedResponseDto = {
 
 export type EmailVerificationRequestDto = {
     email: string;
+};
+
+export type FocusDayStatsDto = {
+    date: string;
+    minutes: number;
+    sessions: number;
+};
+
+export type FocusSessionDataDto = {
+    clientKey: string;
+    completedAt: string;
+    createdAt: string;
+    durationMinutes: number;
+    id: string;
+    startedAt: string;
+};
+
+export type FocusSessionListMetaDto = {
+    nextCursor?: string;
+};
+
+export type FocusSessionListResponseDto = {
+    data: Array<FocusSessionDataDto>;
+    meta: FocusSessionListMetaDto;
+};
+
+export type FocusSessionResponseDto = {
+    data: FocusSessionDataDto;
+};
+
+export type FocusStatisticsDataDto = {
+    bestStreak: number;
+    currentStreak: number;
+    days: Array<FocusDayStatsDto>;
+    timezone: string;
+    todayMinutes: number;
+    todaySessions: number;
+    totalMinutes: number;
+    totalSessions: number;
+};
+
+export type FocusStatisticsResponseDto = {
+    data: FocusStatisticsDataDto;
 };
 
 export type GlobalCreateTaskRequestDto = {
@@ -1587,6 +1637,75 @@ export type CreateAuthSessionResponses = {
 };
 
 export type CreateAuthSessionResponse = CreateAuthSessionResponses[keyof CreateAuthSessionResponses];
+
+export type ListFocusSessionsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        limit?: number;
+        cursor?: string;
+    };
+    url: '/api/v1/focus-sessions';
+};
+
+export type ListFocusSessionsErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+};
+
+export type ListFocusSessionsResponses = {
+    200: FocusSessionListResponseDto;
+};
+
+export type ListFocusSessionsResponse = ListFocusSessionsResponses[keyof ListFocusSessionsResponses];
+
+export type RecordFocusSessionData = {
+    body: CreateFocusSessionRequestDto;
+    path?: never;
+    query?: never;
+    url: '/api/v1/focus-sessions';
+};
+
+export type RecordFocusSessionErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+    /**
+     * Validation failed.
+     */
+    422: unknown;
+};
+
+export type RecordFocusSessionResponses = {
+    201: FocusSessionResponseDto;
+};
+
+export type RecordFocusSessionResponse = RecordFocusSessionResponses[keyof RecordFocusSessionResponses];
+
+export type GetFocusStatisticsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        timezone?: string;
+    };
+    url: '/api/v1/focus-sessions/statistics';
+};
+
+export type GetFocusStatisticsErrors = {
+    /**
+     * No valid authenticated session is present.
+     */
+    401: unknown;
+};
+
+export type GetFocusStatisticsResponses = {
+    200: FocusStatisticsResponseDto;
+};
+
+export type GetFocusStatisticsResponse = GetFocusStatisticsResponses[keyof GetFocusStatisticsResponses];
 
 export type ListLabelsData = {
     body?: never;

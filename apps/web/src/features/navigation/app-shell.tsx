@@ -12,6 +12,7 @@ import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { SignOutButton } from '@/features/auth/sign-out-button';
 import { CommandPalette } from '@/features/commands/command-palette';
 import { NotificationBell } from '@/features/notifications/notification-bell';
+import { FocusTrigger } from '@/features/focus/focus-trigger';
 import { useNewTaskShortcut } from '@/features/shortcuts/new-task-shortcut';
 import { QuickCreateDialog } from '@/features/tasks/quick-create-dialog';
 
@@ -211,6 +212,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <ThemeToggle />
             <QuickCreateDialog />
             <SearchLink />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <FocusTrigger />
+              </TooltipTrigger>
+              <TooltipContent>Odak</TooltipContent>
+            </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
                 <NotificationBell />

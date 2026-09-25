@@ -635,6 +635,33 @@
         ],
         "type": "object"
       },
+      "CreateFocusSessionRequestDto": {
+        "properties": {
+          "clientKey": {
+            "example": "cb0a1e2f-9c34-46e8-9b23-2f4f7d93d581",
+            "type": "string"
+          },
+          "completedAt": {
+            "example": "2026-09-25T08:25:00.000Z",
+            "type": "string"
+          },
+          "durationMinutes": {
+            "example": 25,
+            "type": "number"
+          },
+          "startedAt": {
+            "example": "2026-09-25T08:00:00.000Z",
+            "type": "string"
+          }
+        },
+        "required": [
+          "startedAt",
+          "completedAt",
+          "durationMinutes",
+          "clientKey"
+        ],
+        "type": "object"
+      },
       "CreateLabelRequestDto": {
         "properties": {
           "color": {
@@ -996,6 +1023,162 @@
         },
         "required": [
           "email"
+        ],
+        "type": "object"
+      },
+      "FocusDayStatsDto": {
+        "properties": {
+          "date": {
+            "example": "2026-09-19",
+            "type": "string"
+          },
+          "minutes": {
+            "example": 50,
+            "type": "number"
+          },
+          "sessions": {
+            "example": 2,
+            "type": "number"
+          }
+        },
+        "required": [
+          "date",
+          "minutes",
+          "sessions"
+        ],
+        "type": "object"
+      },
+      "FocusSessionDataDto": {
+        "properties": {
+          "clientKey": {
+            "example": "cb0a1e2f-9c34-46e8-9b23-2f4f7d93d581",
+            "type": "string"
+          },
+          "completedAt": {
+            "example": "2026-09-25T08:25:00.000Z",
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "durationMinutes": {
+            "example": 25,
+            "type": "number"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "startedAt": {
+            "example": "2026-09-25T08:00:00.000Z",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "startedAt",
+          "completedAt",
+          "durationMinutes",
+          "clientKey",
+          "createdAt"
+        ],
+        "type": "object"
+      },
+      "FocusSessionListMetaDto": {
+        "properties": {
+          "nextCursor": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "FocusSessionListResponseDto": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/FocusSessionDataDto"
+            },
+            "type": "array"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/FocusSessionListMetaDto"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "type": "object"
+      },
+      "FocusSessionResponseDto": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/FocusSessionDataDto"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "type": "object"
+      },
+      "FocusStatisticsDataDto": {
+        "properties": {
+          "bestStreak": {
+            "example": 7,
+            "type": "number"
+          },
+          "currentStreak": {
+            "example": 3,
+            "type": "number"
+          },
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/FocusDayStatsDto"
+            },
+            "type": "array"
+          },
+          "timezone": {
+            "example": "Europe/Istanbul",
+            "type": "string"
+          },
+          "todayMinutes": {
+            "example": 50,
+            "type": "number"
+          },
+          "todaySessions": {
+            "example": 2,
+            "type": "number"
+          },
+          "totalMinutes": {
+            "example": 300,
+            "type": "number"
+          },
+          "totalSessions": {
+            "example": 12,
+            "type": "number"
+          }
+        },
+        "required": [
+          "timezone",
+          "totalSessions",
+          "totalMinutes",
+          "todaySessions",
+          "todayMinutes",
+          "currentStreak",
+          "bestStreak",
+          "days"
+        ],
+        "type": "object"
+      },
+      "FocusStatisticsResponseDto": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/FocusStatisticsDataDto"
+          }
+        },
+        "required": [
+          "data"
         ],
         "type": "object"
       },
@@ -4200,6 +4383,119 @@
         "summary": "Create a rotated opaque session with verified email/password credentials",
         "tags": [
           "Authentication"
+        ]
+      }
+    },
+    "/api/v1/focus-sessions": {
+      "get": {
+        "operationId": "listFocusSessions",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FocusSessionListResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          }
+        },
+        "summary": "List User Focus Sessions",
+        "tags": [
+          "Focus Sessions"
+        ]
+      },
+      "post": {
+        "operationId": "recordFocusSession",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFocusSessionRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FocusSessionResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          },
+          "422": {
+            "description": "Validation failed."
+          }
+        },
+        "summary": "Record a completed Focus Session",
+        "tags": [
+          "Focus Sessions"
+        ]
+      }
+    },
+    "/api/v1/focus-sessions/statistics": {
+      "get": {
+        "operationId": "getFocusStatistics",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "timezone",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FocusStatisticsResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "401": {
+            "description": "No valid authenticated session is present."
+          }
+        },
+        "summary": "Get Focus Session statistics including streaks and trailing 7 days",
+        "tags": [
+          "Focus Sessions"
         ]
       }
     },

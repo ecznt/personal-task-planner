@@ -182,6 +182,7 @@ model User {
   pushSubscriptions                 PushSubscription[]
   lifecycleOperations               LifecycleOperation[]
   lifecycleEffects                  LifecycleEffect[]
+  focusSessions                     FocusSession[]
 
   @@map("users")
 }
@@ -568,6 +569,21 @@ model TaskTemplate {
 
   @@index([userId, updatedAt, id], map: "task_template_user_updated_idx")
   @@map("task_templates")
+}
+
+model FocusSession {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @db.Uuid
+  startedAt       DateTime @db.Timestamptz(3)
+  completedAt     DateTime @db.Timestamptz(3)
+  durationMinutes Int
+  clientKey       String
+  createdAt       DateTime @default(now()) @db.Timestamptz(3)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, clientKey], map: "focus_session_user_client_key")
+  @@index([userId, completedAt, id], map: "focus_session_user_completed_idx")
+  @@map("focus_sessions")
 }
 
 enum ReminderAnchorType {
