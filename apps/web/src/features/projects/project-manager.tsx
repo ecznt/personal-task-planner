@@ -8,6 +8,7 @@ import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
+import { RowLifecycleMenu } from '@/features/lifecycle/row-lifecycle-menu';
 
 import { createProjectSchema, type CreateProjectFormValues } from './project-schema';
 
@@ -188,6 +189,16 @@ export function ProjectManager({ areaId }: ProjectManagerProps) {
                 <>
                   <span className="flex-1 text-sm font-medium">{project.name}</span>
                   <span className="text-xs text-muted-foreground">{project.taskCount} görev</span>
+                  <RowLifecycleMenu
+                    resourceType="projects"
+                    id={project.id}
+                    name={project.name}
+                    version={project.version}
+                    onActionFinished={() => {
+                      queryClient.invalidateQueries({ queryKey: ['projects', areaId] });
+                      queryClient.invalidateQueries({ queryKey: ['areas', areaId] });
+                    }}
+                  />
                   <Button
                     type="button"
                     variant="ghost"

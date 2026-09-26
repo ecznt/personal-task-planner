@@ -13,6 +13,7 @@ import type {
 import { RecurrenceService } from './recurrence.service';
 import { buildCalendarDayRanges, buildPastDayRangesInTimeZone, parseTodayRange } from './date-range';
 import { addSnoozeDelta, type SnoozeTarget, type SnoozeUnit } from '../domain/snooze-time';
+import { projectRecurrenceOccurrences } from '../domain/recurrence-calculator';
 
 export type CreateTaskChecklistItemInput = {
   readonly text: string;
@@ -754,6 +755,71 @@ export class TaskService {
           if (group && !group.planned.some((t) => t.id === task.id)) {
             group.due.push(task);
           }
+        }
+      }
+    }
+
+    const anchors = await this.taskRepository.findRecurrenceAnchors(userId);
+
+    for (const anchor of anchors) {
+      const anchorDate = anchor.task.plannedAt ?? anchor.task.dueAt;
+      if (anchorDate === null) {
+        continue;
+      }
+
+      const occurrences = projectRecurrenceOccurrences(
+        anchorDate,
+        anchor.task.plannedAt,
+        anchor.task.dueAt,
+        {
+          frequency: anchor.frequency,
+          interval: anchor.interval,
+          selectedWeekdays: anchor.selectedWeekdays,
+          dayOfMonth: anchor.dayOfMonth,
+          monthOfYear: anchor.monthOfYear,
+          localTime: anchor.localTime,
+        },
+        rangeStart,
+        rangeEnd,
+      );
+
+      let occurrenceNumber = anchor.nextOccurrenceNumber - 1;
+
+      for (const occurrence of occurrences) {
+        occurrenceNumber += 1;
+        const moment = occurrence.plannedAt ?? occurrence.dueAt;
+        if (moment === null) {
+          continue;
+        }
+
+        const day = ranges.find((r) => moment >= r.start && moment < r.end);
+        if (!day) {
+          continue;
+        }
+
+        const group = dayGroups.get(day.date);
+        if (!group) {
+          continue;
+        }
+
+        const projected: TaskSummary = {
+          ...anchor.task,
+          plannedAt: occurrence.plannedAt,
+          dueAt: occurrence.dueAt,
+          recurrenceProjection: {
+            seriesId: anchor.seriesId,
+            mode: anchor.mode,
+            frequency: anchor.frequency,
+            interval: anchor.interval,
+            occurrenceNumber,
+            date: moment.toISOString(),
+          },
+        };
+
+        if (occurrence.plannedAt !== null) {
+          group.planned.push(projected);
+        } else {
+          group.due.push(projected);
         }
       }
     }

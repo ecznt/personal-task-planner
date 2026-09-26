@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
 import { Spinner } from '@/components/ui/spinner';
-import { apiError } from '@/features/auth/auth-api';
+import { AuthApiError, apiError } from '@/features/auth/auth-api';
 import {
   permanentDeleteResource,
   restoreResource,
@@ -50,6 +50,11 @@ export function LifecycleListView({
     resourceType: ResourceType;
     version: number;
   } | null>(null);
+  const [restoreFailure, setRestoreFailure] = useState<{
+    entry: LifecycleEntry;
+    message: string;
+    code?: string;
+  } | null>(null);
 
   const baseUrl = state === 'ARCHIVED' ? '/api/v1/archive' : '/api/v1/trash';
 
@@ -66,17 +71,23 @@ export function LifecycleListView({
   });
 
   const restoreOne = useMutation({
-    mutationFn: async (entry: LifecycleEntry) => {
+    mutationFn: async ({
+      entry,
+      replacementAreaId,
+    }: {
+      entry: LifecycleEntry;
+      replacementAreaId?: string;
+    }) => {
+      const options = {
+        resourceType: entry.resourceType,
+        id: entry.id,
+        version: entry.version,
+        ...(replacementAreaId !== undefined && { replacementAreaId }),
+      };
       if (state === 'ARCHIVED') {
-        await restoreResource(
-          { resourceType: entry.resourceType, id: entry.id, version: entry.version },
-          queryClient,
-        );
+        await restoreResource(options, queryClient);
       } else {
-        await restoreFromTrashResource(
-          { resourceType: entry.resourceType, id: entry.id, version: entry.version },
-          queryClient,
-        );
+        await restoreFromTrashResource(options, queryClient);
       }
     },
     onSuccess: () => {
@@ -84,6 +95,16 @@ export function LifecycleListView({
       queryClient.invalidateQueries({ queryKey: ['tasks'], exact: false });
       queryClient.invalidateQueries({ queryKey: ['areas'], exact: false });
       queryClient.invalidateQueries({ queryKey: ['projects'], exact: false });
+      setRestoreFailure(null);
+    },
+    onError: (error, variables) => {
+      setRestoreFailure({
+        entry: variables.entry,
+        message: error.message,
+        ...(error instanceof AuthApiError && error.code !== undefined
+          ? { code: error.code }
+          : {}),
+      });
     },
   });
 
@@ -99,6 +120,18 @@ export function LifecycleListView({
       setConfirming(null);
     },
   });
+
+  const areas = useQuery({
+    queryKey: ['areas'],
+    queryFn: async () => {
+      const result = await apiClient.get({ url: '/api/v1/areas' });
+      if (result.error !== undefined) return [];
+      return (result.data as { data: readonly { id: string; name: string }[] }).data ?? [];
+    },
+  });
+
+  const needsDestination =
+    restoreFailure !== null && restoreFailure.code === 'DESTINATION_UNAVAILABLE';
 
   if (list.isLoading) {
     return (
@@ -165,7 +198,7 @@ export function LifecycleListView({
                   <Button
                     variant={state === 'TRASHED' ? 'outline' : 'default'}
                     size="sm"
-                    onClick={() => restoreOne.mutate(entry)}
+                    onClick={() => restoreOne.mutate({ entry })}
                     disabled={restoreOne.isPending}
                     className="h-7 transition-transform duration-150 active:scale-[0.97]"
                   >
@@ -173,6 +206,31 @@ export function LifecycleListView({
                   </Button>
                 </div>
               </div>
+
+              {restoreFailure?.entry.id === entry.id && (
+                <div className="mt-3 rounded-md bg-destructive/10 p-3">
+                  <p className="text-sm text-destructive">{restoreFailure.message}</p>
+                  {needsDestination && entry.resourceType !== 'areas' && (
+                    <RestoreDestinationPicker
+                      options={areas.data ?? []}
+                      onRestore={(replacementAreaId) =>
+                        restoreOne.mutate({ entry, replacementAreaId })
+                      }
+                      isPending={restoreOne.isPending}
+                    />
+                  )}
+                  <div className="mt-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setRestoreFailure(null)}
+                      className="h-7 transition-transform duration-150 active:scale-[0.97]"
+                    >
+                      Kapat
+                    </Button>
+                  </div>
+                </div>
+              )}
 
               {confirming?.id === entry.id && (
                 <div className="mt-3 rounded-md bg-destructive/10 p-3">
@@ -217,6 +275,51 @@ function resourceLabel(resourceType: ResourceType): string {
   if (resourceType === 'areas') return 'Alan';
   if (resourceType === 'projects') return 'Proje';
   return 'Görev';
+}
+
+function RestoreDestinationPicker({
+  options,
+  onRestore,
+  isPending,
+}: {
+  readonly options: readonly { readonly id: string; readonly name: string }[];
+  readonly onRestore: (areaId: string) => void;
+  readonly isPending: boolean;
+}) {
+  const [areaId, setAreaId] = useState<string>('');
+  const active = options.filter((area) => area.id !== '');
+
+  return (
+    <div className="mt-2 space-y-2">
+      <label className="block text-xs text-muted-foreground" htmlFor="restore-destination">
+        Üst alan arşivde/çöpte. Görevi başka bir alana geri yükle:
+      </label>
+      <select
+        id="restore-destination"
+        value={areaId}
+        onChange={(event) => setAreaId(event.target.value)}
+        className="h-8 w-full rounded-md border border-input bg-background px-2 text-sm focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <option value="" disabled>
+          Alan seç…
+        </option>
+        {active.map((area) => (
+          <option key={area.id} value={area.id}>
+            {area.name}
+          </option>
+        ))}
+      </select>
+      <Button
+        variant="secondary"
+        size="sm"
+        disabled={isPending || areaId.length === 0}
+        onClick={() => onRestore(areaId)}
+        className="h-7 transition-transform duration-150 active:scale-[0.97]"
+      >
+        {isPending ? 'Geri yükleniyor...' : 'Bu alana geri yükle'}
+      </Button>
+    </div>
+  );
 }
 
 function formatDate(iso: string): string {

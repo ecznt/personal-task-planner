@@ -247,6 +247,7 @@ type InlineSelectProps = {
   readonly label?: string;
   readonly triggerClassName?: string;
   readonly onClear?: () => void;
+  readonly disabled?: boolean;
 };
 
 export function InlineSelect({
@@ -257,6 +258,7 @@ export function InlineSelect({
   label,
   triggerClassName,
   onClear,
+  disabled = false,
 }: InlineSelectProps) {
   const selected = options.find((option) => option.value === value);
 
@@ -270,9 +272,11 @@ export function InlineSelect({
           <button
             type="button"
             aria-label={label}
+            disabled={disabled}
             className={cn(
               'inline-flex h-8 items-center gap-1.5 rounded-lg border border-border/70 bg-muted/60 px-2.5 text-sm font-medium transition-colors duration-150 hover:bg-accent focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-[0.97]',
               value === null && 'text-muted-foreground',
+              disabled && 'pointer-events-none opacity-60',
               triggerClassName,
             )}
           >

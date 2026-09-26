@@ -13,6 +13,7 @@ import { ListSkeleton } from '@/components/list-skeleton';
 import { PageHeader } from '@/components/page-header';
 import { TaskPriorityBadge } from '@/features/tasks/task-badge';
 import { TaskSnoozeMenu } from '@/features/tasks/task-snooze';
+import { TaskStatusMenu } from '@/features/tasks/task-status-menu';
 import { useTaskInspector } from '@/features/tasks/task-inspector-context';
 import { celebrateTaskCompleted } from '@/features/today/celebration-store';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
@@ -162,6 +163,7 @@ function TaskCard({
       <button
         type="button"
         onClick={() => openTask(task.id)}
+        onDoubleClick={() => openTask(task.id)}
         className="min-w-0 flex-1 cursor-pointer rounded-lg text-left"
       >
         <div className="truncate font-medium">{task.title}</div>
@@ -190,6 +192,11 @@ function TaskCard({
         </div>
       </button>
       <div className="flex shrink-0 gap-1">
+        <TaskStatusMenu
+          taskId={task.id}
+          version={task.version}
+          canonicalStatus={task.canonicalStatus}
+        />
         <TaskSnoozeMenu
           taskId={task.id}
           version={task.version}

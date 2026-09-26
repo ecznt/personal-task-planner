@@ -116,3 +116,39 @@ function nextYearlyMatch(
 export function buildGenerationKey(seriesId: string, predecessorTaskId: string): string {
   return `${seriesId}:${predecessorTaskId}`;
 }
+
+export type ProjectedOccurrence = {
+  readonly plannedAt: Date | null;
+  readonly dueAt: Date | null;
+};
+
+export function projectRecurrenceOccurrences(
+  anchorDate: Date,
+  plannedAt: Date | null,
+  dueAt: Date | null,
+  rule: RecurrenceInput,
+  rangeStart: Date,
+  rangeEnd: Date,
+): ProjectedOccurrence[] {
+  const results: ProjectedOccurrence[] = [];
+  const duration =
+    plannedAt !== null && dueAt !== null ? dueAt.getTime() - plannedAt.getTime() : null;
+
+  let cursor = anchorDate;
+
+  for (let i = 0; i < 4000; i += 1) {
+    const next = calculateNextOccurrence(cursor, rule);
+    if (next >= rangeEnd) {
+      break;
+    }
+    if (next >= rangeStart) {
+      results.push({
+        plannedAt: plannedAt !== null ? next : null,
+        dueAt: dueAt !== null ? new Date(next.getTime() + (duration ?? 0)) : null,
+      });
+    }
+    cursor = next;
+  }
+
+  return results;
+}

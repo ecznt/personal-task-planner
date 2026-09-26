@@ -23,6 +23,7 @@ import { TaskPriorityBadge } from './task-badge';
 import { SubtaskProgress } from './subtask-progress';
 import { BulkActionBar } from './bulk-action-bar';
 import { TaskSnoozeMenu } from './task-snooze';
+import { TaskStatusMenu } from './task-status-menu';
 import { useTaskInspector } from './task-inspector-context';
 
 type TaskSummary = {
@@ -380,6 +381,7 @@ export function GlobalTaskList({ projectId, embedded = false }: GlobalTaskListPr
                   <button
                     type="button"
                     onClick={() => openTask(task.id)}
+                    onDoubleClick={() => openTask(task.id)}
                     className="min-w-0 flex-1 cursor-pointer rounded-lg text-left"
                   >
                     <div className="truncate font-medium">{task.title}</div>
@@ -397,13 +399,12 @@ export function GlobalTaskList({ projectId, embedded = false }: GlobalTaskListPr
                   </button>
                 )}
 
-                <div className="ml-4 text-sm text-muted-foreground">
-                  {task.canonicalStatus === 'TO_DO'
-                    ? 'Yapılacak'
-                    : task.canonicalStatus === 'IN_PROGRESS'
-                      ? 'Devam Ediyor'
-                      : 'Tamamlandı'}
-                </div>
+                <TaskStatusMenu
+                  taskId={task.id}
+                  version={task.version}
+                  canonicalStatus={task.canonicalStatus}
+                  className="ml-4"
+                />
 
                 <TaskSnoozeMenu
                   taskId={task.id}

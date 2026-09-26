@@ -7,7 +7,10 @@ import type {
   DateStateValue,
   KanbanTaskFilter,
   KanbanTaskSummary,
+  RecurrenceFrequency,
+  RecurrenceMode,
   RecurrenceSeriesDetail,
+  RecurrenceSeriesProjection,
   Task,
   TaskDetail,
   TaskPriority,
@@ -125,13 +128,6 @@ export class TaskRepository {
           priority: input.priority,
           globalRank: nextGlobalRank,
           areaRank: nextAreaRank,
-          ...(input.recurrence
-            ? {
-                recurrenceSeriesId,
-                recurrenceRuleVersionId,
-                occurrenceNumber: 1,
-              }
-            : {}),
         },
       });
 
@@ -706,6 +702,7 @@ export class TaskRepository {
         lifecycleState: 'ACTIVE',
         OR: [
           { dueAt: { lt: todayStart } },
+          { plannedAt: { lt: todayStart } },
           { plannedAt: { gte: todayStart, lt: todayEnd } },
           { dueAt: { gte: todayStart, lt: todayEnd } },
         ],
@@ -735,7 +732,10 @@ export class TaskRepository {
           reasons.push('completedToday');
         }
       } else {
-        if (task.dueAt !== null && task.dueAt < todayStart) {
+        if (
+          (task.dueAt !== null && task.dueAt < todayStart) ||
+          (task.plannedAt !== null && task.plannedAt < todayStart)
+        ) {
           reasons.push('overdue');
         }
 
@@ -830,6 +830,20 @@ export class TaskRepository {
           where: { lifecycleState: 'ACTIVE' },
           select: SUBTASK_COUNT_SELECT,
         },
+        recurrenceSeries: {
+          select: {
+            id: true,
+          },
+        },
+        recurrenceRuleVersion: {
+          select: {
+            id: true,
+            mode: true,
+            frequency: true,
+            interval: true,
+            state: true,
+          },
+        },
       },
     });
 
@@ -853,7 +867,119 @@ export class TaskRepository {
         color: tl.label.color,
         version: tl.label.version,
       })),
+      ...(task.recurrenceSeries !== null && task.recurrenceRuleVersion?.state === 'ACTIVE'
+        ? {
+            recurrenceProjection: {
+              seriesId: task.recurrenceSeries.id,
+              mode: task.recurrenceRuleVersion.mode,
+              frequency: task.recurrenceRuleVersion.frequency,
+              interval: task.recurrenceRuleVersion.interval,
+              occurrenceNumber: task.occurrenceNumber ?? 1,
+              date: (task.plannedAt ?? task.dueAt)?.toISOString() ?? '',
+            } satisfies RecurrenceSeriesProjection,
+          }
+        : {}),
     }));
+  }
+
+  async findRecurrenceAnchors(
+    userId: string,
+  ): Promise<
+    readonly {
+      readonly task: TaskSummary;
+      readonly seriesId: string;
+      readonly mode: RecurrenceMode;
+      readonly frequency: RecurrenceFrequency;
+      readonly interval: number;
+      readonly selectedWeekdays: readonly number[];
+      readonly dayOfMonth: number | null;
+      readonly monthOfYear: number | null;
+      readonly localTime: string | null;
+      readonly nextOccurrenceNumber: number;
+    }[]
+  > {
+    const rows = await this.prisma.task.findMany({
+      where: {
+        userId,
+        lifecycleState: 'ACTIVE',
+        recurrenceSeries: { state: 'ACTIVE' },
+      },
+      orderBy: [{ occurrenceNumber: 'desc' }, { createdAt: 'desc' }],
+      distinct: ['recurrenceSeriesId'],
+      include: {
+        areaStatus: { select: { canonicalStatus: true } },
+        labels: {
+          select: { label: { select: { id: true, name: true, color: true, version: true } } },
+        },
+        subtasks: {
+          where: { lifecycleState: 'ACTIVE' },
+          select: SUBTASK_COUNT_SELECT,
+        },
+        recurrenceSeries: {
+          select: {
+            id: true,
+            nextOccurrenceNumber: true,
+          },
+        },
+        recurrenceRuleVersion: {
+          select: {
+            id: true,
+            mode: true,
+            frequency: true,
+            interval: true,
+            selectedWeekdays: true,
+            dayOfMonth: true,
+            monthOfYear: true,
+            localTime: true,
+            state: true,
+          },
+        },
+      },
+    });
+
+    return rows
+      .filter(
+        (row) => row.recurrenceSeries !== null && row.recurrenceRuleVersion?.state === 'ACTIVE',
+      )
+      .map((row) => {
+        const series = row.recurrenceSeries;
+        const rule = row.recurrenceRuleVersion;
+        if (series === null || rule === null) {
+          throw new Error('Unexpected missing recurrence series after filter');
+        }
+        return {
+          task: {
+            id: row.id,
+            title: row.title,
+            priority: row.priority,
+            canonicalStatus: row.areaStatus.canonicalStatus,
+            dueAt: row.dueAt,
+            plannedAt: row.plannedAt,
+            durationMinutes: row.durationMinutes,
+            lifecycleState: row.lifecycleState,
+            version: row.version,
+            areaId: row.areaId,
+            parentTaskId: row.parentTaskId,
+            blockedByTaskIds: [...row.blockedByTaskIds],
+            ...toSubtaskStats(row.subtasks),
+            labels: row.labels.map((tl) => ({
+              id: tl.label.id,
+              name: tl.label.name,
+              color: tl.label.color,
+              version: tl.label.version,
+            })),
+          },
+          seriesId: series.id,
+          mode: rule.mode,
+          frequency: rule.frequency,
+          interval: rule.interval,
+          selectedWeekdays: [...rule.selectedWeekdays],
+          dayOfMonth: rule.dayOfMonth,
+          monthOfYear: rule.monthOfYear,
+          localTime: rule.localTime,
+          nextOccurrenceNumber: series.nextOccurrenceNumber,
+        };
+      });
   }
 
   async findKanbanTasks(
@@ -1803,7 +1929,9 @@ function buildDateStateConstraint(
 ): Record<string, unknown> {
   switch (dateState) {
     case 'overdue':
-      return { dueAt: { lt: todayStart } };
+      return {
+        OR: [{ dueAt: { lt: todayStart } }, { plannedAt: { lt: todayStart } }],
+      };
     case 'dueToday':
       return { dueAt: { gte: todayStart, lt: todayEnd } };
     case 'plannedToday':

@@ -955,6 +955,9 @@ export class TaskController {
         completedSubtaskCount: task.completedSubtaskCount,
         labels: serializeTaskLabels(task.labels),
         blockedByTaskIds: [...task.blockedByTaskIds],
+        ...(task.recurrenceProjection
+          ? { recurrence: { ...task.recurrenceProjection } }
+          : {}),
       }));
 
     return {

@@ -15,6 +15,8 @@ import { Checklist } from '@/features/checklist/checklist';
 import { LabelManager } from '@/features/labels/label-manager';
 import { TaskLifecycleActions } from '@/features/lifecycle/task-lifecycle-actions';
 import { ReminderManager } from '@/features/reminders/reminder-manager';
+import { celebrateTaskCompleted } from '@/features/today/celebration-store';
+import { toast } from 'sonner';
 
 import {
   AutosaveStatus,
@@ -48,6 +50,12 @@ const PRIORITY_TRIGGER_CLASS: Record<'LOW' | 'MEDIUM' | 'HIGH', string> = {
   MEDIUM: 'border-border/70 bg-muted/60',
   HIGH: 'border-transparent bg-red-500/10 text-red-600 dark:bg-red-500/15 dark:text-red-400',
 };
+
+const STATUS_OPTIONS = [
+  { value: 'TO_DO', label: 'Yapılacak' },
+  { value: 'IN_PROGRESS', label: 'Devam Ediyor' },
+  { value: 'COMPLETED', label: 'Tamamlandı' },
+];
 
 function statusLabel(status: string): string {
   if (status === 'TO_DO') return 'Yapılacak';
@@ -201,6 +209,45 @@ export function TaskInspector({ taskId, variant = 'page' }: TaskInspectorProps) 
     },
   });
 
+  const moveStatus = useMutation({
+    mutationFn: async (target: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED') => {
+      const current = readTaskFromCache(queryClient, taskId);
+      if (current === undefined) {
+        throw new Error('Görev bulunamadı.');
+      }
+
+      const result = await apiClient.post({
+        url: '/api/v1/tasks/kanban-moves',
+        body: { taskId, targetCanonicalStatus: target },
+        headers: {
+          'Content-Type': 'application/json',
+          'If-Match': String(current.version),
+        },
+      });
+
+      if (result.error !== undefined) {
+        throw new Error('Durum güncellenemedi.');
+      }
+
+      return result.data;
+    },
+    onSuccess: (_data, target) => {
+      const current = readTaskFromCache(queryClient, taskId);
+      if (current !== undefined) {
+        invalidateTaskCaches(queryClient, current);
+      }
+      queryClient.invalidateQueries({ queryKey: taskDetailQueryKey(taskId) });
+      if (target === 'COMPLETED') {
+        celebrateTaskCompleted();
+      }
+      toast.success('Durum güncellendi');
+    },
+    onError: () => {
+      toast.error('Durum güncellenemedi.');
+      queryClient.invalidateQueries({ queryKey: taskDetailQueryKey(taskId) });
+    },
+  });
+
   if (task.isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -281,7 +328,17 @@ export function TaskInspector({ taskId, variant = 'page' }: TaskInspectorProps) 
       />
 
       <div className="flex flex-wrap items-center gap-2">
-        <Badge variant="neutral">{statusLabel(current.canonicalStatus)}</Badge>
+        <InlineSelect
+          label="Durum"
+          value={current.canonicalStatus}
+          options={STATUS_OPTIONS}
+          disabled={moveStatus.isPending}
+          onCommit={(next) => {
+            if (next !== current.canonicalStatus) {
+              moveStatus.mutate(next as 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED');
+            }
+          }}
+        />
         <span className="text-xs text-muted-foreground">
           Öncelik {PRIORITY_LABELS[current.priority]}
         </span>

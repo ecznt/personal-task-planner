@@ -2,7 +2,7 @@
 
 import { apiClient } from '@planner/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Repeat } from 'lucide-react';
 import { useState, useCallback, useRef, type ReactNode } from 'react';
 import { toast } from 'sonner';
 
@@ -41,6 +41,12 @@ type CalendarTask = {
     readonly name: string;
     readonly color: string | null;
   }[];
+  readonly recurrence?: Readonly<{
+    readonly seriesId: string;
+    readonly mode: string;
+    readonly frequency?: string;
+    readonly occurrenceNumber?: number;
+  }> | null;
 };
 
 type CalendarDayGroup = {
@@ -197,6 +203,7 @@ function DraggableCalendarTask({
       <button
         type="button"
         onClick={() => onOpen(task.id)}
+        onDoubleClick={() => onOpen(task.id)}
         className={cn(
           'group flex w-full items-center gap-1 truncate rounded px-1 py-px text-left text-[10px] leading-snug sm:text-[11px] hover:bg-accent/70',
           isDragging && 'cursor-grabbing',
@@ -214,6 +221,12 @@ function DraggableCalendarTask({
         />
         <LabelDots labels={task.labels} />
         <span className="truncate">{task.title}</span>
+        {task.recurrence && (
+          <Repeat
+            className="size-2.5 shrink-0 text-muted-foreground/60"
+            aria-label="Tekrarlayan görev"
+          />
+        )}
         {task.plannedAt && (
           <span className="text-[9px] text-muted-foreground/70 ml-1 whitespace-nowrap">
             {formatTime(task.plannedAt)}
@@ -584,6 +597,10 @@ export function CalendarView() {
               const isToday = key === today;
               const isCurrent = view === 'month' && date.getMonth() === cursorMonth;
               const visibleTasks = view === 'week' ? allTasks : allTasks.slice(0, 3);
+              const isPast = key < today;
+              const overdueCount = isPast
+                ? allTasks.filter((t) => t.canonicalStatus !== 'COMPLETED').length
+                : 0;
 
               return (
                 <DroppableCalendarDay
@@ -596,7 +613,7 @@ export function CalendarView() {
                     !isCurrent && 'bg-muted/30 text-muted-foreground/50',
                   )}
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-1">
                     <span
                       className={cn(
                         'inline-flex size-6 items-center justify-center rounded-full text-xs font-medium',
@@ -605,6 +622,14 @@ export function CalendarView() {
                     >
                       {date.getDate()}
                     </span>
+                    {overdueCount > 0 && (
+                      <span
+                        title={`${overdueCount} gecikmiş görev`}
+                        className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive/10 px-1 text-[9px] font-semibold text-destructive"
+                      >
+                        {overdueCount}
+                      </span>
+                    )}
                     <button
                       type="button"
                       onClick={() => setQuickAddDate(key)}

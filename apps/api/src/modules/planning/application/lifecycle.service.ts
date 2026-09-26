@@ -205,8 +205,7 @@ export class LifecycleService {
       if (!result.deleted) {
         return {
           outcome: 'INVALID_STATE' as const,
-          detail:
-            'Silme işlemi yalnızca poundAfter süresi dolmuş Çöp kutusundaki kaynaklar için geçerlidir.',
+          detail: 'Kalıcı silme işlemi yalnızca çöp kutusundaki kaynaklar için geçerlidir.',
         };
       }
       return {
@@ -299,7 +298,12 @@ export class LifecycleService {
       const affected = result;
       await this.repository.completeOperation(operation.id, tx);
 
-      const restoredNode = await this.repository.findOrigin(userId, command.kind, command.id);
+      const restoredNode = await this.repository.findOrigin(
+        userId,
+        command.kind,
+        command.id,
+        tx,
+      );
 
       return {
         outcome: 'SUCCESS',

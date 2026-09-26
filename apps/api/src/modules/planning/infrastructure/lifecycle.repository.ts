@@ -26,10 +26,12 @@ export class LifecycleRepository {
     userId: string,
     kind: LifecycleEntityKind,
     id: string,
+    tx?: Prisma.TransactionClient,
   ): Promise<LifecycleManagedNode | null> {
+    const db = tx ?? this.prisma;
     const model = PERMANENT_DELETE_ENTITY_KIND[kind];
     if (model === 'area') {
-      const row = await this.prisma.area.findFirst({
+      const row = await db.area.findFirst({
         where: { id, userId },
         select: {
           id: true,
@@ -56,7 +58,7 @@ export class LifecycleRepository {
       };
     }
     if (model === 'project') {
-      const row = await this.prisma.project.findFirst({
+      const row = await db.project.findFirst({
         where: { id, userId },
         select: {
           id: true,
@@ -83,7 +85,7 @@ export class LifecycleRepository {
         version: row.version,
       };
     }
-    const row = await this.prisma.task.findFirst({
+    const row = await db.task.findFirst({
       where: { id, userId },
       select: {
         id: true,
@@ -725,7 +727,7 @@ export class LifecycleRepository {
 
     if (kind === 'AREA') {
       const area = await tx.area.findFirst({
-        where: { id, userId, lifecycleState: 'TRASHED', purgeAfter: { lte: new Date() } },
+        where: { id, userId, lifecycleState: 'TRASHED' },
       });
       if (!area) return { affected: counts, deleted: false };
       await this.deleteAreaRecords(tx, userId, id, counts);
@@ -738,7 +740,7 @@ export class LifecycleRepository {
 
     if (kind === 'PROJECT') {
       const project = await tx.project.findFirst({
-        where: { id, userId, lifecycleState: 'TRASHED', purgeAfter: { lte: new Date() } },
+        where: { id, userId, lifecycleState: 'TRASHED' },
       });
       if (!project) return { affected: counts, deleted: false };
       await this.deleteProjectRecords(tx, userId, id, counts);
@@ -750,7 +752,7 @@ export class LifecycleRepository {
     }
 
     const task = await tx.task.findFirst({
-      where: { id, userId, lifecycleState: 'TRASHED', purgeAfter: { lte: new Date() } },
+      where: { id, userId, lifecycleState: 'TRASHED' },
     });
     if (!task) return { affected: counts, deleted: false };
     await this.deleteTaskRecords(tx, id, counts);
@@ -1249,10 +1251,7 @@ export class LifecycleRepository {
       lifecycleState: { in: ['ARCHIVED', 'TRASHED'] },
     };
     if (parent.projectId) where.projectId = parent.projectId;
-    else if (parent.areaId) {
-      where.areaId = parent.areaId;
-      where.projectId = null;
-    }
+    else if (parent.areaId) where.areaId = parent.areaId;
     const tasks = await tx.task.findMany({ where });
     for (const task of tasks) {
       if (task.lifecycleState !== 'ACTIVE') {
@@ -1282,7 +1281,7 @@ export class LifecycleRepository {
         );
         counts.tasks++;
       }
-      await this.pauseRemindersAndRecurrence(tx, userId, task.id);
+      await this.rearmReminders(tx, userId, task.id);
     }
   }
 
@@ -1376,7 +1375,7 @@ export class LifecycleRepository {
       projectId ?? undefined,
     );
     counts.tasks++;
-    await this.pauseRemindersAndRecurrence(tx, userId, task.id);
+    await this.rearmReminders(tx, userId, task.id);
   }
 
   private async deleteAreaRecords(
@@ -1396,6 +1395,7 @@ export class LifecycleRepository {
       counts.projects++;
     }
     await tx.areaStatus.deleteMany({ where: { areaId } });
+    await tx.lifecycleEffect.deleteMany({ where: { affectedId: areaId } });
     await tx.area.delete({ where: { id: areaId } });
   }
 
@@ -1406,6 +1406,7 @@ export class LifecycleRepository {
     counts: MutableCounts,
   ): Promise<void> {
     await this.deleteProjectChildren(tx, projectId, counts);
+    await tx.lifecycleEffect.deleteMany({ where: { affectedId: projectId } });
     await tx.project.delete({ where: { id: projectId } });
   }
 
@@ -1439,6 +1440,7 @@ export class LifecycleRepository {
     await tx.taskReminder.deleteMany({ where: { taskId } });
     await tx.checklistItem.deleteMany({ where: { taskId } });
     await tx.taskLabel.deleteMany({ where: { taskId } });
+    await tx.lifecycleEffect.deleteMany({ where: { affectedId: taskId } });
     await tx.task.delete({ where: { id: taskId } });
     counts.tasks++;
   }
@@ -1451,6 +1453,17 @@ export class LifecycleRepository {
     await tx.taskReminder.updateMany({
       where: { taskId, userId, state: 'SCHEDULED' },
       data: { state: 'PAUSED', version: { increment: 1 } },
+    });
+  }
+
+  private async rearmReminders(
+    tx: Prisma.TransactionClient,
+    userId: string,
+    taskId: string,
+  ): Promise<void> {
+    await tx.taskReminder.updateMany({
+      where: { taskId, userId, state: 'PAUSED' },
+      data: { state: 'SCHEDULED', version: { increment: 1 } },
     });
   }
 

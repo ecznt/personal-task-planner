@@ -2,11 +2,11 @@
 
 import { apiClient } from '@planner/api-client';
 import { useQuery } from '@tanstack/react-query';
-import { PencilIcon } from 'lucide-react';
 
 import { ListSkeleton } from '@/components/list-skeleton';
 import { TaskPriorityBadge } from '@/features/tasks/task-badge';
 import { SubtaskProgress } from '@/features/tasks/subtask-progress';
+import { TaskStatusMenu } from '@/features/tasks/task-status-menu';
 import { useTaskInspector } from '@/features/tasks/task-inspector-context';
 import { anchorLabel } from '@/features/labels/label-color';
 import {
@@ -21,6 +21,7 @@ type TaskSummary = {
   readonly title: string;
   readonly priority: 'LOW' | 'MEDIUM' | 'HIGH';
   readonly canonicalStatus: string;
+  readonly version: number;
   readonly dueAt: string | null;
   readonly plannedAt: string | null;
   readonly lifecycleState: string;
@@ -86,6 +87,7 @@ export function TaskList({ areaId }: TaskListProps) {
             <button
               type="button"
               onClick={() => openTask(task.id)}
+              onDoubleClick={() => openTask(task.id)}
               className={`animate-fade-slide-in flex w-full items-center justify-between rounded-lg border bg-card p-3 pr-10 text-left transition-colors duration-150 active:scale-[0.97] ${
                 anchor !== undefined ? labelHoverSurfaceClass : ''
               } hover:scale-[101%]`}
@@ -118,15 +120,16 @@ export function TaskList({ areaId }: TaskListProps) {
                   )}
                 </div>
               </div>
-              <div className="ml-4 text-sm text-muted-foreground">{task.canonicalStatus}</div>
             </button>
             {anchor !== undefined && <TaskIdentityBar color={anchor.color} />}
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground opacity-0 transition-opacity duration-150 group-hover:opacity-100"
-            >
-              <PencilIcon className="size-4" />
-            </span>
+            <div className="absolute top-1/2 right-3 -translate-y-1/2">
+              <TaskStatusMenu
+                taskId={task.id}
+                areaId={areaId}
+                version={task.version}
+                canonicalStatus={task.canonicalStatus}
+              />
+            </div>
           </div>
         );
       })}

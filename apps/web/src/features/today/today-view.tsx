@@ -15,6 +15,7 @@ import { PageHeader } from '@/components/page-header';
 import { TaskPriorityBadge } from '@/features/tasks/task-badge';
 import { SubtaskProgress } from '@/features/tasks/subtask-progress';
 import { TaskSnoozeMenu, SnoozeDialog } from '@/features/tasks/task-snooze';
+import { TaskStatusMenu } from '@/features/tasks/task-status-menu';
 import { useTaskInspector } from '@/features/tasks/task-inspector-context';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
 import { anchorLabel } from '@/features/labels/label-color';
@@ -156,6 +157,7 @@ function TaskCard({
       <button
         type="button"
         onClick={() => openTask(task.id)}
+        onDoubleClick={() => openTask(task.id)}
         onFocus={onFocus}
         onBlur={onBlur}
         className="min-w-0 flex-1 cursor-pointer rounded-lg text-left"
@@ -203,6 +205,11 @@ function TaskCard({
         </div>
       </button>
       <div className="flex shrink-0 gap-1">
+        <TaskStatusMenu
+          taskId={task.id}
+          version={task.version}
+          canonicalStatus={task.canonicalStatus}
+        />
         <TaskSnoozeMenu
           taskId={task.id}
           version={task.version}

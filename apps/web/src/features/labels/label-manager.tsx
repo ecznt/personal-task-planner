@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { apiError, csrfQueryKey, fetchCsrf } from '@/features/auth/auth-api';
 import { cn } from '@/lib/utils';
+import { Trash2 } from 'lucide-react';
 
 import { LABEL_PALETTE, resolveLabelColor } from './label-color';
 import type { CreateLabelFormValues } from './label-schema';
@@ -30,6 +31,7 @@ export function LabelManager({ selectedLabelIds, onToggleLabel }: LabelManagerPr
   const [isCreating, setIsCreating] = useState(false);
   const [newLabelName, setNewLabelName] = useState('');
   const [newLabelColor, setNewLabelColor] = useState<string>(LABEL_PALETTE[0]);
+  const [deleteTarget, setDeleteTarget] = useState<LabelSummary | null>(null);
   const queryClient = useQueryClient();
 
   const labels = useQuery({
@@ -110,6 +112,33 @@ export function LabelManager({ selectedLabelIds, onToggleLabel }: LabelManagerPr
     },
     onSuccess: () => {
       invalidateLabelConsumers();
+    },
+    onError: () => {
+      queryClient.invalidateQueries({ queryKey: ['labels'] });
+    },
+  });
+
+  const deleteLabel = useMutation({
+    mutationFn: async (label: LabelSummary) => {
+      const csrf = csrfQuery.data ?? (await fetchCsrf());
+      queryClient.setQueryData(csrfQueryKey, csrf);
+
+      const result = await apiClient.delete({
+        url: '/api/v1/labels/{labelId}',
+        path: { labelId: label.id },
+        headers: {
+          'X-CSRF-Token': csrf.token,
+          'If-Match': String(label.version),
+        },
+      });
+
+      if (result.error !== undefined) {
+        throw apiError(result.error);
+      }
+    },
+    onSuccess: () => {
+      invalidateLabelConsumers();
+      setDeleteTarget(null);
     },
     onError: () => {
       queryClient.invalidateQueries({ queryKey: ['labels'] });
@@ -210,6 +239,7 @@ export function LabelManager({ selectedLabelIds, onToggleLabel }: LabelManagerPr
         <div className="flex flex-wrap gap-2">
           {labelList.map((label) => {
             const isSelected = selectedLabelIds.includes(label.id);
+            const isDeleting = deleteTarget?.id === label.id;
 
             return (
               <span
@@ -221,37 +251,69 @@ export function LabelManager({ selectedLabelIds, onToggleLabel }: LabelManagerPr
                     : 'border-border bg-transparent text-foreground hover:bg-muted',
                 )}
               >
-                <button
-                  type="button"
-                  aria-pressed={isSelected}
-                  onClick={() => onToggleLabel(label.id)}
-                  className="inline-flex items-center gap-1.5 rounded-full transition-transform duration-150 active:scale-95"
-                >
-                  <span
-                    aria-hidden="true"
-                    className="size-3 rounded-full ring-1 ring-black/10"
-                    style={{ backgroundColor: resolveLabelColor(label.color) }}
-                  />
-                  {label.name}
-                </button>
-                <label
-                  title={`${label.name} rengini değiştir`}
-                  className="relative ml-1.5 flex size-4 cursor-pointer items-center justify-center rounded-full transition-colors duration-150 hover:bg-black/5 dark:hover:bg-white/10"
-                >
-                  <span
-                    aria-hidden="true"
-                    className="size-2.5 rounded-full"
-                    style={{ backgroundColor: resolveLabelColor(label.color) }}
-                  />
-                  <input
-                    type="color"
-                    value={resolveLabelColor(label.color)}
-                    onChange={(e) => updateLabelColor.mutate({ label, color: e.target.value })}
-                    aria-label={`${label.name} rengini değiştir`}
-                    disabled={updateLabelColor.isPending}
-                    className="absolute inset-0 cursor-pointer rounded-full opacity-0 disabled:cursor-not-allowed"
-                  />
-                </label>
+                {isDeleting ? (
+                  <>
+                    <span className="text-sm">“{label.name}” silinsin mi?</span>
+                    <button
+                      type="button"
+                      onClick={() => setDeleteTarget(null)}
+                      className="ml-1.5 rounded px-1.5 text-xs text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-foreground"
+                    >
+                      Vazgeç
+                    </button>
+                    <button
+                      type="button"
+                      disabled={deleteLabel.isPending}
+                      onClick={() => deleteLabel.mutate(label)}
+                      className="rounded px-1.5 text-xs font-medium text-destructive transition-colors duration-150 hover:bg-destructive/10"
+                    >
+                      {deleteLabel.isPending ? 'Siliniyor...' : 'Sil'}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      aria-pressed={isSelected}
+                      onClick={() => onToggleLabel(label.id)}
+                      className="inline-flex items-center gap-1.5 rounded-full transition-transform duration-150 active:scale-95"
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="size-3 rounded-full ring-1 ring-black/10"
+                        style={{ backgroundColor: resolveLabelColor(label.color) }}
+                      />
+                      {label.name}
+                    </button>
+                    <label
+                      title={`${label.name} rengini değiştir`}
+                      className="relative ml-1.5 flex size-4 cursor-pointer items-center justify-center rounded-full transition-colors duration-150 hover:bg-black/5 dark:hover:bg-white/10"
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="size-2.5 rounded-full"
+                        style={{ backgroundColor: resolveLabelColor(label.color) }}
+                      />
+                      <input
+                        type="color"
+                        value={resolveLabelColor(label.color)}
+                        onChange={(e) => updateLabelColor.mutate({ label, color: e.target.value })}
+                        aria-label={`${label.name} rengini değiştir`}
+                        disabled={updateLabelColor.isPending}
+                        className="absolute inset-0 cursor-pointer rounded-full opacity-0 disabled:cursor-not-allowed"
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      title={`${label.name} etiketini sil`}
+                      aria-label={`${label.name} etiketini sil`}
+                      onClick={() => setDeleteTarget(label)}
+                      className="ml-0.5 flex size-4 items-center justify-center rounded-full text-muted-foreground/60 transition-all duration-150 hover:bg-destructive/10 hover:text-destructive active:scale-90"
+                    >
+                      <Trash2 className="size-3" aria-hidden="true" />
+                    </button>
+                  </>
+                )}
               </span>
             );
           })}

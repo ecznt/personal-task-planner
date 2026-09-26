@@ -44,6 +44,15 @@ export type RecurrenceSeriesDetail = {
   readonly currentOpenTaskId: string | null;
 };
 
+export type RecurrenceSeriesProjection = {
+  readonly seriesId: string;
+  readonly mode: RecurrenceMode;
+  readonly frequency: RecurrenceFrequency;
+  readonly interval: number;
+  readonly occurrenceNumber: number;
+  readonly date: string;
+};
+
 export type Task = {
   readonly id: string;
   readonly userId: string;
@@ -88,6 +97,7 @@ export type TaskSummary = {
   readonly completedSubtaskCount: number;
   readonly blockedByTaskIds: readonly string[];
   readonly labels: readonly LabelSummary[];
+  readonly recurrenceProjection?: RecurrenceSeriesProjection | null;
 };
 
 export type KanbanTaskSummary = TaskSummary & {

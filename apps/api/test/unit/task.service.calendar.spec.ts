@@ -131,6 +131,59 @@ describe('task service — listCalendarTasks', () => {
       new Date('2026-09-16T21:00:00.000Z'),
     );
   });
+
+  it('projects future recurring occurrences from the latest series anchor', async () => {
+    const repository = repositoryMock();
+    const anchor = makeSummary('anchor-1', {
+      plannedAt: new Date('2026-09-11T09:00:00.000Z'),
+      dueAt: null,
+    });
+    repository.findUpcomingTasks.mockResolvedValue([]);
+    repository.findRecurrenceAnchors.mockResolvedValue([
+      {
+        task: anchor,
+        seriesId: 'series-1',
+        mode: 'CALENDAR_BASED',
+        frequency: 'DAILY',
+        interval: 1,
+        selectedWeekdays: [],
+        dayOfMonth: null,
+        monthOfYear: null,
+        localTime: null,
+        nextOccurrenceNumber: 2,
+      },
+    ]);
+
+    const service = new TaskService(repository, recurrenceServiceMock());
+    const result = await service.listCalendarTasks('user-id', {
+      timezone: 'UTC',
+      start: '2026-09-12',
+      end: '2026-09-14',
+    });
+
+    expect(result.outcome).toBe('SUCCESS');
+    if (result.outcome !== 'SUCCESS') return;
+
+    expect(
+      result.days.map((day) => ({
+        date: day.date,
+        planned: day.planned.map((task) => task.id),
+        due: day.due.map((task) => task.id),
+      })),
+    ).toEqual([
+      { date: '2026-09-12', planned: ['anchor-1'], due: [] },
+      { date: '2026-09-13', planned: ['anchor-1'], due: [] },
+      { date: '2026-09-14', planned: ['anchor-1'], due: [] },
+    ]);
+
+    expect(result.days[0]?.planned[0]?.recurrenceProjection).toMatchObject({
+      seriesId: 'series-1',
+      mode: 'CALENDAR_BASED',
+      frequency: 'DAILY',
+      interval: 1,
+      occurrenceNumber: 2,
+    });
+  });
 });
 
 function makeSummary(
@@ -183,6 +236,7 @@ function repositoryMock(): jest.Mocked<TaskRepository> {
     searchTasks: jest.fn(),
     bulkStatusChange: jest.fn(),
     bulkLabelChange: jest.fn(),
+    findRecurrenceAnchors: jest.fn(async () => []),
   } as unknown as jest.Mocked<TaskRepository>;
 }
 
