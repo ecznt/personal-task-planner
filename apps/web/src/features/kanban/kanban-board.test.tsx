@@ -79,7 +79,7 @@ function renderKanbanBoard(queryClient = new QueryClient()) {
 }
 
 describe('KanbanBoard', () => {
-  it('renders three columns', async () => {
+  it('renders column headers', async () => {
     mockLookups();
 
     renderKanbanBoard();
@@ -89,6 +89,22 @@ describe('KanbanBoard', () => {
       expect(screen.getByText(/Devam Ediyor/)).toBeInTheDocument();
       expect(screen.getByText(/Tamamlandı/)).toBeInTheDocument();
     });
+  });
+
+  it('renders lifecycle drop zones at the far right', async () => {
+    mockLookups();
+
+    renderKanbanBoard();
+
+    await waitFor(() => {
+      expect(screen.getByRole('status', { name: 'Arşiv bırakma bölgesi' })).toBeInTheDocument();
+      expect(screen.getByRole('status', { name: 'Çöp bırakma bölgesi' })).toBeInTheDocument();
+    });
+
+    const columns = screen.getByRole('region', { name: 'Kanban panosu, yatay kaydırılabilir' });
+    const zones = columns.querySelector('[aria-label="Yaşam döngüsü bölgeleri"]');
+    expect(zones).not.toBeNull();
+    expect(columns.children).toHaveLength(4);
   });
 
   it('renders tasks in columns', async () => {

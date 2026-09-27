@@ -17,6 +17,8 @@ export type KanbanTask = {
   readonly id: string;
   readonly title: string;
   readonly priority: 'LOW' | 'MEDIUM' | 'HIGH';
+  readonly canonicalStatus: 'TO_DO' | 'IN_PROGRESS' | 'COMPLETED';
+  readonly lifecycleState?: 'ACTIVE' | 'ARCHIVED' | 'TRASHED';
   readonly dueAt: string | null;
   readonly plannedAt: string | null;
   readonly version: number;

@@ -19,11 +19,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   DraggableKanbanCard,
   DroppableKanbanColumn,
+  KanbanLifecycleDropZone,
   moveTaskBetweenColumns,
   preventCardDragFromControls,
+  removeTaskFromColumns,
   resolveDragMove,
+  resolveLifecycleDrop,
   type DragTaskData,
 } from '@/features/kanban/kanban-dnd';
+import { archiveResource, trashResource } from '@/features/lifecycle/lifecycle-api';
 import { KanbanTaskCard, type KanbanTask } from '@/features/kanban/kanban-task-card';
 import { useTaskInspector } from '@/features/tasks/task-inspector-context';
 import { celebrateTaskCompleted } from '@/features/today/celebration-store';
@@ -57,6 +61,13 @@ export type KanbanMoveVariables = {
   targetStatusId: string;
   version: number;
   fromStatusId: string;
+};
+
+type LifecycleDropVariables = {
+  action: 'archive' | 'trash';
+  taskId: string;
+  version: number;
+  fromColumn: string;
 };
 
 export type KanbanBoardScope =
@@ -297,22 +308,79 @@ export function StatusKanbanBoard({ scope }: { scope: KanbanBoardScope }) {
     [moveMutation],
   );
 
-  const handleDragEnd = useCallback(
-    (event: DragEndEvent) => {
-      if (event.canceled) return;
-
-      const source = event.operation.source;
-      const target = event.operation.target;
-      if (source === null || target === null) return;
-
-      const move = resolveDragMove(source.data as DragTaskData, String(target.id));
-      if (move !== null) {
-        const sourceData = source.data as DragTaskData;
-        handleMove(move.taskId, move.toColumn, move.version, sourceData.fromColumn);
+  const lifecycleMutation = useMutation({
+    mutationFn: async ({ action, taskId, version }: LifecycleDropVariables) => {
+      if (action === 'trash') {
+        return trashResource({ resourceType: 'tasks', id: taskId, version }, queryClient);
       }
+      return archiveResource({ resourceType: 'tasks', id: taskId, version }, queryClient);
     },
-    [handleMove],
-  );
+    onMutate: async ({ taskId, fromColumn }: LifecycleDropVariables) => {
+      await queryClient.cancelQueries({ queryKey: config.queryKeyPrefix });
+
+      const previous = queryClient.getQueryData<KanbanResponse>([
+        ...config.queryKeyPrefix,
+        filters,
+      ]);
+
+      if (previous !== undefined) {
+        const record = Object.fromEntries(
+          previous.columns.map((column) => [column.statusId, column]),
+        );
+        const nextRecord = removeTaskFromColumns(record, taskId, fromColumn);
+        queryClient.setQueryData<KanbanResponse>([...config.queryKeyPrefix, filters], {
+          ...previous,
+          columns: previous.columns.map((column) => nextRecord[column.statusId] ?? column),
+        });
+      }
+
+      return { previous };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous !== undefined) {
+        queryClient.setQueryData<KanbanResponse>([...config.queryKeyPrefix, filters], {
+          ...context.previous,
+        });
+      }
+      toast.error('Yaşam döngüsü işlemi başarısız.');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: config.queryKeyPrefix });
+      queryClient.invalidateQueries({ queryKey: ['tasks', 'kanban'] });
+      queryClient.invalidateQueries({ queryKey: ['lifecycle'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks'], exact: false });
+    },
+    onSuccess: (_data, variables) => {
+      toast.success(variables.action === 'trash' ? 'Görev çöp kutusuna taşındı' : 'Görev arşivlendi');
+    },
+  });
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    setActiveTask(null);
+    if (event.canceled) return;
+
+    const source = event.operation.source;
+    const target = event.operation.target;
+    if (source === null || target === null) return;
+
+    const sourceData = source.data as DragTaskData;
+
+    const lifecycle = resolveLifecycleDrop(sourceData, String(target.id));
+    if (lifecycle !== null) {
+      lifecycleMutation.mutate({
+        action: lifecycle,
+        taskId: sourceData.taskId,
+        version: sourceData.version,
+        fromColumn: sourceData.fromColumn,
+      });
+      return;
+    }
+
+    const move = resolveDragMove(sourceData, String(target.id));
+    if (move !== null) {
+      handleMove(move.taskId, move.toColumn, move.version, sourceData.fromColumn);
+    }
+  };
 
   if (kanban.isLoading && !kanban.data) {
     return (
@@ -384,6 +452,18 @@ export function StatusKanbanBoard({ scope }: { scope: KanbanBoardScope }) {
               />
             );
           })}
+          <div className="flex min-w-[120px] shrink-0 flex-col gap-2" aria-label="Yaşam döngüsü bölgeleri">
+            <KanbanLifecycleDropZone
+              action="archive"
+              activeTask={activeTask}
+              pending={lifecycleMutation.isPending}
+            />
+            <KanbanLifecycleDropZone
+              action="trash"
+              activeTask={activeTask}
+              pending={lifecycleMutation.isPending}
+            />
+          </div>
         </div>
         <DragOverlay>
           {activeTask !== null && (

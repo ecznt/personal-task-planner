@@ -1,6 +1,7 @@
 'use client';
 
 import { useDroppable, useDraggable } from '@dnd-kit/react';
+import { Archive, Loader2, Trash2 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useRef } from 'react';
 
@@ -69,6 +70,97 @@ export function moveTaskBetweenColumns<
   };
 
   return next;
+}
+
+export const LIFECYCLE_ZONE_IDS = {
+  archive: 'kanban-lifecycle-archive',
+  trash: 'kanban-lifecycle-trash',
+} as const;
+
+export type KanbanLifecycleAction = 'archive' | 'trash';
+
+export function resolveLifecycleDrop(
+  sourceData: DragTaskData | undefined,
+  targetId: string | null | undefined,
+): KanbanLifecycleAction | null {
+  if (sourceData === undefined || targetId === undefined || targetId === null) return null;
+  if (sourceData.task.canonicalStatus !== 'COMPLETED') return null;
+
+  if (targetId === LIFECYCLE_ZONE_IDS.archive) return 'archive';
+  if (targetId === LIFECYCLE_ZONE_IDS.trash) return 'trash';
+  return null;
+}
+
+export function removeTaskFromColumns<
+  T extends { readonly id: string },
+  C extends Record<string, KanbanColumn<T>>,
+>(columns: C, taskId: string, fromColumn: string): C {
+  const from = columns[fromColumn];
+  if (from === undefined) return columns;
+
+  const task = from.tasks.find((t) => t.id === taskId);
+  if (task === undefined) return columns;
+
+  return {
+    ...columns,
+    [fromColumn]: { count: from.count - 1, tasks: from.tasks.filter((t) => t.id !== taskId) },
+  };
+}
+
+export function KanbanLifecycleDropZone({
+  action,
+  activeTask,
+  pending,
+}: {
+  action: KanbanLifecycleAction;
+  activeTask: KanbanTask | null;
+  pending: boolean;
+}) {
+  const elementRef = useRef<HTMLDivElement | null>(null);
+
+  const isTrash = action === 'trash';
+  const dragging = activeTask !== null;
+  const eligible = activeTask?.canonicalStatus === 'COMPLETED';
+
+  const { isDropTarget } = useDroppable({
+    id: LIFECYCLE_ZONE_IDS[action],
+    element: elementRef,
+    disabled: pending,
+    accept: (source) => {
+      const data = source.data as DragTaskData | undefined;
+      return data?.task?.canonicalStatus === 'COMPLETED';
+    },
+  });
+
+  return (
+    <div
+      ref={elementRef}
+      role="status"
+      aria-label={`${isTrash ? 'Çöp' : 'Arşiv'} bırakma bölgesi`}
+      className={cn(
+        'flex flex-1 flex-col items-center justify-center gap-1.5 rounded-xl border border-border/60 text-xs font-medium transition-all duration-150',
+        isTrash ? 'text-destructive/80' : 'text-muted-foreground',
+        dragging && !eligible && 'opacity-40',
+        isDropTarget &&
+          cn(
+            'scale-[1.02] ring-2',
+            isTrash
+              ? 'border-destructive/60 bg-destructive/10 ring-destructive/40'
+              : 'border-primary/60 bg-primary/10 ring-primary/40',
+          ),
+        pending && 'cursor-wait opacity-60',
+      )}
+    >
+      {pending ? (
+        <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+      ) : isTrash ? (
+        <Trash2 className="size-4" aria-hidden="true" />
+      ) : (
+        <Archive className="size-4" aria-hidden="true" />
+      )}
+      <span>{isTrash ? 'Çöp' : 'Arşiv'}</span>
+    </div>
+  );
 }
 
 export function DraggableKanbanCard({

@@ -1,12 +1,20 @@
 import { describe, expect, it } from 'vitest';
 
-import { moveTaskBetweenColumns, preventCardDragFromControls, resolveDragMove } from './kanban-dnd';
+import {
+  moveTaskBetweenColumns,
+  preventCardDragFromControls,
+  removeTaskFromColumns,
+  resolveDragMove,
+  resolveLifecycleDrop,
+  type DragTaskData,
+} from './kanban-dnd';
 import type { KanbanTask } from './kanban-task-card';
 
 const task = (id: string): KanbanTask => ({
   id,
   title: `Görev ${id}`,
   priority: 'MEDIUM',
+  canonicalStatus: 'TO_DO',
   dueAt: null,
   plannedAt: null,
   version: 1,
@@ -17,6 +25,8 @@ const task = (id: string): KanbanTask => ({
   project: null,
   parentTask: null,
 });
+
+const completedTask = (id: string): KanbanTask => ({ ...task(id), canonicalStatus: 'COMPLETED' });
 
 describe('resolveDragMove', () => {
   it('returns a move when source and target columns differ', () => {
@@ -51,6 +61,39 @@ describe('resolveDragMove', () => {
         null,
       ),
     ).toBeNull();
+  });
+});
+
+describe('resolveLifecycleDrop', () => {
+  const source = (taskBody: KanbanTask): DragTaskData => ({
+    taskId: taskBody.id,
+    version: taskBody.version,
+    fromColumn: 'completed',
+    task: taskBody,
+  });
+
+  it('resolves to archive when a completed task is dropped on the archive zone', () => {
+    expect(resolveLifecycleDrop(source(completedTask('task-1')), 'kanban-lifecycle-archive')).toBe(
+      'archive',
+    );
+  });
+
+  it('resolves to trash when a completed task is dropped on the trash zone', () => {
+    expect(resolveLifecycleDrop(source(completedTask('task-1')), 'kanban-lifecycle-trash')).toBe(
+      'trash',
+    );
+  });
+
+  it('returns null for non-completed tasks', () => {
+    expect(resolveLifecycleDrop(source(task('task-1')), 'kanban-lifecycle-archive')).toBeNull();
+    expect(resolveLifecycleDrop(source(task('task-1')), 'kanban-lifecycle-trash')).toBeNull();
+  });
+
+  it('returns null when the target is not a lifecycle zone', () => {
+    expect(resolveLifecycleDrop(source(completedTask('task-1')), 'completed')).toBeNull();
+    expect(resolveLifecycleDrop(source(completedTask('task-1')), undefined)).toBeNull();
+    expect(resolveLifecycleDrop(source(completedTask('task-1')), null)).toBeNull();
+    expect(resolveLifecycleDrop(undefined, 'kanban-lifecycle-archive')).toBeNull();
   });
 });
 
@@ -127,5 +170,25 @@ describe('moveTaskBetweenColumns', () => {
     expect(moveTaskBetweenColumns(columns, 'missing', 'todo', 'done')).toBe(columns);
     expect(moveTaskBetweenColumns(columns, 'a', 'nope', 'done')).toBe(columns);
     expect(moveTaskBetweenColumns(columns, 'a', 'todo', 'nope')).toBe(columns);
+  });
+});
+
+describe('removeTaskFromColumns', () => {
+  it('removes a task from the source column and updates the count', () => {
+    const columns = {
+      completed: { count: 2, tasks: [task('a'), completedTask('b')] },
+    };
+
+    const next = removeTaskFromColumns(columns, 'b', 'completed');
+
+    expect(next.completed).toEqual({ count: 1, tasks: [task('a')] });
+    expect(columns.completed).toEqual({ count: 2, tasks: [task('a'), completedTask('b')] });
+  });
+
+  it('does not mutate when the task or column is missing', () => {
+    const columns = { completed: { count: 1, tasks: [completedTask('a')] } };
+
+    expect(removeTaskFromColumns(columns, 'missing', 'completed')).toBe(columns);
+    expect(removeTaskFromColumns(columns, 'a', 'nope')).toBe(columns);
   });
 });
