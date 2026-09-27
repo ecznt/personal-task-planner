@@ -22,6 +22,7 @@ describe('task service — listTodayTasks', () => {
       plannedToday: [],
       dueToday: [],
       completedToday: [],
+      untimed: [],
     });
   });
 
@@ -97,6 +98,44 @@ describe('task service — listTodayTasks', () => {
       expect(result.dueToday).toHaveLength(0);
     }
   });
+
+  it('includes untimed open tasks as a separate bucket', async () => {
+    const repository = repositoryMock();
+    repository.findTodayTasks.mockResolvedValue([]);
+    repository.findUntimedOpenTasks.mockResolvedValue([
+      {
+        id: 'task-untimed',
+        title: 'Tarihsiz Task',
+        priority: 'LOW',
+        canonicalStatus: 'TO_DO',
+        dueAt: null,
+        plannedAt: null,
+        durationMinutes: null,
+        lifecycleState: 'ACTIVE',
+        version: 1,
+        areaId: 'area-id',
+        parentTaskId: null,
+        subtaskCount: 0,
+        completedSubtaskCount: 0,
+        blockedByTaskIds: [],
+        labels: [],
+        isBlocked: false,
+        reasons: ['untimed'],
+      },
+    ]);
+
+    const service = new TaskService(repository, recurrenceServiceMock());
+    const result = await service.listTodayTasks('user-id', {
+      timezone: 'Europe/Istanbul',
+    });
+
+    expect(result.outcome).toBe('SUCCESS');
+    if (result.outcome === 'SUCCESS') {
+      expect(result.untimed).toHaveLength(1);
+      expect(result.untimed[0]?.title).toBe('Tarihsiz Task');
+      expect(result.overdue).toHaveLength(0);
+    }
+  });
 });
 
 function repositoryMock(): jest.Mocked<TaskRepository> {
@@ -107,6 +146,7 @@ function repositoryMock(): jest.Mocked<TaskRepository> {
     listByArea: jest.fn(),
     listGlobal: jest.fn(),
     findTodayTasks: jest.fn(),
+    findUntimedOpenTasks: jest.fn(async () => []),
     updateTask: jest.fn(),
     findParentForSubtask: jest.fn(),
     getSubtaskStats: jest.fn(),

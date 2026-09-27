@@ -61,8 +61,9 @@ describe('TodayView', () => {
       timezone: 'Europe/Istanbul',
       overdue: { count: 0, tasks: [] },
       plannedToday: { count: 0, tasks: [] },
-      dueToday: { count: 0, tasks: [] },
+dueToday: { count: 0, tasks: [] },
       completedToday: { count: 0, tasks: [] },
+      untimed: { count: 0, tasks: [] },
     });
 
     renderTodayView();
@@ -93,8 +94,9 @@ describe('TodayView', () => {
         ],
       },
       plannedToday: { count: 0, tasks: [] },
-      dueToday: { count: 0, tasks: [] },
+dueToday: { count: 0, tasks: [] },
       completedToday: { count: 0, tasks: [] },
+      untimed: { count: 0, tasks: [] },
     });
 
     renderTodayView();
@@ -126,8 +128,9 @@ describe('TodayView', () => {
         ],
       },
       plannedToday: { count: 0, tasks: [] },
-      dueToday: { count: 0, tasks: [] },
+dueToday: { count: 0, tasks: [] },
       completedToday: { count: 0, tasks: [] },
+      untimed: { count: 0, tasks: [] },
     });
 
     renderTodayView();
@@ -146,8 +149,9 @@ describe('TodayView', () => {
       timezone: 'Europe/Istanbul',
       overdue: { count: 0, tasks: [] },
       plannedToday: { count: 0, tasks: [] },
-      dueToday: { count: 0, tasks: [] },
+dueToday: { count: 0, tasks: [] },
       completedToday: { count: 0, tasks: [] },
+      untimed: { count: 0, tasks: [] },
     });
 
     renderTodayView();
@@ -195,8 +199,9 @@ describe('TodayView', () => {
           },
         ],
       },
-      dueToday: { count: 0, tasks: [] },
+dueToday: { count: 0, tasks: [] },
       completedToday: { count: 0, tasks: [] },
+      untimed: { count: 0, tasks: [] },
     });
 
     renderTodayView();
@@ -209,5 +214,41 @@ describe('TodayView', () => {
     expect(screen.getAllByTestId('task-identity-bar')).toHaveLength(2);
     expect(screen.getByText('Acil')).toBeInTheDocument();
     expect(screen.getByText('İş')).toBeInTheDocument();
+  });
+
+  it('renders the untimed section with a count', async () => {
+    mockToday({
+      today: '2026-08-21',
+      timezone: 'Europe/Istanbul',
+      overdue: { count: 0, tasks: [] },
+      plannedToday: { count: 0, tasks: [] },
+      dueToday: { count: 0, tasks: [] },
+      completedToday: { count: 0, tasks: [] },
+      untimed: {
+        count: 1,
+        tasks: [
+          {
+            id: 'task-untimed',
+            title: 'Tarihsiz Görev',
+            priority: 'MEDIUM',
+            canonicalStatus: 'TO_DO',
+            dueAt: null,
+            plannedAt: null,
+            lifecycleState: 'ACTIVE',
+            reasons: ['untimed'],
+            labels: [],
+          },
+        ],
+      },
+    });
+
+    renderTodayView();
+
+    await waitFor(() => {
+      expect(screen.getByText(/Tarihsiz \(1\)/)).toBeInTheDocument();
+    });
+
+    expect(screen.getAllByText('Tarihsiz Görev').length).toBeGreaterThan(0);
+    expect(screen.getByText('Tarihsiz')).toBeInTheDocument();
   });
 });

@@ -52,6 +52,7 @@ type UpcomingResponse = {
   timezone: string;
   overdue: readonly UpcomingTask[];
   days: readonly UpcomingDayGroup[];
+  untimed: readonly UpcomingTask[];
 };
 
 function formatTime(iso: string | null): string {
@@ -306,7 +307,9 @@ export function UpcomingView() {
 
   const data = upcoming.data;
   const hasAnyTasks =
-    data.overdue.length > 0 || data.days.some((day) => day.planned.length + day.due.length > 0);
+    data.overdue.length > 0 ||
+    data.days.some((day) => day.planned.length + day.due.length > 0) ||
+    data.untimed.length > 0;
 
   return (
     <div className="space-y-6">
@@ -390,6 +393,32 @@ export function UpcomingView() {
                 </div>
               );
             })}
+
+          {data.untimed.length > 0 && (
+            <div className="space-y-2">
+              <DayHeader
+                title="Tarihsiz"
+                count={data.untimed.length}
+                id="upcoming-untimed"
+                open={openDays['untimed'] ?? true}
+                onToggle={() => toggleDay('untimed')}
+              />
+              {openDays['untimed'] !== false && (
+                <div className="space-y-2">
+                  {data.untimed.map((task, index) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      index={index}
+                      onStatusChange={(taskId, target, version) =>
+                        moveMutation.mutate({ taskId, target, version })
+                      }
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -2700,6 +2700,9 @@
           },
           "today": {
             "type": "string"
+          },
+          "untimed": {
+            "$ref": "#/components/schemas/TodaySectionDto"
           }
         },
         "required": [
@@ -2708,7 +2711,8 @@
           "overdue",
           "plannedToday",
           "dueToday",
-          "completedToday"
+          "completedToday",
+          "untimed"
         ],
         "type": "object"
       },
@@ -2867,12 +2871,19 @@
           },
           "timezone": {
             "type": "string"
+          },
+          "untimed": {
+            "items": {
+              "$ref": "#/components/schemas/UpcomingTaskSummaryDto"
+            },
+            "type": "array"
           }
         },
         "required": [
           "timezone",
           "overdue",
-          "days"
+          "days",
+          "untimed"
         ],
         "type": "object"
       },

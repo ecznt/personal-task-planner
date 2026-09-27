@@ -150,6 +150,7 @@ describe('task service upcoming bucketing', () => {
           due: [],
         },
       ],
+      untimed: [],
     });
   });
 
@@ -166,6 +167,23 @@ describe('task service upcoming bucketing', () => {
     expect(result.outcome).toBe('SUCCESS');
     if (result.outcome !== 'SUCCESS') return;
     expect(result.days).toHaveLength(31);
+  });
+
+  it('exposes untimed open tasks in the result', async () => {
+    const repository = repositoryMock();
+    repository.findUpcomingTasks.mockResolvedValue([]);
+    const untimed = { ...makeSummary('t-untimed', {}), reasons: ['untimed'], isBlocked: false };
+    repository.findUntimedOpenTasks.mockResolvedValue([untimed]);
+
+    const service = new TaskService(repository, recurrenceServiceMock(), areaServiceMock());
+    const result = await service.listUpcomingTasks('user-id', {
+      timezone: 'Europe/Istanbul',
+      days: 3,
+    });
+
+    expect(result.outcome).toBe('SUCCESS');
+    if (result.outcome !== 'SUCCESS') return;
+    expect(result.untimed).toEqual([untimed]);
   });
 });
 
@@ -290,6 +308,7 @@ function repositoryMock(): jest.Mocked<TaskRepository> {
     moveAreaKanbanTask: jest.fn(),
     getCanonicalStatus: jest.fn(),
     findUpcomingTasks: jest.fn(),
+    findUntimedOpenTasks: jest.fn(async () => []),
     projectBelongsToArea: jest.fn(),
     labelsBelongToUser: jest.fn(),
   } as unknown as jest.Mocked<TaskRepository>;

@@ -18,6 +18,7 @@ type TodayBriefingProps = {
   readonly plannedToday: readonly TodayTask[];
   readonly dueToday: readonly TodayTask[];
   readonly completedToday: readonly TodayTask[];
+  readonly untimed?: readonly TodayTask[];
 };
 
 export function TodayBriefing({
@@ -25,8 +26,9 @@ export function TodayBriefing({
   plannedToday,
   dueToday,
   completedToday,
+  untimed = [],
 }: TodayBriefingProps) {
-  const remaining = [...overdue, ...plannedToday, ...dueToday];
+  const remaining = [...overdue, ...plannedToday, ...dueToday, ...untimed];
   const completed = completedToday.length;
   const total = completed + remaining.length;
   const blockedTasks = remaining.filter((task) => task.isBlocked === true);
@@ -68,6 +70,9 @@ export function TodayBriefing({
             ) : null}{' '}
             {dueToday.length > 0 ? (
               <Badge variant="warning">{dueToday.length} bitiş</Badge>
+            ) : null}{' '}
+            {untimed.length > 0 ? (
+              <Badge variant="neutral">{untimed.length} tarihsiz</Badge>
             ) : null}{' '}
             {blocked > 0 ? (
               <Badge variant="neutral">{blocked} bloke</Badge>

@@ -6,6 +6,7 @@ import { Inbox, PencilIcon } from 'lucide-react';
 import { useState } from 'react';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/empty-state';
 import { ListSkeleton } from '@/components/list-skeleton';
 import { PageHeader } from '@/components/page-header';
@@ -77,6 +78,15 @@ function formatDate(iso: string | null): string {
     day: 'numeric',
     month: 'short',
   });
+}
+
+function isUntimed(task: Pick<TaskSummary, 'plannedAt' | 'dueAt'>): boolean {
+  return task.plannedAt === null && task.dueAt === null;
+}
+
+function UntimedBadge({ task }: { task: Pick<TaskSummary, 'plannedAt' | 'dueAt'> }) {
+  if (!isUntimed(task)) return null;
+  return <Badge variant="neutral">Tarihsiz</Badge>;
 }
 
 export function GlobalTaskList({ projectId, embedded = false }: GlobalTaskListProps) {
@@ -374,6 +384,7 @@ export function GlobalTaskList({ projectId, embedded = false }: GlobalTaskListPr
                       />
                       {task.plannedAt && <span>Plan: {formatDate(task.plannedAt)}</span>}
                       {task.dueAt && <span>Bitiş: {formatDate(task.dueAt)}</span>}
+                      <UntimedBadge task={task} />
                       {labelReveal}
                     </div>
                   </div>
@@ -394,6 +405,7 @@ export function GlobalTaskList({ projectId, embedded = false }: GlobalTaskListPr
                       />
                       {task.plannedAt && <span>Plan: {formatDate(task.plannedAt)}</span>}
                       {task.dueAt && <span>Bitiş: {formatDate(task.dueAt)}</span>}
+                      <UntimedBadge task={task} />
                       {labelReveal}
                     </div>
                   </button>

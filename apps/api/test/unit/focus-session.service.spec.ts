@@ -26,14 +26,19 @@ const repositoryMock = (): FocusSessionRepository =>
 const serviceMock = (repository: FocusSessionRepository): FocusSessionService =>
   new FocusSessionService(repository);
 
+const recentStarted = new Date(Date.now() - 25 * 60 * 1_000);
+const recentCompleted = new Date(Date.now() - 5 * 60 * 1_000);
+const recentStartedIso = recentStarted.toISOString();
+const recentCompletedIso = recentCompleted.toISOString();
+
 describe('focus session service — recordFocusSession', () => {
   it('records a session from a command', async () => {
     const repository = repositoryMock();
     const service = serviceMock(repository);
 
     const result = await service.recordFocusSession('user-id', {
-      startedAt: '2026-09-25T08:00:00.000Z',
-      completedAt: '2026-09-25T08:25:00.000Z',
+      startedAt: recentStartedIso,
+      completedAt: recentCompletedIso,
       durationMinutes: 25,
       clientKey: 'client-key-1',
     });
@@ -45,8 +50,8 @@ describe('focus session service — recordFocusSession', () => {
       expect(result.etag).toBe(1);
     }
     expect(repository.create).toHaveBeenCalledWith('user-id', {
-      startedAt: new Date('2026-09-25T08:00:00.000Z'),
-      completedAt: new Date('2026-09-25T08:25:00.000Z'),
+      startedAt: recentStarted,
+      completedAt: recentCompleted,
       durationMinutes: 25,
       clientKey: 'client-key-1',
     });
@@ -61,8 +66,8 @@ describe('focus session service — recordFocusSession', () => {
     const service = serviceMock(repository);
 
     const result = await service.recordFocusSession('user-id', {
-      startedAt: '2026-09-25T08:00:00.000Z',
-      completedAt: '2026-09-25T08:25:00.000Z',
+      startedAt: recentStartedIso,
+      completedAt: recentCompletedIso,
       durationMinutes: 25,
       clientKey: 'client-key-1',
     });
@@ -81,8 +86,8 @@ describe('focus session service — recordFocusSession', () => {
 
     await expect(
       service.recordFocusSession('user-id', {
-        startedAt: '2026-09-25T08:00:00.000Z',
-        completedAt: '2026-09-25T08:25:00.000Z',
+        startedAt: recentStartedIso,
+        completedAt: recentCompletedIso,
         durationMinutes: 25,
         clientKey: 'client-key-1',
       }),
@@ -93,8 +98,8 @@ describe('focus session service — recordFocusSession', () => {
     const service = serviceMock(repositoryMock());
 
     const result = await service.recordFocusSession('user-id', {
-      startedAt: '2026-09-25T08:00:00.000Z',
-      completedAt: '2026-09-25T08:25:00.000Z',
+      startedAt: recentStartedIso,
+      completedAt: recentCompletedIso,
       durationMinutes: 25,
       clientKey: '   ',
     });
@@ -106,8 +111,8 @@ describe('focus session service — recordFocusSession', () => {
     const service = serviceMock(repositoryMock());
 
     const result = await service.recordFocusSession('user-id', {
-      startedAt: '2026-09-25T08:00:00.000Z',
-      completedAt: '2026-09-25T08:04:00.000Z',
+      startedAt: recentStartedIso,
+      completedAt: recentCompletedIso,
       durationMinutes: 4,
       clientKey: 'client-key-1',
     });
@@ -119,8 +124,8 @@ describe('focus session service — recordFocusSession', () => {
     const service = serviceMock(repositoryMock());
 
     const result = await service.recordFocusSession('user-id', {
-      startedAt: '2026-09-25T08:25:00.000Z',
-      completedAt: '2026-09-25T08:00:00.000Z',
+      startedAt: recentCompletedIso,
+      completedAt: recentStartedIso,
       durationMinutes: 25,
       clientKey: 'client-key-1',
     });
@@ -136,7 +141,7 @@ describe('focus session service — recordFocusSession', () => {
     const farFuture = new Date(Date.now() + 60 * 60 * 1_000);
 
     const result = await service.recordFocusSession('user-id', {
-      startedAt: '2026-09-25T08:00:00.000Z',
+      startedAt: recentStartedIso,
       completedAt: farFuture.toISOString(),
       durationMinutes: 25,
       clientKey: 'client-key-1',

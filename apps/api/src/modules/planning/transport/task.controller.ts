@@ -892,6 +892,10 @@ export class TaskController {
         count: result.completedToday.length,
         tasks: mapTasks(result.completedToday),
       },
+      untimed: {
+        count: result.untimed.length,
+        tasks: mapTasks(result.untimed),
+      },
     };
   }
 
@@ -934,6 +938,7 @@ export class TaskController {
         planned: mapTasks(day.planned),
         due: mapTasks(day.due),
       })),
+      untimed: mapTasks(result.untimed),
     };
   }
 

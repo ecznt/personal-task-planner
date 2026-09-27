@@ -752,6 +752,7 @@ export type TodayResponseDto = {
     plannedToday: TodaySectionDto;
     timezone: string;
     today: string;
+    untimed: TodaySectionDto;
 };
 
 export type TodaySectionDto = {
@@ -787,6 +788,7 @@ export type UpcomingResponseDto = {
     days: Array<UpcomingDayGroupDto>;
     overdue: Array<UpcomingTaskSummaryDto>;
     timezone: string;
+    untimed: Array<UpcomingTaskSummaryDto>;
 };
 
 export type UpcomingTaskSummaryDto = {

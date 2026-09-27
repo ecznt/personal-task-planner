@@ -156,6 +156,7 @@ export type ListTodayTasksResult = {
   readonly plannedToday: readonly TodayTaskSummary[];
   readonly dueToday: readonly TodayTaskSummary[];
   readonly completedToday: readonly TodayTaskSummary[];
+  readonly untimed: readonly TodayTaskSummary[];
 };
 
 export type ListKanbanTasksResult = {
@@ -181,6 +182,7 @@ export type ListUpcomingTasksResult = {
   readonly timezone: string;
   readonly overdue: readonly TaskSummary[];
   readonly days: readonly UpcomingDayGroup[];
+  readonly untimed: readonly TaskSummary[];
 };
 
 export type MoveKanbanTaskCommand = {
@@ -617,6 +619,7 @@ export class TaskService {
     const { todayStart, todayEnd, todayStr } = parseTodayRange(query.timezone);
 
     const allTasks = await this.taskRepository.findTodayTasks(userId, todayStart, todayEnd);
+    const untimed = await this.taskRepository.findUntimedOpenTasks(userId);
 
     const overdue: TodayTaskSummary[] = [];
     const plannedToday: TodayTaskSummary[] = [];
@@ -652,6 +655,7 @@ export class TaskService {
       plannedToday,
       dueToday,
       completedToday,
+      untimed,
     };
   }
 
@@ -665,10 +669,11 @@ export class TaskService {
     const rangeEnd = ranges[ranges.length - 1]?.end;
 
     if (rangeStart === undefined || rangeEnd === undefined) {
-      return { outcome: 'SUCCESS', timezone: query.timezone, overdue: [], days: [] };
+      return { outcome: 'SUCCESS', timezone: query.timezone, overdue: [], days: [], untimed: [] };
     }
 
     const tasks = await this.taskRepository.findUpcomingTasks(userId, rangeStart, rangeEnd);
+    const untimed = await this.taskRepository.findUntimedOpenTasks(userId);
 
     const overdue: TaskSummary[] = [];
     const dayGroups: Map<string, { planned: TaskSummary[]; due: TaskSummary[] }> = new Map();
@@ -712,6 +717,7 @@ export class TaskService {
         planned: group.planned,
         due: group.due,
       })),
+      untimed,
     };
   }
 

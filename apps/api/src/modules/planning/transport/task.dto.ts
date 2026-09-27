@@ -388,6 +388,9 @@ export class TodayResponseDto {
 
   @ApiProperty({ type: () => TodaySectionDto })
   completedToday!: TodaySectionDto;
+
+  @ApiProperty({ type: () => TodaySectionDto })
+  untimed!: TodaySectionDto;
 }
 
 export class UpcomingTaskSummaryDto extends TaskSummaryDto {}
@@ -412,6 +415,9 @@ export class UpcomingResponseDto {
 
   @ApiProperty({ type: () => [UpcomingDayGroupDto] })
   days!: UpcomingDayGroupDto[];
+
+  @ApiProperty({ type: () => [UpcomingTaskSummaryDto] })
+  untimed!: UpcomingTaskSummaryDto[];
 }
 
 export class CalendarTaskSummaryDto {

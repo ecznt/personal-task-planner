@@ -65,6 +65,7 @@ describe('today task list HTTP contract', () => {
         plannedToday: [],
         dueToday: [],
         completedToday: [],
+        untimed: [],
       });
 
       const response = await request(app.getHttpServer())
@@ -86,6 +87,7 @@ describe('today task list HTTP contract', () => {
         plannedToday: [],
         dueToday: [],
         completedToday: [],
+        untimed: [],
       });
 
       await request(app.getHttpServer())

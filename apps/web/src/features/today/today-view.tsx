@@ -65,6 +65,7 @@ type TodayResponse = {
   plannedToday: TodaySection;
   dueToday: TodaySection;
   completedToday: TodaySection;
+  untimed: TodaySection;
 };
 
 const REASON_LABELS: Record<string, string> = {
@@ -72,6 +73,7 @@ const REASON_LABELS: Record<string, string> = {
   plannedToday: 'Bugün planlandı',
   dueToday: 'Bugün bitiş',
   completedToday: 'Bugün tamamlandı',
+  untimed: 'Tarihsiz',
 };
 
 function formatDate(iso: string | null): string {
@@ -254,6 +256,7 @@ export function TodayView() {
     overdue: true,
     planned: true,
     due: true,
+    untimed: true,
   });
   const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null);
   const [snoozeDialogOpen, setSnoozeDialogOpen] = useState(false);
@@ -293,6 +296,7 @@ export function TodayView() {
           ...today.data.plannedToday.tasks,
           ...today.data.dueToday.tasks,
           ...today.data.completedToday.tasks,
+          ...today.data.untimed.tasks,
         ];
         const task = allTasks.find((t) => t.id === focusedTaskId);
         if (task && (task.plannedAt || task.dueAt)) {
@@ -372,7 +376,8 @@ export function TodayView() {
     data.overdue.count > 0 ||
     data.plannedToday.count > 0 ||
     data.dueToday.count > 0 ||
-    data.completedToday.count > 0;
+    data.completedToday.count > 0 ||
+    data.untimed.count > 0;
 
   return (
     <div className="space-y-6">
@@ -392,14 +397,16 @@ export function TodayView() {
           plannedToday={data.plannedToday.tasks}
           dueToday={data.dueToday.tasks}
           completedToday={data.completedToday.tasks}
+          untimed={data.untimed.tasks}
         />
       ) : null}
 
-<NextActionCard
+      <NextActionCard
         remaining={[
           ...data.overdue.tasks,
           ...data.plannedToday.tasks,
           ...data.dueToday.tasks,
+          ...data.untimed.tasks,
         ]}
         onComplete={({ id, version }) => handleStatusChange(id, 'COMPLETED', version)}
       />
@@ -484,6 +491,32 @@ export function TodayView() {
               {openSections.due && (
                 <div id="today-section-due" className="space-y-2">
                   {data.dueToday.tasks.map((task, index) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      index={index}
+                      onStatusChange={handleStatusChange}
+                      onFocus={() => setFocusedTaskId(task.id)}
+                      onBlur={() => setFocusedTaskId(null)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {data.untimed.count > 0 && (
+            <div className="space-y-2">
+              <SectionHeader
+                title="Tarihsiz"
+                count={data.untimed.count}
+                id="today-section-untimed"
+                open={openSections['untimed'] ?? true}
+                onToggle={() => toggleSection('untimed')}
+              />
+              {openSections.untimed && (
+                <div id="today-section-untimed" className="space-y-2">
+                  {data.untimed.tasks.map((task, index) => (
                     <TaskCard
                       key={task.id}
                       task={task}

@@ -787,6 +787,66 @@ export class TaskRepository {
     });
   }
 
+  async findUntimedOpenTasks(userId: string): Promise<readonly TodayTaskSummary[]> {
+    const tasks = await this.prisma.task.findMany({
+      where: {
+        userId,
+        lifecycleState: 'ACTIVE',
+        plannedAt: null,
+        dueAt: null,
+        areaStatus: { canonicalStatus: { not: 'COMPLETED' } },
+      },
+      orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }, { id: 'asc' }],
+      include: {
+        areaStatus: { select: { canonicalStatus: true } },
+        labels: {
+          select: { label: { select: { id: true, name: true, color: true, version: true } } },
+        },
+        subtasks: {
+          where: { lifecycleState: 'ACTIVE' },
+          select: SUBTASK_COUNT_SELECT,
+        },
+      },
+    });
+
+    const summaries: (TaskSummary & { readonly reasons: readonly string[] })[] = tasks.map(
+      (task) => ({
+        id: task.id,
+        title: task.title,
+        priority: task.priority,
+        canonicalStatus: task.areaStatus.canonicalStatus,
+        dueAt: task.dueAt,
+        plannedAt: task.plannedAt,
+        durationMinutes: task.durationMinutes,
+        lifecycleState: task.lifecycleState,
+        version: task.version,
+        areaId: task.areaId,
+        parentTaskId: task.parentTaskId,
+        blockedByTaskIds: [...task.blockedByTaskIds],
+        ...toSubtaskStats(task.subtasks),
+        labels: task.labels.map((tl) => ({
+          id: tl.label.id,
+          name: tl.label.name,
+          color: tl.label.color,
+          version: tl.label.version,
+        })),
+        reasons: ['untimed'],
+      }),
+    );
+
+    const blockedByMap = await this.loadBlockedBy(userId, summaries);
+
+    return summaries.map((task) => {
+      const blockers = blockedByMap.get(task.id) ?? [];
+      return {
+        ...task,
+        isBlocked:
+          blockers.length > 0 &&
+          blockers.some((blocker) => blocker.canonicalStatus !== 'COMPLETED'),
+      };
+    });
+  }
+
   async findCompletedTasksBetween(
     userId: string,
     rangeStart: Date,
