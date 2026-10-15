@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
@@ -71,6 +71,32 @@ describe('AreaKanbanBoard', () => {
       expect(screen.getByText('Yapılacak')).toBeInTheDocument();
       expect(screen.getByText('İnceleme')).toBeInTheDocument();
     });
+  });
+
+  it('renders lifecycle drop zones at the far right', async () => {
+    mockedApiClient.get.mockImplementation(({ url }: { url: string }) =>
+      Promise.resolve(
+        url === `/api/v1/areas/area-1/kanban`
+          ? {
+              data: {
+                statuses: [{ id: 's1', name: 'Yapılacak', canonicalStatus: 'TO_DO', position: 1 }],
+                columns: [{ statusId: 's1', count: 0, tasks: [] }],
+              },
+              error: undefined,
+            }
+          : { data: { data: [] }, error: undefined },
+      ),
+    );
+
+    renderAreaKanbanBoard();
+
+    await waitFor(() => {
+      expect(screen.getByRole('status', { name: 'Arşiv bırakma bölgesi' })).toBeInTheDocument();
+      expect(screen.getByRole('status', { name: 'Çöp bırakma bölgesi' })).toBeInTheDocument();
+    });
+
+    const zones = screen.getByRole('group', { name: 'Yaşam döngüsü bölgeleri' });
+    expect(within(zones).getAllByRole('status')).toHaveLength(2);
   });
 
   it('renders tasks in columns', async () => {

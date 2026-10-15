@@ -44,6 +44,20 @@ export function resolveDragMove(
   return { taskId: sourceData.taskId, version: sourceData.version, toColumn: targetColumn };
 }
 
+/**
+ * Like `resolveDragMove`, but additionally rejects targets that are not real
+ * board columns (e.g. lifecycle zone ids leaking through as drop targets).
+ */
+export function resolveStatusDragMove(
+  sourceData: DragTaskData | undefined,
+  targetColumn: string | null | undefined,
+  isKnownColumn: (statusId: string) => boolean,
+): { readonly taskId: string; readonly version: number; readonly toColumn: string } | null {
+  const move = resolveDragMove(sourceData, targetColumn);
+  if (move === null) return null;
+  return isKnownColumn(move.toColumn) ? move : null;
+}
+
 export type KanbanColumn<T> = {
   readonly count: number;
   readonly tasks: readonly T[];
@@ -159,6 +173,11 @@ export function KanbanLifecycleDropZone({
         <Archive className="size-4" aria-hidden="true" />
       )}
       <span>{isTrash ? 'Çöp' : 'Arşiv'}</span>
+      {dragging && !eligible && (
+        <span className="sr-only" aria-live="polite">
+          Yalnızca tamamlanmış görevler bu bölgeye taşınabilir
+        </span>
+      )}
     </div>
   );
 }

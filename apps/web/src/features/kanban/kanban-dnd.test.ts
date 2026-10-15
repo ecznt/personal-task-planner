@@ -6,6 +6,7 @@ import {
   removeTaskFromColumns,
   resolveDragMove,
   resolveLifecycleDrop,
+  resolveStatusDragMove,
   type DragTaskData,
 } from './kanban-dnd';
 import type { KanbanTask } from './kanban-task-card';
@@ -59,6 +60,54 @@ describe('resolveDragMove', () => {
       resolveDragMove(
         { taskId: 'task-1', version: 1, fromColumn: 'todo', task: task('task-1') },
         null,
+      ),
+    ).toBeNull();
+  });
+});
+
+describe('resolveStatusDragMove', () => {
+  const isKnownColumn = (statusId: string) => ['s1', 's2'].includes(statusId);
+
+  it('returns a move when the target is a known column', () => {
+    expect(
+      resolveStatusDragMove(
+        { taskId: 'task-1', version: 2, fromColumn: 's1', task: task('task-1') },
+        's2',
+        isKnownColumn,
+      ),
+    ).toEqual({ taskId: 'task-1', version: 2, toColumn: 's2' });
+  });
+
+  it('rejects lifecycle zone ids that are not real columns', () => {
+    expect(
+      resolveStatusDragMove(
+        { taskId: 'task-1', version: 2, fromColumn: 's1', task: task('task-1') },
+        'kanban-lifecycle-archive',
+        isKnownColumn,
+      ),
+    ).toBeNull();
+    expect(
+      resolveStatusDragMove(
+        { taskId: 'task-1', version: 2, fromColumn: 's1', task: task('task-1') },
+        'kanban-lifecycle-trash',
+        isKnownColumn,
+      ),
+    ).toBeNull();
+  });
+
+  it('rejects unknown columns and drops on the same column', () => {
+    expect(
+      resolveStatusDragMove(
+        { taskId: 'task-1', version: 2, fromColumn: 's1', task: task('task-1') },
+        'unknown',
+        isKnownColumn,
+      ),
+    ).toBeNull();
+    expect(
+      resolveStatusDragMove(
+        { taskId: 'task-1', version: 2, fromColumn: 's1', task: task('task-1') },
+        's1',
+        isKnownColumn,
       ),
     ).toBeNull();
   });
