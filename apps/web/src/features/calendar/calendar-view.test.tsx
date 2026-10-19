@@ -1,7 +1,14 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
+
+/**
+ * The calendar anchors its grid to the current date, so these tests pin the
+ * clock to a fixed "today" (Wednesday, 2026-09-23) to stay deterministic.
+ * Keep FAKE_TODAY in sync with the fixtures used below.
+ */
+const FAKE_TODAY = new Date('2026-09-23T12:00:00.000Z');
 
 const mocks = vi.hoisted(() => ({
   apiGet: vi.fn(),
@@ -43,6 +50,8 @@ function emptyCalendarResponse() {
 
 describe('CalendarView', () => {
   beforeEach(() => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.setSystemTime(FAKE_TODAY);
     mocks.apiGet.mockReset();
     mocks.authCsrf.mockReset();
     mocks.authCsrf.mockResolvedValue({
@@ -51,6 +60,10 @@ describe('CalendarView', () => {
       },
       error: undefined,
     });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('renders page header and weekday headers', async () => {
