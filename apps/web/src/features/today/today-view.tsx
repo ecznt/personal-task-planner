@@ -29,6 +29,7 @@ import { useKeyboardShortcut } from '@/features/shortcuts/use-keyboard-shortcut'
 import { celebrateTaskCompleted } from './celebration-store';
 import { NextActionCard } from './next-action-card';
 import { TodayBriefing } from './today-briefing';
+import { TodaySummaryCards } from './today-summary-cards';
 import { WeeklyStats } from './weekly-stats';
 
 type TodayTask = {
@@ -389,6 +390,16 @@ export function TodayView() {
           month: 'long',
           year: 'numeric',
         })} · ${data.timezone}`}
+      />
+
+      <TodaySummaryCards
+        counts={{
+          overdue: data.overdue.count,
+          plannedToday: data.plannedToday.count,
+          dueToday: data.dueToday.count,
+          completedToday: data.completedToday.count,
+          untimed: data.untimed.count,
+        }}
       />
 
       {hasAnyTasks ? (

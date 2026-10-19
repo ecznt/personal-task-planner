@@ -61,7 +61,7 @@ describe('TodayView', () => {
       timezone: 'Europe/Istanbul',
       overdue: { count: 0, tasks: [] },
       plannedToday: { count: 0, tasks: [] },
-dueToday: { count: 0, tasks: [] },
+      dueToday: { count: 0, tasks: [] },
       completedToday: { count: 0, tasks: [] },
       untimed: { count: 0, tasks: [] },
     });
@@ -94,7 +94,7 @@ dueToday: { count: 0, tasks: [] },
         ],
       },
       plannedToday: { count: 0, tasks: [] },
-dueToday: { count: 0, tasks: [] },
+      dueToday: { count: 0, tasks: [] },
       completedToday: { count: 0, tasks: [] },
       untimed: { count: 0, tasks: [] },
     });
@@ -128,7 +128,7 @@ dueToday: { count: 0, tasks: [] },
         ],
       },
       plannedToday: { count: 0, tasks: [] },
-dueToday: { count: 0, tasks: [] },
+      dueToday: { count: 0, tasks: [] },
       completedToday: { count: 0, tasks: [] },
       untimed: { count: 0, tasks: [] },
     });
@@ -149,7 +149,7 @@ dueToday: { count: 0, tasks: [] },
       timezone: 'Europe/Istanbul',
       overdue: { count: 0, tasks: [] },
       plannedToday: { count: 0, tasks: [] },
-dueToday: { count: 0, tasks: [] },
+      dueToday: { count: 0, tasks: [] },
       completedToday: { count: 0, tasks: [] },
       untimed: { count: 0, tasks: [] },
     });
@@ -199,7 +199,7 @@ dueToday: { count: 0, tasks: [] },
           },
         ],
       },
-dueToday: { count: 0, tasks: [] },
+      dueToday: { count: 0, tasks: [] },
       completedToday: { count: 0, tasks: [] },
       untimed: { count: 0, tasks: [] },
     });
@@ -250,5 +250,77 @@ dueToday: { count: 0, tasks: [] },
 
     expect(screen.getAllByText('Tarihsiz Görev').length).toBeGreaterThan(0);
     expect(screen.getByText('Tarihsiz')).toBeInTheDocument();
+  });
+
+  it('renders summary stat cards with derived counts', async () => {
+    mockToday({
+      today: '2026-08-21',
+      timezone: 'Europe/Istanbul',
+      overdue: { count: 2, tasks: [] },
+      plannedToday: { count: 1, tasks: [] },
+      dueToday: { count: 3, tasks: [] },
+      completedToday: { count: 4, tasks: [] },
+      untimed: { count: 2, tasks: [] },
+    });
+
+    renderTodayView();
+
+    await waitFor(() => {
+      expect(screen.getByText('Toplam')).toBeInTheDocument();
+    });
+
+    expect(screen.getAllByText('Gecikmiş').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Tamamlanan').length).toBeGreaterThan(0);
+
+    // Toplam = overdue(2) + plannedToday(1) + dueToday(3) + untimed(2) + completedToday(4) = 12
+    const totalTitle = screen.getByText('Toplam');
+    const totalCard = totalTitle.closest('[data-slot="card"]');
+    expect(totalCard).not.toBeNull();
+    expect(totalCard).toHaveTextContent('12');
+
+    // Bugün = plannedToday(1) + dueToday(3) = 4
+    const todayTitle = screen
+      .getAllByText('Bugün')
+      .find((el) => el.closest('[data-slot="card"]') !== null);
+    expect(todayTitle).toBeDefined();
+    const todayCard = todayTitle?.closest('[data-slot="card"]');
+    expect(todayCard).toHaveTextContent('4');
+
+    // Gecikmiş = 2
+    const overdueTitle = screen
+      .getAllByText('Gecikmiş')
+      .find((el) => el.closest('[data-slot="card"]') !== null);
+    expect(overdueTitle).toBeDefined();
+    const overdueCard = overdueTitle?.closest('[data-slot="card"]');
+    expect(overdueCard).toHaveTextContent('2');
+
+    // Tamamlanan = 4
+    const completedTitle = screen
+      .getAllByText('Tamamlanan')
+      .find((el) => el.closest('[data-slot="card"]') !== null);
+    expect(completedTitle).toBeDefined();
+    const completedCard = completedTitle?.closest('[data-slot="card"]');
+    expect(completedCard).toHaveTextContent('4');
+  });
+
+  it('renders stat cards with zero counts when there are no tasks', async () => {
+    mockToday({
+      today: '2026-08-21',
+      timezone: 'Europe/Istanbul',
+      overdue: { count: 0, tasks: [] },
+      plannedToday: { count: 0, tasks: [] },
+      dueToday: { count: 0, tasks: [] },
+      completedToday: { count: 0, tasks: [] },
+      untimed: { count: 0, tasks: [] },
+    });
+
+    renderTodayView();
+
+    await waitFor(() => {
+      expect(screen.getByText('Toplam')).toBeInTheDocument();
+    });
+
+    const totalCard = screen.getByText('Toplam').closest('[data-slot="card"]');
+    expect(totalCard).toHaveTextContent('0');
   });
 });
